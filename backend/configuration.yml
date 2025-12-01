@@ -1,0 +1,15 @@
+logging_configuration_file: logging.ini
+db:
+  pg_dsn: postgresql+asyncpg://bth:bth@localhost/bth
+  engine_echo: false
+auth:
+  argon2:
+    time_cost: 2
+    memory_cost: 102400
+    parallelism: 4
+    hash_len: 32
+    salt_len: 16
+  jwt:
+    algorithm: HS256
+    secret_key: "681af6fab13857e256a2adecfac3bca4daa16fa51a486e3dc2418e8ab0f83c3e" # A changer et à garder secret en dehors de ce fichier en PROD !, voir openssl rand -hex 32
+    token_expire_minutes: 60
