@@ -26,43 +26,46 @@
     }
 
     class Identite {
-        nom_profil
-        url_profil
+        id: UUID
+        nom_profil: str
+        url_profil: str
+        url_avatar: str
     }
     Identite "0..n" -- "1" ReseauSocial
-    Identite "1..n" --* "1" Auteur
+    Auteur "1" *-- "1..n" Identite : possède
 
-    class ReseauSocial {
-        <<Enumeration>>
+    enum ReseauSocial {
         YOUTUBE
         INSTAGRAM
         TIKTOK
         ...
     }
     class Publication {
-        texte
-        horodatage_publication
-        url
-        horodatage_scraping
+        id: UUID
+        texte: str
+        horodatage_publication: datetime
+        url: str
+        horodatage_scraping: datetime
     }
-    Auteur "0..1" --> "0..n" Publication : est l'auteur de
+    Identite "1" --> "0..n" Publication : est l'auteur de
     Publication "0..n" --> "1" ReseauSocial : publiée sur
 
     class Commentaire {
-        texte
-        horodatage_commentaire
-        url
-        categorie
-        scoring
-        url_screenshot
-        horodatage_scraping
+        id: UUID
+        texte: str
+        horodatage_commentaire: datetime
+        url: str
+        categorie: str
+        scoring: float
+        url_screenshot: str
+        horodatage_scraping: datetime
     }
 
     Publication "1" *-- "0..n" Commentaire
-    Auteur "1" --> "0..n" Commentaire : est l'auteur de
+    Identite "1" --> "0..n" Commentaire : est l'auteur de
     Commentaire "1" -- "0..n" Commentaire : réponses
 
-    User "1" --> "0..n" Publication : surveille
+    User "1" --> "0..n" Publication : suit
 @enduml
 ```
 
