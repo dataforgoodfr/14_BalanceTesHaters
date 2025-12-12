@@ -1,6 +1,5 @@
-```plantuml
-@startuml
-    !include  https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+```mermaid
+C4Context
     Person(Influenceuse , "Influenceuse")    
     System_Boundary(c1, "Balance Tes Haters") {
         Container(frontend, "Application Web", "NextJS")
@@ -16,8 +15,6 @@
     Rel(backend, db, "Lectures / écritures", "SQL")
     Rel(frontend_client, ReseauSocial, "Scraping / API", "HTTPS")
     Rel(backend, llm, "Utilise", "prompt")
-
-@enduml
 ```
 
 # Composants du système

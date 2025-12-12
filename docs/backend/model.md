@@ -1,7 +1,7 @@
 # Modèle de données
 
-```plantuml
-@startuml
+```mermaid
+classDiagram
     class User {
         id: UUID
         email: str
@@ -34,7 +34,8 @@
     Identite "0..n" -- "1" ReseauSocial
     Auteur "1" *-- "1..n" Identite : possède
 
-    enum ReseauSocial {
+    class ReseauSocial {
+        <<enumeration>>
         YOUTUBE
         INSTAGRAM
         TIKTOK
@@ -66,7 +67,6 @@
     Commentaire "1" -- "0..n" Commentaire : réponses
 
     User "1" --> "0..n" Publication : suit
-@enduml
 ```
 
 `User` : Utilisateur de la plate-forme _Balance tes haters_. 
