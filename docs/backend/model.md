@@ -2,24 +2,6 @@
 
 ```mermaid
 classDiagram
-    class User {
-        id: UUID
-        email: str
-        login: str
-        password_hash: str
-        display_name: str
-        enabled: bool
-        created_at: datetime
-        updated_at: datetime
-    }
-
-    class AuthToken {
-        jwt_token: str
-        expires_at: datetime
-        created_at: datetime
-    }
-    User "1" -- "0..n" AuthToken
-
     class Auteur {
         stat_nb_publications
         stat_nb_commentaires
@@ -27,9 +9,8 @@ classDiagram
 
     class Identite {
         id: UUID
-        nom_profil: str
-        url_profil: str
-        url_avatar: str
+        pseudo: str
+        url: str
     }
     Identite "0..n" -- "1" ReseauSocial
     Auteur "1" *-- "1..n" Identite : possède
@@ -43,30 +24,29 @@ classDiagram
     }
     class Publication {
         id: UUID
-        texte: str
-        horodatage_publication: datetime
         url: str
-        horodatage_scraping: datetime
+        date_publication: datetime
+        horodatage_capture: datetime
+        texte_publication: str
     }
     Identite "1" --> "0..n" Publication : est l'auteur de
     Publication "0..n" --> "1" ReseauSocial : publiée sur
 
     class Commentaire {
         id: UUID
-        texte: str
-        horodatage_commentaire: datetime
-        url: str
-        categorie: str
-        scoring: float
-        url_screenshot: str
-        horodatage_scraping: datetime
+        texte_commentaire: str
+        date_commentaire: str | datetime
+        date_relative: bool
+        screenshot: str
+        horodatage_screenshot: datetime
+        classification: list[str]
+        horodatage_classification: datetime
     }
 
     Publication "1" *-- "0..n" Commentaire
     Identite "1" --> "0..n" Commentaire : est l'auteur de
     Commentaire "1" -- "0..n" Commentaire : réponses
 
-    User "1" --> "0..n" Publication : suit
 ```
 
 `User` : Utilisateur de la plate-forme _Balance tes haters_. 
