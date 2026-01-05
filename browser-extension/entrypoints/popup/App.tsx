@@ -1,31 +1,7 @@
 import { useState } from "react";
 import "./App.css";
-import { getCurrentTab } from "../shared/getCurrentTab";
-import { PublicPath } from "wxt/browser";
-
-type SocialNetworkName = "youtube" | "instagram";
-type ScrapableType = "post" | "account";
-
-interface Scrapable {
-  type: ScrapableType;
-  socialNetwork: SocialNetworkName;
-}
-
-function computeScrapable(url: string): Scrapable | false {
-  if (url.startsWith("https://www.youtube.com/watch?")) {
-    return {
-      type: "post",
-      socialNetwork: "youtube",
-    };
-  }
-  if (url.startsWith("https://www.instagram.com/p/")) {
-    return {
-      type: "post",
-      socialNetwork: "instagram",
-    };
-  }
-  return false;
-}
+import { getCurrentTab } from "../shared/utils/getCurrentTab";
+import { parseSocialNetworkUrl } from "../shared/social-network-url";
 
 const sendScrapMessage = () => {
   browser.runtime.sendMessage({ messageType: "start-scraping" });
@@ -43,23 +19,26 @@ function App() {
     });
   });
 
-  const scrapable =
-    currentTab?.url !== undefined && computeScrapable(currentTab.url);
+  const parsedUrl = useMemo(() => {
+    return (
+      currentTab?.url !== undefined && parseSocialNetworkUrl(currentTab.url)
+    );
+  }, [currentTab]);
 
   return (
     <>
       <h1>BTH app</h1>
 
-      {!scrapable && (
+      {!parsedUrl && (
         <div className="card">
           Pour capturé des commentaires et les analyser naviguez vers une
           publication d'un réseau social supporté (youtube, instagram...) puis
           ouvrez l'extension à nouveau.
         </div>
       )}
-      {scrapable && (
+      {parsedUrl && (
         <div className="card">
-          Vous êtes sur un {scrapable.type} {scrapable.socialNetwork}. Pour
+          Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}. Pour
           capturé les commentaires et les analyser cliqué sur le bouton. ⚠️ une
           fois le bouton cliqué l'extension va prendre le contrôle de la page
           pour effectuer la capture.
