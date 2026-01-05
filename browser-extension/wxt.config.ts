@@ -4,6 +4,14 @@ import { defineConfig } from "wxt";
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
-    permissions: ["storage", "scripting", "debugger", "downloads", "tabs"],
+    permissions: [
+      "storage",
+      "scripting",
+      "background",
+      "debugger",
+      "downloads",
+      "tabs",
+      "unlimitedStorage",
+    ],
   },
 });
