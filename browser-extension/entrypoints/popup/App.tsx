@@ -4,7 +4,7 @@ import { getCurrentTab } from "../shared/utils/getCurrentTab";
 import { parseSocialNetworkUrl } from "../shared/social-network-url";
 
 const sendScrapMessage = () => {
-  browser.runtime.sendMessage({ messageType: "start-scraping" });
+  browser.runtime.sendMessage({ msgType: "scrap-active-tab" });
 };
 
 const reportPageUrl = browser.runtime.getURL("/report-page.html");
@@ -27,7 +27,7 @@ function App() {
 
   return (
     <>
-      <h1>BTH app</h1>
+      <h1>BTH</h1>
 
       {!parsedUrl && (
         <div className="card">
@@ -38,19 +38,24 @@ function App() {
       )}
       {parsedUrl && (
         <div className="card">
-          Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}. Pour
-          capturé les commentaires et les analyser cliqué sur le bouton. ⚠️ une
-          fois le bouton cliqué l'extension va prendre le contrôle de la page
-          pour effectuer la capture.
+          <p>
+            Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}. Pour
+            capturé les commentaires et les analyser cliqué sur le bouton.
+          </p>
+
           <button onClick={() => sendScrapMessage()}>
-            Capturer les commentaires
+            ⏺️ Capturer les commentaires
           </button>
+          <p>
+            ⚠️ Une fois le bouton cliqué l'extension va prendre le contrôle de
+            la page pour effectuer la capture.
+          </p>
         </div>
       )}
 
       <div className="card">
         <a href={reportPageUrl} target="bth-report-page">
-          Résultats de captures précedents, analyzes et génération de rapport
+          Afficher les résultats précedents
         </a>
       </div>
     </>

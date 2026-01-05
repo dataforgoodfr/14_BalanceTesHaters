@@ -3,7 +3,7 @@ import {
   ExtensionTransport,
   Browser as PuppeteerBrowser,
 } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
-import type { Post } from "./model";
+import type { Post } from "../model";
 
 export abstract class BaseScraper {
   browser?: PuppeteerBrowser;

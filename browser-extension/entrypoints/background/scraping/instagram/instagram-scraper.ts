@@ -1,6 +1,6 @@
 import { ElementHandle } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
 import { BaseScraper } from "../base-scraper";
-import { type Autor, type Post, type Comment } from "../model";
+import { type Autor, type Post, type Comment } from "../../model";
 
 //TODO: gérer le scroll et le chargement des commentaires
 //TODO: gérer le scraping des réponses aux commentaires

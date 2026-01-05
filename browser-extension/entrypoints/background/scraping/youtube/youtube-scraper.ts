@@ -1,6 +1,6 @@
 import { ElementHandle } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
 import { BaseScraper } from "../base-scraper";
-import { type Post, type Comment } from "../model";
+import { type Post, type Comment } from "../../model";
 
 export class YoutubeScraper extends BaseScraper {
   async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
