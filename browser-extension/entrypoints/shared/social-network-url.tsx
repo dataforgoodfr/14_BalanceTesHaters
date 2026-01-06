@@ -27,15 +27,28 @@ export function parseSocialNetworkUrl(
     };
   }
   if (
-    parsed.hostname === "www.instagram.com" &&
-    pathElements.length > 1 &&
-    pathElements[0] === "p"
+    (parsed.hostname === "www.instagram.com" &&
+      pathElements.length > 1 &&
+      pathElements[0] === "p") ||
+    pathElements[1] === "p"
   ) {
     return {
       type: "post",
       socialNetwork: "INSTAGRAM",
-      postId: pathElements[1],
+      postId: extractInstagramPostId(pathElements),
     };
   }
   return false;
+}
+
+function extractInstagramPostId(pathElements: string[]): string {
+  // Url of style /<account>/p/<id>
+  if (pathElements[0] === "p") {
+    return pathElements[1];
+  }
+  // Url of style /p/<id>
+  if (pathElements[1] === "p") {
+    return pathElements[2];
+  }
+  throw new Error("unexpected url format");
 }
