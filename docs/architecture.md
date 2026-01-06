@@ -3,13 +3,13 @@ C4Context
     Person(Utilisateur , "Utilisateur")    
     System_Boundary(c1, "Balance Tes Haters") {
         Container_Boundary(chrome,"Navigateur chrome") {
-            Container(web_extension, "Extension navigateur")
             Container(browserTab, "Onglet de navigation", "Post Instagram, Youtube")
+            Container(web_extension, "Extension navigateur")
             ContainerDb(db_local, "Stockage local", "JSON")
         }
         Container_Boundary(c2, "Backend") {
-            Container(backend, "API Backend", "Python, FastAPI")
             Container(llm, "LLM ?")
+            Container(backend, "API Backend", "Python, FastAPI")
             ContainerDb(db, "Base de données", "PostgreSQL")
         }
     }
