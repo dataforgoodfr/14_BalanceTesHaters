@@ -1,3 +1,4 @@
+import { storePost } from "../shared/storage/posts-storage";
 import { getCurrentTab } from "../shared/utils/getCurrentTab";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 
@@ -24,16 +25,9 @@ async function scrapActiveTab() {
   const tab = await getCurrentTab();
 
   if (tab) {
+    console.log("Scraping post from active tab");
     const socialNetworkPost = await scrapPostFromTab(tab);
-
-    if (socialNetworkPost.comments.length > 0) {
-      const screenshotDataUrl: string =
-        socialNetworkPost.comments[0].screenshotDataUrl;
-      browser.downloads.download({
-        url: screenshotDataUrl, // The object URL can be used as download URL
-        filename: "screenshot.png",
-        //...
-      });
-    }
+    console.log("Storing post to local storage");
+    await storePost(socialNetworkPost);
   }
 }

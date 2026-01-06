@@ -1,13 +1,13 @@
-import { SocialNetworkName } from "@/entrypoints/shared/social-network-url";
+import { SocialNetworkName } from "@/entrypoints/shared/model/social-network-name";
 import { BaseScraper } from "./base-scraper";
 import { InstagramScraper } from "./instagram/instagram-scraper";
 import { YoutubeScraper } from "./youtube/youtube-scraper";
 
 export function createScraper(sn: SocialNetworkName): BaseScraper {
   switch (sn) {
-    case "youtube":
+    case "YOUTUBE":
       return new YoutubeScraper();
-    case "instagram":
+    case "INSTAGRAM":
       return new InstagramScraper();
   }
 }

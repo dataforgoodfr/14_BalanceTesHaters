@@ -1,5 +1,5 @@
 import { parseSocialNetworkUrl } from "../../shared/social-network-url";
-import { Post } from "../model";
+import { Post } from "../../shared/model/post";
 import { createScraper } from "./create-scraper";
 
 export async function scrapTab(

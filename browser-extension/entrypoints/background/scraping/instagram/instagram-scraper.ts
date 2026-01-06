@@ -1,11 +1,25 @@
 import { ElementHandle } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
 import { BaseScraper } from "../base-scraper";
-import { type Autor, type Post, type Comment } from "../../model";
+import {
+  type Author,
+  type Post,
+  type Comment,
+} from "../../../shared/model/post";
+import { parseSocialNetworkUrl } from "@/entrypoints/shared/social-network-url";
+import { currentIsoDate } from "../utils/current-iso-date";
 
 //TODO: gérer le scroll et le chargement des commentaires
 //TODO: gérer le scraping des réponses aux commentaires
 export class InstagramScraper extends BaseScraper {
   private INSTAGRAM_URL = "https://www.instagram.com/";
+
+  extractPostId(url: string): string {
+    const parsed = parseSocialNetworkUrl(url);
+    if (!parsed) {
+      throw new Error("Unexpected");
+    }
+    return parsed.postId;
+  }
 
   async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
     const page = await this.getBrowserPageFromTab(tab);
@@ -64,10 +78,14 @@ export class InstagramScraper extends BaseScraper {
       );
       // gérer ici le ce scraping des réponses aux commentaires
     }
+
     return {
+      postId: this.extractPostId(tab.url!),
+      socialNetwork: "INSTAGRAM",
       url: tab.url!,
       author: auteur,
-      publishedAt: new Date(date_publication),
+      scrapTimestamp: new Date().toISOString(),
+      publishedAt: new Date(date_publication).toISOString(),
       text: texte_publication,
       comments: await Promise.all(commentaires),
     };
@@ -75,7 +93,7 @@ export class InstagramScraper extends BaseScraper {
 
   private async get_auteur_from_span(
     span_element: ElementHandle<Element>
-  ): Promise<Autor> {
+  ): Promise<Author> {
     const auteur_elem = (await span_element.$("::-p-xpath(.//a)"))!;
     const auteur_href = (await auteur_elem.$eval("::-p-xpath(.)", (node) =>
       node.getAttribute("href")
@@ -86,7 +104,7 @@ export class InstagramScraper extends BaseScraper {
     ))!;
     return {
       name: auteur_name,
-      accountHref: this.urlJoin(this.INSTAGRAM_URL, auteur_href),
+      accountUrl: this.urlJoin(this.INSTAGRAM_URL, auteur_href),
     };
   }
 
@@ -109,12 +127,19 @@ export class InstagramScraper extends BaseScraper {
     } catch (_) {
       date_commentaire = undefined;
     }
+
     const screenshot = await comment_element.screenshot({ encoding: "base64" });
+    const screenshotDate = currentIsoDate();
     return {
-      autor: auteur,
-      text: await base_1.$eval("::-p-xpath(.)", (node) => node.textContent!)!,
-      commentDate: date_commentaire,
+      author: auteur,
+      commentText: await base_1.$eval(
+        "::-p-xpath(.)",
+        (node) => node.textContent!
+      )!,
+      commentDate: date_commentaire?.toISOString(),
+      commentDateRelative: false,
       screenshotDataUrl: screenshot,
+      screenshotDate,
       replies: [],
     };
   }
