@@ -14,6 +14,7 @@ C4Context
         }
     }
 
+    Rel(Utilisateur, browserTab, "Ouvre une publication dans un onglet")
     Rel(Utilisateur, web_extension, "déclenche")
     Rel(web_extension, backend, "Appelà l'API de classification", "HTTPS")
     Rel(backend, db, "Statistiques", "SQL")
