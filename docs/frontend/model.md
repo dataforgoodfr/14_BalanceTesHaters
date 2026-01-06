@@ -24,7 +24,6 @@ classDiagram
     class Comment {
         textContent: str
         publishedAt: str
-        relativeDate: bool
         scrapedAt: datetime
         screenshotData: str
         classification: list[str]

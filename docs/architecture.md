@@ -1,41 +1,40 @@
 ```mermaid
 C4Context
-    Person(Influenceuse , "Influenceuse")    
-    Container(web_extension, "Extension navigateur")
-    System_Ext(ReseauSocial, "Réseau social", "Instagram, Youtube")
+    Person(Utilisateur , "Utilisateur")    
     System_Boundary(c1, "Balance Tes Haters") {
-        Container(frontend, "Application Web", "NextJS")
-        Container(backend, "API Backend", "Python, FastAPI")
         Container(llm, "LLM ?")
+        Container(backend, "API Backend", "Python, FastAPI")
         ContainerDb(db, "Base de données", "PostgreSQL")
     }
-    Rel(Influenceuse, frontend, "Utilise", "HTTPS")
-    Rel(Influenceuse, web_extension, "déclenche")
-    Rel(frontend, backend, "Utilise", "HTTPS")
-    Rel(web_extension, backend, "Utilise", "HTTPS")
-    Rel(backend, db, "Lectures / écritures", "SQL")
-    Rel(web_extension, ReseauSocial, "Scraping / API", "HTTPS")
-    Rel(backend, llm, "Utilise", "prompt")
+    System_Boundary(chrome,"Navigateur chrome") {
+        Container(web_extension, "Extension navigateur")
+        Container(browserTab, "Onglet de navigation", "Post Instagram, Youtube")
+        ContainerDb(db_local, "Stockage local", "JSON")
+    }
+
+    Rel(Utilisateur, web_extension, "déclenche")
+    Rel(web_extension, backend, "Appelà l'API de classification", "HTTPS")
+    Rel(backend, db, "Statistiques", "SQL")
+    Rel(web_extension, browserTab, "Scraping", "TypeScript")
+    Rel(web_extension, db_local, "Stockage des publications", "JSON")
+    Rel(backend, llm, "Classifie", "prompt")
 ```
 
 # Composants du système
 
-_Application Web_ : Frontend NextJS
- - Fournit l'interface client de la plate-forme Balance Tes Haters.
- - Gère la navigation, l'enchainement des cas d'usage et l'appel aux API du backend
+_Extension navigateur_ : WebExtension chrome
+ - Extension chrome de scraping des données des publications
+ - Sur déclenchement de l'utilisateur : analyse l'onglet courant pour rechercher l'ensemble des commentaires d'une publication Instagrame, Youtube
+ - les données scrapées sont transmises au backend via l'API d'analyse
+ - le résultat est stocké en stockage local et utilisé par l'extension pour générer un rapport d'analyse
 
-_Client Web_ : Composant client du frontend
- - s'exécute dans l'environnement du navigateur de l'utilisateur
- - effectue le scraping des publications (utilisation de [Pupeteer](https://pptr.dev/guides/running-puppeteer-in-the-browser))
- - upload les données scrapées sur le backend via le frontend
+_Stockage local_ : Stockage de l'historique des publications analysées dans le navigateur
+ - utilise l'[API de stockage du navigateur](https://developer.chrome.com/docs/extensions/reference/api/storage?hl=fr)
 
 _API Backend_ : Composant serveur
- - fournit le service API utiles pour le client (authentification, gestion des données)
- - réalise les traitements backend sur les données (analyse LLM, classification, statistiques, ...)
+ - fournit le service API d'analyse des publications (analyse et classification LLM des commentaires, statistiques, ...)
 
 _Base de données_ : Stockage des données selon le [modèle](./backend/model.md).
 
-_LLM_ : Composant en charge de l'exécution des traitements utilisant le LLM
+_LLM_ : Composant en charge de l'exécution des traitements de classification
 
-_Réseau social_ : Plateforme de réseau social externe (Youtube, Instagram)
- - sources des données obtenues par API ou scraping direct
