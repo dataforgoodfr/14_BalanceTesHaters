@@ -84,9 +84,9 @@ export class InstagramScraper extends BaseScraper {
       socialNetwork: "INSTAGRAM",
       url: tab.url!,
       author: auteur,
-      scrapTimestamp: new Date().toISOString(),
+      scrapedAt: new Date().toISOString(),
       publishedAt: new Date(date_publication).toISOString(),
-      text: texte_publication,
+      textContent: texte_publication,
       comments: await Promise.all(commentaires),
     };
   }
@@ -104,7 +104,7 @@ export class InstagramScraper extends BaseScraper {
     ))!;
     return {
       name: auteur_name,
-      accountUrl: this.urlJoin(this.INSTAGRAM_URL, auteur_href),
+      accountHref: this.urlJoin(this.INSTAGRAM_URL, auteur_href),
     };
   }
 
@@ -132,14 +132,13 @@ export class InstagramScraper extends BaseScraper {
     const screenshotDate = currentIsoDate();
     return {
       author: auteur,
-      commentText: await base_1.$eval(
+      textContent: await base_1.$eval(
         "::-p-xpath(.)",
         (node) => node.textContent!
       )!,
-      commentDate: date_commentaire?.toISOString(),
-      commentDateRelative: false,
-      screenshotDataUrl: screenshot,
-      screenshotDate,
+      publishedAt: date_commentaire?.toISOString(),
+      screenshotData: screenshot,
+      scrapedAt: screenshotDate,
       replies: [],
     };
   }

@@ -5,11 +5,12 @@ import "./ReportPage.css";
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
   if (post.comments.length > 0) {
-    const screenshotDataUrl: string = post.comments[0].screenshotDataUrl;
+    const screenshotData: string = post.comments[0].screenshotData;
+
+    const screenshotAsUrl = "data:image/png;base64," + screenshotData;
     browser.downloads.download({
-      url: screenshotDataUrl, // The object URL can be used as download URL
+      url: screenshotAsUrl,
       filename: "screenshot.png",
-      //...
     });
   }
 }
@@ -33,10 +34,11 @@ function ReportPageApp() {
           <thead>
             <tr>
               <th>Date scraping</th>
-
               <th>Réseau social</th>
               <th>Auteur</th>
               <th>Date publication</th>
+              <th>Titre</th>
+              <th>Aperçu contenu/description</th>
 
               <th>Nb commentaires</th>
               <th>Id</th>
@@ -46,11 +48,13 @@ function ReportPageApp() {
           <tbody>
             {posts.map((post) => (
               <tr>
-                <td> {post.scrapTimestamp}</td>
+                <td> {post.scrapedAt}</td>
                 <td> {post.socialNetwork}</td>
-
                 <td> {post.author.name}</td>
                 <td> {post.publishedAt}</td>
+                <td> {post.title}</td>
+                <td> {ellipsis(post.textContent || "")}</td>
+
                 <td> {post.comments.length}</td>
                 <td>
                   <a href={post.url}>{post.postId}</a>
@@ -67,6 +71,13 @@ function ReportPageApp() {
       )}
     </>
   );
+}
+
+function ellipsis(str: string, maxLength: number = 50): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.substring(0, maxLength - 1) + "…";
 }
 
 export default ReportPageApp;

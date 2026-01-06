@@ -1,33 +1,64 @@
 import { SocialNetworkName } from "./social-network-name";
 
 export type Post = {
-  scrapTimestamp: string;
   url: string;
-  postId: string;
-  socialNetwork: SocialNetworkName;
+  /**
+   * Publication date as a string.
+   * Preferably an iso datetime.
+   * If not possible a partial or relative date. e.g. "Jan 4" or "3 days ago"
+   */
+  publishedAt: string;
+
+  /**
+   * Timestamp of scrap - ISO datetime
+   */
+  scrapedAt: string;
   author: Author;
 
-  publishedAtRelative?: boolean;
-  publishedAt?: string;
-  title?: string;
   /**
-   * Content or description of post
+   * Content for text post or description of post for video posts
    */
-  text?: string;
+  textContent?: string;
   comments: Comment[];
+
+  /** Extra fields not yet in model.md but probaby usefull for app display*/
+
+  /**
+   * e.g. youtube video id
+   */
+  postId: string;
+  socialNetwork: SocialNetworkName;
+  title?: string;
 };
 
 export type Author = {
   name: string;
-  accountUrl?: string;
+  //TODO make mandatory
+  accountHref?: string;
 };
 
 export type Comment = {
+  textContent: string;
   author: Author;
-  commentText: string;
-  commentDate?: string;
-  commentDateRelative?: boolean;
-  screenshotDataUrl: string;
-  screenshotDate: string;
+  /**
+   * Publication date as a string.
+   * Preferably an iso datetime.
+   * If not possible a partial or relative date. e.g. "Jan 4" or "3 days ago"
+   */
+  publishedAt?: string;
+
+  /**
+   * Based 64 encoded PNG data
+   */
+  screenshotData: string;
+  /**
+   * Timestamp of scrap - ISO datetime
+   */
+  scrapedAt: string;
+
   replies: Comment[];
+
+  classification?: string[];
+  /** ISO date time of classification */
+  classifiedAt?: string;
 };

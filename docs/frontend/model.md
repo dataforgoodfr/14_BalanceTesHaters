@@ -5,9 +5,15 @@
 classDiagram
     class Post {
         url: str
-        publishedAt: datetime
+        
+        publishedAt: str
+
         scrapedAt: datetime
         textContent: str
+
+        postId: str;
+        socialNetwork: str;
+        title?: str;
     }
     
     class Author {
@@ -17,7 +23,7 @@ classDiagram
 
     class Comment {
         textContent: str
-        publishedAt: str | datetime
+        publishedAt: str
         relativeDate: bool
         scrapedAt: datetime
         screenshotData: str

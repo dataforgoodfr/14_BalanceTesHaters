@@ -6,6 +6,9 @@ import { BaseScraper } from "../base-scraper";
 import { type Post, type Comment, Author } from "../../../shared/model/post";
 import { parseSocialNetworkUrl } from "@/entrypoints/shared/social-network-url";
 import { currentIsoDate } from "../utils/current-iso-date";
+import { innerText } from "../utils/innerText";
+import { anchorHref } from "../utils/anchorHref";
+import { ariaLabel } from "../utils/ariaLabel";
 
 export class YoutubeScraper extends BaseScraper {
   extractPostId(url: string): string {
@@ -23,51 +26,50 @@ export class YoutubeScraper extends BaseScraper {
     const scrapTimestamp = currentIsoDate();
 
     const author = await this.scrapPostAuthor(page);
-    const { publishedAt, publishedAtRelative, text } =
-      await this.scrapPostPublishedAtAndText(page);
+    const textConent = await this.scrapPostTextContent(page);
+
+    const title = await innerText(
+      (await page.$(".watch-active-metadata #title"))!
+    );
+
+    const publishedAt = await this.scrapPostPublishedAt(page);
     const comments: Comment[] = await this.scrapPostComments(page);
 
     return {
       postId: postId,
       socialNetwork: "YOUTUBE",
-      scrapTimestamp: scrapTimestamp,
+      scrapedAt: scrapTimestamp,
 
       url: postUrl,
       author: author,
       publishedAt: publishedAt,
-      publishedAtRelative: publishedAtRelative,
-      text: text,
+      textContent: textConent,
       comments: comments,
+      title,
     };
   }
 
-  private async scrapPostPublishedAtAndText(postPage: Page): Promise<{
-    publishedAt: string | undefined;
-    publishedAtRelative: boolean | undefined;
-    text: string;
-  }> {
-    const snippetText = await innertText(
-      (await postPage.$("#description #snippet-text"))!
+  private async scrapPostTextContent(page: Page) {
+    return await innerText((await page.$("#description #snippet-text"))!);
+  }
+
+  private async scrapPostPublishedAt(postPage: Page): Promise<string> {
+    const publishedAt = await innerText(
+      (await postPage.$("#description #info span:last-child"))!
     );
-    const publishedAt =
-      (await ariaLabel((await postPage.$("#description #date-text"))!)) ??
-      undefined;
-    return {
-      publishedAt: publishedAt,
-      publishedAtRelative: true,
-      text: snippetText,
-    };
+
+    return publishedAt ?? "";
   }
 
   private async scrapPostAuthor(postPage: Page): Promise<Author> {
     const postOwnerEl = (await postPage.$("#owner"))!;
     const channelNameEl = (await postOwnerEl.$("#channel-name"))!;
     const link = (await channelNameEl.$("a"))!;
-    const channelName = await innertText(link);
+    const channelName = await innerText(link);
     const channelUrl = await anchorHref(link);
     return {
       name: channelName,
-      accountUrl: channelUrl,
+      accountHref: channelUrl,
     };
   }
 
@@ -94,34 +96,32 @@ export class YoutubeScraper extends BaseScraper {
 
     const comments: Comment[] = await Promise.all(
       Array.from(commentContainers).map(async (commentContainer) => {
-        const authorTextHandle = await commentContainer.$("#author-text");
+        const scrapDate = currentIsoDate();
+
+        const author: Author = await this.scrapCommentAuthor(commentContainer);
+        const publishedAt = await innerText(
+          (await commentContainer.$("#published-time-text"))!
+        );
+
+        // TODO review content capture to include emojis
         const commentTextHandle = await commentContainer.$("#content-text");
-        const commentAuthor = (
-          await page.evaluate(
-            (e) => (e as HTMLElement).innerText,
-            authorTextHandle
-          )
-        )?.trim();
         const commentText = (
           await page.evaluate(
             (e) => (e as HTMLElement).innerText,
             commentTextHandle
           )
         )?.trim();
-        const screenshotData = this.uintArrayScreenshotToBase64Url(
-          await commentContainer.screenshot()
-        );
-        const screenshotDate = currentIsoDate();
+        const screenshotData = await commentContainer.screenshot({
+          encoding: "base64",
+        });
 
         const comment: Comment = {
-          author: {
-            name: commentAuthor,
-            // TODO extract href
-          },
-          commentText: commentText,
-          screenshotDataUrl: screenshotData,
-          screenshotDate,
-          // TODO extrat comment relative date
+          textContent: commentText,
+          author: author,
+          publishedAt: publishedAt,
+          screenshotData: screenshotData,
+          scrapedAt: scrapDate,
+          // TODO extract comment relative date
           // TODO capture replies
           replies: [],
         };
@@ -131,27 +131,15 @@ export class YoutubeScraper extends BaseScraper {
     return comments;
   }
 
-  private uintArrayScreenshotToBase64Url(pngData: Uint8Array): string {
-    let binary = "";
-    const len = pngData.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(pngData[i]);
-    }
-    const base64 = btoa(binary);
-    return "data:image/png;base64," + base64;
+  private async scrapCommentAuthor(commentContainer: ElementHandle<Element>) {
+    const authorTextHandle = await commentContainer.$("a#author-text");
+    const commentAuthor = (await innerText(authorTextHandle!)).trim();
+    const commentAuthorHref = await anchorHref(authorTextHandle!);
+
+    const author: Author = {
+      name: commentAuthor,
+      accountHref: commentAuthorHref,
+    };
+    return author;
   }
-}
-
-async function innertText(element: ElementHandle): Promise<string> {
-  return await element.evaluate((e) => (e as HTMLElement).innerText, element);
-}
-
-async function anchorHref(
-  element: ElementHandle<HTMLAnchorElement>
-): Promise<string> {
-  return await element.evaluate((e) => e.href, element);
-}
-
-async function ariaLabel(element: ElementHandle): Promise<string | null> {
-  return await element.evaluate((e) => (e as HTMLElement).ariaLabel, element);
 }
