@@ -3,5 +3,5 @@ import { ElementHandle } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-b
 export async function ariaLabel(
   element: ElementHandle
 ): Promise<string | null> {
-  return await element.evaluate((e) => (e as HTMLElement).ariaLabel, element);
+  return await element.evaluate((e) => (e as HTMLElement).ariaLabel);
 }

@@ -25,9 +25,12 @@ async function scrapActiveTab() {
   const tab = await getCurrentTab();
 
   if (tab) {
-    console.log("Scraping post from active tab");
+    console.debug("Scraping post from active tab ", {
+      tabId: tab.id,
+      url: tab.url,
+    });
     const socialNetworkPost = await scrapPostFromTab(tab);
-    console.log("Storing post to local storage");
+    console.debug("Storing post to local storage");
     await storePost(socialNetworkPost);
   }
 }
