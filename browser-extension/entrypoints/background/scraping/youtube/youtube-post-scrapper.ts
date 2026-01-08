@@ -92,7 +92,7 @@ export class YoutubePostScrapper {
 
   private async scrapPostAuthor(): Promise<Author> {
     const channelNameEl = (await this.page.$("#owner #channel-name"))!;
-    if (channelNameEl) {
+    if (channelNameEl && (await channelNameEl.isVisible())) {
       const channelName = await innerText(channelNameEl);
 
       const link = await selectOrThrow(channelNameEl, "a");
@@ -105,7 +105,10 @@ export class YoutubePostScrapper {
     const attributedChannelNameEl = (await this.page.$(
       "#owner #attributed-channel-name"
     ))!;
-    if (attributedChannelNameEl) {
+    if (
+      attributedChannelNameEl &&
+      (await attributedChannelNameEl.isVisible())
+    ) {
       const channelName = await innerText(attributedChannelNameEl);
 
       const link = await selectOrThrow(attributedChannelNameEl, "a");
