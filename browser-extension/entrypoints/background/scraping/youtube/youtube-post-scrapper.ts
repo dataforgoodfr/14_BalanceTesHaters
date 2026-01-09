@@ -135,9 +135,10 @@ export class YoutubePostScrapper {
     this.debug("Loading all comment threads...");
     await this.loadAllTopLevelComments();
     // TODO implement
-    // this.debug("Expending all replies...");
-    // await expandReplies();
-    // this.debug("Expending long comments...");
+    this.debug("Expanding all replies...");
+    await this.loadAllReplies();
+
+    // this.debug("Expanding long comments...");
     // await expandLongComments(commentsSectionHandle)
 
     this.debug("Capturing loaded comments...");
@@ -201,53 +202,107 @@ export class YoutubePostScrapper {
 
     // Use evaluate because puppeteer code was too flaky
 
-    await this.page.evaluate(() => {
-      async function load() {
-        function isVisible(element: Element): boolean {
-          return element.getBoundingClientRect().height > 0;
-        }
-        let previousCommentsCount = undefined;
-        let previousSpinnersCount = undefined;
-        let lastChangeTime = Date.now();
-        for (;;) {
-          const spinners = Array.from(
-            document.querySelectorAll("#comments #spinner")
-          ).filter(isVisible);
-          const comments = Array.from(
-            document.querySelectorAll("#comments ytd-comment-thread-renderer")
-          ).filter(isVisible);
-          console.log(
-            "BTH - comments:",
-            comments.length,
-            "spinners:",
-            spinners.length
+    await this.page.evaluate(async () => {
+      function isVisible(element: Element): boolean {
+        return element.getBoundingClientRect().height > 0;
+      }
+      let previousCommentsCount = undefined;
+      let previousSpinnersCount = undefined;
+      let lastChangeTime = Date.now();
+      for (;;) {
+        const spinners = Array.from(
+          document.querySelectorAll("#comments #spinner")
+        ).filter(isVisible);
+        const comments = Array.from(
+          document.querySelectorAll("#comments ytd-comment-thread-renderer")
+        ).filter(isVisible);
+        console.log(
+          "BTH - comments:",
+          comments.length,
+          "spinners:",
+          spinners.length
+        );
+        if (spinners.length > 0) {
+          const lastSpinner = spinners[spinners.length - 1];
+          console.debug(
+            "BTH - Found spinners scroll to last of them to trigger comment loading"
           );
-          if (spinners.length > 0) {
-            const lastSpinner = spinners[spinners.length - 1];
-            console.debug(
-              "BTH - Found spinners scroll to last of them to trigger comment loading"
-            );
-            lastSpinner.scrollIntoView();
-          } else if (Date.now() - lastChangeTime > 10000) {
-            console.debug(
-              "BTH - No more spinners found and no changes since more than 10s... consider all comments loaded."
-            );
-            return;
-          }
-          if (
-            previousCommentsCount !== comments.length ||
-            previousSpinnersCount !== spinners.length
-          ) {
-            lastChangeTime = Date.now();
-            previousCommentsCount = comments.length;
-            previousSpinnersCount = spinners.length;
-          }
-          // Wait a bit to let page load stuff
-          await new Promise((resolve) => setTimeout(resolve, 200));
+          lastSpinner.scrollIntoView();
+        } else if (Date.now() - lastChangeTime > 10000) {
+          console.debug(
+            "BTH - No more spinners found and no changes since more than 10s... consider all comments loaded."
+          );
+          return;
+        }
+        if (
+          previousCommentsCount !== comments.length ||
+          previousSpinnersCount !== spinners.length
+        ) {
+          lastChangeTime = Date.now();
+          previousCommentsCount = comments.length;
+          previousSpinnersCount = spinners.length;
+        }
+        // Wait a bit to let page load stuff
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    });
+  }
+
+  private async loadAllReplies() {
+    await this.page.evaluate(() => {
+      const repliesButton = Array.from(
+        document.querySelectorAll(
+          "#replies #more-replies button" +
+            "," +
+            "#replies #more-replies-sub-thread button"
+        )
+      )
+        .filter((e) => e.getBoundingClientRect().height > 0)
+        .filter((e) => e instanceof HTMLElement);
+      console.debug(
+        "BTH - Expanding ",
+        repliesButton.length,
+        " replies button..."
+      );
+      repliesButton.forEach((b) => {
+        b.click();
+      });
+    });
+
+    // expand more repleis
+    await this.page.evaluate(async () => {
+      for (;;) {
+        const moreRepliesButtons = Array.from(
+          document.querySelectorAll(
+            'button[aria-label="Afficher plus de réponses"]'
+          )
+        )
+          .filter((b) => b.getBoundingClientRect().height > 0)
+          .filter((b) => b instanceof HTMLElement);
+        if (moreRepliesButtons.length === 0) {
+          return;
+        } else {
+          console.log(
+            "BTH - clicking ",
+            moreRepliesButtons.length,
+            " more replies buttons"
+          );
+          moreRepliesButtons.forEach((b) => {
+            b.click();
+          });
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
-      return load();
     });
+    /*
+    const repliesButtons = await this.page.$$(
+      '#replies #more-replies ::-p-aria([role="button"], ' +
+        '#replies #more-replies-sub-thread ::-p-aria([role="button"]'
+    );
+    this.debug(`${repliesButtons.length} buttons`);
+    for (const button of repliesButtons) {
+      await button.click();
+    }*/
   }
 
   private async scrapCommentAuthor(commentContainer: ElementHandle<Element>) {
