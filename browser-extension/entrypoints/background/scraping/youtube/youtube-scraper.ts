@@ -1,24 +1,16 @@
-import {
-  Page,
-  ElementHandle,
-} from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
-import { BaseScraper } from "../base-scraper";
-import { type Post, type Comment, Author } from "../../../shared/model/post";
+import { Page } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
+import { PuppeteerBaseScraper } from "../puppeteer/puppeteer-base-scraper";
+import { type Post } from "../../../shared/model/post";
 import { parseSocialNetworkUrl } from "@/entrypoints/shared/social-network-url";
-import { currentIsoDate } from "../utils/current-iso-date";
-import { innerText } from "../utils/innerText";
-import { anchorHref } from "../utils/anchorHref";
-import { selectOrThrow } from "../utils/selectOrThrow";
 import { YoutubePostScrapper as PuppeteerYoutubePostScrapper } from "./youtube-post-scrapper";
 
-export class YoutubeScraper extends BaseScraper {
-  async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
+export class YoutubeScraper extends PuppeteerBaseScraper {
+  async doScrapTab(tab: Browser.tabs.Tab, page: Page): Promise<Post> {
     const postUrl = tab.url!;
     const urlInfo = parseSocialNetworkUrl(postUrl);
     if (!urlInfo) {
       throw new Error("Unexpected");
     }
-    const page = await this.getBrowserPageFromTab(tab);
     const scraper = new PuppeteerYoutubePostScrapper(page, postUrl, urlInfo);
 
     return await scraper.scrapPost();

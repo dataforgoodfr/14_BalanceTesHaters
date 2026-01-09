@@ -4,9 +4,9 @@ import {
   ElementHandle,
   Page,
 } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
-import { innerText } from "../utils/innerText";
-import { selectOrThrow } from "../utils/selectOrThrow";
-import { anchorHref } from "../utils/anchorHref";
+import { innerText } from "../puppeteer/innerText";
+import { selectOrThrow } from "../puppeteer/selectOrThrow";
+import { anchorHref } from "../puppeteer/anchorHref";
 import { currentIsoDate } from "../utils/current-iso-date";
 
 const LOG_PREFIX = "YoutubePostScrapper -";

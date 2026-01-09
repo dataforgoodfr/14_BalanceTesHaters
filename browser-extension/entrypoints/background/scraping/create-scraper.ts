@@ -1,9 +1,9 @@
 import { SocialNetworkName } from "@/entrypoints/shared/model/social-network-name";
-import { BaseScraper } from "./base-scraper";
+import { PuppeteerBaseScraper } from "./puppeteer/puppeteer-base-scraper";
 import { InstagramScraper } from "./instagram/instagram-scraper";
 import { YoutubeScraper } from "./youtube/youtube-scraper";
 
-export function createScraper(sn: SocialNetworkName): BaseScraper {
+export function createScraper(sn: SocialNetworkName): PuppeteerBaseScraper {
   switch (sn) {
     case "YOUTUBE":
       return new YoutubeScraper();

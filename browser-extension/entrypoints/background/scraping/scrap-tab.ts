@@ -13,11 +13,5 @@ export async function scrapTab(
     throw new Error("Url of tab is not scrapable!");
   }
   const scraper = createScraper(snUrl.socialNetwork);
-  try {
-    const socialNetworkPost = await scraper.scrapTab(tab);
-
-    return socialNetworkPost;
-  } finally {
-    await scraper.disconnectBrowser();
-  }
+  return await scraper.scrapTab(tab);
 }

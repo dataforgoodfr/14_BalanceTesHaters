@@ -1,5 +1,8 @@
-import { ElementHandle } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
-import { BaseScraper } from "../base-scraper";
+import {
+  ElementHandle,
+  Page,
+} from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
+import { PuppeteerBaseScraper } from "../puppeteer/puppeteer-base-scraper";
 import {
   type Author,
   type Post,
@@ -10,7 +13,7 @@ import { currentIsoDate } from "../utils/current-iso-date";
 
 //TODO: gérer le scroll et le chargement des commentaires
 //TODO: gérer le scraping des réponses aux commentaires
-export class InstagramScraper extends BaseScraper {
+export class InstagramScraper extends PuppeteerBaseScraper {
   private INSTAGRAM_URL = "https://www.instagram.com/";
 
   extractPostId(url: string): string {
@@ -21,9 +24,7 @@ export class InstagramScraper extends BaseScraper {
     return parsed.postId;
   }
 
-  async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
-    const page = await this.getBrowserPageFromTab(tab);
-
+  async doScrapTab(tab: Browser.tabs.Tab, page: Page): Promise<Post> {
     // //main/div/div/div
     const cadre_publication = (await page.$("::-p-xpath(//main/div/div/div)"))!;
     const colonne_commentaires = (await cadre_publication.$(
