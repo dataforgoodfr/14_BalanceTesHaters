@@ -28,6 +28,7 @@ classDiagram
         screenshotData: str
         classification: list[str]
         classifiedAt: datetime
+        nbLikes: int
     }
 
     class SocialNetwork {
