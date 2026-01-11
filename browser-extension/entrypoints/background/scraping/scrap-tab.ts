@@ -3,7 +3,7 @@ import { Post } from "../../shared/model/post";
 import { createScraper } from "./create-scraper";
 
 export async function scrapTab(
-  tab: globalThis.Browser.tabs.Tab
+  tab: globalThis.Browser.tabs.Tab,
 ): Promise<Post> {
   if (tab.url === undefined) {
     throw new Error("Url of tab is undefined");

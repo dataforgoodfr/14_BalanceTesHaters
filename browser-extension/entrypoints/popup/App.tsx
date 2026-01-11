@@ -11,7 +11,7 @@ const reportPageUrl = browser.runtime.getURL("/report-page.html");
 
 function App() {
   const [currentTab, setCurrentTab] = useState<Browser.tabs.Tab | undefined>(
-    undefined
+    undefined,
   );
   useEffect(() => {
     getCurrentTab().then((tab) => {
@@ -32,8 +32,8 @@ function App() {
       {!parsedUrl && (
         <div className="card">
           Pour capturer des commentaires et les analyser naviguez vers une
-          publication d&apos;un réseau social supporté (youtube, instagram...) puis
-          ouvrez l&apos;extension à nouveau.
+          publication d&apos;un réseau social supporté (youtube, instagram...)
+          puis ouvrez l&apos;extension à nouveau.
         </div>
       )}
       {parsedUrl && (
@@ -47,8 +47,8 @@ function App() {
             ⏺️ Capturer les commentaires
           </button>
           <p>
-            ⚠️ Une fois le bouton cliqué l&apos;extension va prendre le contrôle de
-            la page pour effectuer la capture.
+            ⚠️ Une fois le bouton cliqué l&apos;extension va prendre le contrôle
+            de la page pour effectuer la capture.
           </p>
         </div>
       )}

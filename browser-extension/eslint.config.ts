@@ -1,5 +1,6 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import eslint from "@eslint/js";
+import configPrettier from "eslint-config-prettier";
 import tseslint from "typescript-eslint";
 import pluginReact from "eslint-plugin-react";
 import json from "@eslint/json";
@@ -8,6 +9,7 @@ import css from "@eslint/css";
 
 export default defineConfig([
   globalIgnores([".wxt/"]),
+  configPrettier,
   eslint.configs.recommended,
   markdown.configs.processor,
   tseslint.configs.recommended,

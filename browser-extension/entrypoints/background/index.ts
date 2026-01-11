@@ -8,7 +8,7 @@ export default defineBackground(() => {
 
   async function handleMessages(
     message: Message,
-    sender: Browser.runtime.MessageSender
+    sender: Browser.runtime.MessageSender,
   ) {
     console.debug("Message received:", message, sender);
 

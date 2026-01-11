@@ -3,7 +3,7 @@ import { innerHtml } from "./innerHtml";
 
 export async function selectOrThrow(
   container: ElementHandle,
-  selector: string
+  selector: string,
 ): Promise<ElementHandle> {
   const selectedElement = await container.$(selector)!;
 

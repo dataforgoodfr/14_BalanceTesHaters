@@ -6,5 +6,5 @@ import "../shared/main-style.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ReportPageApp />
-  </React.StrictMode>
+  </React.StrictMode>,
 );

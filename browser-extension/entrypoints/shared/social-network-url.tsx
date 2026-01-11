@@ -7,7 +7,7 @@ export interface SocialNetworkUrlInfo {
 }
 
 export function parseSocialNetworkUrl(
-  url: string
+  url: string,
 ): SocialNetworkUrlInfo | false {
   const parsed = URL.parse(url);
   if (!parsed) {
