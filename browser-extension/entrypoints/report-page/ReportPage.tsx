@@ -46,8 +46,8 @@ function ReportPageApp() {
             </tr>
           </thead>
           <tbody>
-            {posts.map((post) => (
-              <tr>
+            {posts.map((post, index) => (
+              <tr key={post.url || index}>
                 <td> {post.scrapedAt}</td>
                 <td> {post.socialNetwork}</td>
                 <td> {post.author.name}</td>

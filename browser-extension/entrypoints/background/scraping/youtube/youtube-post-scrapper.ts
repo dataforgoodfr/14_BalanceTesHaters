@@ -22,9 +22,9 @@ export class YoutubePostScrapper {
         this.url = url;
     }
 
-    private debug(...data: any[]) {
-        console.debug(LOG_PREFIX, ...data);
-    }
+  private debug(...data: typeof console.debug.arguments) {
+    console.debug(LOG_PREFIX, ...data);
+  }
 
     async scrapPost(): Promise<Post> {
         const startTime = Date.now();

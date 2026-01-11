@@ -8,7 +8,6 @@ export async function selectOrThrow(
   const selectedElement = await container.$(selector)!;
 
   if (selectedElement !== null) {
-    selectedElement.toElement;
     return selectedElement;
   }
   const parentInnerHtml = await innerHtml(container);

@@ -1,5 +1,6 @@
 import { storePost } from "../shared/storage/posts-storage";
 import { getCurrentTab } from "../shared/utils/getCurrentTab";
+import { Message } from "../shared/messages";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 
 export default defineBackground(() => {
@@ -7,8 +8,7 @@ export default defineBackground(() => {
 
   async function handleMessages(
     message: Message,
-    sender: any,
-    sendResponse: any
+    sender: Browser.runtime.MessageSender
   ) {
     console.debug("Message received:", message, sender);
 
