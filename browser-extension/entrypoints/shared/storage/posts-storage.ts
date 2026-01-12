@@ -10,3 +10,10 @@ export async function getPosts(): Promise<Post[]> {
   const partial = await browser.storage.local.get("posts");
   return (partial["posts"] as Post[]) || [];
 }
+
+export async function getPost(postId: string): Promise<Post | undefined> {
+  const posts = await getPosts();
+  const post = posts.find((p) => p.postId === postId);
+  console.log("getPost", postId, post);
+  return post;
+}

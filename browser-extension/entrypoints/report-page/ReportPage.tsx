@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { Post } from "../shared/model/post";
 import { getPosts as getPostsFromStorage } from "../shared/storage/posts-storage";
 import "./ReportPage.css";
@@ -15,7 +16,7 @@ function downloadPost(post: Post) {
   }
 }
 
-function ReportPageApp() {
+function ReportPage() {
   const [posts, setPosts] = useState<Post[] | undefined>(undefined);
   useEffect(() => {
     getPostsFromStorage().then((posts) => {
@@ -42,6 +43,7 @@ function ReportPageApp() {
 
               <th>Nb commentaires</th>
               <th>Id</th>
+              <th>View details</th>
               <th>Télécharger</th>
             </tr>
           </thead>
@@ -58,6 +60,9 @@ function ReportPageApp() {
                 <td> {post.comments.length}</td>
                 <td>
                   <a href={post.url}>{post.postId}</a>
+                </td>
+                <td>
+                  <Link to={"/posts/" + post.postId}>View</Link>
                 </td>
                 <td>
                   <button onClick={() => downloadPost(post)}>
@@ -80,4 +85,4 @@ function ellipsis(str: string, maxLength: number = 50): string {
   return str.substring(0, maxLength - 1) + "…";
 }
 
-export default ReportPageApp;
+export default ReportPage;
