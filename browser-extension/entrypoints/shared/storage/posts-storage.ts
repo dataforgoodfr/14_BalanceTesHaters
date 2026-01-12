@@ -1,6 +1,9 @@
 import { Post } from "@/entrypoints/shared/model/post";
 
 export async function storePost(post: Post) {
+  if (!post) {
+    return;
+  }
   const posts: Post[] = await getPosts();
   const newPosts = [...posts, post];
   await browser.storage.local.set({ posts: newPosts });
@@ -11,9 +14,10 @@ export async function getPosts(): Promise<Post[]> {
   return (partial["posts"] as Post[]) || [];
 }
 
-export async function getPost(postId: string): Promise<Post | undefined> {
+export async function getPostByIdAndScrapedAt(
+  postId: string,
+  scrapedAt: string
+): Promise<Post | undefined> {
   const posts = await getPosts();
-  const post = posts.find((p) => p.postId === postId);
-  console.log("getPost", postId, post);
-  return post;
+  return posts.find((p) => p.postId === postId && p.scrapedAt === scrapedAt);
 }

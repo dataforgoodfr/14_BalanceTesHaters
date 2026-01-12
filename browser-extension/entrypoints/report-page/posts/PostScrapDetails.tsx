@@ -1,15 +1,17 @@
-import { getPost } from "@/entrypoints/shared/storage/posts-storage";
+import { getPostByIdAndScrapedAt } from "@/entrypoints/shared/storage/posts-storage";
 import { Post } from "@/entrypoints/shared/model/post";
 import { useParams } from "react-router";
 
 function PostDetailPage() {
-  const { postId } = useParams();
+  const { postId, scrapedAt } = useParams();
   const [post, setPost] = useState<Post | undefined>(undefined);
   useEffect(() => {
-    getPost(postId || "").then((post) => {
-      setPost(post);
-    });
-  }, [postId]);
+    if (postId && scrapedAt) {
+      getPostByIdAndScrapedAt(postId, scrapedAt).then((post) => {
+        setPost(post);
+      });
+    }
+  }, [postId, scrapedAt]);
 
   return (
     <>

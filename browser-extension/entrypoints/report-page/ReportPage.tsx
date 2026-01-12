@@ -62,7 +62,9 @@ function ReportPage() {
                   <a href={post.url}>{post.postId}</a>
                 </td>
                 <td>
-                  <Link to={"/posts/" + post.postId}>View</Link>
+                  <Link to={"/" + post.postId + "/" + post.scrapedAt}>
+                    View
+                  </Link>
                 </td>
                 <td>
                   <button onClick={() => downloadPost(post)}>

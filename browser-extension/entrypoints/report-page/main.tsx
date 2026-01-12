@@ -10,7 +10,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <HashRouter>
       <Routes>
         <Route index path="/" element={<ReportPage />} />
-        <Route path="/posts/:postId" element={<PostDetailPage />} />
+        <Route path="/:postId/:scrapedAt" element={<PostDetailPage />} />
       </Routes>
     </HashRouter>
   </React.StrictMode>
