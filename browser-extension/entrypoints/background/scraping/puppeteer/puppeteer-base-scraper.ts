@@ -15,26 +15,18 @@ export abstract class PuppeteerBaseScraper implements Scraper {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private async getBrowserPageFromTab(tab: Browser.tabs.Tab): Promise<Page> {
+  public async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
     this.browser = await connect({
       transport: await ExtensionTransport.connectTab(tab.id!),
     });
     const [page] = await this.browser.pages();
-    return page;
-  }
-
-  private async disconnectBrowser() {
-    if (this.browser) {
-      this.browser.disconnect();
-    }
-  }
-
-  public async scrapTab(tab: Browser.tabs.Tab): Promise<Post> {
-    const page = await this.getBrowserPageFromTab(tab);
     try {
-      return this.doScrapTab(tab, page);
+      return await this.doScrapTab(tab, page);
     } finally {
-      this.disconnectBrowser();
+      if (this.browser) {
+        await this.browser.disconnect();
+      }
+      this.browser = undefined;
     }
   }
 
