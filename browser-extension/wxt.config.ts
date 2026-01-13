@@ -12,6 +12,8 @@ export default defineConfig({
       "downloads",
       "tabs",
       "unlimitedStorage",
+      "activeTab",
     ],
+    host_permissions: ["<all_urls>", "https://www.youtube.com/*"],
   },
 });

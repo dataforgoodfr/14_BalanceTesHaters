@@ -21,7 +21,7 @@ function ReportPage() {
   useEffect(() => {
     getPostsFromStorage().then((posts) => {
       console.log("Posts", posts);
-      setPosts(posts);
+      setPosts(posts.filter((p) => p != undefined));
     });
   }, []);
   return (

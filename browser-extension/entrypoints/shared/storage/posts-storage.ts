@@ -16,7 +16,7 @@ export async function getPosts(): Promise<Post[]> {
 
 export async function getPostByIdAndScrapedAt(
   postId: string,
-  scrapedAt: string
+  scrapedAt: string,
 ): Promise<Post | undefined> {
   const posts = await getPosts();
   return posts.find((p) => p.postId === postId && p.scrapedAt === scrapedAt);

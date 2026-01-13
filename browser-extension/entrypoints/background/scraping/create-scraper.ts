@@ -1,12 +1,19 @@
 import { SocialNetworkName } from "@/entrypoints/shared/model/social-network-name";
-import { PuppeteerBaseScraper } from "./puppeteer/puppeteer-base-scraper";
 import { InstagramScraper } from "./instagram/instagram-scraper";
 import { YoutubeScraper } from "./youtube/youtube-scraper";
+import { YoutubeNativeScraper } from "./youtube-native/youtube-native-scraper";
+import { Scraper } from "./scraper";
 
-export function createScraper(sn: SocialNetworkName): PuppeteerBaseScraper {
+const usePuppeteer = false;
+export function createScraper(sn: SocialNetworkName): Scraper {
   switch (sn) {
     case "YOUTUBE":
-      return new YoutubeScraper();
+      if (usePuppeteer) {
+        return new YoutubeScraper();
+      } else {
+        return new YoutubeNativeScraper();
+      }
+
     case "INSTAGRAM":
       return new InstagramScraper();
   }

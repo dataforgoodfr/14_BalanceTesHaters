@@ -69,7 +69,7 @@ export class YoutubePostScrapper {
 
   private async scrapPostTitle() {
     return await innerText(
-      (await this.page.$(".watch-active-metadata #title"))!
+      (await this.page.$(".watch-active-metadata #title"))!,
     );
   }
 
@@ -82,7 +82,7 @@ export class YoutubePostScrapper {
     descElement.scrollIntoView();
 
     const dateTextElement = (await this.page.waitForSelector(
-      "#description #date-text"
+      "#description #date-text",
     ))!;
     return (await ariaLabel(dateTextElement))?.trim() ?? "";
   }
@@ -100,7 +100,7 @@ export class YoutubePostScrapper {
       };
     }
     const attributedChannelNameEl = (await this.page.$(
-      "#owner #attributed-channel-name"
+      "#owner #attributed-channel-name",
     ))!;
     if (
       attributedChannelNameEl &&
@@ -149,7 +149,7 @@ export class YoutubePostScrapper {
     const comments: Comment[] = await Promise.all(
       Array.from(commentContainers).map(async (commentContainer) => {
         return await this.scrapComment(commentContainer);
-      })
+      }),
     );
     return comments;
   }
@@ -159,7 +159,7 @@ export class YoutubePostScrapper {
 
     const author: Author = await this.scrapCommentAuthor(commentContainer);
     const publishedAt = await innerText(
-      (await commentContainer.$("#published-time-text"))!
+      (await commentContainer.$("#published-time-text"))!,
     );
 
     // TODO review content capture to include emojis
@@ -167,7 +167,7 @@ export class YoutubePostScrapper {
     const commentText = (
       await this.page.evaluate(
         (e) => (e as HTMLElement).innerText,
-        commentTextHandle
+        commentTextHandle,
       )
     )?.trim();
     await commentContainer.scrollIntoView();
@@ -213,26 +213,26 @@ export class YoutubePostScrapper {
       let lastChangeTime = Date.now();
       for (;;) {
         const spinners = Array.from(
-          document.querySelectorAll("#comments #spinner")
+          document.querySelectorAll("#comments #spinner"),
         ).filter(isVisible);
         const comments = Array.from(
-          document.querySelectorAll("#comments ytd-comment-thread-renderer")
+          document.querySelectorAll("#comments ytd-comment-thread-renderer"),
         ).filter(isVisible);
         console.log(
           "BTH - comments:",
           comments.length,
           "spinners:",
-          spinners.length
+          spinners.length,
         );
         if (spinners.length > 0) {
           const lastSpinner = spinners[spinners.length - 1];
           console.debug(
-            "BTH - Found spinners scroll to last of them to trigger comment loading"
+            "BTH - Found spinners scroll to last of them to trigger comment loading",
           );
           lastSpinner.scrollIntoView();
         } else if (Date.now() - lastChangeTime > 10000) {
           console.debug(
-            "BTH - No more spinners found and no changes since more than 10s... consider all comments loaded."
+            "BTH - No more spinners found and no changes since more than 10s... consider all comments loaded.",
           );
           return;
         }
@@ -256,15 +256,15 @@ export class YoutubePostScrapper {
         document.querySelectorAll(
           "#replies #more-replies button" +
             "," +
-            "#replies #more-replies-sub-thread button"
-        )
+            "#replies #more-replies-sub-thread button",
+        ),
       )
         .filter((e) => e.getBoundingClientRect().height > 0)
         .filter((e) => e instanceof HTMLElement);
       console.debug(
         "BTH - Expanding ",
         repliesButton.length,
-        " replies button..."
+        " replies button...",
       );
       repliesButton.forEach((b) => {
         b.click();
@@ -276,8 +276,8 @@ export class YoutubePostScrapper {
       for (;;) {
         const moreRepliesButtons = Array.from(
           document.querySelectorAll(
-            'button[aria-label="Afficher plus de réponses"]'
-          )
+            'button[aria-label="Afficher plus de réponses"]',
+          ),
         )
           .filter((b) => b.getBoundingClientRect().height > 0)
           .filter((b) => b instanceof HTMLElement);
@@ -287,7 +287,7 @@ export class YoutubePostScrapper {
           console.log(
             "BTH - clicking ",
             moreRepliesButtons.length,
-            " more replies buttons"
+            " more replies buttons",
           );
           moreRepliesButtons.forEach((b) => {
             b.click();
