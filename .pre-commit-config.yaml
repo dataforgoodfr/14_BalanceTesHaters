@@ -14,9 +14,9 @@ repos:
     hooks:
       - id: eslint
         name: eslint
-        entry: bash -c "cd browser-extension && npm lint"
+        entry: bash -c "cd browser-extension && npm run lint"
         language: node
       - id: format
         name: format
-        entry: bash -c "cd browser-extension && npm format:check"
+        entry: bash -c "cd browser-extension && npm run format:check"
         language: node
