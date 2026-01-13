@@ -13,7 +13,6 @@ import {
 } from "../shared/dom-scraping/dom-scraping";
 import { sleep } from "../shared/utils/sleep";
 import { uint8ArrayToBase64 } from "../shared/utils/base-64";
-import { buildDataUrl, PNG_MIME_TYPE } from "../shared/utils/data-url";
 import { Rect } from "../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../shared/native-screenshoting/cs/page-screenshot";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
