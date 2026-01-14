@@ -1,5 +1,5 @@
 import { Author, Post, Comment } from "@/entrypoints/shared/model/post";
-import { currentIsoDate } from "../background/scraping/utils/current-iso-date";
+import { currentIsoDate } from "../shared/utils/current-iso-date";
 import { parseSocialNetworkUrl } from "../shared/social-network-url";
 import { encodePng, Image } from "image-js";
 
@@ -134,9 +134,7 @@ export class YoutubePostNativeScrapper {
         accountHref: channelUrl,
       };
     }
-    return {
-      name: "unknown",
-    };
+    throw new Error("Failed to scrap post author");
   }
   private async scrapPostComments(): Promise<Comment[]> {
     const commentsSectionHandle = selectOrThrow(
