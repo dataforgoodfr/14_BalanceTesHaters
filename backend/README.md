@@ -1,14 +1,6 @@
-# Template DataForGood
-
-This file will become your README and also the index of your
-documentation.
-
-# Contributing
-
+# Backend Balance tes haters
 
 ## Installation
-
-- [Installation de Python](#installation-de-python)
 
 Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
 
@@ -24,12 +16,21 @@ A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement
 source .venv/bin/activate
 ```
 
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
+## Création de la base de données
 
-```bash
-uv run pipelines/run.py run build_database
+Nécessite un serveur de base de données PostgreSQL
+
+- configurer les paramètres d'accès à la base de données dans le fichier [configuration.yml](configuration.yml)
+- lancer la commande: 
+```
+alembic upgrade head
 ```
 
+## Lancement du backend
+
+```
+fastapi dev server.py
+```
 
 ## Lancer les precommit-hook localement
 
