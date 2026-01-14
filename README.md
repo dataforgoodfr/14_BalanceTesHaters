@@ -6,7 +6,7 @@ documentation.
 # Contributing
 
 
-## Installation
+## Installation backend
 
 - [Installation de Python](#installation-de-python)
 
@@ -15,6 +15,7 @@ Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendan
 Une fois installé, il suffit de lancer la commande suivante pour installer la version de Python adéquate, créer un environnement virtuel et installer les dépendances du projet.
 
 ```bash
+cd backend
 uv sync
 ```
 
@@ -23,13 +24,6 @@ A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement
 ```bash
 source .venv/bin/activate
 ```
-
-Ou alors, utilisez la commande `uv run ...` (au lieu de `python ...`) pour lancer un script Python. Par exemple:
-
-```bash
-uv run pipelines/run.py run build_database
-```
-
 
 ## Lancer les precommit-hook localement
 

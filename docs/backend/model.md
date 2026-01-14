@@ -40,7 +40,6 @@ classDiagram
     Post "1" *-- "0..n" Comment
     Author "1" --> "0..n" Comment : post
     Comment "1" -- "0..n" Comment : replies
-
 ```
 
 `Post` : Publication d'un auteur posté sur un réseau social
