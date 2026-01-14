@@ -2,57 +2,49 @@
 
 ```mermaid
 classDiagram
-    class Auteur {
-        stat_nb_publications
-        stat_nb_commentaires
+    class Author {
+        name: str
+        account_href: str
     }
 
-    class Identite {
-        id: UUID
-        pseudo: str
-        url: str
-    }
-    Identite "0..n" -- "1" ReseauSocial
-    Auteur "1" *-- "1..n" Identite : possède
-
-    class ReseauSocial {
+    class SocialNetwork {
         <<enumeration>>
         YOUTUBE
         INSTAGRAM
         TIKTOK
         ...
     }
-    class Publication {
+    class Post {
         id: UUID
         url: str
-        date_publication: datetime
-        horodatage_capture: datetime
-        texte_publication: str
+        published_at: str
+        scraped_at: datetime
+        text_content: str
+        post_id: str;
+        title?: str;
     }
-    Identite "1" --> "0..n" Publication : est l'auteur de
-    Publication "0..n" --> "1" ReseauSocial : publiée sur
+    Author "1" --> "0..n" Post : publish
+    Post "0..n" --> "1" SocialNetwork : posted on
 
-    class Commentaire {
+    class Comment {
         id: UUID
-        texte_commentaire: str
-        date_commentaire: str | datetime
-        date_relative: bool
-        screenshot: str
-        horodatage_screenshot: datetime
+        text_c_ontent: str
+        published_at: str
+        scraped_at: datetime
+        screenshot_data: str
         classification: list[str]
-        horodatage_classification: datetime
+        classified_at: datetime
+        nb_likes: int
     }
 
-    Publication "1" *-- "0..n" Commentaire
-    Identite "1" --> "0..n" Commentaire : est l'auteur de
-    Commentaire "1" -- "0..n" Commentaire : réponses
+    Post "1" *-- "0..n" Comment
+    Author "1" --> "0..n" Comment : post
+    Comment "1" -- "0..n" Comment : replies
 
 ```
 
-`Publication` : Publication d'un auteur posté sur un réseau social
+`Post` : Publication d'un auteur posté sur un réseau social
 
-`Commentaire` : Commentaire posté par un auteur sur une publication
+`Comment` : Commentaire posté par un auteur sur une publication
 
-`Auteur`: Auteur d'une publication ou d'un commentaire
-
-`Identité` : Identité d'un auteur sur un réseau social (pseudo et URL)
+`Author`: Auteur d'une publication ou d'un commentaire
