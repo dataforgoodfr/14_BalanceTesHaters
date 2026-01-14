@@ -134,9 +134,7 @@ export class YoutubePostNativeScrapper {
         accountHref: channelUrl,
       };
     }
-    return {
-      name: "unknown",
-    };
+    throw new Error("Failed to scrap post author");
   }
   private async scrapPostComments(): Promise<Comment[]> {
     const commentsSectionHandle = selectOrThrow(

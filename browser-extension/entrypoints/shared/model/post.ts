@@ -33,8 +33,7 @@ export type Post = {
 
 export type Author = {
   name: string;
-  //TODO make mandatory
-  accountHref?: string;
+  accountHref: string;
 };
 
 export type Comment = {
