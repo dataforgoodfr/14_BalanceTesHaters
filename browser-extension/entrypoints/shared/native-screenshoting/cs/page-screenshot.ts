@@ -17,7 +17,7 @@ async function capturePageScreenshotFragmentss(): Promise<
   const scrollable = selectOrThrow(document, "html", HTMLHtmlElement);
   if (scrollable.scrollWidth > window.innerWidth) {
     console.warn(
-      "Page seems wider than viewport. This does not handle horizontal scrolling."
+      "Page seems wider than viewport. This does not handle horizontal scrolling.",
     );
   }
 
@@ -34,7 +34,7 @@ async function capturePageScreenshotFragmentss(): Promise<
     if (top >= initialScrollHeight) {
       if (scrollable.scrollHeight != initialScrollHeight) {
         console.warn(
-          "scrollHeight changed since capture start. Only page down initial height will be captured."
+          "scrollHeight changed since capture start. Only page down initial height will be captured.",
         );
       }
       return screenshots;

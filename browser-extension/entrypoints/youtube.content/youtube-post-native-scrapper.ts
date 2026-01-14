@@ -92,7 +92,7 @@ export class YoutubePostNativeScrapper {
     const infoElement = selectOrThrow(
       document,
       "#description #info",
-      HTMLElement
+      HTMLElement,
     );
     infoElement.scrollIntoView();
     const value = select(infoElement, "span:nth-child(3)", HTMLElement);
@@ -118,7 +118,7 @@ export class YoutubePostNativeScrapper {
     const attributedChannelNameEl = select(
       document,
       "#owner #attributed-channel-name",
-      HTMLElement
+      HTMLElement,
     );
     if (attributedChannelNameEl && isVisible(attributedChannelNameEl)) {
       const channelName = attributedChannelNameEl.innerText;
@@ -126,7 +126,7 @@ export class YoutubePostNativeScrapper {
       const link = selectOrThrow(
         attributedChannelNameEl,
         "a",
-        HTMLAnchorElement
+        HTMLAnchorElement,
       );
       const channelUrl = link.href;
       return {
@@ -142,7 +142,7 @@ export class YoutubePostNativeScrapper {
     const commentsSectionHandle = selectOrThrow(
       document,
       "#comments",
-      HTMLElement
+      HTMLElement,
     );
     commentsSectionHandle.scrollIntoView();
 
@@ -170,7 +170,7 @@ export class YoutubePostNativeScrapper {
     const visibleCommentContainers = selectAll(
       commentsSectionHandle,
       "#comment-container",
-      HTMLElement
+      HTMLElement,
     ).filter(isVisible);
 
     // TODO carify why some comments are not visible...
@@ -178,7 +178,7 @@ export class YoutubePostNativeScrapper {
     const commentsPreScreenshot: CommentPreScreenshot[] = await Promise.all(
       visibleCommentContainers.map(async (commentContainer) => {
         return await this.scrapComment(commentContainer);
-      })
+      }),
     );
     this.debug("Comments metada:", commentsPreScreenshot);
 
@@ -209,7 +209,7 @@ export class YoutubePostNativeScrapper {
     const masthead = selectOrThrow(
       document,
       "#masthead-container",
-      HTMLElement
+      HTMLElement,
     );
     masthead.style.visibility = "hidden";
     await resumeHostPage();
@@ -226,7 +226,7 @@ export class YoutubePostNativeScrapper {
     const sortMenu = await waitForSelector(
       document,
       "#comments #sort-menu",
-      HTMLElement
+      HTMLElement,
     );
     selectOrThrow(sortMenu, "#trigger", HTMLElement).click();
 
@@ -245,23 +245,23 @@ export class YoutubePostNativeScrapper {
       const spinners = selectAll(
         document,
         "#comments #spinner",
-        HTMLElement
+        HTMLElement,
       ).filter(isVisible);
       const comments = selectAll(
         document,
         "#comments ytd-comment-thread-renderer",
-        HTMLElement
+        HTMLElement,
       ).filter(isVisible);
       this.debug("comments:", comments.length, "spinners:", spinners.length);
       if (spinners.length > 0) {
         const lastSpinner = spinners[spinners.length - 1];
         this.debug(
-          "Found spinners scroll to last of them to trigger comment loading"
+          "Found spinners scroll to last of them to trigger comment loading",
         );
         lastSpinner.scrollIntoView();
       } else if (Date.now() - lastChangeTime > 5000) {
         this.debug(
-          "No more spinners found and no changes since more than 10s... consider all comments loaded."
+          "No more spinners found and no changes since more than 10s... consider all comments loaded.",
         );
         return;
       }
@@ -284,7 +284,7 @@ export class YoutubePostNativeScrapper {
       "#replies #more-replies button" +
         "," +
         "#replies #more-replies-sub-thread button",
-      HTMLElement
+      HTMLElement,
     ).filter(isVisible);
     this.debug("Expanding ", repliesButton.length, " replies button...");
     for (const b of repliesButton) {
@@ -299,7 +299,7 @@ export class YoutubePostNativeScrapper {
       const moreRepliesButtons = selectAll(
         document,
         'button[aria-label="Afficher plus de réponses"]',
-        HTMLElement
+        HTMLElement,
       ).filter(isVisible);
 
       if (moreRepliesButtons.length === 0) {
@@ -308,7 +308,7 @@ export class YoutubePostNativeScrapper {
         this.debug(
           "clicking ",
           moreRepliesButtons.length,
-          " more replies buttons"
+          " more replies buttons",
         );
         for (const b of moreRepliesButtons) {
           b.scrollIntoView();
@@ -322,7 +322,7 @@ export class YoutubePostNativeScrapper {
   }
 
   private async scrapComment(
-    commentContainer: HTMLElement
+    commentContainer: HTMLElement,
   ): Promise<CommentPreScreenshot> {
     const scrapDate = currentIsoDate();
 
@@ -330,14 +330,14 @@ export class YoutubePostNativeScrapper {
     const publishedAt = selectOrThrow(
       commentContainer,
       "#published-time-text",
-      HTMLElement
+      HTMLElement,
     ).innerText;
 
     // TODO review content capture to include emojis
     const commentTextHandle = selectOrThrow(
       commentContainer,
       "#content-text",
-      HTMLElement
+      HTMLElement,
     );
 
     const commentText = commentTextHandle.innerText.trim();
@@ -364,12 +364,12 @@ export class YoutubePostNativeScrapper {
     return commentPre;
   }
   private async scrapCommentAuthor(
-    commentContainer: HTMLElement
+    commentContainer: HTMLElement,
   ): Promise<Author> {
     const authorTextHandle = selectOrThrow(
       commentContainer,
       "a#author-text",
-      HTMLAnchorElement
+      HTMLAnchorElement,
     );
     const commentAuthor = authorTextHandle.innerText.trim();
     const commentAuthorHref = authorTextHandle?.href;

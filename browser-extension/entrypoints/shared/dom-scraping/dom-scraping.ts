@@ -5,7 +5,7 @@ type Class<T> = new () => T;
 export function select<T extends Element>(
   parent: ParentNode,
   selector: string,
-  targetClass: Class<T>
+  targetClass: Class<T>,
 ): T | undefined {
   const element = parent.querySelector(selector);
   if (!element) {
@@ -17,7 +17,7 @@ export function select<T extends Element>(
 export function selectAll<T extends Element>(
   parent: ParentNode,
   selector: string,
-  targetClass: Class<T>
+  targetClass: Class<T>,
 ): T[] {
   const elements = Array.from(parent.querySelectorAll(selector));
   return elements.map((e) => castElement(e, targetClass));
@@ -30,7 +30,7 @@ export async function waitForSelector<T extends Element>(
   options?: {
     predicate?: (e: T) => boolean;
     timeout?: number;
-  }
+  },
 ): Promise<T> {
   const timeout = options?.timeout || 30000;
 
@@ -47,14 +47,14 @@ export async function waitForSelector<T extends Element>(
       selector +
       " and predicate " +
       options?.predicate +
-      " before timeout"
+      " before timeout",
   );
 }
 
 export function selectOrThrow<T extends Element>(
   parent: ParentNode,
   selector: string,
-  targetClass: Class<T>
+  targetClass: Class<T>,
 ): T {
   const element = select(parent, selector, targetClass);
   if (!element) {
@@ -75,7 +75,7 @@ export function hasEmptyBoundingBox(element: HTMLElement): boolean {
 
 export function castElement<T extends Element>(
   element: Element,
-  targetClass: Class<T>
+  targetClass: Class<T>,
 ): T {
   if (element instanceof targetClass) {
     return element;
