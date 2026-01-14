@@ -9,7 +9,7 @@ import {
   type Comment,
 } from "../../../shared/model/post";
 import { parseSocialNetworkUrl } from "@/entrypoints/shared/social-network-url";
-import { currentIsoDate } from "../utils/current-iso-date";
+import { currentIsoDate } from "../../../shared/utils/current-iso-date";
 
 //TODO: gérer le scroll et le chargement des commentaires
 //TODO: gérer le scraping des réponses aux commentaires
