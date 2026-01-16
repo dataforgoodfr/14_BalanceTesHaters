@@ -14,7 +14,7 @@ class Comment(BaseModel):
     scrapedAt: datetime
     screenshotData: str
     nbLikes: int
-    replies: list["Comment"]
+    replies: list["Comment"] | None = None
 
 
 class Post(BaseModel):

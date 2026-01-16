@@ -23,11 +23,11 @@ def upgrade() -> None:
     op.create_table(
         "posts",
         sa.Column("id", sa.Uuid, primary_key=True, nullable=False),
-        sa.Column("url", sa.String, unique=True, nullable=False),
+        sa.Column("url", sa.String, nullable=False),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("scraped_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("text_content", sa.Text, nullable=False),
-        sa.Column("post_id", sa.String, unique=True, nullable=False),
+        sa.Column("post_id", sa.String, nullable=False),
         sa.Column("social_network", sa.String, nullable=False),
         sa.Column("author_id", sa.Uuid, sa.ForeignKey("authors.id"), nullable=False),
         sa.Column(
@@ -45,8 +45,8 @@ def upgrade() -> None:
         sa.Column("scraped_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("screenshot_data", sa.Text, nullable=False),
         sa.Column("nb_likes", sa.Integer, nullable=False),
-        sa.Column("classification", sa.String, nullable=False),
-        sa.Column("classified_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("classification", sa.String, nullable=True),
+        sa.Column("classified_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
