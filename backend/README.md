@@ -32,6 +32,8 @@ alembic upgrade head
 fastapi dev server.py
 ```
 
+Les API sont exposées à l'URL: http://localhost:8000/
+
 ## Lancer les precommit-hook localement
 
 [Installer les precommit](https://pre-commit.com/)
