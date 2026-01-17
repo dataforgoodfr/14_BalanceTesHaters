@@ -74,7 +74,9 @@ class Comment(Base):
     screenshot_data: Mapped[str] = mapped_column(nullable=False)
     nb_likes: Mapped[int] = mapped_column(nullable=False)
     classification: Mapped[str] = mapped_column(nullable=True)
-    classified_at: Mapped[datetime] = mapped_column(nullable=True)
+    classified_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

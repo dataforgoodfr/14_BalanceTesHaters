@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from balanceteshaters.model.base import Author, Comment
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -23,3 +24,11 @@ def create_comment(
     )
     session.add(comment)
     return comment
+
+
+async def find_comments_to_classify(
+    session: AsyncSession,
+) -> list[Comment]:
+    stmt = select(Comment).where(Comment.classified_at.is_(None))
+    result = await session.execute(stmt)
+    return result.scalars().all()
