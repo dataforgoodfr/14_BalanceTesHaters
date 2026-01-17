@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.create_table(
         "authors",
         sa.Column("id", sa.Uuid, primary_key=True, nullable=False),
-        sa.Column("name", sa.String, unique=True, nullable=False),
+        sa.Column("name", sa.String, unique=False, nullable=False),
         sa.Column("account_href", sa.String, unique=True, nullable=False),
         sa.Column(
             "created_at",

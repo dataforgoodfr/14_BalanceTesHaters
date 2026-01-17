@@ -53,10 +53,11 @@ def upgrade() -> None:
             nullable=False,
             server_default=func.now(),
         ),
-        sa.Column("post_id", sa.Uuid, sa.ForeignKey("posts.id"), nullable=False),
+        sa.Column("post_id", sa.Uuid, sa.ForeignKey("posts.id"), nullable=True),
         sa.Column(
             "parent_comment_id", sa.Uuid, sa.ForeignKey("comments.id"), nullable=True
         ),
+        sa.Column("author_id", sa.Uuid, sa.ForeignKey("authors.id"), nullable=False),
     )
 
 

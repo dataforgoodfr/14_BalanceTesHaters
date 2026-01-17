@@ -27,6 +27,9 @@ class Author(Base):
     posts: Mapped[list["Post"]] = relationship(
         "Post", back_populates="author", cascade="all, delete-orphan"
     )
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment", back_populates="author", cascade="all, delete-orphan"
+    )
 
 
 @dataclass
@@ -85,4 +88,8 @@ class Comment(Base):
     )
     replies: Mapped[list["Comment"]] = relationship(
         "Comment", back_populates="parent_comment", cascade="all, delete-orphan"
+    )
+    author: Mapped[Author] = relationship(Author, back_populates="comments")
+    author_id: Mapped[UUID_Type] = mapped_column(
+        ForeignKey("authors.id"), nullable=False
     )

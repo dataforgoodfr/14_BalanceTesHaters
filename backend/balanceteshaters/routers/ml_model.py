@@ -9,6 +9,7 @@ class Author(BaseModel):
 
 
 class Comment(BaseModel):
+    author: Author
     textContent: str
     publishedAt: datetime
     scrapedAt: datetime
