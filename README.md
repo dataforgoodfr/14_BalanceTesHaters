@@ -2,5 +2,5 @@
 
 ## Documentation et installation
 
-- [Extension navigateur](./browser-extension/readme.md)
-- [Backend](./backend/readme.md)
+- [Extension navigateur](./browser-extension/REAMDE.md)
+- [Backend](./backend/REAMDE.md)
