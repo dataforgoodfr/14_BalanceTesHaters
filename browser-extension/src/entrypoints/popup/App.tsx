@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
-import { getCurrentTab } from "../shared/utils/getCurrentTab";
-import { parseSocialNetworkUrl } from "../shared/social-network-url";
+import { getCurrentTab } from "../../shared/utils/getCurrentTab";
+import { parseSocialNetworkUrl } from "../../shared/social-network-url";
 
 const sendScrapMessage = () => {
   browser.runtime.sendMessage({ msgType: "scrap-active-tab" });

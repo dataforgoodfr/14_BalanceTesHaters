@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import ReportPage from "./ReportPage.tsx";
-import "../shared/main-style.css";
+import "../../shared/main-style.css";
 import { HashRouter, Route, Routes } from "react-router";
 import PostDetailPage from "./posts/PostScrapDetails.tsx";
 

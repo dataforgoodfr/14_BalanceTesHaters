@@ -1,6 +1,6 @@
-import { Author, Post, Comment } from "@/entrypoints/shared/model/post";
-import { currentIsoDate } from "../shared/utils/current-iso-date";
-import { parseSocialNetworkUrl } from "../shared/social-network-url";
+import { Author, Post, Comment } from "@/shared/model/post";
+import { currentIsoDate } from "../../shared/utils/current-iso-date";
+import { parseSocialNetworkUrl } from "../../shared/social-network-url";
 import { encodePng, Image } from "image-js";
 
 import {
@@ -10,11 +10,11 @@ import {
   selectAll,
   selectOrThrow,
   waitForSelector,
-} from "../shared/dom-scraping/dom-scraping";
-import { sleep } from "../shared/utils/sleep";
-import { uint8ArrayToBase64 } from "../shared/utils/base-64";
-import { Rect } from "../shared/native-screenshoting/cs/rect";
-import { captureFullPageScreenshot } from "../shared/native-screenshoting/cs/page-screenshot";
+} from "../../shared/dom-scraping/dom-scraping";
+import { sleep } from "../../shared/utils/sleep";
+import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
+import { Rect } from "../../shared/native-screenshoting/cs/rect";
+import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {

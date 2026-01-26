@@ -1,5 +1,5 @@
-import { type Post } from "../../../shared/model/post";
-import { parseSocialNetworkUrl } from "@/entrypoints/shared/social-network-url";
+import { type Post } from "../../../../shared/model/post";
+import { parseSocialNetworkUrl } from "@/shared/social-network-url";
 import { Scraper } from "../scraper";
 import { CS_SCRAP_YT_POST } from "@/entrypoints/youtube.content/cs-scrap-youtube-post-message";
 

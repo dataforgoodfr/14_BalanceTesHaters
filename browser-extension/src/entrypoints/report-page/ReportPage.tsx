@@ -1,6 +1,6 @@
 import { Link } from "react-router";
-import { Post } from "../shared/model/post";
-import { getPosts as getPostsFromStorage } from "../shared/storage/posts-storage";
+import { Post } from "../../shared/model/post";
+import { getPosts as getPostsFromStorage } from "../../shared/storage/posts-storage";
 import "./ReportPage.css";
 
 function downloadPost(post: Post) {

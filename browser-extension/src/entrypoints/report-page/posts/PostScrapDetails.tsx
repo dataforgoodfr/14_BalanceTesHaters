@@ -1,5 +1,5 @@
-import { getPostByIdAndScrapedAt } from "@/entrypoints/shared/storage/posts-storage";
-import { Post } from "@/entrypoints/shared/model/post";
+import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
+import { Post } from "@/shared/model/post";
 import { useParams } from "react-router";
 
 function PostDetailPage() {

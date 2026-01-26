@@ -1,4 +1,4 @@
-import { SocialNetworkName } from "@/entrypoints/shared/model/social-network-name";
+import { SocialNetworkName } from "@/shared/model/social-network-name";
 import { InstagramScraper } from "./instagram/instagram-scraper";
 import { YoutubeNativeScraper } from "./youtube-native/youtube-native-scraper";
 import { Scraper } from "./scraper";

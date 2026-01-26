@@ -1,10 +1,10 @@
-import { storePost } from "../shared/storage/posts-storage";
-import { getCurrentTab } from "../shared/utils/getCurrentTab";
+import { storePost } from "../../shared/storage/posts-storage";
+import { getCurrentTab } from "../../shared/utils/getCurrentTab";
 import { isScrapActiveTabMessage } from "./scraping/scrap-active-tab-message";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
-import { screenshotSenderTab } from "../shared/native-screenshoting/background/screenshot-sender-tab";
-import { isScreenshotSenderTab } from "../shared/native-screenshoting/message";
-import { Post } from "../shared/model/post";
+import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
+import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
+import { Post } from "../../shared/model/post";
 
 export default defineBackground(() => {
   console.log("Hello background!", { extensionId: browser.runtime.id });

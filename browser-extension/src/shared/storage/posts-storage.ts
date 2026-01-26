@@ -1,4 +1,4 @@
-import { Post } from "@/entrypoints/shared/model/post";
+import { Post } from "@/shared/model/post";
 
 export async function storePost(post: Post) {
   if (!post) {

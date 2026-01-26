@@ -4,7 +4,7 @@ import {
   Page,
   Browser as PuppeteerBrowser,
 } from "puppeteer-core/lib/esm/puppeteer/puppeteer-core-browser.js";
-import type { Post } from "../../../shared/model/post";
+import type { Post } from "../../../../shared/model/post";
 import { Scraper } from "../scraper";
 
 export abstract class PuppeteerBaseScraper implements Scraper {
