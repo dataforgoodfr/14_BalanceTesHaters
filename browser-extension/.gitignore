@@ -24,3 +24,6 @@ web-ext.config.ts
 *.njsproj
 *.sln
 *.sw?
+
+# cancel the "lib" exclusion defined in root .gitignore  
+!lib
