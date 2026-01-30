@@ -2,6 +2,15 @@ import { Link } from "react-router";
 import { Post } from "../../shared/model/post";
 import { getPosts as getPostsFromStorage } from "../../shared/storage/posts-storage";
 import "./PostListPage.css";
+import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
@@ -31,50 +40,50 @@ function PostListPage() {
       <h2>Posts</h2>
       {!posts && <div>Loading...</div>}
       {posts && (
-        <table>
-          <thead>
-            <tr>
-              <th>Date scraping</th>
-              <th>Réseau social</th>
-              <th>Auteur</th>
-              <th>Date publication</th>
-              <th>Titre</th>
-              <th>Aperçu contenu/description</th>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Date scraping</TableHead>
+              <TableHead>Réseau social</TableHead>
+              <TableHead>Auteur</TableHead>
+              <TableHead>Date publication</TableHead>
+              <TableHead>Titre</TableHead>
+              <TableHead>Aperçu contenu/description</TableHead>
 
-              <th>Nb commentaires</th>
-              <th>Id</th>
-              <th>View details</th>
-              <th>Télécharger</th>
-            </tr>
-          </thead>
-          <tbody>
+              <TableHead>Nb commentaires</TableHead>
+              <TableHead>Id</TableHead>
+              <TableHead>View details</TableHead>
+              <TableHead>Télécharger</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {posts.map((post, index) => (
-              <tr key={post.url || index}>
-                <td> {post.scrapedAt}</td>
-                <td> {post.socialNetwork}</td>
-                <td> {post.author.name}</td>
-                <td> {post.publishedAt}</td>
-                <td> {post.title}</td>
-                <td> {ellipsis(post.textContent || "")}</td>
+              <TableRow key={post.url || index}>
+                <TableCell> {post.scrapedAt}</TableCell>
+                <TableCell> {post.socialNetwork}</TableCell>
+                <TableCell> {post.author.name}</TableCell>
+                <TableCell> {post.publishedAt}</TableCell>
+                <TableCell> {post.title}</TableCell>
+                <TableCell> {ellipsis(post.textContent || "")}</TableCell>
 
-                <td> {post.comments.length}</td>
-                <td>
+                <TableCell> {post.comments.length}</TableCell>
+                <TableCell>
                   <a href={post.url}>{post.postId}</a>
-                </td>
-                <td>
+                </TableCell>
+                <TableCell>
                   <Link to={"/" + post.postId + "/" + post.scrapedAt}>
                     View
                   </Link>
-                </td>
-                <td>
-                  <button onClick={() => downloadPost(post)}>
+                </TableCell>
+                <TableCell>
+                  <Button onClick={() => downloadPost(post)}>
                     Télécharger
-                  </button>
-                </td>
-              </tr>
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </>
   );

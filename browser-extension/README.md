@@ -4,7 +4,12 @@ Cette extension permet de capturer les commentaires depuis des publications rés
 
 # Contributing
 
-Cette extension utilise [wxt](https://wxt.dev/) + React
+Cette extension utilise:
+
+- [wxt](https://wxt.dev/)
+- [React](https://fr.react.dev/)
+- [shadcn/ui](https://ui.shadcn.com/docs) comme library de composants
+- [vitest](https://vitest.dev/) comme framework de test
 
 ## Installation
 

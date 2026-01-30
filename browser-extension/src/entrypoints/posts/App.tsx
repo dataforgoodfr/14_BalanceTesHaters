@@ -1,8 +1,10 @@
 import { HashRouter, Route, Routes } from "react-router";
 import PostListPage from "./PostListPage";
 import PostDetailPage from "./PostDetailPage";
+import { useInitializeTheme } from "@/styles/useInitializeTheme";
 
 export default function App() {
+  useInitializeTheme();
   return (
     <HashRouter>
       <Routes>

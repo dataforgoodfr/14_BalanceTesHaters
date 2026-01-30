@@ -1,7 +1,16 @@
 import { useState } from "react";
 import "./App.css";
-import { getCurrentTab } from "../../shared/utils/getCurrentTab";
-import { parseSocialNetworkUrl } from "../../shared/social-network-url";
+import { getCurrentTab } from "@/shared/utils/getCurrentTab";
+import { parseSocialNetworkUrl } from "@/shared/social-network-url";
+import { useInitializeTheme } from "@/styles/useInitializeTheme";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const sendScrapMessage = () => {
   browser.runtime.sendMessage({ msgType: "scrap-active-tab" });
@@ -10,6 +19,7 @@ const sendScrapMessage = () => {
 const reportPageUrl = browser.runtime.getURL("/posts.html");
 
 export default function App() {
+  useInitializeTheme();
   const [currentTab, setCurrentTab] = useState<Browser.tabs.Tab | undefined>(
     undefined,
   );
@@ -27,37 +37,38 @@ export default function App() {
 
   return (
     <>
-      <h1>BTH</h1>
-
-      {!parsedUrl && (
-        <div className="card">
-          Pour capturer des commentaires et les analyser naviguez vers une
-          publication d&apos;un réseau social supporté (youtube, instagram...)
-          puis ouvrez l&apos;extension à nouveau.
-        </div>
-      )}
-      {parsedUrl && (
-        <div className="card">
-          <p>
-            Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}. Pour
-            capturer les commentaires et les analyser cliquez sur le bouton.
-          </p>
-
-          <button onClick={() => sendScrapMessage()}>
-            ⏺️ Capturer les commentaires
-          </button>
-          <p>
-            ⚠️ Une fois le bouton cliqué l&apos;extension va prendre le contrôle
-            de la page pour effectuer la capture.
-          </p>
-        </div>
-      )}
-
-      <div className="card">
-        <a href={reportPageUrl} target="bth-report-page">
-          Afficher les résultats précedents
-        </a>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Balance Tes Haters</CardTitle>
+          {!parsedUrl && (
+            <CardDescription>
+              Pour capturer des commentaires et les analyser naviguez vers une
+              publication d&apos;un réseau social supporté (youtube,
+              instagram...) puis ouvrez l&apos;extension à nouveau.
+            </CardDescription>
+          )}
+          {parsedUrl && (
+            <CardDescription>
+              Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}.
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardFooter className="flex-col">
+          {parsedUrl && (
+            <Button className="w-full" onClick={() => sendScrapMessage()}>
+              ⏺️ Capturer les commentaires
+            </Button>
+          )}
+          <Button
+            className="w-full"
+            render={
+              <a href={reportPageUrl} target="bth-report-page">
+                📋 Analyses précedentes
+              </a>
+            }
+          ></Button>
+        </CardFooter>
+      </Card>
     </>
   );
 }
