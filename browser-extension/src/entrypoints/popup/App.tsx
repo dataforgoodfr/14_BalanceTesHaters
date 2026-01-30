@@ -7,9 +7,9 @@ const sendScrapMessage = () => {
   browser.runtime.sendMessage({ msgType: "scrap-active-tab" });
 };
 
-const reportPageUrl = browser.runtime.getURL("/report-page.html");
+const reportPageUrl = browser.runtime.getURL("/posts.html");
 
-function App() {
+export default function App() {
   const [currentTab, setCurrentTab] = useState<Browser.tabs.Tab | undefined>(
     undefined,
   );
@@ -61,5 +61,3 @@ function App() {
     </>
   );
 }
-
-export default App;

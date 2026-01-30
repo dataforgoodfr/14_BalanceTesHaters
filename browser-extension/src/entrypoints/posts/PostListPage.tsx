@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { Post } from "../../shared/model/post";
 import { getPosts as getPostsFromStorage } from "../../shared/storage/posts-storage";
-import "./ReportPage.css";
+import "./PostListPage.css";
 
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
@@ -16,7 +16,7 @@ function downloadPost(post: Post) {
   }
 }
 
-function ReportPage() {
+function PostListPage() {
   const [posts, setPosts] = useState<Post[] | undefined>(undefined);
   useEffect(() => {
     getPostsFromStorage().then((posts) => {
@@ -87,4 +87,4 @@ function ellipsis(str: string, maxLength: number = 50): string {
   return str.substring(0, maxLength - 1) + "…";
 }
 
-export default ReportPage;
+export default PostListPage;
