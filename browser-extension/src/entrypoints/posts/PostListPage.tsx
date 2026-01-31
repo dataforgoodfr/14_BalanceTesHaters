@@ -67,12 +67,20 @@ function PostListPage() {
 
                 <TableCell> {post.comments.length}</TableCell>
                 <TableCell>
-                  <a href={post.url}>{post.postId}</a>
+                  <Button
+                    variant="link"
+                    render={<a href={post.url}>{post.postId}</a>}
+                  />
                 </TableCell>
                 <TableCell>
-                  <Link to={"/" + post.postId + "/" + post.scrapedAt}>
-                    View
-                  </Link>
+                  <Button
+                    variant="link"
+                    render={
+                      <Link to={"/" + post.postId + "/" + post.scrapedAt}>
+                        View
+                      </Link>
+                    }
+                  />
                 </TableCell>
                 <TableCell>
                   <Button onClick={() => downloadPost(post)}>
