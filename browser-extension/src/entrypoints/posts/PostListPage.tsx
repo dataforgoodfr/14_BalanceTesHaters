@@ -56,7 +56,7 @@ function PostListPage() {
           </TableHeader>
           <TableBody>
             {posts.map((post, index) => (
-              <TableRow key={post.url || index}>
+              <TableRow key={index}>
                 <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.socialNetwork}</TableCell>
                 <TableCell> {post.author.name}</TableCell>
