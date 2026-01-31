@@ -1,7 +1,6 @@
 import { Link } from "react-router";
 import { Post } from "../../shared/model/post";
 import { getPosts as getPostsFromStorage } from "../../shared/storage/posts-storage";
-import "./PostListPage.css";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
 
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
@@ -35,10 +35,8 @@ function PostListPage() {
   }, []);
   return (
     <>
-      <h1>BTH app - Report Page</h1>
-
-      <h2>Posts</h2>
-      {!posts && <div>Loading...</div>}
+      <h1>Publications collectées</h1>
+      {!posts && <Spinner className="size-8" />}
       {posts && (
         <Table>
           <TableHeader>
@@ -58,7 +56,7 @@ function PostListPage() {
           </TableHeader>
           <TableBody>
             {posts.map((post, index) => (
-              <TableRow key={post.url || index}>
+              <TableRow key={index}>
                 <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.socialNetwork}</TableCell>
                 <TableCell> {post.author.name}</TableCell>
@@ -68,12 +66,20 @@ function PostListPage() {
 
                 <TableCell> {post.comments.length}</TableCell>
                 <TableCell>
-                  <a href={post.url}>{post.postId}</a>
+                  <Button
+                    variant="link"
+                    render={<a href={post.url}>{post.postId}</a>}
+                  />
                 </TableCell>
                 <TableCell>
-                  <Link to={"/" + post.postId + "/" + post.scrapedAt}>
-                    View
-                  </Link>
+                  <Button
+                    variant="link"
+                    render={
+                      <Link to={"/" + post.postId + "/" + post.scrapedAt}>
+                        View
+                      </Link>
+                    }
+                  />
                 </TableCell>
                 <TableCell>
                   <Button onClick={() => downloadPost(post)}>
