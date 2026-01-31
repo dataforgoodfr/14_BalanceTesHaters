@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
 
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
@@ -34,10 +35,8 @@ function PostListPage() {
   }, []);
   return (
     <>
-      <h1>BTH app - Report Page</h1>
-
-      <h2>Posts</h2>
-      {!posts && <div>Loading...</div>}
+      <h1>Publications collectées</h1>
+      {!posts && <Spinner className="size-8" />}
       {posts && (
         <Table>
           <TableHeader>
