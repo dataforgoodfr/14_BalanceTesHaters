@@ -53,17 +53,18 @@ export default function App() {
             </CardDescription>
           )}
         </CardHeader>
-        <CardFooter className="flex-col">
+        <CardFooter className="flex-col gap-2">
           {parsedUrl && (
             <Button className="w-full" onClick={() => sendScrapMessage()}>
-              ⏺️ Capturer les commentaires
+              Analyser ce post
             </Button>
           )}
           <Button
             className="w-full"
+            variant="outline"
             render={
-              <a href={reportPageUrl} target="bth-report-page">
-                📋 Analyses précedentes
+              <a href={reportPageUrl} target="bth-posts">
+                Voir les analyses précedentes
               </a>
             }
           ></Button>
