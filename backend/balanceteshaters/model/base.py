@@ -1,7 +1,7 @@
-import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID as UUID_Type
+from uuid_extensions import uuid7
 
 from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
@@ -18,7 +18,7 @@ class Base(AsyncAttrs, DeclarativeBase):
 class Author(Base):
     __tablename__ = "authors"
 
-    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid.uuid7)
+    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
     name: Mapped[str] = mapped_column(unique=True, nullable=False)
     account_href: Mapped[str] = mapped_column(unique=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -36,7 +36,7 @@ class Author(Base):
 class Post(Base):
     __tablename__ = "posts"
 
-    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid.uuid7)
+    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
     url: Mapped[str] = mapped_column(unique=True, nullable=False)
     published_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
@@ -63,7 +63,7 @@ class Post(Base):
 class Comment(Base):
     __tablename__ = "comments"
 
-    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid.uuid7)
+    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
     text_content: Mapped[str] = mapped_column(nullable=False)
     published_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
