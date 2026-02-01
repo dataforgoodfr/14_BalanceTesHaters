@@ -331,14 +331,13 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     ).innerText;
 
-    // TODO review content capture to include emojis
     const commentTextHandle = selectOrThrow(
       commentContainer,
       "#content-text",
       HTMLElement,
     );
 
-    const commentText = commentTextHandle.innerText.trim();
+    const commentText = this.scrapCommentText(commentTextHandle);
 
     const boundingBox = commentContainer.getBoundingClientRect();
     const commentPre: CommentPreScreenshot = {
@@ -361,6 +360,7 @@ export class YoutubePostNativeScrapper {
     };
     return commentPre;
   }
+
   private async scrapCommentAuthor(
     commentContainer: HTMLElement,
   ): Promise<Author> {
@@ -377,5 +377,21 @@ export class YoutubePostNativeScrapper {
       accountHref: commentAuthorHref,
     };
     return author;
+  }
+
+  private scrapCommentText(commentTextHandle: HTMLElement): string {
+    const iterator = document.createNodeIterator(commentTextHandle);
+    const textElements: string[] = [];
+    let node: Node | null;
+
+    while ((node = iterator.nextNode())) {
+      if (node instanceof Text && node.nodeValue) {
+        textElements.push(node.nodeValue);
+      } else if (node instanceof HTMLImageElement && node.alt) {
+        textElements.push(node.alt);
+      }
+    }
+
+    return textElements.join(" ").trim();
   }
 }
