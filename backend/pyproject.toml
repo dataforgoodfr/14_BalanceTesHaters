@@ -3,7 +3,7 @@ name = "balanceteshaters"
 version = "0.1.0"
 description = "Balance tes haters"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "alembic>=1.17.2",
     "argon2-cffi>=25.1.0",
