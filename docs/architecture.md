@@ -27,7 +27,7 @@ C4Context
 
 _Extension navigateur_ : WebExtension chrome
  - Extension chrome de scraping des données des publications
- - Sur déclenchement de l'utilisateur : analyse l'onglet courant pour rechercher l'ensemble des commentaires d'une publication Instagrame, Youtube
+ - Sur déclenchement de l'utilisateur : analyse l'onglet courant pour rechercher l'ensemble des commentaires d'une publication Instagrame, Youtube (voir [architecture scraping](frontend/architecture-scraping.md))
  - les données scrapées sont transmises au backend via l'API d'analyse
  - le résultat est stocké en stockage local et utilisé par l'extension pour générer un rapport d'analyse
 
