@@ -32,6 +32,10 @@ Il est possible d'utiliser Docker pour lancer une instance locale de la base. Po
 - lancer la commande `docker compose up` dans un terminal (ajouter le paramètre `-d` pour un lancement en arrière-plan) afin de lancer l'instance Postgres
 - lancer la commande `POSTGRES_DB=bth POSTGRES_USER=bth POSTGRES_PASSWORD=bth alembic upgrade head` afin de créer toutes les tables nécessaires
 
+Une fois la base lancée en locale, il est possible d'en inspecter le contenu comme ceci (par exemple) :
+- Lancer la commande `docker exec -it backend-db-1 psql -U bth bth`
+- Entrer `\dt` -> une liste de tables devrait s'afficher
+
 ## Lancement du backend
 
 ```
