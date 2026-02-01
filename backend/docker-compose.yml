@@ -1,0 +1,10 @@
+
+services:
+  db:
+    image: postgres:18.1-alpine3.23
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=bth
+      - POSTGRES_USER=bth
+      - POSTGRES_PASSWORD=bth
