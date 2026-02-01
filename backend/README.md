@@ -26,6 +26,12 @@ Nécessite un serveur de base de données PostgreSQL
 alembic upgrade head
 ```
 
+### Lancer la base de données localement
+
+Il est possible d'utiliser Docker pour lancer une instance locale de la base. Pour cela:
+- lancer la commande `docker compose up` dans un terminal (ajouter le paramètre `-d` pour un lancement en arrière-plan) afin de lancer l'instance Postgres
+- lancer la commande `POSTGRES_DB=bth POSTGRES_USER=bth POSTGRES_PASSWORD=bth alembic upgrade head` afin de créer toutes les tables nécessaires
+
 ## Lancement du backend
 
 ```
