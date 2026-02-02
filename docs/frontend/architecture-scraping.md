@@ -45,4 +45,4 @@ Il est à noter que:
 * la manipulation du DOM de la page hôte (scroll, click...) depuis le content script prend effet immédiatement.
 * cependant le javascript de la page hôte qui pourrait répondre à ces changements ne s'éxécutera que lorsque la "tâche" js du content script se terminera et que la queue js traitera l'évènement de la page hôte.
 
-Il est donc nécéssaire d'attendre des actions asyncrhone dans le content script pour que le JS de la page puisse s'exécuter. 
+Il est donc nécéssaire d'attendre des actions asynchrone dans le content script pour que le JS de la page puisse s'exécuter. 
