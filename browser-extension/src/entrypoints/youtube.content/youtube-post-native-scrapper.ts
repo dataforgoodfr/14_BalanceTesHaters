@@ -350,7 +350,7 @@ export class YoutubePostNativeScrapper {
         scrapedAt: scrapDate,
         // TODO capture replies
         replies: [],
-        nbLikes: nbLikes, 
+        nbLikes: nbLikes,
       },
 
       area: {
