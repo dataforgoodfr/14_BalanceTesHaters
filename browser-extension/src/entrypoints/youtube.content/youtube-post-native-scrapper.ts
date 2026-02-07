@@ -25,6 +25,14 @@ type CommentPreScreenshot = {
   comment: Omit<Comment, "screenshotData">;
 };
 
+/**
+ * In a thread, comments might not be visible.
+ * In that case there is nothing to scrap.
+ */
+type CommentThread =
+  | { isVisible: true; comment: Comment }
+  | { isVisible: false };
+
 export class YoutubePostNativeScrapper {
   public constructor() {}
 
@@ -170,17 +178,22 @@ export class YoutubePostNativeScrapper {
     const fullPageScreenshot = await this.capturePageScreenshot();
 
     this.debug("Capturing comment threads...");
-    const commentThreads = selectAll(
+    const threadContainers = selectAll(
       commentsSectionHandle,
       "#contents > ytd-comment-thread-renderer",
       HTMLElement,
     );
 
-    const comments: Comment[] = await Promise.all(
-      commentThreads.map(async (thread) => {
-        return await this.scrapCommentThread(thread, fullPageScreenshot);
-      }),
-    );
+    const comments = (
+      await Promise.all(
+        threadContainers.map((threadContainer) =>
+          this.scrapCommentThread(threadContainer, fullPageScreenshot),
+        ),
+      )
+    )
+      .filter((thread) => thread.isVisible)
+      .map((thread) => thread.comment);
+
     this.debug("Comments metada:", comments);
 
     return comments;
@@ -196,16 +209,21 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentThread(
     commentThreadContainer: HTMLElement,
     fullPageScreenshot: Image,
-  ): Promise<Comment> {
+  ): Promise<CommentThread> {
     const commentContainer = selectOrThrow(
       commentThreadContainer,
       "#comment-container",
       HTMLElement,
     );
 
-    // TODO isVisible?
-    // The previous code used to filter isVisible.
-    // TODO clarify why some comments are not visible...
+    // Comments in replies are sometime duplicated in other threads they don't belong to.
+    // In that case they are not visible.
+    // It occurs for instance in this video: https://www.youtube.com/watch?v=gluz-XXBvTk
+    if (!isVisible(commentContainer)) {
+      return {
+        isVisible: false,
+      };
+    }
 
     const commentPreScreenshot = await this.scrapComment(commentContainer);
 
@@ -216,10 +234,11 @@ export class YoutubePostNativeScrapper {
     );
 
     if (repliesContainer) {
-      commentPreScreenshot.comment.replies = await this.scrapCommentReplies(
-        repliesContainer,
-        fullPageScreenshot,
-      );
+      commentPreScreenshot.comment.replies = (
+        await this.scrapCommentReplies(repliesContainer, fullPageScreenshot)
+      )
+        .filter((thread) => thread.isVisible)
+        .map((thread) => thread.comment);
     }
 
     const screenshotImage = fullPageScreenshot.crop({
@@ -227,27 +246,24 @@ export class YoutubePostNativeScrapper {
         row: commentPreScreenshot.area.y,
         column: commentPreScreenshot.area.x,
       },
-      height:
-        commentPreScreenshot.area.height !== 0
-          ? commentPreScreenshot.area.height
-          : 1,
-      width:
-        commentPreScreenshot.area.width !== 0
-          ? commentPreScreenshot.area.width
-          : 1,
+      height: commentPreScreenshot.area.height,
+      width: commentPreScreenshot.area.width,
     });
     const base64PngData = uint8ArrayToBase64(encodePng(screenshotImage));
 
     return {
-      ...commentPreScreenshot.comment,
-      screenshotData: base64PngData,
+      comment: {
+        ...commentPreScreenshot.comment,
+        screenshotData: base64PngData,
+      },
+      isVisible: true,
     };
   }
 
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
     fullPageScreenshot: Image,
-  ): Promise<Comment[]> {
+  ): Promise<CommentThread[]> {
     const expandedThreadsContainer = select(
       repliesContainer,
       "#expanded-threads",
