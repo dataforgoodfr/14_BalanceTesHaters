@@ -136,6 +136,7 @@ export class YoutubePostNativeScrapper {
     }
     throw new Error("Failed to scrap post author");
   }
+
   private async scrapPostComments(): Promise<Comment[]> {
     const commentsSectionHandle = selectOrThrow(
       document,
@@ -150,8 +151,8 @@ export class YoutubePostNativeScrapper {
     this.debug("Loading all comment threads...");
     await this.loadAllTopLevelComments();
 
-    // TODO fix Load replies is unstalble:
-    // * it sometimes stuck indefinitely with 1 remainign  more Replies to click
+    // TODO fix Load replies is unstable:
+    // * it sometimes stuck indefinitely with 1 remainign more Replies to click
     // * some elements are still not rendered when it finishes
 
     this.debug("Expanding all replies...");
@@ -164,42 +165,114 @@ export class YoutubePostNativeScrapper {
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
     waitForSelector(commentsSectionHandle, "#comment-container", HTMLElement);
-    // THen select all comments
-    const visibleCommentContainers = selectAll(
+
+    this.debug("Capturing full page screenshot");
+    const fullPageScreenshot = await this.capturePageScreenshot();
+
+    this.debug("Capturing comment threads...");
+    const commentThreads = selectAll(
       commentsSectionHandle,
-      "#comment-container",
+      "#contents > ytd-comment-thread-renderer",
       HTMLElement,
-    ).filter(isVisible);
+    );
 
-    // TODO carify why some comments are not visible...
-
-    const commentsPreScreenshot: CommentPreScreenshot[] = await Promise.all(
-      visibleCommentContainers.map(async (commentContainer) => {
-        return await this.scrapComment(commentContainer);
+    const comments: Comment[] = await Promise.all(
+      commentThreads.map(async (thread) => {
+        return await this.scrapCommentThread(thread, fullPageScreenshot);
       }),
     );
-    this.debug("Comments metada:", commentsPreScreenshot);
+    this.debug("Comments metada:", comments);
 
-    this.debug("capturing full page screenshot");
-    const fullPageScreenshot = await this.capturePageScreenshot();
-    const comments: Comment[] = [];
-
-    for (const cps of commentsPreScreenshot) {
-      const screenshotImage = fullPageScreenshot.crop({
-        origin: {
-          row: cps.area.y,
-          column: cps.area.x,
-        },
-        height: cps.area.height,
-        width: cps.area.width,
-      });
-      const base64PngData = uint8ArrayToBase64(encodePng(screenshotImage));
-      comments.push({
-        ...cps.comment,
-        screenshotData: base64PngData,
-      });
-    }
     return comments;
+  }
+
+  /**
+   * This function uses recursion to crawl into the thread of replies.
+   * It assumes that the depth of the threads is always below an acceptable threshold.
+   *
+   * It needs to crop the full page screenshot for every comment
+   * in the thread to get their screenshot data.
+   */
+  private async scrapCommentThread(
+    commentThreadContainer: HTMLElement,
+    fullPageScreenshot: Image,
+  ): Promise<Comment> {
+    const commentContainer = selectOrThrow(
+      commentThreadContainer,
+      "#comment-container",
+      HTMLElement,
+    );
+
+    // TODO isVisible?
+    // The previous code used to filter isVisible.
+    // TODO clarify why some comments are not visible...
+
+    const commentPreScreenshot = await this.scrapComment(commentContainer);
+
+    const repliesContainer = select(
+      commentThreadContainer,
+      "#replies",
+      HTMLElement,
+    );
+
+    if (repliesContainer) {
+      commentPreScreenshot.comment.replies = await this.scrapCommentReplies(
+        repliesContainer,
+        fullPageScreenshot,
+      );
+    }
+
+    const screenshotImage = fullPageScreenshot.crop({
+      origin: {
+        row: commentPreScreenshot.area.y,
+        column: commentPreScreenshot.area.x,
+      },
+      height:
+        commentPreScreenshot.area.height !== 0
+          ? commentPreScreenshot.area.height
+          : 1,
+      width:
+        commentPreScreenshot.area.width !== 0
+          ? commentPreScreenshot.area.width
+          : 1,
+    });
+    const base64PngData = uint8ArrayToBase64(encodePng(screenshotImage));
+
+    return {
+      ...commentPreScreenshot.comment,
+      screenshotData: base64PngData,
+    };
+  }
+
+  private async scrapCommentReplies(
+    repliesContainer: HTMLElement,
+    fullPageScreenshot: Image,
+  ): Promise<Comment[]> {
+    const expandedThreadsContainer = select(
+      repliesContainer,
+      "#expanded-threads",
+      HTMLElement,
+    );
+
+    // Because of "fix Load replies is unstable",
+    // it is possible that the replies have not been rendered yet
+    if (!expandedThreadsContainer) {
+      return [];
+    }
+
+    const repliesThreads = selectAll(
+      expandedThreadsContainer,
+      // To avoid capturing comment threads nested a level deeper, use an accurate selector.
+      // If you figure out a better selector, feel free to improve this.
+      ":scope > yt-sub-thread > .ytSubThreadSubThreadContent > ytd-comment-thread-renderer",
+      HTMLElement,
+    );
+
+    return Promise.all(
+      repliesThreads.map(async (thread) => {
+        return await this.scrapCommentThread(thread, fullPageScreenshot);
+      }),
+    );
   }
 
   private async capturePageScreenshot(): Promise<Image> {
