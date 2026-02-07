@@ -429,6 +429,8 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     );
 
+    const nbLikes = this.scrapNbLikes(commentContainer);
+
     const commentText = this.scrapCommentText(commentTextHandle);
 
     const boundingBox = commentContainer.getBoundingClientRect();
@@ -440,7 +442,7 @@ export class YoutubePostNativeScrapper {
         scrapedAt: scrapDate,
         // TODO capture replies
         replies: [],
-        nbLikes: 0, // Voir https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
+        nbLikes: nbLikes,
       },
 
       area: {
@@ -485,5 +487,17 @@ export class YoutubePostNativeScrapper {
     }
 
     return textElements.join(" ").trim();
+  }
+
+  private scrapNbLikes(commentContainer: HTMLElement): number {
+    const nbLikesStr = selectOrThrow(
+      commentContainer,
+      "#vote-count-middle",
+      HTMLElement,
+    ).innerText;
+
+    const nbLikesParsed = Number.parseInt(nbLikesStr);
+
+    return Number.isNaN(nbLikesParsed) ? 0 : nbLikesParsed;
   }
 }
