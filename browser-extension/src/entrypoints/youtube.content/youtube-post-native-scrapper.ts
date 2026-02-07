@@ -183,8 +183,20 @@ export class YoutubePostNativeScrapper {
       "#contents > ytd-comment-thread-renderer",
       HTMLElement,
     );
+    const comments = this.scrapCommentThreads(
+      threadContainers,
+      fullPageScreenshot,
+    );
+    this.debug("Comments metada:", comments);
 
-    const comments = (
+    return comments;
+  }
+
+  private async scrapCommentThreads(
+    threadContainers: HTMLElement[],
+    fullPageScreenshot: Image,
+  ): Promise<Comment[]> {
+    return (
       await Promise.all(
         threadContainers.map((threadContainer) =>
           this.scrapCommentThread(threadContainer, fullPageScreenshot),
@@ -193,10 +205,6 @@ export class YoutubePostNativeScrapper {
     )
       .filter((thread) => thread.isVisible)
       .map((thread) => thread.comment);
-
-    this.debug("Comments metada:", comments);
-
-    return comments;
   }
 
   /**
@@ -234,11 +242,10 @@ export class YoutubePostNativeScrapper {
     );
 
     if (repliesContainer) {
-      commentPreScreenshot.comment.replies = (
-        await this.scrapCommentReplies(repliesContainer, fullPageScreenshot)
-      )
-        .filter((thread) => thread.isVisible)
-        .map((thread) => thread.comment);
+      commentPreScreenshot.comment.replies = await this.scrapCommentReplies(
+        repliesContainer,
+        fullPageScreenshot,
+      );
     }
 
     const screenshotImage = fullPageScreenshot.crop({
@@ -263,7 +270,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
     fullPageScreenshot: Image,
-  ): Promise<CommentThread[]> {
+  ): Promise<Comment[]> {
     const expandedThreadsContainer = select(
       repliesContainer,
       "#expanded-threads",
@@ -284,11 +291,7 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     );
 
-    return Promise.all(
-      repliesThreads.map(async (thread) => {
-        return await this.scrapCommentThread(thread, fullPageScreenshot);
-      }),
-    );
+    return this.scrapCommentThreads(repliesThreads, fullPageScreenshot);
   }
 
   private async capturePageScreenshot(): Promise<Image> {
