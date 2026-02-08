@@ -17,7 +17,8 @@
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest"
+    "test": "vitest",
+    "check-all": "pnpm lint && pnpm format:check && pnpm test run && pnpm build"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
