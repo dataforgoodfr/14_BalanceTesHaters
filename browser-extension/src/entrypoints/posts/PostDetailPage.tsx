@@ -1,6 +1,8 @@
+import { useEffect, useState } from "react";
 import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
 import { Post } from "@/shared/model/post";
 import { useParams } from "react-router";
+import { CommentTreeTable } from "./CommentTreeTable";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
@@ -15,73 +17,45 @@ function PostDetailPage() {
 
   return (
     <>
-      <h1>BTH app - Report Page</h1>
-
-      <h2>Posts</h2>
       {!post && <div>Loading...</div>}
       {post && (
         <>
-          <div>
+          <h1 className="text-left pt-2 mb-4">
+            Publication {post.socialNetwork} - {post.postId} de{" "}
+            <a
+              href={post.author.accountHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {post.author.name}
+            </a>
+          </h1>
+          <h2 className="text-left pt-2 mb-4">Details</h2>
+          <div className="rounded-md border text-left p-4 grid grid-cols-2">
             <div>
-              <a href={post.author.accountHref}>{post.author.name}</a>
+              <div className="text-lg">
+                <a href={post.url} target="_blank" rel="noopener noreferrer">
+                  {" "}
+                  {post.title}
+                </a>
+              </div>
+              <div>Publication: {post.publishedAt}</div>
+              <div>
+                Capture: {new Date(post.scrapedAt).toLocaleDateString()}
+              </div>
             </div>
-            <div>{post.postId}</div>
-            <div>{post.publishedAt}</div>
-            <div>{post.scrapedAt}</div>
-            <div>{post.socialNetwork}</div>
-            <div>{post.textContent}</div>
-            <div>{post.title}</div>
-            <div>
-              <a href={post.url}>{post.url}</a>
+            <div className="italic">
+              <p className="whitespace-pre-wrap">{post.textContent}</p>
             </div>
           </div>
-          <h2>Commentaires</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Date scraping</th>
-                <th>Auteur</th>
-                <th>Date publication</th>
-                <th>Aperçu contenu/description</th>
 
-                <th>Nb likes</th>
-                <th>Nb replies</th>
-                <th>Id</th>
-                <th>Screenshot</th>
-              </tr>
-            </thead>
-            <tbody>
-              {post.comments.map((comment, index) => (
-                <tr key={index}>
-                  <td> {comment.scrapedAt}</td>
+          <h2 className="text-left pt-2 mb-4">Commentaires</h2>
 
-                  <td> {comment.author.name}</td>
-                  <td> {comment.publishedAt}</td>
-                  <td> {ellipsis(comment.textContent || "")}</td>
-
-                  <td> {comment.nbLikes}</td>
-                  <td> {comment.replies.length}</td>
-
-                  <td>
-                    <img
-                      src={"data:image/png;base64," + comment.screenshotData}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <CommentTreeTable comments={post.comments} />
         </>
       )}
     </>
   );
-}
-
-function ellipsis(str: string, maxLength: number = 50): string {
-  if (str.length <= maxLength) {
-    return str;
-  }
-  return str.substring(0, maxLength - 1) + "…";
 }
 
 export default PostDetailPage;
