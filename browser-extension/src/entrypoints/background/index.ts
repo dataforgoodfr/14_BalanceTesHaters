@@ -50,11 +50,16 @@ async function scrapActiveTab() {
       url: tab.url,
     });
     const socialNetworkPost = await scrapPostFromTab(tab);
-    await postToBackend(socialNetworkPost);
     console.debug(
       "Background - storing post to local storage",
       socialNetworkPost,
     );
     await storePost(socialNetworkPost);
+
+    console.debug(
+      "Background - sending post to backend vor analysis",
+      socialNetworkPost,
+    );
+    await postToBackend(socialNetworkPost);
   }
 }
