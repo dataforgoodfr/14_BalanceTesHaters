@@ -30,3 +30,12 @@ A partir de là la plupart des changements sont propagé automatiquement dans l'
 Explorer les composants ici: https://ui.shadcn.com/docs/components
 Lancer la commande indiquer dans la doc du composant pour l'installer
 e.g. `pnpm dlx shadcn@latest add accordion`
+
+## Scripts pnpm
+
+- `pnpm dev` démarrage de l'extension en mode dev (voir ci dessus)
+- `pnpm test` lance les tests unitaires
+- `pnpm format` format le code avec prettier
+- `pnpm lint` lint le code avec eslint
+- `pnpm lint:fix` lint le code et fix les issues qu'il peut corriger automatiquement
+- `pnpm check-all` lance toute les vérifications
