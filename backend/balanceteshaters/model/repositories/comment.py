@@ -9,14 +9,19 @@ def create_comment(
     session: AsyncSession,
     author: Author,
     text_content: str,
-    published_at: datetime,
+    published_str: datetime,
     scraped_at: datetime,
     screenshot_data: str,
     nb_likes: int,
 ):
+    try:
+        published_at = datetime.fromisoformat(published_str)
+    except ValueError:
+        published_at = None
     comment = Comment(
         text_content=text_content,
         published_at=published_at,
+        published_at_str=published_str,
         scraped_at=scraped_at,
         screenshot_data=screenshot_data,
         nb_likes=nb_likes,

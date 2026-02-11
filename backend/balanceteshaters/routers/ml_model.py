@@ -11,7 +11,7 @@ class Author(BaseModel):
 class Comment(BaseModel):
     author: Author
     textContent: str
-    publishedAt: datetime
+    publishedAt: str
     scrapedAt: datetime
     screenshotData: str
     nbLikes: int
@@ -20,7 +20,7 @@ class Comment(BaseModel):
 
 class Post(BaseModel):
     url: str
-    publishedAt: datetime
+    publishedAt: str
     scrapedAt: datetime
     textContent: str
     postId: str
