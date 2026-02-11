@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID as UUID_Type
-from uuid_extensions import uuid7
 
 from sqlalchemy import DateTime, ForeignKey, func
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, relationship
 from sqlalchemy.testing.schema import mapped_column
+from uuid_extensions import uuid7
 
 
 @dataclass
@@ -39,8 +39,9 @@ class Post(Base):
     id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
     url: Mapped[str] = mapped_column(unique=True, nullable=False)
     published_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), nullable=True
     )
+    published_at_str: Mapped[str] = mapped_column(nullable=True)
     scraped_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
@@ -66,8 +67,9 @@ class Comment(Base):
     id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
     text_content: Mapped[str] = mapped_column(nullable=False)
     published_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
+        DateTime(timezone=True), nullable=True
     )
+    published_at_str: Mapped[str] = mapped_column(nullable=True)
     scraped_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
