@@ -15,6 +15,7 @@ import { sleep } from "../../shared/utils/sleep";
 import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
 import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
+import { PublicationDateTextParsing } from "@/shared/utils/date-text-iso-conversion";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -423,6 +424,9 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     ).innerText;
 
+    const publishedAtInfos = new PublicationDateTextParsing(publishedAt).parse()
+    this.debug(`publishedAtInfo: ${publishedAtInfos}`);
+
     const commentTextHandle = selectOrThrow(
       commentContainer,
       "#content-text",
@@ -439,6 +443,7 @@ export class YoutubePostNativeScrapper {
         textContent: commentText,
         author: author,
         publishedAt: publishedAt,
+        publishedAtInfos: publishedAtInfos,
         scrapedAt: scrapDate,
         // TODO capture replies
         replies: [],
