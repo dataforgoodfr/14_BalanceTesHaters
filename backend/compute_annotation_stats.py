@@ -14,7 +14,7 @@ class AnnotatedCategory(Enum):
     INCITATION_AU_SUICIDE = "Incitation au suicide"
     INJURE_ET_DIFFAMATION_PUBLIQUE = "Injure et diffamation publique"
     DOXXING = "Doxxing"
-    INCITATION_HAINE_VIOLENCE_DISCRIMINATION_DIVULGATION_HARCELEMENT = "Incitation à la haine, la violence, la discrimination, à la divulgation ou partage de photos ou vidéos, ou au harcèlement"
+    INCITATION_HAINE_VIOLENCE_DISCRIMINATION_DIVULGATION_HARCELEMENT = "Incitation à la haine violence discrimination la divulgation partage de photos ou vidéos ou au harcèlement"
 
 
 class AnnotationConfidence(Enum):
