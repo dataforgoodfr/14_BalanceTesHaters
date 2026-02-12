@@ -424,7 +424,9 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     ).innerText;
 
-    const publishedAtInfos = new PublicationDateTextParsing(publishedAt).parse()
+    const publishedAtInfos = new PublicationDateTextParsing(
+      publishedAt,
+    ).parse();
     this.debug(`publishedAtInfo: ${publishedAtInfos}`);
 
     const commentTextHandle = selectOrThrow(

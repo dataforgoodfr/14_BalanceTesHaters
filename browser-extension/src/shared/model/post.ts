@@ -2,21 +2,20 @@ import { SocialNetworkName } from "./social-network-name";
 
 export type PublicationDate =
   | {
-    type: "relative";
-    dateText: string; // "il y a 3 mois"
-    resolvedDateRange: {
-      start: string; // "2026-02-05T00:00:00Z",
-      end: string; // "2026-02-05T23:59:59Z"
+      type: "relative";
+      dateText: string; // "il y a 3 mois"
+      resolvedDateRange: {
+        start: string; // "2026-02-05T00:00:00Z",
+        end: string; // "2026-02-05T23:59:59Z"
+      };
     }
-  }
   | {
-    type: "absolute";
-    date: string;
-  }
+      type: "absolute";
+      date: string;
+    }
   | {
-    type: "unknown date"
-  }
-
+      type: "unknown date";
+    };
 
 export type Post = {
   url: string;
@@ -67,7 +66,7 @@ export type Comment = {
   /**
    * Publication date can be absolute, relative or unknown
    * absolute publication date is not always available in the frontend (e.g. Youtube gives relative date "3 months ago")
-   * 
+   *
    */
 
   publishedAtInfos: PublicationDate;
