@@ -7,7 +7,7 @@ export class PublicationDateTextParsing {
   constructor(
     private readonly dateText: string,
     private readonly baseDate = new Date(),
-  ) {}
+  ) { }
 
   parse(): PublicationDate {
     const parseAttempt = new Date(this.dateText);
@@ -61,7 +61,7 @@ export class PublicationDateTextParsing {
       minute: /minute/,
     };
     return (
-      (Object.entries(timeUnitsDictionnary).find(([unit, regExp]) =>
+      (Object.entries(timeUnitsDictionnary).find(([_, regExp]) =>
         regExp.test(this.dateText),
       )?.[0] as TimeUnit) ?? "unknown"
     );
