@@ -74,91 +74,101 @@ export class PublicationDateTextParsing {
     }
     return parseAttempt;
   }
-  computeDateRange(
+  private computeDateRange(
     timeAmount: number,
     timeUnit: TimeUnit,
   ): { start: string; end: string } {
     switch (timeUnit) {
       case "year":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setFullYear(
-              this.baseDate.getFullYear() - timeAmount - 1,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setFullYear(
-              this.baseDate.getFullYear() - timeAmount,
-            ),
-          ).toISOString(),
-        };
+        return this.yearRange(timeAmount);
       case "month":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setMonth(
-              this.baseDate.getMonth() - timeAmount - 1,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setMonth(
-              this.baseDate.getMonth() - timeAmount,
-            ),
-          ).toISOString(),
-        };
+        return this.monthRange(timeAmount);
       case "week":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setDate(
-              this.baseDate.getDate() - timeAmount * 7 - 7,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setDate(
-              this.baseDate.getDate() - timeAmount * 7,
-            ),
-          ).toISOString(),
-        };
+        return this.weekRange(timeAmount);
       case "day":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setDate(
-              this.baseDate.getDate() - timeAmount,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setDate(
-              this.baseDate.getDate() - timeAmount + 1,
-            ),
-          ).toISOString(),
-        };
+        return this.dayRange(timeAmount);
       case "hour":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setHours(
-              this.baseDate.getHours() - timeAmount - 1,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setHours(
-              this.baseDate.getHours() - timeAmount,
-            ),
-          ).toISOString(),
-        };
+        return this.hourRange(timeAmount);
       case "minute":
-        return {
-          start: new Date(
-            new Date(this.baseDate).setMinutes(
-              this.baseDate.getMinutes() - timeAmount - 1,
-            ),
-          ).toISOString(),
-          end: new Date(
-            new Date(this.baseDate).setMinutes(
-              this.baseDate.getMinutes() - timeAmount,
-            ),
-          ).toISOString(),
-        };
-      default:
-        throw new Error("Could not compute date range");
+        return this.minuteRange(timeAmount);
     }
+  }
+  private yearRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setFullYear(
+          this.baseDate.getFullYear() - timeAmount - 1,
+        ),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setFullYear(
+          this.baseDate.getFullYear() - timeAmount,
+        ),
+      ).toISOString(),
+    };
+  }
+  private monthRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setMonth(
+          this.baseDate.getMonth() - timeAmount - 1,
+        ),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setMonth(this.baseDate.getMonth() - timeAmount),
+      ).toISOString(),
+    };
+  }
+  private weekRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setDate(
+          this.baseDate.getDate() - timeAmount * 7 - 7,
+        ),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setDate(
+          this.baseDate.getDate() - timeAmount * 7,
+        ),
+      ).toISOString(),
+    };
+  }
+  private dayRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setDate(this.baseDate.getDate() - timeAmount),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setDate(
+          this.baseDate.getDate() - timeAmount + 1,
+        ),
+      ).toISOString(),
+    };
+  }
+  private hourRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setHours(
+          this.baseDate.getHours() - timeAmount - 1,
+        ),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setHours(this.baseDate.getHours() - timeAmount),
+      ).toISOString(),
+    };
+  }
+  private minuteRange(timeAmount: number) {
+    return {
+      start: new Date(
+        new Date(this.baseDate).setMinutes(
+          this.baseDate.getMinutes() - timeAmount - 1,
+        ),
+      ).toISOString(),
+      end: new Date(
+        new Date(this.baseDate).setMinutes(
+          this.baseDate.getMinutes() - timeAmount,
+        ),
+      ).toISOString(),
+    };
   }
 }
