@@ -53,3 +53,17 @@ Les API sont exposées à l'URL: http://localhost:8000/
 ## Utiliser Tox pour tester votre code
 
     tox -vv
+
+## Scripts
+
+### Calculer des statistiques sur l'annotation des commentaires
+
+Il faut définir trois variables d'environnements (contactez nous sur Mattermost pour qu'on vous donne les bonnes valeurs) :
+- NOCODB_BASE_URL : il s'agit de l'URL de base de notre instance NocoDB (format "https://<domain_name>")
+- NOCODB_ANNOTATION_TABLE_ID : il s'agit de l'id de la table "Annotations" (peut se trouver sur la page swagger de notre base NocoDB)
+- NOCODB_TOKEN : c'est un token personnel que vous devez définir via votre espace personnel sur NocoDB
+
+
+```
+NOCODB_BASE_URL="<...>" NOCODB_ANNOTATION_TABLE_ID="<...>" NOCODB_TOKEN="<...>" uv run python compute_annotation_stats.py
+```
