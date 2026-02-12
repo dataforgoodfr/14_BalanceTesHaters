@@ -50,6 +50,10 @@ export class YoutubePostNativeScrapper {
     const startTime = Date.now();
     const scrapTimestamp = currentIsoDate();
 
+    // Pause video to ensure it doesn't autoplay next video during scraping..."
+    this.debug("Pause video...");
+    selectOrThrow(document, "video", HTMLVideoElement).pause();
+
     this.debug("Scraping title...");
     const title = await this.scrapPostTitle();
     this.debug(`title: ${title}`);
