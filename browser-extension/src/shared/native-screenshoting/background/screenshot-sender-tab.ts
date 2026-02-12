@@ -7,7 +7,7 @@ export async function screenshotSenderTab(
   if (!tabWindowId) {
     throw new Error("Sender has no window Id");
   }
-  let retries = 5;
+  let retries = 10;
   for (;;) {
     try {
       const screenshotDataUrl = await browser.tabs.captureVisibleTab(
@@ -20,7 +20,10 @@ export async function screenshotSenderTab(
     } catch (e: unknown) {
       if (
         e instanceof Error &&
-        e.message.includes("MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND") &&
+        (e.message.includes("MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND") ||
+          e.message.includes(
+            "Tabs cannot be edited right now (user may be dragging a tab).",
+          )) &&
         retries > 0
       ) {
         // handle retry on MAX_CAPTURE_VISIBLE_TAB_CALLS_PER_SECOND  https://issues.chromium.org/issues/40764505
