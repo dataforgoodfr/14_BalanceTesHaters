@@ -14,6 +14,7 @@ class AnnotatedCategory(Enum):
     INCITATION_AU_SUICIDE = "Incitation au suicide"
     INJURE_ET_DIFFAMATION_PUBLIQUE = "Injure et diffamation publique"
     DOXXING = "Doxxing"
+    INCITATION_HAINE_VIOLENCE_DISCRIMINATION_DIVULGATION_HARCELEMENT = "Incitation à la haine, la violence, la discrimination, à la divulgation ou partage de photos ou vidéos, ou au harcèlement"
 
 
 class AnnotationConfidence(Enum):
@@ -139,7 +140,8 @@ if __name__ == "__main__":
         AnnotatedCategory.MENACES,
         AnnotatedCategory.INCITATION_AU_SUICIDE,
         AnnotatedCategory.INJURE_ET_DIFFAMATION_PUBLIQUE,
-        AnnotatedCategory.DOXXING
+        AnnotatedCategory.DOXXING,
+        AnnotatedCategory.INCITATION_HAINE_VIOLENCE_DISCRIMINATION_DIVULGATION_HARCELEMENT
     ]
     for category in categories:
         category_count = service.count_annotations(annotation_category_filter=[category])
