@@ -38,8 +38,7 @@ export class PublicationDateTextParsing {
   }
 
   private isValidDate(date: Date): boolean {
-    // invalid date is NaN indeed but TS throws a warning when isNaN is used with "Invalid date"
-    return !isNaN(date as any as number);
+    return !isNaN(date.getTime());
   }
 
   private get language(): Language | "unknown" {
