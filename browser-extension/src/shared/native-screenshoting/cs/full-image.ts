@@ -26,7 +26,7 @@ export function buildFullImageFromFragments(
     }),
     { width: 0, height: 0 },
   );
-  let fullPageImage = new Image(width, height);
+  let fullPageImage = new Image(Math.ceil(width), Math.ceil(height));
 
   for (const ps of screenshotFragments) {
     let partialImage = decodePng(
@@ -34,11 +34,14 @@ export function buildFullImageFromFragments(
     );
     // Screencapture sometimes taken with subpixel resolution
     partialImage = partialImage.resize({
-      height: ps.catpureArea.height,
-      width: ps.catpureArea.width,
+      height: Math.floor(ps.catpureArea.height),
+      width: Math.floor(ps.catpureArea.width),
     });
     fullPageImage = partialImage.copyTo(fullPageImage, {
-      origin: { row: ps.catpureArea.y, column: ps.catpureArea.x },
+      origin: {
+        row: Math.floor(ps.catpureArea.y),
+        column: Math.floor(ps.catpureArea.x),
+      },
     });
   }
   return fullPageImage;
