@@ -75,7 +75,7 @@ export class PublicationDateTextParsing {
   private computeDateRange(
     timeAmount: number,
     timeUnit: TimeUnit,
-  ): { start: string; end: string } {
+  ): Extract<PublicationDate, { type: "relative" }>["resolvedDateRange"] {
     switch (timeUnit) {
       case "year":
         return this.yearRange(timeAmount);
