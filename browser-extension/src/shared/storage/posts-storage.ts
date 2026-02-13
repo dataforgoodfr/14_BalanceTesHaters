@@ -9,9 +9,13 @@ export async function storePost(post: Post) {
   await browser.storage.local.set({ posts: newPosts });
 }
 
-export async function setPostBackendId(postId: string,  scrapedAt: string, backendId: string) {
+export async function setPostBackendId(
+  postId: string,
+  scrapedAt: string,
+  backendId: string,
+) {
   const posts: Post[] = await getPosts();
-  const updatedPosts = posts.map(post => {
+  const updatedPosts = posts.map((post) => {
     // Set the backendId of the post matching the postId and scrapedAt date
     if (post.postId === postId && post.scrapedAt === scrapedAt) {
       return { ...post, backendId };
