@@ -7,21 +7,21 @@ import { SocialNetworkName } from "./social-network-name";
  */
 export type PublicationDate =
   | {
-      type: "relative";
-      dateText: string; // "il y a 3 mois"
-      resolvedDateRange: {
-        start: string; // "2026-02-05T00:00:00Z",
-        end: string; // "2026-02-05T23:59:59Z"
-      };
-    }
-  | {
-      type: "absolute";
-      date: Date; // ISO date
-    }
-  | {
-      type: "unknown date";
-      dateText: string; // "42 vendémiaire MMXXVI"
+    type: "relative";
+    dateText: string; // "il y a 3 mois"
+    resolvedDateRange: {
+      start: Date; // "2026-02-05T00:00:00Z",
+      end: Date; // "2026-02-05T23:59:59Z"
     };
+  }
+  | {
+    type: "absolute";
+    date: Date; // ISO date
+  }
+  | {
+    type: "unknown date";
+    dateText: string; // "42 vendémiaire MMXXVI"
+  };
 
 export type Post = {
   url: string;
