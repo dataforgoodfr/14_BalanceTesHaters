@@ -29,6 +29,14 @@ export default defineConfig([
       ],
     },
   },
+  {
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
+    plugins: { react: pluginReact },
+  },
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat["jsx-runtime"],
   json.configs.recommended,
