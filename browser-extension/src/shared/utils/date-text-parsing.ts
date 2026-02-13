@@ -7,7 +7,7 @@ export class PublicationDateTextParsing {
   constructor(
     private readonly dateText: string,
     private readonly baseDate = new Date(),
-  ) {}
+  ) { }
 
   parse(): PublicationDate {
     const parseAttempt = new Date(this.dateText);
@@ -22,7 +22,10 @@ export class PublicationDateTextParsing {
       this.timeAmount === "unknown" ||
       this.timeUnit === "unknown"
     ) {
-      return { type: "unknown date" };
+      return {
+        type: "unknown date",
+        dateText: this.dateText
+      };
     }
 
     const resolvedDateRange = this.computeDateRange(

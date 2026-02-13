@@ -18,11 +18,13 @@ describe("Date conversion from text", () => {
       expect(result.type).toBe("unknown date");
     });
     it("Should return unknown date if the dateText is not parsable", () => {
+      const text = "1 ¨%µ£¨¹ ago"
       const result: PublicationDate = new PublicationDateTextParsing(
-        "1 ¨%µ£¨¹ ago",
+        text,
       ).parse();
       expect(result).toStrictEqual({
         type: "unknown date",
+        dateText: text
       });
     });
   });
