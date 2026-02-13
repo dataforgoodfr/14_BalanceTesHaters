@@ -415,11 +415,9 @@ export class YoutubePostNativeScrapper {
   }
 
   private async expandLongComments() {
-    const readMoreButton = selectAll(
-      document,
-      "#more",
-      HTMLElement,
-    ).filter(isVisible);
+    const readMoreButton = selectAll(document, "#more", HTMLElement).filter(
+      isVisible,
+    );
     this.debug("Expanding ", readMoreButton.length, " read more button...");
     for (const b of readMoreButton) {
       b.scrollIntoView();
