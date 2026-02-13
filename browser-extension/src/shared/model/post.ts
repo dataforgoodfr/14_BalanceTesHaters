@@ -16,7 +16,7 @@ export type PublicationDate =
     }
   | {
       type: "absolute";
-      date: string; // ISO date
+      date: Date; // ISO date
     }
   | {
       type: "unknown date";

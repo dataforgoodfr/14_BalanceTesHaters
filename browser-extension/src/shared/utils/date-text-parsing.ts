@@ -14,7 +14,7 @@ export class PublicationDateTextParsing {
     if (this.isValidDate(parseAttempt)) {
       return {
         type: "absolute",
-        date: parseAttempt.toISOString(),
+        date: parseAttempt,
       };
     }
     if (
@@ -28,15 +28,10 @@ export class PublicationDateTextParsing {
       };
     }
 
-    const resolvedDateRange = this.computeDateRange(
-      this.timeAmount,
-      this.timeUnit,
-    );
-
     return {
       type: "relative",
       dateText: this.dateText,
-      resolvedDateRange,
+      resolvedDateRange: this.computeDateRange(this.timeAmount, this.timeUnit),
     };
   }
 
