@@ -1,4 +1,4 @@
-import { storePost } from "../../shared/storage/posts-storage";
+import { setPostBackendId as setPostBackendId, storePost } from "../../shared/storage/posts-storage";
 import { getCurrentTab } from "../../shared/utils/getCurrentTab";
 import { isScrapActiveTabMessage } from "./scraping/scrap-active-tab-message";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
@@ -32,13 +32,24 @@ export default defineBackground(() => {
 
 async function postToBackend(post: Post) {
   console.debug("Background - Posting post to backend");
-  await fetch("http://localhost:8000/ml/post", {
+  const response = await fetch("http://localhost:8000/ml/post", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(post),
   });
+
+  if (response.ok) {
+    const data = await response.json();
+    const backendId = data?.post_id;
+    console.debug("Backend Id",  data );
+    if (backendId) {
+        setPostBackendId(post.postId, post.scrapedAt, backendId);
+      }
+    }else{
+      console.error("Failed to post to backend:", response.status, response.statusText);
+    }
 }
 
 async function scrapActiveTab() {
