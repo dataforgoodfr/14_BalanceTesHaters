@@ -1,6 +1,12 @@
-import { setPostBackendId as setPostBackendId, storePost } from "../../shared/storage/posts-storage";
+import {
+  setPostBackendId as setPostBackendId,
+  storePost,
+} from "../../shared/storage/posts-storage";
 import { getCurrentTab } from "../../shared/utils/getCurrentTab";
-import { isScrapActiveTabMessage } from "./scraping/scrap-active-tab-message";
+import {
+  isReprocessPostMessage,
+  isScrapActiveTabMessage,
+} from "./scraping/scrap-active-tab-message";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
 import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
@@ -24,8 +30,15 @@ export default defineBackground(() => {
         sendResponse(data);
       });
       return true;
+    } else if (isReprocessPostMessage(message)) {
+      console.debug("Background - Reprocess post message");
+      postToBackend(message.post).then(() => {
+        sendResponse({ success: true });
+      });
+      return true;
     }
   }
+
   console.log("Background - registering listener");
   browser.runtime.onMessage.addListener(handleMessages);
 });
@@ -43,13 +56,18 @@ async function postToBackend(post: Post) {
   if (response.ok) {
     const data = await response.json();
     const backendId = data?.post_id;
-    console.debug("Backend Id",  data );
     if (backendId) {
-        setPostBackendId(post.postId, post.scrapedAt, backendId);
-      }
-    }else{
-      console.error("Failed to post to backend:", response.status, response.statusText);
+      setPostBackendId(post.postId, post.scrapedAt, backendId);
+    } else {
+      console.error("Backend response did not contain post_id", data);
     }
+  } else {
+    console.error(
+      "Failed to post to backend:",
+      response.status,
+      response.statusText,
+    );
+  }
 }
 
 async function scrapActiveTab() {
