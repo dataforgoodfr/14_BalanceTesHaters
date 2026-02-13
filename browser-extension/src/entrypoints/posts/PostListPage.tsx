@@ -11,6 +11,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
+import { Check, CircleCheck, X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 function downloadPost(post: Post) {
   console.log("Downloading first comment");
@@ -41,6 +47,7 @@ function PostListPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Traitement</TableHead>
               <TableHead>Date scraping</TableHead>
               <TableHead>Réseau social</TableHead>
               <TableHead>Auteur</TableHead>
@@ -57,6 +64,19 @@ function PostListPage() {
           <TableBody>
             {posts.map((post, index) => (
               <TableRow key={index}>
+                <TableCell>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      {post.backendId && <Check className="text-green-500" />}
+                      {!post.backendId && <X className="text-red-500" />}
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {post.backendId && "Traitement effectué avec succès"}
+                      {!post.backendId && "Echec du traitement"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TableCell>
+                <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.socialNetwork}</TableCell>
                 <TableCell> {post.author.name}</TableCell>
