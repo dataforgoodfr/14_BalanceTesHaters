@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
-import { Check, CircleCheck, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -76,7 +76,6 @@ function PostListPage() {
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>
-                <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.socialNetwork}</TableCell>
                 <TableCell> {post.author.name}</TableCell>
