@@ -2,16 +2,16 @@ import { SocialNetworkName } from "./social-network-name";
 
 export type Post = {
   /**
-   * Unique id of post returned by backend after storage. 
-   * Not to be confused with postId which is the id of the post on the social network (e.g. youtube video id). 
+   * Unique id of post returned by backend after storage.
+   * Not to be confused with postId which is the id of the post on the social network (e.g. youtube video id).
    */
   backendId: string;
-  
+
   /**
    * Url of the post. E.g. youtube video url
    */
   url: string;
-  
+
   /**
    * Publication date as a string.
    * Preferably an iso datetime.
