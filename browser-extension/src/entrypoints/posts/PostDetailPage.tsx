@@ -43,6 +43,9 @@ function PostDetailPage() {
               <div>
                 Capture: {new Date(post.scrapedAt).toLocaleDateString()}
               </div>
+              <div>
+                BackendId: {post.backendId}
+              </div>
             </div>
             <div className="italic">
               <p className="whitespace-pre-wrap">{post.textContent}</p>
