@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
 import { Post } from "@/shared/model/post";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
+import { Check, MoveLeft, RefreshCcw, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
@@ -14,6 +16,17 @@ function PostDetailPage() {
       });
     }
   }, [postId, scrapedAt]);
+
+  const handleReprocess = async () => {
+    if (post) {
+      const result = await browser.runtime.sendMessage({
+        msgType: "reprocess-post",
+        post: post,
+      });
+      console.debug("PostDetailPage - Reprocess post message response", result);
+      globalThis.location.reload();
+    }
+  };
 
   return (
     <>
@@ -30,6 +43,17 @@ function PostDetailPage() {
               {post.author.name}
             </a>
           </h1>
+          <div className="text-left">
+            <Button
+              variant="link"
+              render={
+                <Link to="/">
+                  <MoveLeft /> Retour à la liste des publications
+                </Link>
+              }
+            />
+          </div>
+
           <h2 className="text-left pt-2 mb-4">Details</h2>
           <div className="rounded-md border text-left p-4 grid grid-cols-2">
             <div>
@@ -49,7 +73,23 @@ function PostDetailPage() {
             </div>
           </div>
 
-          <h2 className="text-left pt-2 mb-4">Commentaires</h2>
+          <h2 className="text-left pt-2 mb-4">Etat du traitement</h2>
+          <div className="text-left flex flex-row items-center gap-2  ">
+            {post.backendId && <Check className="text-green-500" />}
+            {!post.backendId && <X className="text-red-500" />}
+            <span className="font-medium">
+              {post.backendId && "Traitement effectué avec succès"}
+              {!post.backendId && "Echec du traitement"}
+            </span>
+            {!post.backendId && (
+              <Button className="ml-3" onClick={handleReprocess}>
+                <RefreshCcw className="mr-2" />
+                Relancer le traitement
+              </Button>
+            )}
+          </div>
+
+          <h2 className="text-left pt-2 my-4">Commentaires</h2>
 
           <CommentTreeTable comments={post.comments} />
         </>

@@ -51,6 +51,10 @@ export class YoutubePostNativeScrapper {
     const startTime = Date.now();
     const scrapTimestamp = currentIsoDate();
 
+    // Pause video to ensure it doesn't autoplay next video during scraping..."
+    this.debug("Pause video...");
+    selectOrThrow(document, "video", HTMLVideoElement).pause();
+
     this.debug("Scraping title...");
     const title = await this.scrapPostTitle();
     this.debug(`title: ${title}`);
@@ -164,9 +168,8 @@ export class YoutubePostNativeScrapper {
     this.debug("Expanding all replies...");
     await this.loadAllReplies();
 
-    // TODO implement
-    // this.debug("Expanding long comments...");
-    // await expandLongComments(commentsSectionHandle)
+    this.debug("Expanding long comments...");
+    await this.expandLongComments();
 
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
@@ -406,6 +409,18 @@ export class YoutubePostNativeScrapper {
         //
         await sleep(500);
       }
+    }
+  }
+
+  private async expandLongComments() {
+    const readMoreButton = selectAll(document, "#more", HTMLElement).filter(
+      isVisible,
+    );
+    this.debug("Expanding ", readMoreButton.length, " read more button...");
+    for (const b of readMoreButton) {
+      b.scrollIntoView();
+      b.click();
+      await resumeHostPage();
     }
   }
 
