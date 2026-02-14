@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from uuid import UUID as UUID_Type
 
 from sqlalchemy import DateTime, ForeignKey, func
@@ -29,6 +30,31 @@ class Author(Base):
     )
     comments: Mapped[list["Comment"]] = relationship(
         "Comment", back_populates="author", cascade="all, delete-orphan"
+    )
+
+
+class JobStatus(Enum):
+    SUBMITED = "SUBMITED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class ClassificationJob(Base):
+    __tablename__ = "classification_jobs"
+
+    id: Mapped[UUID_Type] = mapped_column(primary_key=True, insert_default=uuid7)
+    submited_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    title: Mapped[str] = mapped_column(nullable=True)
+    text_content: Mapped[str] = mapped_column(nullable=True)
+    comments: Mapped[dict] = mapped_column(nullable=True)  # Assuming JSONB type
+    status: Mapped[JobStatus] = mapped_column(
+        Enum(JobStatus), nullable=False, default=JobStatus.SUBMITED
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 
