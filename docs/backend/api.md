@@ -60,13 +60,14 @@ Exemple:
 ## Réponse
 
 Identifiant unique du job soumis au backend
-```
+
 ```mermaid
 classDiagram
     class Reponse {
         job_id: uuid
     }
 ```
+
 Exemple:
 ```
 {'job_id': '0698ce2e-2708-7030-8000-2a4bac70cb66'}
