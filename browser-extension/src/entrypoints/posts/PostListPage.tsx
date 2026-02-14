@@ -67,12 +67,16 @@ function PostListPage() {
                 <TableCell>
                   <Tooltip>
                     <TooltipTrigger>
-                      {post.backendId && <Check className="text-green-500" />}
-                      {!post.backendId && <X className="text-red-500" />}
+                      {post.classificationJobId && (
+                        <Check className="text-green-500" />
+                      )}
+                      {!post.classificationJobId && (
+                        <X className="text-red-500" />
+                      )}
                     </TooltipTrigger>
                     <TooltipContent>
-                      {post.backendId && "Traitement effectué avec succès"}
-                      {!post.backendId && "Echec du traitement"}
+                      {post.classificationJobId && "Classification lancée"}
+                      {!post.classificationJobId && "Classification non lancée"}
                     </TooltipContent>
                   </Tooltip>
                 </TableCell>

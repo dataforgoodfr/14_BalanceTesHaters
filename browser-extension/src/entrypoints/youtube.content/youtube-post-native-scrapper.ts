@@ -451,6 +451,7 @@ export class YoutubePostNativeScrapper {
     const boundingBox = commentContainer.getBoundingClientRect();
     const commentPre: CommentPreScreenshot = {
       comment: {
+        id: crypto.randomUUID(),
         textContent: commentText,
         author: author,
         publishedAt: publishedAt,

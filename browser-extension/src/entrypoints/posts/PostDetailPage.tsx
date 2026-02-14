@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
 import { Check, MoveLeft, RefreshCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RequestClassificationMessage } from "../background/classification/requestClassificationForPostMessage";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
@@ -17,13 +18,14 @@ function PostDetailPage() {
     }
   }, [postId, scrapedAt]);
 
-  const handleReprocess = async () => {
+  const handleRequestClassification = async () => {
     if (post) {
-      const result = await browser.runtime.sendMessage({
-        msgType: "reprocess-post",
-        post: post,
-      });
-      console.debug("PostDetailPage - Reprocess post message response", result);
+      const message: RequestClassificationMessage = {
+        msgType: "request-classification",
+        postId: post.postId,
+        scrapedAt: post.scrapedAt,
+      };
+      await browser.runtime.sendMessage(message);
       globalThis.location.reload();
     }
   };
@@ -73,18 +75,18 @@ function PostDetailPage() {
             </div>
           </div>
 
-          <h2 className="text-left pt-2 mb-4">Etat du traitement</h2>
+          <h2 className="text-left pt-2 mb-4">Etat classification</h2>
           <div className="text-left flex flex-row items-center gap-2  ">
-            {post.backendId && <Check className="text-green-500" />}
-            {!post.backendId && <X className="text-red-500" />}
+            {post.classificationJobId && <Check className="text-green-500" />}
+            {!post.classificationJobId && <X className="text-red-500" />}
             <span className="font-medium">
-              {post.backendId && "Traitement effectué avec succès"}
-              {!post.backendId && "Echec du traitement"}
+              {post.classificationJobId && "Classification lancée"}
+              {!post.classificationJobId && "Classification non lancée"}
             </span>
-            {!post.backendId && (
-              <Button className="ml-3" onClick={handleReprocess}>
+            {!post.classificationJobId && (
+              <Button className="ml-3" onClick={handleRequestClassification}>
                 <RefreshCcw className="mr-2" />
-                Relancer le traitement
+                Lancée la classification
               </Button>
             )}
           </div>
