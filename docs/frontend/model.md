@@ -14,6 +14,8 @@ classDiagram
         postId: str;
         socialNetwork: str;
         title?: str;
+
+        classificationJobId?: str;
     }
     
     class Author {
@@ -22,13 +24,15 @@ classDiagram
     }
 
     class Comment {
+        id: UUID
         textContent: str
         publishedAt: str
         scrapedAt: datetime
         screenshotData: str
+        nbLikes: int
+
         classification: list[str]
         classifiedAt: datetime
-        nbLikes: int
     }
 
     class SocialNetwork {

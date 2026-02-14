@@ -1,29 +1,32 @@
 import { Post } from "@/shared/model/post";
 
-export async function storePost(post: Post) {
+export async function upsertPost(post: Post) {
   if (!post) {
     return;
   }
   const posts: Post[] = await getPosts();
-  const newPosts = [...posts, post];
-  await browser.storage.local.set({ posts: newPosts });
+  const index = posts.findIndex(
+    (p) => p.postId === post.postId && p.scrapedAt === post.scrapedAt,
+  );
+  if (index === -1) {
+    const newPosts = [...posts, post];
+    await browser.storage.local.set({ posts: newPosts });
+  } else {
+    const newPosts = [...posts];
+    newPosts[index] = post;
+    await writePostLists(newPosts);
+  }
+}
+export async function deleteAllPosts() {
+  await writePostLists([]);
 }
 
-export async function setPostBackendId(
-  postId: string,
-  scrapedAt: string,
-  backendId: string,
-) {
+export async function removePost(postId: string, scrapedAt: string) {
   const posts: Post[] = await getPosts();
-  const updatedPosts = posts.map((post) => {
-    // Set the backendId of the post matching the postId and scrapedAt date
-    if (post.postId === postId && post.scrapedAt === scrapedAt) {
-      return { ...post, backendId };
-    }
-    return post;
-  });
-
-  await browser.storage.local.set({ posts: updatedPosts });
+  const filtered = posts.filter(
+    (p) => !(p.postId === postId && p.scrapedAt === scrapedAt),
+  );
+  await writePostLists(filtered);
 }
 
 export async function getPosts(): Promise<Post[]> {
@@ -37,4 +40,8 @@ export async function getPostByIdAndScrapedAt(
 ): Promise<Post | undefined> {
   const posts = await getPosts();
   return posts.find((p) => p.postId === postId && p.scrapedAt === scrapedAt);
+}
+
+async function writePostLists(newPosts: Post[]) {
+  await browser.storage.local.set({ posts: newPosts });
 }
