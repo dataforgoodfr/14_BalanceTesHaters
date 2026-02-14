@@ -15,14 +15,14 @@ classDiagram
         textContent?: str
         comments: dict[str, Comment]
     }
-    Author "1" --> "0..n" ClassificationJob : author
+    Author "1" <-- "0..n" ClassificationJob : author
 
     class Comment {
         id: UUID
         text_content: str
         replies: list[Comment]
     }
-    Author "1" --> "0..n" Comment
+    Author "1" <-- "0..n" Comment
     Comment "1" -- "0..n" Comment : replies
 ```
 
@@ -34,26 +34,31 @@ Exemple:
         "name": "lynnnsk",
         "accountHref": "https://www.instagram.com/lynnnsk/"
     },
-    "comments: [
-        {
-            "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
-                "textContent": "😍💓",
-                "author": {
-                    "name": "julieau_makeup.n.paint",
-                    "accountHref": "https://www.instagram.com/julieau_makeup.n.paint/"
-                }
+    "comments: {
+        "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
+            "textContent": "😍💓",
+            "author": {
+                "name": "julieau_makeup.n.paint",
+                "accountHref": "https://www.instagram.com/julieau_makeup.n.paint/"
             }
-        },
-        {
-            "0698ce2e-2716-7e37-8000-a9362feb377d": {
-                "textContent": "Super vidéo",
-                "author": {
-                    "name": "gros.lourd",
-                    "accountHref": "https://www.instagram.com/gros.lourd/"
+        }
+        "0698ce2e-2716-7e37-8000-a9362feb377d": {
+            "textContent": "Super vidéo",
+            "author": {
+                "name": "gros.lourd",
+                "accountHref": "https://www.instagram.com/gros.lourd/"
+            },
+            "replies": {
+                "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
+                    "textContent": "Ouai, génial !!",
+                    "author": {
+                        "name": "petit.lapin",
+                        "accountHref": "https://www.instagram.com/petit.lapin/"
+                    }
                 }
             }
         }
-    ]
+    }
 }
 ```
 
