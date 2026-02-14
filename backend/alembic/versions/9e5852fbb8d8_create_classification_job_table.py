@@ -1,0 +1,47 @@
+"""create post and comment table
+
+Revision ID: 9e5852fbb8d8
+Revises: 4dbae3c352ae
+Create Date: 2026-01-15 21:27:46.719440
+
+"""
+
+from typing import Sequence, Union
+
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy import func
+from sqlalchemy.dialects.postgresql import JSONB
+
+# revision identifiers, used by Alembic.
+revision: str = "9e5852fbb8d8"
+down_revision: Union[str, Sequence[str], None] = "4dbae3c352ae"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
+
+
+def upgrade() -> None:
+    op.create_table(
+        "classification_jobs",
+        sa.Column("id", sa.Uuid, primary_key=True, nullable=False),
+        sa.Column("submited_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("title", sa.Text, nullable=True),
+        sa.Column("text_content", sa.Text, nullable=True),
+        sa.Column("comments", JSONB, nullable=True),
+        sa.Column(
+            "status",
+            sa.Enum("SUBMITED", "IN_PROGRESS", "COMPLETED", name="jobstatus"),
+            nullable=False,
+            server_default="SUBMITED",
+        ),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+        ),
+    )
+
+
+def downgrade() -> None:
+    op.drop_table("classification_jobs")

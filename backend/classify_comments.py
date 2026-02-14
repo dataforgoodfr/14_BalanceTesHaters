@@ -6,7 +6,6 @@ from balanceteshaters.infra.container import Container
 from balanceteshaters.model.repositories import comment as comment_repository
 from sqlalchemy.ext.asyncio import AsyncSession
 
-
 async def main(db: AsyncSession):
     async with db.get_session() as session, session.begin():
         # Find all comments (including replies) that are not yet classified
