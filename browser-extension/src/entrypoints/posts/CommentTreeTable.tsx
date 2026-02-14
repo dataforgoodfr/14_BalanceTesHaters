@@ -31,6 +31,7 @@ import {
   MessageCircleMoreIcon,
 } from "lucide-react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { Badge } from "@/components/ui/badge";
 
 interface CommentTreeTableProps {
   comments: Comment[];
@@ -162,6 +163,19 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
               )}
             </div>
           );
+        },
+      },
+      {
+        accessorKey: "classification",
+        header: "Classification",
+        cell: ({ row }) => {
+          if (row.original.classifiedAt) {
+            return (row.original.classification || []).map(
+              (category, index) => <Badge key={index}>{category}</Badge>,
+            );
+          } else {
+            return "Non ";
+          }
         },
       },
       {
