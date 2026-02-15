@@ -24,3 +24,14 @@ jobs:
         path: ~/.cache/pre-commit
         key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
     - uses: pre-commit/action@v3.0.0
+      name: ruff-check
+      with:
+        extra_args: ruff-check --all-files
+    - uses: pre-commit/action@v3.0.0
+      name: check-merge-conflict
+      with:
+        extra_args: check-merge-conflict --all-files
+    - uses: pre-commit/action@v3.0.0
+      name: mixed-line-ending
+      with:
+        extra_args: mixed-line-ending --all-files
