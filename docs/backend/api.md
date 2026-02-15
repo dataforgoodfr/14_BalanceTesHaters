@@ -20,7 +20,7 @@ classDiagram
     class Comment {
         id: UUID
         text_content: str
-        replies: list[Comment]
+        replies: dict[str, Comment]
     }
     Author "1" <-- "0..n" Comment : author
     Comment "1" -- "0..n" Comment : replies
@@ -34,14 +34,14 @@ Exemple:
         "name": "lynnnsk",
         "account_href": "https://www.instagram.com/lynnnsk/"
     },
-    "comments: {
+    "comments": {
         "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
             "text_content": "😍💓",
             "author": {
                 "name": "julieau_makeup.n.paint",
                 "account_href": "https://www.instagram.com/julieau_makeup.n.paint/"
             }
-        }
+        },
         "0698ce2e-2716-7e37-8000-a9362feb377d": {
             "text_content": "Super vidéo",
             "author": {
@@ -98,7 +98,6 @@ classDiagram
 
     class Comment {
         id: UUID
-        replies: list[Comment]
         classification: list[str]
         classified_at: datetime
     }
@@ -124,13 +123,12 @@ Exemple:
         "0698ce2e-2716-7e37-8000-a9362feb377d": {
             "classification": ["Catégorie 2", "Catégorie 3"],
             "classified_at": "2026-02-11T19:54:10.920Z"
-            "replies": {
-                "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
-                    "classification": [],
-                    "classified_at": "2026-02-11T19:54:10.920Z"
-                }
-            }
+        },
+        "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
+            "classification": [],
+            "classified_at": "2026-02-11T19:54:10.920Z"
         }
+
     }
 }
 ```
