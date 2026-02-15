@@ -35,7 +35,7 @@ type CommentThread =
   | { isVisible: false };
 
 export class YoutubePostNativeScrapper {
-  public constructor() { }
+  public constructor() {}
 
   private debug(...data: typeof console.debug.arguments) {
     console.debug(LOG_PREFIX, ...data);
@@ -332,7 +332,7 @@ export class YoutubePostNativeScrapper {
     let previousCommentsCount = undefined;
     let previousSpinnersCount = undefined;
     let lastChangeTime = Date.now();
-    for (; ;) {
+    for (;;) {
       const spinners = selectAll(
         document,
         "#comments #spinner",
@@ -373,8 +373,8 @@ export class YoutubePostNativeScrapper {
     const repliesButton = selectAll(
       document,
       "#replies #more-replies button" +
-      "," +
-      "#replies #more-replies-sub-thread button",
+        "," +
+        "#replies #more-replies-sub-thread button",
       HTMLElement,
     ).filter(isVisible);
     this.debug("Expanding ", repliesButton.length, " replies button...");
@@ -386,7 +386,7 @@ export class YoutubePostNativeScrapper {
     }
 
     // expand more replies button
-    for (; ;) {
+    for (;;) {
       const moreRepliesButtons = selectAll(
         document,
         'button[aria-label="Afficher plus de réponses"]',
