@@ -43,3 +43,22 @@ async def post_classification_job(
         await session.commit()
         asyncio.create_task(classificationTask.classify(classification_job.id))
         return {"job_id": str(classification_job.id)}
+
+
+@router.get("/{job_id}")
+@inject
+async def get_classification_job(
+    job_id: str,
+    db: Annotated[Database, Depends(Provide[Container.database])],
+):
+    async with db.get_session() as session, session.begin():
+        classification_job = await classification_job_repository.find_by_id(
+            session, job_id
+        )
+        if not classification_job:
+            return {"error": "Classification job not found"}
+        return {
+            "id": str(classification_job.id),
+            "comments": classification_job.result,
+            "status": classification_job.status.value,
+        }

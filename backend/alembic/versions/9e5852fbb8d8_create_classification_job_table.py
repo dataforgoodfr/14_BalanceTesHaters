@@ -35,6 +35,7 @@ def upgrade() -> None:
             nullable=False,
             server_default="SUBMITTED",
         ),
+        sa.Column("result", JSONB, nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
