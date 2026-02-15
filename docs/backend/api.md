@@ -32,28 +32,28 @@ Exemple:
     "text_content": "⚡️⚡️⚡️LA @barbarabutch ⚡️⚡️⚡️au @petitpalais_musee (!) pour @carambaculturelive ❤️🌈 \"chez Barbara\" le 28 novembre au Petit Palais en partenariat avec @hbomaxfr Merci @viemorgane 🥰🐼 MUA @julieau_makeup.n.paintStylism @appellemoisarah Hair @yann.fontaine.coiffure",
     "author": {
         "name": "lynnnsk",
-        "accountHref": "https://www.instagram.com/lynnnsk/"
+        "account_href": "https://www.instagram.com/lynnnsk/"
     },
     "comments: {
         "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
-            "textContent": "😍💓",
+            "text_content": "😍💓",
             "author": {
                 "name": "julieau_makeup.n.paint",
-                "accountHref": "https://www.instagram.com/julieau_makeup.n.paint/"
+                "account_href": "https://www.instagram.com/julieau_makeup.n.paint/"
             }
         }
         "0698ce2e-2716-7e37-8000-a9362feb377d": {
-            "textContent": "Super vidéo",
+            "text_content": "Super vidéo",
             "author": {
                 "name": "gros.lourd",
-                "accountHref": "https://www.instagram.com/gros.lourd/"
+                "account_href": "https://www.instagram.com/gros.lourd/"
             },
             "replies": {
                 "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
-                    "textContent": "Ouai, génial !!",
+                    "text_content": "Ouai, génial !!",
                     "author": {
                         "name": "petit.lapin",
-                        "accountHref": "https://www.instagram.com/petit.lapin/"
+                        "account_href": "https://www.instagram.com/petit.lapin/"
                     }
                 }
             }
@@ -89,23 +89,15 @@ Interroge le backend pour connaitre le statut et le résultat d'un job de classi
 
 ```mermaid
 classDiagram
-    class Author {
-        name: str
-        account_href: str
-    }
-
     class ClassificationJob {
         id: str
         status: str
-        title?: str
-        text_content?: str
         comments: dict[str, Comment]
     }
     Author "1" <-- "0..n" ClassificationJob : author
 
     class Comment {
         id: UUID
-        text_content: str
         replies: list[Comment]
         classification: list[str]
         classified_at: datetime
@@ -114,41 +106,26 @@ classDiagram
     Comment "1" -- "0..n" Comment : replies
 ```
 
+`status` peut avoir les valeurs:
+ - `SUBMITTED`: le job vient d'être soumis au backend et pas encore traité
+ - `IN_PROGRESS`: classification en cours
+ - `COMPLETED` / `FAILED` : la classification est terminé en succès / en échec.
+
 Exemple: 
 ```
 {
     "id": "0698cee8-dce2-79a5-8000-3bed6b870158",
     "status": "COMPLETED",
-    "text_content": "⚡️⚡️⚡️LA @barbarabutch ⚡️⚡️⚡️au @petitpalais_musee (!) pour @carambaculturelive ❤️🌈 \"chez Barbara\" le 28 novembre au Petit Palais en partenariat avec @hbomaxfr Merci @viemorgane 🥰🐼 MUA @julieau_makeup.n.paintStylism @appellemoisarah Hair @yann.fontaine.coiffure",
-    "author": {
-        "name": "lynnnsk",
-        "accountHref": "https://www.instagram.com/lynnnsk/"
-    },
     "comments: {
         "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
-            "textContent": "😍💓",
-            "author": {
-                "name": "julieau_makeup.n.paint",
-                "accountHref": "https://www.instagram.com/julieau_makeup.n.paint/"
-            },
             "classification": ["Catégorie 1"],
             "classified_at": "2026-02-11T19:54:10.920Z"
         }
         "0698ce2e-2716-7e37-8000-a9362feb377d": {
-            "textContent": "Super vidéo",
-            "author": {
-                "name": "gros.lourd",
-                "accountHref": "https://www.instagram.com/gros.lourd/"
-            },
             "classification": ["Catégorie 2", "Catégorie 3"],
             "classified_at": "2026-02-11T19:54:10.920Z"
             "replies": {
                 "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
-                    "textContent": "Ouai, génial !!",
-                    "author": {
-                        "name": "petit.lapin",
-                        "accountHref": "https://www.instagram.com/petit.lapin/"
-                    },
                     "classification": [],
                     "classified_at": "2026-02-11T19:54:10.920Z"
                 }
