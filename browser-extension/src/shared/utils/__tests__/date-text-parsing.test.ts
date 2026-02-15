@@ -54,7 +54,7 @@ describe("Date conversion from text", () => {
       ).parse();
       expect(result).toStrictEqual({
         type: "absolute",
-        date: new Date("2026-02-11T15:00:56.214Z"),
+        date: "2026-02-11T15:00:56.214Z",
       });
     });
   });
@@ -68,8 +68,8 @@ describe("Date conversion from text", () => {
         textDate: "2 years ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2023-02-11T00:00:00.000Z"),
-            end: new Date("2024-02-11T00:00:00.000Z"),
+            start: "2023-02-11T00:00:00.000Z",
+            end: "2024-02-11T00:00:00.000Z",
           },
         },
       },
@@ -80,8 +80,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 2 ans",
         expected: {
           resolvedDateRange: {
-            start: new Date("2023-02-11T00:00:00.000Z"),
-            end: new Date("2024-02-11T00:00:00.000Z"),
+            start: "2023-02-11T00:00:00.000Z",
+            end: "2024-02-11T00:00:00.000Z",
           },
         },
       },
@@ -92,8 +92,8 @@ describe("Date conversion from text", () => {
         textDate: "1 month ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2025-12-11T00:00:00.000Z"),
-            end: new Date("2026-01-11T00:00:00.000Z"),
+            start: "2025-12-11T00:00:00.000Z",
+            end: "2026-01-11T00:00:00.000Z",
           },
         },
       },
@@ -104,8 +104,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 1 mois",
         expected: {
           resolvedDateRange: {
-            start: new Date("2025-12-11T00:00:00.000Z"),
-            end: new Date("2026-01-11T00:00:00.000Z"),
+            start: "2025-12-11T00:00:00.000Z",
+            end: "2026-01-11T00:00:00.000Z",
           },
         },
       },
@@ -116,8 +116,8 @@ describe("Date conversion from text", () => {
         textDate: "3 weeks ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-01-14T00:00:00.000Z"),
-            end: new Date("2026-01-21T00:00:00.000Z"),
+            start: "2026-01-14T00:00:00.000Z",
+            end: "2026-01-21T00:00:00.000Z",
           },
         },
       },
@@ -128,8 +128,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 3 semaines",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-01-14T00:00:00.000Z"),
-            end: new Date("2026-01-21T00:00:00.000Z"),
+            start: "2026-01-14T00:00:00.000Z",
+            end: "2026-01-21T00:00:00.000Z",
           },
         },
       },
@@ -140,8 +140,8 @@ describe("Date conversion from text", () => {
         textDate: "11 days ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-01-31T00:00:00.000Z"),
-            end: new Date("2026-02-01T00:00:00.000Z"),
+            start: "2026-01-31T00:00:00.000Z",
+            end: "2026-02-01T00:00:00.000Z",
           },
         },
       },
@@ -152,8 +152,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 11 jours",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-01-31T00:00:00.000Z"),
-            end: new Date("2026-02-01T00:00:00.000Z"),
+            start: "2026-01-31T00:00:00.000Z",
+            end: "2026-02-01T00:00:00.000Z",
           },
         },
       },
@@ -164,8 +164,8 @@ describe("Date conversion from text", () => {
         textDate: "3 hours ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-02-11T11:17:00.000Z"),
-            end: new Date("2026-02-11T12:17:00.000Z"),
+            start: "2026-02-11T11:17:00.000Z",
+            end: "2026-02-11T12:17:00.000Z",
           },
         },
       },
@@ -176,8 +176,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 3 heures",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-02-11T11:17:00.000Z"),
-            end: new Date("2026-02-11T12:17:00.000Z"),
+            start: "2026-02-11T11:17:00.000Z",
+            end: "2026-02-11T12:17:00.000Z",
           },
         },
       },
@@ -188,8 +188,8 @@ describe("Date conversion from text", () => {
         textDate: "24 minutes ago",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-02-11T14:52:13.000Z"),
-            end: new Date("2026-02-11T14:53:13.000Z"),
+            start: "2026-02-11T14:52:13.000Z",
+            end: "2026-02-11T14:53:13.000Z",
           },
         },
       },
@@ -200,8 +200,8 @@ describe("Date conversion from text", () => {
         textDate: "il y a 24 minutes",
         expected: {
           resolvedDateRange: {
-            start: new Date("2026-02-11T14:52:13.000Z"),
-            end: new Date("2026-02-11T14:53:13.000Z"),
+            start: "2026-02-11T14:52:13.000Z",
+            end: "2026-02-11T14:53:13.000Z",
           },
         },
       },

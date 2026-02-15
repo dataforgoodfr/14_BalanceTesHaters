@@ -7,14 +7,14 @@ export class PublicationDateTextParsing {
   constructor(
     private readonly dateText: string,
     private readonly baseDate = new Date(),
-  ) {}
+  ) { }
 
   parse(): PublicationDate {
     const parseAttempt = new Date(this.dateText);
     if (this.isValidDate(parseAttempt)) {
       return {
         type: "absolute",
-        date: parseAttempt,
+        date: parseAttempt.toISOString(),
       };
     }
     if (
@@ -97,12 +97,12 @@ export class PublicationDateTextParsing {
         new Date(this.baseDate).setFullYear(
           this.baseDate.getFullYear() - timeAmount - 1,
         ),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setFullYear(
           this.baseDate.getFullYear() - timeAmount,
         ),
-      ),
+      ).toISOString(),
     };
   }
   private monthRange(timeAmount: number) {
@@ -111,10 +111,10 @@ export class PublicationDateTextParsing {
         new Date(this.baseDate).setMonth(
           this.baseDate.getMonth() - timeAmount - 1,
         ),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setMonth(this.baseDate.getMonth() - timeAmount),
-      ),
+      ).toISOString(),
     };
   }
   private weekRange(timeAmount: number) {
@@ -123,24 +123,24 @@ export class PublicationDateTextParsing {
         new Date(this.baseDate).setDate(
           this.baseDate.getDate() - timeAmount * 7 - 7,
         ),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setDate(
           this.baseDate.getDate() - timeAmount * 7,
         ),
-      ),
+      ).toISOString(),
     };
   }
   private dayRange(timeAmount: number) {
     return {
       start: new Date(
         new Date(this.baseDate).setDate(this.baseDate.getDate() - timeAmount),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setDate(
           this.baseDate.getDate() - timeAmount + 1,
         ),
-      ),
+      ).toISOString(),
     };
   }
   private hourRange(timeAmount: number) {
@@ -149,10 +149,10 @@ export class PublicationDateTextParsing {
         new Date(this.baseDate).setHours(
           this.baseDate.getHours() - timeAmount - 1,
         ),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setHours(this.baseDate.getHours() - timeAmount),
-      ),
+      ).toISOString(),
     };
   }
   private minuteRange(timeAmount: number) {
@@ -161,12 +161,12 @@ export class PublicationDateTextParsing {
         new Date(this.baseDate).setMinutes(
           this.baseDate.getMinutes() - timeAmount - 1,
         ),
-      ),
+      ).toISOString(),
       end: new Date(
         new Date(this.baseDate).setMinutes(
           this.baseDate.getMinutes() - timeAmount,
         ),
-      ),
+      ).toISOString(),
     };
   }
 }
