@@ -15,7 +15,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 # revision identifiers, used by Alembic.
 revision: str = "9e5852fbb8d8"
-down_revision: Union[str, Sequence[str], None] = "4dbae3c352ae"
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -24,15 +24,16 @@ def upgrade() -> None:
     op.create_table(
         "classification_jobs",
         sa.Column("id", sa.Uuid, primary_key=True, nullable=False),
-        sa.Column("submited_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("title", sa.Text, nullable=True),
         sa.Column("text_content", sa.Text, nullable=True),
+        sa.Column("author", JSONB, nullable=False),
         sa.Column("comments", JSONB, nullable=True),
         sa.Column(
             "status",
-            sa.Enum("SUBMITED", "IN_PROGRESS", "COMPLETED", name="jobstatus"),
+            sa.Enum("SUBMITTED", "IN_PROGRESS", "COMPLETED", name="jobstatus"),
             nullable=False,
-            server_default="SUBMITED",
+            server_default="SUBMITTED",
         ),
         sa.Column(
             "created_at",
@@ -45,3 +46,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_table("classification_jobs")
+    op.execute("DROP TYPE jobstatus")

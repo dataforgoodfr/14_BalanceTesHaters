@@ -10,7 +10,7 @@ class Container(containers.DeclarativeContainer):
     settings = providers.Singleton(Settings)
 
     wiring_config = containers.WiringConfiguration(
-        ["balanceteshaters.routers.ml_router"]
+        ["balanceteshaters.routers.classification_router"]
     )
     logging = providers.Resource(
         logging.config.fileConfig,
