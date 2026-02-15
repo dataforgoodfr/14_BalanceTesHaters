@@ -77,3 +77,83 @@ Exemple:
 ```
 {'job_id': '0698ce2e-2708-7030-8000-2a4bac70cb66'}
 ```
+# `GET /classification/{job_id}`
+
+Interroge le backend pour connaitre le statut et le résultat d'un job de classification.
+
+## Requête
+
+`job_id` : identifiant du job à interrogé
+
+## Réponse
+
+```mermaid
+classDiagram
+    class Author {
+        name: str
+        account_href: str
+    }
+
+    class ClassificationJob {
+        id: str
+        status: str
+        title?: str
+        text_content?: str
+        comments: dict[str, Comment]
+    }
+    Author "1" <-- "0..n" ClassificationJob : author
+
+    class Comment {
+        id: UUID
+        text_content: str
+        replies: list[Comment]
+        classification: list[str]
+        classified_at: datetime
+    }
+    Author "1" <-- "0..n" Comment : author
+    Comment "1" -- "0..n" Comment : replies
+```
+
+Exemple: 
+```
+{
+    "id": "0698cee8-dce2-79a5-8000-3bed6b870158",
+    "status": "COMPLETED",
+    "text_content": "⚡️⚡️⚡️LA @barbarabutch ⚡️⚡️⚡️au @petitpalais_musee (!) pour @carambaculturelive ❤️🌈 \"chez Barbara\" le 28 novembre au Petit Palais en partenariat avec @hbomaxfr Merci @viemorgane 🥰🐼 MUA @julieau_makeup.n.paintStylism @appellemoisarah Hair @yann.fontaine.coiffure",
+    "author": {
+        "name": "lynnnsk",
+        "accountHref": "https://www.instagram.com/lynnnsk/"
+    },
+    "comments: {
+        "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
+            "textContent": "😍💓",
+            "author": {
+                "name": "julieau_makeup.n.paint",
+                "accountHref": "https://www.instagram.com/julieau_makeup.n.paint/"
+            },
+            "classification": ["Catégorie 1"],
+            "classified_at": "2026-02-11T19:54:10.920Z"
+        }
+        "0698ce2e-2716-7e37-8000-a9362feb377d": {
+            "textContent": "Super vidéo",
+            "author": {
+                "name": "gros.lourd",
+                "accountHref": "https://www.instagram.com/gros.lourd/"
+            },
+            "classification": ["Catégorie 2", "Catégorie 3"],
+            "classified_at": "2026-02-11T19:54:10.920Z"
+            "replies": {
+                "0698ce2e-2716-7e69-8000-f012d86bb1b4": {
+                    "textContent": "Ouai, génial !!",
+                    "author": {
+                        "name": "petit.lapin",
+                        "accountHref": "https://www.instagram.com/petit.lapin/"
+                    },
+                    "classification": [],
+                    "classified_at": "2026-02-11T19:54:10.920Z"
+                }
+            }
+        }
+    }
+}
+```
