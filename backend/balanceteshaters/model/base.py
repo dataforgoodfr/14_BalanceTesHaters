@@ -34,7 +34,7 @@ class Author(Base):
 
 
 class JobStatus(Enum):
-    SUBMITED = "SUBMITED"
+    SUBMITTED = "SUBMITTED"
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
