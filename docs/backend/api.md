@@ -11,8 +11,8 @@ classDiagram
     }
 
     class ClassificationJob {
-        title.: str
-        textContent?: str
+        title?: str
+        text_content?: str
         comments: dict[str, Comment]
     }
     Author "1" <-- "0..n" ClassificationJob : author
@@ -22,14 +22,14 @@ classDiagram
         text_content: str
         replies: list[Comment]
     }
-    Author "1" <-- "0..n" Comment
+    Author "1" <-- "0..n" Comment : author
     Comment "1" -- "0..n" Comment : replies
 ```
 
 Exemple: 
 ```
 {
-    "textContent": "⚡️⚡️⚡️LA @barbarabutch ⚡️⚡️⚡️au @petitpalais_musee (!) pour @carambaculturelive ❤️🌈 \"chez Barbara\" le 28 novembre au Petit Palais en partenariat avec @hbomaxfr Merci @viemorgane 🥰🐼 MUA @julieau_makeup.n.paintStylism @appellemoisarah Hair @yann.fontaine.coiffure",
+    "text_content": "⚡️⚡️⚡️LA @barbarabutch ⚡️⚡️⚡️au @petitpalais_musee (!) pour @carambaculturelive ❤️🌈 \"chez Barbara\" le 28 novembre au Petit Palais en partenariat avec @hbomaxfr Merci @viemorgane 🥰🐼 MUA @julieau_makeup.n.paintStylism @appellemoisarah Hair @yann.fontaine.coiffure",
     "author": {
         "name": "lynnnsk",
         "accountHref": "https://www.instagram.com/lynnnsk/"
