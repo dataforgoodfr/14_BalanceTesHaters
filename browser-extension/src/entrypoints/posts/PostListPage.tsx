@@ -80,7 +80,10 @@ function PostListPage() {
                 <TableCell> {post.scrapedAt}</TableCell>
                 <TableCell> {post.socialNetwork}</TableCell>
                 <TableCell> {post.author.name}</TableCell>
-                <TableCell> <PublishedAt at={post.publishedAt} /></TableCell>
+                <TableCell>
+                  {" "}
+                  <PublishedAt at={post.publishedAt} />
+                </TableCell>
                 <TableCell> {post.title}</TableCell>
                 <TableCell> {ellipsis(post.textContent || "")}</TableCell>
 

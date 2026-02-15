@@ -120,9 +120,10 @@ export class InstagramScraper extends PuppeteerBaseScraper {
     const base_0 = (await base.$("::-p-xpath(div[1])"))!;
     const base_1 = (await base.$("::-p-xpath(div[2])"))!;
     const auteur = await this.get_auteur_from_span(base_0);
-    const publicationDateText = await base.$eval("::-p-xpath(.//time)", (node) =>
-      node.getAttribute("datetime"),
-    ) ?? ""
+    const publicationDateText =
+      (await base.$eval("::-p-xpath(.//time)", (node) =>
+        node.getAttribute("datetime"),
+      )) ?? "";
 
     const screenshot = await comment_element.screenshot({ encoding: "base64" });
     const screenshotDate = currentIsoDate();
