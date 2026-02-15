@@ -43,7 +43,7 @@ export class PublicationDateTextParsing {
     if (/.*ago$/.test(this.dateText)) {
       return "en";
     }
-    if (/^il y a.*/.test(this.dateText)) {
+    if (/il y a.*/.test(this.dateText)) {
       return "fr";
     }
     return "unknown";
