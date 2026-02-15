@@ -90,7 +90,6 @@ export class InstagramScraper extends PuppeteerBaseScraper {
       publishedAt: new PublicationDateTextParsing(date_publication).parse(),
       textContent: texte_publication,
       comments: await Promise.all(commentaires),
-      backendId: "",
     };
   }
 
