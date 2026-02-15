@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from balanceteshaters.model.base import ClassificationJob, JobStatus
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,16 +26,25 @@ def create_job(
     return job
 
 
-async def find_by_id(session: AsyncSession, job_id: str) -> ClassificationJob | None:
-    result = await session.get(ClassificationJob, job_id)
-    return result.scalar()
+async def find_by_id(session: AsyncSession, job_id: UUID) -> ClassificationJob | None:
+    return await session.get(ClassificationJob, job_id)
 
 
 async def update_job_status(
-    session: AsyncSession, job_id: str, status: JobStatus
+    session: AsyncSession, job_id: UUID, status: JobStatus
 ) -> ClassificationJob | None:
     classification_job = await find_by_id(session, job_id)
     if not classification_job:
         return None
     classification_job.status = status
+    return classification_job
+
+
+async def update_job_result(
+    session: AsyncSession, job_id: UUID, result: dict
+) -> ClassificationJob | None:
+    classification_job = await find_by_id(session, job_id)
+    if not classification_job:
+        return None
+    classification_job.result = result
     return classification_job
