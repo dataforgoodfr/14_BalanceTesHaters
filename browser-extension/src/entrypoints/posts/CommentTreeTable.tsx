@@ -31,6 +31,7 @@ import {
   MessageCircleMoreIcon,
 } from "lucide-react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import PublishedAt from "./PublishedAt";
 
 interface CommentTreeTableProps {
   comments: Comment[];
@@ -124,7 +125,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
                 <span className="pl-4" />
                 {row.original.publishedAt && (
                   <span className="text-muted-foreground">
-                    ({row.original.publishedAt})
+                    <PublishedAt at={row.original.publishedAt} />
                   </span>
                 )}
               </div>
@@ -251,9 +252,9 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

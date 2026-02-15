@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
 import { Check, MoveLeft, RefreshCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PublishedAt from "./PublishedAt";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
@@ -63,7 +64,7 @@ function PostDetailPage() {
                   {post.title}
                 </a>
               </div>
-              <div>Publication: {post.publishedAt}</div>
+              <PublishedAt at={post.publishedAt} />
               <div>
                 Capture: {new Date(post.scrapedAt).toLocaleDateString()}
               </div>
@@ -97,5 +98,6 @@ function PostDetailPage() {
     </>
   );
 }
+
 
 export default PostDetailPage;
