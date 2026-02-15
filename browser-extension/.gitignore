@@ -27,3 +27,4 @@ web-ext.config.ts
 
 # cancel the "lib" exclusion defined in root .gitignore  
 !lib
+coverage
