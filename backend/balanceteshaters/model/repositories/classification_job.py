@@ -1,22 +1,23 @@
 from datetime import datetime
 
+from balanceteshaters.model.base import ClassificationJob, JobStatus
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from backend.balanceteshaters.model.base import ClassificationJob, JobStatus
 
 
 def create_job(
     session: AsyncSession,
-    submited_at: datetime,
+    submitted_at: datetime,
     title: str | None,
     text_content: str | None,
     status: JobStatus,
+    author: dict | None,
     comments: dict | None,
 ):
     job = ClassificationJob(
-        submitedAt=submited_at,
+        submitted_at=submitted_at,
         title=title,
-        textContent=text_content,
+        text_content=text_content,
+        author=author,
         comments=comments,
         status=status,
     )

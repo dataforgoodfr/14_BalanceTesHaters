@@ -33,11 +33,12 @@ async def post_classification_job(
     async with db.get_session() as session, session.begin():
         classification_job = classification_job_repository.create_job(
             session,
-            datetime.datetime.now(timezone=datetime.timezone.utc),
+            datetime.datetime.now(datetime.timezone.utc),
             job.title,
-            job.textContent,
-            JobStatus.SUBMITED,
-            job.comments,
+            job.text_content,
+            JobStatus.SUBMITTED,
+            job.author.model_dump(),
+            job.model_dump()["comments"],
         )
         await session.commit()
         asyncio.create_task(classificationTask.classify(classification_job.id))

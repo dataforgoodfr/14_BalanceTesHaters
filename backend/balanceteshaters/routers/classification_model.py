@@ -3,17 +3,17 @@ from pydantic import BaseModel
 
 class Author(BaseModel):
     name: str
-    accountHref: str
+    account_href: str
 
 
 class Comment(BaseModel):
-    commentId: str
     author: Author
-    textContent: str
-    replies: list["Comment"] | None = None
+    text_content: str
+    replies: dict[str, "Comment"] = {}
 
 
 class ClassificationJob(BaseModel):
     title: str | None = None
-    textContent: str | None = None
+    author: Author
+    text_content: str | None = None
     comments: dict[str, Comment] = {}
