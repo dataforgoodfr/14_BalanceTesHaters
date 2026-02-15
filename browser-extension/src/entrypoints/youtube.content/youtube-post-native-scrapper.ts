@@ -88,6 +88,7 @@ export class YoutubePostNativeScrapper {
       textContent: textConent,
       comments: comments,
       title,
+      backendId: "",
     };
   }
 
