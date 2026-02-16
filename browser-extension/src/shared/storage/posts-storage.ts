@@ -1,16 +1,16 @@
-import { Post } from "@/shared/model/post";
+import { Post, PostSchema } from "@/shared/model/post";
 
 export async function upsertPost(post: Post) {
   if (!post) {
     return;
   }
-  const posts: Post[] = await getPosts();
+  const posts = await getPosts();
   const index = posts.findIndex(
     (p) => p.postId === post.postId && p.scrapedAt === post.scrapedAt,
   );
   if (index === -1) {
     const newPosts = [...posts, post];
-    await browser.storage.local.set({ posts: newPosts });
+    await writePostLists(newPosts);
   } else {
     const newPosts = [...posts];
     newPosts[index] = post;
@@ -22,7 +22,7 @@ export async function deleteAllPosts() {
 }
 
 export async function removePost(postId: string, scrapedAt: string) {
-  const posts: Post[] = await getPosts();
+  const posts = await getPosts();
   const filtered = posts.filter(
     (p) => !(p.postId === postId && p.scrapedAt === scrapedAt),
   );
@@ -31,7 +31,29 @@ export async function removePost(postId: string, scrapedAt: string) {
 
 export async function getPosts(): Promise<Post[]> {
   const partial = await browser.storage.local.get("posts");
-  return (partial["posts"] as Post[]) || [];
+  const rawPosts = partial["posts"];
+
+  const PostArraySchema = PostSchema.array();
+  const result = PostArraySchema.safeParse(rawPosts);
+  if (result.success) {
+    return result.data;
+  }
+
+  console.log(
+    "Some posts records don't conform to schema. Invalid records will be filterd out. Errors: ",
+    result.error,
+  );
+  const validPosts: Post[] = [];
+  if (Array.isArray(rawPosts)) {
+    for (const rawPost of rawPosts) {
+      const postResult = PostSchema.safeParse(rawPost);
+      if (postResult.success) {
+        validPosts.push(postResult.data);
+      }
+    }
+  }
+
+  return validPosts;
 }
 
 export async function getPostByIdAndScrapedAt(

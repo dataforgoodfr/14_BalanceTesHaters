@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { Post, Comment } from "@/shared/model/post";
+import { Post, Comment, AbsoluteDate } from "@/shared/model/post";
 import {
   ClassificationResult,
   ClassificationResultStatus,
@@ -8,6 +8,14 @@ import {
 import { mergeClassificationResultIntoPost } from "../mergeClassificationResultIntoPost";
 
 describe("mergeClassificationResultIntoPost", () => {
+  function absoluteDate(
+    isoDate: string = "2024-01-14T12:00:00.000Z",
+  ): AbsoluteDate {
+    return {
+      type: "absolute",
+      date: isoDate,
+    };
+  }
   function createMockPost(comments: Comment[]): Post {
     return {
       url: "https://example.com/post/123",
@@ -64,6 +72,7 @@ describe("mergeClassificationResultIntoPost", () => {
     const commentId = "123e4567-e89b-12d3-a456-426614174001";
     const replyId1 = "123e4567-e89b-12d3-a456-426614174002";
     const replyId2 = "123e4567-e89b-12d3-a456-426614174003";
+
     const post = createMockPost([
       {
         id: commentId,
@@ -71,6 +80,7 @@ describe("mergeClassificationResultIntoPost", () => {
         author: { name: "Author", accountHref: "https://example.com" },
         screenshotData: "data:image/png;base64,abc123",
         scrapedAt: "2024-01-15T12:00:00.000Z",
+        publishedAt: absoluteDate(),
         replies: [
           {
             id: replyId1,
@@ -78,6 +88,7 @@ describe("mergeClassificationResultIntoPost", () => {
             author: { name: "Author1", accountHref: "https://example.com/1" },
             screenshotData: "data:image/png;base64,reply1",
             scrapedAt: "2024-01-15T12:00:00.000Z",
+            publishedAt: absoluteDate(),
             replies: [
               {
                 id: replyId2,
@@ -88,6 +99,7 @@ describe("mergeClassificationResultIntoPost", () => {
                 },
                 screenshotData: "data:image/png;base64,reply2",
                 scrapedAt: "2024-01-15T12:00:00.000Z",
+                publishedAt: absoluteDate(),
                 replies: [],
                 nbLikes: 0,
               },
