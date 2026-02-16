@@ -17,21 +17,26 @@ class ClassificationTask:
         self.db = db
 
     async def classify(self, job_id: UUID):
-        self.logger.info(f"Starting classification for job with id {job_id}")
-        await self.update_job_status(job_id, JobStatus.IN_PROGRESS)
-        job = await self.get_job(job_id)
-        if not job:
-            self.logger.error(f"Classification job with id {job_id} not found")
+        try:
+            self.logger.info(f"Starting classification for job with id {job_id}")
+            await self.update_job_status(job_id, JobStatus.IN_PROGRESS)
+            job = await self.get_job(job_id)
+            if not job:
+                self.logger.error(f"Classification job with id {job_id} not found")
+                await self.update_job_status(job_id, JobStatus.FAILED)
+                return
+            classification_result = await self.classify_comments(job.comments)
+            await self.set_job_result(job_id, classification_result)
+            await self.update_job_status(job_id, JobStatus.COMPLETED)
+            self.logger.info(f"End classification for job with id {job_id}")
+        except Exception:
+            self.logger.exception(f"Classification failed for job with id {job_id}")
             await self.update_job_status(job_id, JobStatus.FAILED)
-            return
-        classification_result = await self.classify_comments(job.comments)
-        await self.set_job_result(job_id, classification_result)
-        await self.update_job_status(job_id, JobStatus.COMPLETED)
-        self.logger.info(f"End classification for job with id {job_id}")
 
-    async def classify_comments(self, comment: dict):
+    async def classify_comments(self, comments: list[dict]):
         classifications = dict()
-        for comment_id, comment_data in comment.items():
+        for comment in comments:
+            comment_id = comment["id"]
             self.logger.info(f"Classifying comment with id {comment_id}")
             classifications[comment_id] = {
                 "classification": [
@@ -39,10 +44,10 @@ class ClassificationTask:
                 ],  # TODO: replace with actual classification result
                 "classified_at": datetime.datetime.now(
                     datetime.timezone.utc
-                ).isoformat(),
+                ).isoformat().replace("+00:00", "Z"),
             }
             classifications.update(
-                await self.classify_comments(comment_data["replies"])
+                await self.classify_comments(comment.get("replies", []))
             )
         return classifications
 
