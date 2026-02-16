@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import logging
 from typing import Annotated
+from uuid import UUID
 
 from balanceteshaters.classification_task import ClassificationTask
 from balanceteshaters.infra.container import Container
@@ -12,7 +13,7 @@ from balanceteshaters.model.repositories import (
 )
 from balanceteshaters.routers.classification_model import ClassificationJob
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 router = APIRouter()
 
@@ -53,10 +54,10 @@ async def get_classification_job(
 ):
     async with db.get_session() as session, session.begin():
         classification_job = await classification_job_repository.find_by_id(
-            session, job_id
+            session, UUID(job_id)
         )
         if not classification_job:
-            return {"error": "Classification job not found"}
+            raise HTTPException(404, {"error": "Classification job not found"})
         return {
             "id": str(classification_job.id),
             "comments": classification_job.result,

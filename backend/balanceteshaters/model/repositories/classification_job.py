@@ -12,7 +12,7 @@ def create_job(
     text_content: str | None,
     status: JobStatus,
     author: dict | None,
-    comments: dict | None,
+    comments: list | None,
 ):
     job = ClassificationJob(
         submitted_at=submitted_at,
