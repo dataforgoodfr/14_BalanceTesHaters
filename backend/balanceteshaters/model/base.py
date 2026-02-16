@@ -33,12 +33,12 @@ class ClassificationJob(Base):
     )
     title: Mapped[str] = mapped_column(nullable=True)
     text_content: Mapped[str] = mapped_column(nullable=True)
-    author: Mapped[JSONB] = mapped_column(JSONB, nullable=False)
-    comments: Mapped[JSONB] = mapped_column(JSONB, nullable=True)
+    author: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    comments: Mapped[list] = mapped_column(JSONB, nullable=True)
     status: Mapped[JobStatus] = mapped_column(
         sqlalchemy.Enum(JobStatus), nullable=False, default=JobStatus.SUBMITTED
     )
-    result: Mapped[JSONB] = mapped_column(JSONB, nullable=True)
+    result: Mapped[dict] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
