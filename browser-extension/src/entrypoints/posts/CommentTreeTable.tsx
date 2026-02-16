@@ -61,18 +61,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   };
 
   const expandAll = () => {
-    const newExpandedState: Record<string, boolean> = {};
-    const traverse = (rows: Comment[], depth = 0) => {
-      rows.forEach((comment, index) => {
-        const id = `${depth}-${index}`;
-        if (comment.replies && comment.replies.length > 0) {
-          newExpandedState[id] = true;
-          traverse(comment.replies, depth + 1);
-        }
-      });
-    };
-    traverse(comments);
-    setExpandedState(newExpandedState);
+    setExpandedState(true);
   };
 
   const collapseAll = () => {
