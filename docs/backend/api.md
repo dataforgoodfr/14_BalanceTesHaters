@@ -97,7 +97,6 @@ classDiagram
     Author "1" <-- "0..n" ClassificationJob : author
 
     class Comment {
-        id: UUID
         classification: list[str]
         classified_at: datetime
     }
@@ -115,7 +114,7 @@ Exemple:
 {
     "id": "0698cee8-dce2-79a5-8000-3bed6b870158",
     "status": "COMPLETED",
-    "comments: {
+    "comments": {
         "0698ce2e-2716-7d7e-8000-5f7481c5d55a": {
             "classification": ["Catégorie 1"],
             "classified_at": "2026-02-11T19:54:10.920Z"
