@@ -11,7 +11,7 @@ describe("mergeClassificationResultIntoPost", () => {
   function createMockPost(comments: Comment[]): Post {
     return {
       url: "https://example.com/post/123",
-      publishedAt: "2024-01-15T10:00:00.000Z",
+      publishedAt: { type: "absolute", date: "a2024-01-15T10:00:00.000Z" },
       scrapedAt: "2024-01-15T12:00:00.000Z",
       author: {
         name: "Test Author",
