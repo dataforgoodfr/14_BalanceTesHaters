@@ -10,6 +10,7 @@ import {
 } from "../../../../shared/model/post";
 import { parseSocialNetworkUrl } from "@/shared/social-network-url";
 import { currentIsoDate } from "../../../../shared/utils/current-iso-date";
+import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 
 //TODO: gérer le scroll et le chargement des commentaires
 //TODO: gérer le scraping des réponses aux commentaires
@@ -86,7 +87,7 @@ export class InstagramScraper extends PuppeteerBaseScraper {
       url: tab.url!,
       author: auteur,
       scrapedAt: new Date().toISOString(),
-      publishedAt: new Date(date_publication).toISOString(),
+      publishedAt: new PublicationDateTextParsing(date_publication).parse(),
       textContent: texte_publication,
       comments: await Promise.all(commentaires),
     };
@@ -119,15 +120,10 @@ export class InstagramScraper extends PuppeteerBaseScraper {
     const base_0 = (await base.$("::-p-xpath(div[1])"))!;
     const base_1 = (await base.$("::-p-xpath(div[2])"))!;
     const auteur = await this.get_auteur_from_span(base_0);
-    let date_commentaire: Date | undefined = undefined;
-    try {
-      const date_str = (await base.$eval("::-p-xpath(.//time)", (node) =>
+    const publicationDateText =
+      (await base.$eval("::-p-xpath(.//time)", (node) =>
         node.getAttribute("datetime"),
-      ))!;
-      date_commentaire = date_str ? new Date(date_str) : undefined;
-    } catch (_) {
-      date_commentaire = undefined;
-    }
+      )) ?? "";
 
     const screenshot = await comment_element.screenshot({ encoding: "base64" });
     const screenshotDate = currentIsoDate();
@@ -138,7 +134,7 @@ export class InstagramScraper extends PuppeteerBaseScraper {
         "::-p-xpath(.)",
         (node) => node.textContent!,
       )!,
-      publishedAt: date_commentaire?.toISOString(),
+      publishedAt: new PublicationDateTextParsing(publicationDateText).parse(),
       screenshotData: screenshot,
       scrapedAt: screenshotDate,
       replies: [],

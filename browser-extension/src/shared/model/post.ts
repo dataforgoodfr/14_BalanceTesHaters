@@ -1,18 +1,36 @@
 import { SocialNetworkName } from "./social-network-name";
 
+/**
+ * Publication date can be absolute, relative or unknown
+ * absolute publication date is not always available in the frontend
+ * (e.g. Youtube gives relative date "3 months ago")
+ */
+export type PublicationDate =
+  | {
+      type: "relative";
+      dateText: string; // "il y a 3 mois"
+      resolvedDateRange: {
+        start: string; // "2026-02-05T00:00:00Z",
+        end: string; // "2026-02-05T23:59:59Z"
+      };
+    }
+  | {
+      type: "absolute";
+      date: string; // ISO date
+    }
+  | {
+      type: "unknown date";
+      dateText: string; // "42 vendémiaire MMXXVI"
+    };
+
 export type UUID = ReturnType<typeof crypto.randomUUID>;
+
 export type Post = {
   /**
    * Url of the post. E.g. youtube video url
    */
   url: string;
-
-  /**
-   * Publication date as a string.
-   * Preferably an iso datetime.
-   * If not possible a partial or relative date. e.g. "Jan 4" or "3 days ago"
-   */
-  publishedAt: string;
+  publishedAt: PublicationDate;
 
   /**
    * Timestamp of scrap - ISO datetime
@@ -68,12 +86,7 @@ export type Comment = {
 
   textContent: string;
   author: Author;
-  /**
-   * Publication date as a string.
-   * Preferably an iso datetime.
-   * If not possible a partial or relative date. e.g. "Jan 4" or "3 days ago"
-   */
-  publishedAt?: string;
+  publishedAt?: PublicationDate;
 
   /**
    * Based 64 encoded PNG data

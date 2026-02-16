@@ -19,6 +19,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import PublishedAt from "./PublishedAt";
+
 function PostListPage() {
   const [posts, setPosts] = useState<Post[] | undefined>(undefined);
   useEffect(() => {
@@ -105,7 +107,7 @@ function PostListPage() {
                       <p>{post.title}</p>
 
                       <div className="text-muted-foreground">
-                        {post.postId} ({post.publishedAt})
+                        <PublishedAt at={post.publishedAt} />
                       </div>
                     </a>
                   </TableCell>

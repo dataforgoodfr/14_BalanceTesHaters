@@ -1,4 +1,4 @@
-import { Author, Post, Comment } from "@/shared/model/post";
+import { Author, Post, Comment, PublicationDate } from "@/shared/model/post";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { parseSocialNetworkUrl } from "../../shared/social-network-url";
 import { encodePng, Image } from "image-js";
@@ -15,6 +15,7 @@ import { sleep } from "../../shared/utils/sleep";
 import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
 import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
+import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -67,7 +68,7 @@ export class YoutubePostNativeScrapper {
     this.debug(`textContent: ${textConent.replaceAll("\n", "")}`);
 
     this.debug("Scraping publishedAt...");
-    const publishedAt = await this.scrapPostPublishedAt();
+    const publishedAt = this.scrapPostPublishedAt();
     this.debug(`publishedAt: ${publishedAt}`);
 
     this.debug("Scraping comments...");
@@ -100,7 +101,7 @@ export class YoutubePostNativeScrapper {
       .innerText;
   }
 
-  private async scrapPostPublishedAt(): Promise<string> {
+  private scrapPostPublishedAt(): PublicationDate {
     const infoElement = selectOrThrow(
       document,
       "#description #info",
@@ -108,10 +109,7 @@ export class YoutubePostNativeScrapper {
     );
     infoElement.scrollIntoView();
     const value = select(infoElement, "span:nth-child(3)", HTMLElement);
-    if (!value) {
-      return "";
-    }
-    return value.innerText;
+    return new PublicationDateTextParsing(value?.innerText ?? "").parse();
   }
 
   private async scrapPostAuthor(): Promise<Author> {
@@ -432,11 +430,14 @@ export class YoutubePostNativeScrapper {
     const scrapDate = currentIsoDate();
 
     const author: Author = await this.scrapCommentAuthor(commentContainer);
-    const publishedAt = selectOrThrow(
+    const publishedAtText = selectOrThrow(
       commentContainer,
       "#published-time-text",
       HTMLElement,
     ).innerText;
+
+    const publishedAt = new PublicationDateTextParsing(publishedAtText).parse();
+    this.debug(`publishedAtInfo: ${publishedAt}`);
 
     const commentTextHandle = selectOrThrow(
       commentContainer,
