@@ -31,7 +31,7 @@ import {
   MessageCircleMoreIcon,
 } from "lucide-react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
-import PublishedAt from "./PublishedAt";
+import DisplayPublicationDate from "./DisplayPublicationDate";
 import { Badge } from "@/components/ui/badge";
 
 interface CommentTreeTableProps {
@@ -115,7 +115,8 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
                 <span className="pl-4" />
                 {row.original.publishedAt && (
                   <span className="text-muted-foreground">
-                    <PublishedAt at={row.original.publishedAt} />
+                    Publié le{" "}
+                    <DisplayPublicationDate date={row.original.publishedAt} />
                   </span>
                 )}
               </div>
