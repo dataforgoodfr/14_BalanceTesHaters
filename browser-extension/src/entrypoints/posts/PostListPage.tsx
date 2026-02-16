@@ -1,6 +1,9 @@
 import { Link } from "react-router";
 import { Post } from "../../shared/model/post";
-import { getPosts as getPostsFromStorage } from "../../shared/storage/posts-storage";
+import {
+  getPosts as getPostsFromStorage,
+  deleteAllPosts,
+} from "../../shared/storage/posts-storage";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -11,26 +14,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
-import { Check, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import PublishedAt from "./PublishedAt";
-
-function downloadPost(post: Post) {
-  console.log("Downloading first comment");
-  if (post.comments.length > 0) {
-    const screenshotData: string = post.comments[0].screenshotData;
-
-    const screenshotAsUrl = "data:image/png;base64," + screenshotData;
-    browser.downloads.download({
-      url: screenshotAsUrl,
-      filename: "screenshot.png",
-    });
-  }
-}
 
 function PostListPage() {
   const [posts, setPosts] = useState<Post[] | undefined>(undefined);
@@ -40,79 +29,96 @@ function PostListPage() {
       setPosts(posts.filter((p) => p != undefined));
     });
   }, []);
+
+  function handleDeleteAllPosts() {
+    deleteAllPosts().then(() => {
+      // TODO replace with propoer data refresh
+      globalThis.location.reload();
+    });
+  }
+
   return (
     <>
       <h1>Publications collectées</h1>
+
       {!posts && <Spinner className="size-8" />}
       {posts && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Traitement</TableHead>
-              <TableHead>Date scraping</TableHead>
-              <TableHead>Réseau social</TableHead>
-              <TableHead>Auteur</TableHead>
-              <TableHead>Date publication</TableHead>
-              <TableHead>Titre</TableHead>
-              <TableHead>Aperçu contenu/description</TableHead>
-
-              <TableHead>Nb commentaires</TableHead>
-              <TableHead>Id</TableHead>
-              <TableHead>View details</TableHead>
-              <TableHead>Télécharger</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {posts.map((post, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      {post.backendId && <Check className="text-green-500" />}
-                      {!post.backendId && <X className="text-red-500" />}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {post.backendId && "Traitement effectué avec succès"}
-                      {!post.backendId && "Echec du traitement"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TableCell>
-                <TableCell> {post.scrapedAt}</TableCell>
-                <TableCell> {post.socialNetwork}</TableCell>
-                <TableCell> {post.author.name}</TableCell>
-                <TableCell>
-                  {" "}
-                  <PublishedAt at={post.publishedAt} />
-                </TableCell>
-                <TableCell> {post.title}</TableCell>
-                <TableCell> {ellipsis(post.textContent || "")}</TableCell>
-
-                <TableCell> {post.comments.length}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="link"
-                    render={<a href={post.url}>{post.postId}</a>}
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="link"
-                    render={
-                      <Link to={"/" + post.postId + "/" + post.scrapedAt}>
-                        View
-                      </Link>
-                    }
-                  />
-                </TableCell>
-                <TableCell>
-                  <Button onClick={() => downloadPost(post)}>
-                    Télécharger
-                  </Button>
-                </TableCell>
+        <>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={posts.length == 0}
+            onClick={handleDeleteAllPosts}
+          >
+            Tout supprimer
+          </Button>
+          <Table className="text-left">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Collecte</TableHead>
+                <TableHead>Classification</TableHead>
+                <TableHead>Réseau social</TableHead>
+                <TableHead>Auteur</TableHead>
+                <TableHead>Publication</TableHead>
+                <TableHead>Aperçu contenu/description</TableHead>
+                <TableHead>Nb commentaires</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {posts.map((post, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          {new Date(post.scrapedAt).toLocaleDateString()}
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {new Date(post.scrapedAt).toLocaleDateString()}{" "}
+                          {new Date(post.scrapedAt).toTimeString()}
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <div>
+                      <Button
+                        variant="outline"
+                        size={"xs"}
+                        render={
+                          <Link to={"/" + post.postId + "/" + post.scrapedAt}>
+                            D&eacute;tails
+                          </Link>
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {post.classificationStatus ? (
+                      <>
+                        {post.classificationStatus} ({post.classificationJobId})
+                      </>
+                    ) : (
+                      <>Non démarrée</>
+                    )}
+                  </TableCell>
+                  <TableCell> {post.socialNetwork}</TableCell>
+                  <TableCell> {post.author.name}</TableCell>
+                  <TableCell>
+                    <a href={post.url} target="_blank" rel="noreferrer">
+                      <p>{post.title}</p>
+
+                      <div className="text-muted-foreground">
+                        <PublishedAt at={post.publishedAt} />
+                      </div>
+                    </a>
+                  </TableCell>
+                  <TableCell> {ellipsis(post.textContent || "")}</TableCell>
+
+                  <TableCell> {post.comments.length}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
       )}
     </>
   );

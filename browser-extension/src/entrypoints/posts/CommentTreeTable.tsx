@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import PublishedAt from "./PublishedAt";
+import { Badge } from "@/components/ui/badge";
 
 interface CommentTreeTableProps {
   comments: Comment[];
@@ -61,18 +62,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   };
 
   const expandAll = () => {
-    const newExpandedState: Record<string, boolean> = {};
-    const traverse = (rows: Comment[], depth = 0) => {
-      rows.forEach((comment, index) => {
-        const id = `${depth}-${index}`;
-        if (comment.replies && comment.replies.length > 0) {
-          newExpandedState[id] = true;
-          traverse(comment.replies, depth + 1);
-        }
-      });
-    };
-    traverse(comments);
-    setExpandedState(newExpandedState);
+    setExpandedState(true);
   };
 
   const collapseAll = () => {
@@ -163,6 +153,19 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
               )}
             </div>
           );
+        },
+      },
+      {
+        accessorKey: "classification",
+        header: "Classification",
+        cell: ({ row }) => {
+          if (row.original.classifiedAt) {
+            return (row.original.classification || []).map(
+              (category, index) => <Badge key={index}>{category}</Badge>,
+            );
+          } else {
+            return "Non ";
+          }
         },
       },
       {

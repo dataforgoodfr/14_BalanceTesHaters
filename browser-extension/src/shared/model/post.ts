@@ -23,13 +23,9 @@ export type PublicationDate =
       dateText: string; // "42 vendémiaire MMXXVI"
     };
 
-export type Post = {
-  /**
-   * Unique id of post returned by backend after storage.
-   * Not to be confused with postId which is the id of the post on the social network (e.g. youtube video id).
-   */
-  backendId?: string;
+export type UUID = ReturnType<typeof crypto.randomUUID>;
 
+export type Post = {
   /**
    * Url of the post. E.g. youtube video url
    */
@@ -48,15 +44,32 @@ export type Post = {
   textContent?: string;
   comments: Comment[];
 
-  /** Extra fields not yet in model.md but probaby usefull for app display*/
-
   /**
    * e.g. youtube video id
    */
   postId: string;
   socialNetwork: SocialNetworkName;
   title?: string;
+
+  /**
+   * Classification job id returned by backend after storage.
+   * Not to be confused with postId which is the id of the post on the social network (e.g. youtube video id).
+   */
+  classificationJobId?: string;
+  classificationStatus?: ClassificationStatus;
 };
+
+export function isRunningClassificationStatus(
+  status: ClassificationStatus,
+): boolean {
+  return status === "SUBMITTED" || status === "IN_PROGRESS";
+}
+
+export type ClassificationStatus =
+  | "SUBMITTED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "FAILED";
 
 export type Author = {
   name: string;
@@ -64,6 +77,13 @@ export type Author = {
 };
 
 export type Comment = {
+  /**
+   * Scraping comment unique id.
+   * Note that this id is different from one scraping to another
+   * and so cannot be used to correlated Comments between scrapings.
+   */
+  id: UUID;
+
   textContent: string;
   author: Author;
   publishedAt?: PublicationDate;
@@ -78,9 +98,9 @@ export type Comment = {
   scrapedAt: string;
 
   replies: Comment[];
+  nbLikes: number;
 
   classification?: string[];
   /** ISO date time of classification */
   classifiedAt?: string;
-  nbLikes: number;
 };

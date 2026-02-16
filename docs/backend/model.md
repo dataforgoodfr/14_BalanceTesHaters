@@ -7,39 +7,25 @@ classDiagram
         account_href: str
     }
 
-    class SocialNetwork {
-        <<enumeration>>
-        YOUTUBE
-        INSTAGRAM
-        TIKTOK
-        ...
-    }
-    class Post {
+    class ClassificationJob {
         id: UUID
-        url: str
-        published_at: str
-        scraped_at: datetime
-        text_content: str
-        post_id: str;
-        title?: str;
+        title: str
+        textContent?: str
     }
-    Author "1" --> "0..n" Post : publish
-    Post "0..n" --> "1" SocialNetwork : posted on
 
+    Author "1" --> "0..n" ClassificationJob : publish
     class Comment {
         id: UUID
-        text_c_ontent: str
-        published_at: str
-        scraped_at: datetime
-        screenshot_data: str
+        text_content: str
         classification: list[str]
         classified_at: datetime
-        nb_likes: int
     }
 
-    Post "1" *-- "0..n" Comment
-    Author "1" --> "0..n" Comment : post
+    ClassificationJob "1" *-- "0..n" Comment : comments
+    Author "1" --> "0..n" Comment
     Comment "1" -- "0..n" Comment : replies
+
+
 ```
 
 `Post` : Publication d'un auteur posté sur un réseau social

@@ -128,6 +128,7 @@ export class InstagramScraper extends PuppeteerBaseScraper {
     const screenshot = await comment_element.screenshot({ encoding: "base64" });
     const screenshotDate = currentIsoDate();
     return {
+      id: crypto.randomUUID(),
       author: auteur,
       textContent: await base_1.$eval(
         "::-p-xpath(.)",

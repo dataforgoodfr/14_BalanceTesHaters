@@ -1,5 +1,6 @@
 import logging.config
 
+from balanceteshaters.classification_task import ClassificationTask
 from balanceteshaters.infra.database import Database
 from balanceteshaters.infra.settings import Settings
 from dependency_injector import containers, providers
@@ -9,7 +10,7 @@ class Container(containers.DeclarativeContainer):
     settings = providers.Singleton(Settings)
 
     wiring_config = containers.WiringConfiguration(
-        ["balanceteshaters.routers.ml_router"]
+        ["balanceteshaters.routers.classification_router"]
     )
     logging = providers.Resource(
         logging.config.fileConfig,
@@ -19,3 +20,5 @@ class Container(containers.DeclarativeContainer):
     database = providers.ThreadSafeSingleton(
         Database, db_dsn=settings().db.pg_dsn, db_echo=settings().db.engine_echo
     )
+
+    classification_task = providers.Factory(ClassificationTask, db=database.provided)

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
-import { Post } from "@/shared/model/post";
+import { isRunningClassificationStatus, Post } from "@/shared/model/post";
 import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
-import { Check, MoveLeft, RefreshCcw, X } from "lucide-react";
+import { Binary, Check, MoveLeft, RefreshCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PublishedAt from "./PublishedAt";
+import { SubmitClassificationRequestMessage } from "../background/classification/submitClassificationForPostMessage";
+import { updatePostWithClassificationResultMessage } from "../background/classification/updatePostWithClassificationResultMessage";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
@@ -18,14 +20,27 @@ function PostDetailPage() {
     }
   }, [postId, scrapedAt]);
 
-  const handleReprocess = async () => {
+  const handleStartOrRefreshStatus = async () => {
     if (post) {
-      const result = await browser.runtime.sendMessage({
-        msgType: "reprocess-post",
-        post: post,
-      });
-      console.debug("PostDetailPage - Reprocess post message response", result);
-      globalThis.location.reload();
+      if (!post.classificationStatus) {
+        const message: SubmitClassificationRequestMessage = {
+          msgType: "submit-classification-request",
+          postId: post.postId,
+          scrapedAt: post.scrapedAt,
+        };
+        await browser.runtime.sendMessage(message);
+        // TODO properly reload data
+        globalThis.location.reload();
+      } else if (isRunningClassificationStatus(post.classificationStatus)) {
+        const message: updatePostWithClassificationResultMessage = {
+          msgType: "update-post-classification",
+          postId: post.postId,
+          scrapedAt: post.scrapedAt,
+        };
+        await browser.runtime.sendMessage(message);
+        // TODO properly reload data
+        globalThis.location.reload();
+      }
     }
   };
 
@@ -74,18 +89,32 @@ function PostDetailPage() {
             </div>
           </div>
 
-          <h2 className="text-left pt-2 mb-4">Etat du traitement</h2>
+          <h2 className="text-left pt-2 mb-4">État classification</h2>
           <div className="text-left flex flex-row items-center gap-2  ">
-            {post.backendId && <Check className="text-green-500" />}
-            {!post.backendId && <X className="text-red-500" />}
+            {post.classificationStatus === "COMPLETED" && (
+              <Check className="text-green-500" />
+            )}
+            {post.classificationStatus &&
+              isRunningClassificationStatus(post.classificationStatus) && (
+                <Binary className="text-orange-500" />
+              )}
+            {!post.classificationStatus ||
+              (post.classificationStatus === "FAILED" && (
+                <X className="text-red-500" />
+              ))}
             <span className="font-medium">
-              {post.backendId && "Traitement effectué avec succès"}
-              {!post.backendId && "Echec du traitement"}
+              {post.classificationStatus && post.classificationStatus}
+              {!post.classificationStatus && "Non démarrée"}
             </span>
-            {!post.backendId && (
-              <Button className="ml-3" onClick={handleReprocess}>
+            {(!post.classificationStatus ||
+              isRunningClassificationStatus(post.classificationStatus)) && (
+              <Button
+                size="sm"
+                className="ml-3"
+                onClick={handleStartOrRefreshStatus}
+              >
                 <RefreshCcw className="mr-2" />
-                Relancer le traitement
+                Mettre à jour
               </Button>
             )}
           </div>
