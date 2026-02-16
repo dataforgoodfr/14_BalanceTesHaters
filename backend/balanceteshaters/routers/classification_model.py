@@ -7,13 +7,14 @@ class Author(BaseModel):
 
 
 class Comment(BaseModel):
+    id: str
     author: Author
     text_content: str
-    replies: dict[str, "Comment"] = {}
+    replies: list["Comment"] = []
 
 
 class ClassificationJob(BaseModel):
     title: str | None = None
     author: Author
     text_content: str | None = None
-    comments: dict[str, Comment] = {}
+    comments: list[Comment] = []
