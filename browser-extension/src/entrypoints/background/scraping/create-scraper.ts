@@ -1,5 +1,5 @@
 import { SocialNetworkName } from "@/shared/model/social-network-name";
-import { InstagramScraper } from "./instagram/instagram-scraper";
+import { InstagramNativeScraper } from "./instagram-native/instagram-native-scraper";
 import { YoutubeNativeScraper } from "./youtube-native/youtube-native-scraper";
 import { Scraper } from "./scraper";
 
@@ -9,6 +9,6 @@ export function createScraper(sn: SocialNetworkName): Scraper {
       return new YoutubeNativeScraper();
 
     case "INSTAGRAM":
-      return new InstagramScraper();
+      return new InstagramNativeScraper();
   }
 }
