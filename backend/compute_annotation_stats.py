@@ -118,6 +118,142 @@ class NocoDBService:
 
         return response.json()
 
+    def build_where_clause(
+        self,
+        annotation_category_filter: list[AnnotatedCategory] | None = None,
+        annotation_confidence_filter: list[AnnotationConfidence] | None = None
+    ) -> str | None:
+        """Build NocoDB WHERE clause from filters."""
+        if annotation_category_filter is not None and annotation_confidence_filter is not None:
+            return f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})~and((annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)})"
+        elif annotation_category_filter is not None:
+            return f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})"
+        elif annotation_confidence_filter is not None:
+            return f"(annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)}"
+        return None
+
+    def fetch_records_paginated(
+        self,
+        fields: list[str],
+        where_clause: str | None = None,
+        limit: int = 1000
+    ) -> list[dict[str, Any]]:
+        """
+        Fetch all records from the table with pagination.
+        
+        Args:
+            fields: List of field names to fetch (e.g., ["Id", "comment"])
+            where_clause: Optional WHERE clause for filtering
+            limit: Number of records per page (default: 1000)
+        
+        Returns:
+            List of all records matching the criteria
+        """
+        url = f"{self.base_url}/api/v2/tables/{self.annotation_table_id}/records"
+        headers = {
+            "accept": "application/json",
+            "xc-token": self.token
+        }
+        
+        all_records = []
+        offset = 0
+        
+        while True:
+            params = {
+                "limit": limit,
+                "offset": offset,
+                "fields": ",".join(fields)
+            }
+            if where_clause is not None:
+                params["where"] = where_clause
+            
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            
+            response_dict: dict[str, Any] = response.json()
+            if "list" not in response_dict:
+                break
+            
+            records: list[dict[str, Any]] = response_dict["list"]
+            if not records:
+                break
+            
+            all_records.extend(records)
+            
+            # Check if there are more pages
+            page_info = response_dict.get("pageInfo", {})
+            if not page_info.get("isLastPage", True):
+                offset += limit
+            else:
+                break
+        
+        return all_records
+
+    def detect_text_language(self, text: str, detector) -> str:
+        """
+        Detect the language of a text string.
+        
+        Args:
+            text: The text to analyze
+            detector: The lingua language detector instance
+        
+        Returns:
+            Language code or special category:
+            - Language ISO code (e.g., 'fr', 'en')
+            - 'too_short_for_detection': for very short text or mostly symbols
+            - 'unknown': when language cannot be detected
+        """
+        text_stripped = text.strip()
+        
+        # Check if text is too short or mostly symbols
+        symbol_proportion = calculate_symbol_proportion(text_stripped)
+        tokens = text_stripped.split()
+        
+        if len(tokens) < 3 or symbol_proportion > 0.5:
+            return "too_short_for_detection"
+        
+        # Detect language using lingua
+        detected_language = detector.detect_language_of(text_stripped)
+        if detected_language is None:
+            return "unknown"
+        
+        return detected_language.iso_code_639_1.name.lower()
+
+    def calculate_language_stats(
+        self,
+        language_counts: dict[str, int],
+        empty_count: int
+    ) -> dict[str, dict[str, Any]]:
+        """
+        Calculate percentages and format language statistics.
+        
+        Args:
+            language_counts: Dictionary mapping language codes to counts
+            empty_count: Number of empty/missing values
+        
+        Returns:
+            Dictionary with language codes as keys and stats (count, percentage) as values
+        """
+        total_records = sum(language_counts.values()) + empty_count
+        result: dict[str, dict[str, Any]] = {}
+        
+        for language, count in language_counts.items():
+            percentage = round((count / total_records * 100), 2) if total_records > 0 else 0
+            result[language] = {
+                "count": count,
+                "percentage": percentage
+            }
+        
+        # Add empty values as a category
+        if empty_count > 0:
+            empty_percentage = round((empty_count / total_records * 100), 2) if total_records > 0 else 0
+            result["empty"] = {
+                "count": empty_count,
+                "percentage": empty_percentage
+            }
+        
+        return result
+
     def count_annotations(
         self,
         annotation_category_filter: list[AnnotatedCategory] | None = None,  # FIXME: allow to filter rows for which no category is defined
@@ -129,13 +265,7 @@ class NocoDBService:
             "xc-token": self.token
         }
 
-        where_string = None
-        if annotation_category_filter is not None and annotation_confidence_filter is not None:
-            where_string = f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})~and((annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)})"
-        elif annotation_category_filter is not None:
-            where_string = f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})"
-        elif annotation_confidence_filter is not None:
-            where_string = f"(annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)}"
+        where_string = self.build_where_clause(annotation_category_filter, annotation_confidence_filter)
 
         params = {}
         if where_string is not None:
@@ -164,104 +294,34 @@ class NocoDBService:
             Dictionary with language codes as keys and stats as values.
             Each stat contains 'count' (number of rows) and 'percentage'.
             Includes special categories:
-            - 'too_short_for_detection': for text whose length is <=10 or is mostly symbols
+            - 'too_short_for_detection': for very short text or mostly symbols
             - 'empty': for empty or missing values
             - 'unknown': when language cannot be detected
         """
-        url = f"{self.base_url}/api/v2/tables/{self.annotation_table_id}/records"
-        headers = {
-            "accept": "application/json",
-            "xc-token": self.token
-        }
-
-        # Build where clause for filters (same logic as count_annotations)
-        where_string = None
-        if annotation_category_filter is not None and annotation_confidence_filter is not None:
-            where_string = f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})~and((annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)})"
-        elif annotation_category_filter is not None:
-            where_string = f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})"
-        elif annotation_confidence_filter is not None:
-            where_string = f"(annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)}"
-
+        # Build where clause for filters
+        where_clause = self.build_where_clause(annotation_category_filter, annotation_confidence_filter)
+        
+        # Fetch all records with pagination
+        records = self.fetch_records_paginated(fields=["Id", text_field], where_clause=where_clause)
+        
         # Initialize language detector
         detector = LanguageDetectorBuilder.from_all_languages().build()
         
-        # Manage pagination, default page size is 1000
+        # Count languages
         language_counts: dict[str, int] = {}
         empty_count = 0
-        offset = 0
-        limit = 1000
         
-        while True:
-            params = {
-                "limit": limit,
-                "offset": offset,
-                "fields": f"Id,{text_field}"
-            }
-            if where_string is not None:
-                params["where"] = where_string
+        for record in records:
+            if text_field not in record or not record[text_field]:
+                empty_count += 1
+                continue
             
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
-            
-            response_dict: dict[str, Any] = response.json()
-            if "list" not in response_dict:
-                break
-            
-            records: list[dict[str, Any]] = response_dict["list"]
-            if not records:
-                break
-            
-            # Process each record
-            for record in records:
-                if text_field not in record or not record[text_field]:
-                    empty_count += 1
-                    continue
-                
-                text = record[text_field].strip()
-                
-                # Detect language
-                # Check if text is too short or mostly symbols
-                symbol_proportion = calculate_symbol_proportion(text)
-                
-                if symbol_proportion > 0.75 and len(text) <= 10:
-                    language_key = "too_short_for_detection"
-                else:
-                    detected_language = detector.detect_language_of(text)
-                    if detected_language is None:
-                        language_key = "unknown"
-                    else:
-                        language_key = detected_language.iso_code_639_1.name.lower()
-                
-                language_counts[language_key] = language_counts.get(language_key, 0) + 1
-            
-            # Check if there are more pages and restarts loop at offset + limit
-            page_info = response_dict.get("pageInfo", {})
-            if not page_info.get("isLastPage", True):
-                offset += limit
-            else:
-                break
+            text = record[text_field]
+            language_key = self.detect_text_language(text, detector)
+            language_counts[language_key] = language_counts.get(language_key, 0) + 1
         
-        # Calculate percentages and build result
-        total_records = sum(language_counts.values()) + empty_count
-        result: dict[str, dict[str, Any]] = {}
-        
-        for language, count in language_counts.items():
-            percentage = round((count / total_records * 100), 2) if total_records > 0 else 0
-            result[language] = {
-                "count": count,
-                "percentage": percentage
-            }
-        
-        # Add empty values as a category
-        if empty_count > 0:
-            empty_percentage = round((empty_count / total_records * 100), 2) if total_records > 0 else 0
-            result["empty"] = {
-                "count": empty_count,
-                "percentage": empty_percentage
-            }
-        
-        return result
+        # Calculate and return statistics
+        return self.calculate_language_stats(language_counts, empty_count)
 
 
 if __name__ == "__main__":
