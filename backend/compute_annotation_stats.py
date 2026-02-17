@@ -17,6 +17,10 @@ def is_symbol(char: str) -> bool:
         return True
     
     # Check if it's an emoji or symbol using unicode category
+    # As seen here https://www.unicode.org/reports/tr44/tr44-34.html#General_Category_Values 
+    # P	refers to Punctuations
+    # S	to Symbols
+
     category = unicodedata.category(char)
     return category.startswith('S') or category.startswith('P')
 
