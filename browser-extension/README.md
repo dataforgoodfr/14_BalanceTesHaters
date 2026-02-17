@@ -9,6 +9,7 @@ Stack de l'extension:
 - [wxt](https://wxt.dev/) framework pour faciliter le dev de web-extension
 - [React](https://fr.react.dev/)
 - [shadcn/ui](https://ui.shadcn.com/docs) comme library de composants
+- [tanstack query](https://tanstack.com/query/latest)
 - [vitest](https://vitest.dev/) comme framework de test
 - prettier comme formatter
 - eslint comme linter

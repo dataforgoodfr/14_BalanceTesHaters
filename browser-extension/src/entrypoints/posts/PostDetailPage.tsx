@@ -1,27 +1,32 @@
-import { useEffect, useState } from "react";
 import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
-import { isRunningClassificationStatus, Post } from "@/shared/model/post";
+import { isRunningClassificationStatus } from "@/shared/model/post";
 import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
-import { Binary, Check, MoveLeft, RefreshCcw, X } from "lucide-react";
+import { Binary, Check, MoveLeft, RefreshCcwIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { SubmitClassificationRequestMessage } from "../background/classification/submitClassificationForPostMessage";
 import { updatePostWithClassificationResultMessage } from "../background/classification/updatePostWithClassificationResultMessage";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Spinner } from "@/components/ui/spinner";
 
 function PostDetailPage() {
   const { postId, scrapedAt } = useParams();
-  const [post, setPost] = useState<Post | undefined>(undefined);
-  useEffect(() => {
-    if (postId && scrapedAt) {
-      getPostByIdAndScrapedAt(postId, scrapedAt).then((post) => {
-        setPost(post);
-      });
-    }
-  }, [postId, scrapedAt]);
 
-  const handleStartOrRefreshStatus = async () => {
-    if (post) {
+  const queryClient = useQueryClient();
+
+  const queryKey = ["posts", postId, scrapedAt];
+  const { data: post, isLoading } = useQuery({
+    queryKey: queryKey,
+    queryFn: () => getPostByIdAndScrapedAt(postId!, scrapedAt!),
+  });
+
+  const startOrRefreshStatusMutation = useMutation({
+    mutationFn: async () => {
+      if (!post) {
+        return;
+      }
+
       if (!post.classificationStatus) {
         const message: SubmitClassificationRequestMessage = {
           msgType: "submit-classification-request",
@@ -29,8 +34,6 @@ function PostDetailPage() {
           scrapedAt: post.scrapedAt,
         };
         await browser.runtime.sendMessage(message);
-        // TODO properly reload data
-        globalThis.location.reload();
       } else if (isRunningClassificationStatus(post.classificationStatus)) {
         const message: updatePostWithClassificationResultMessage = {
           msgType: "update-post-classification",
@@ -38,15 +41,17 @@ function PostDetailPage() {
           scrapedAt: post.scrapedAt,
         };
         await browser.runtime.sendMessage(message);
-        // TODO properly reload data
-        globalThis.location.reload();
       }
-    }
-  };
+    },
+    onSuccess: () => {
+      // Invalidate and refetch
+      return queryClient.invalidateQueries({ queryKey });
+    },
+  });
 
   return (
     <>
-      {!post && <div>Loading...</div>}
+      {isLoading && <div>Loading...</div>}
       {post && (
         <>
           <h1 className="text-left pt-2 mb-4">
@@ -111,9 +116,14 @@ function PostDetailPage() {
               <Button
                 size="sm"
                 className="ml-3"
-                onClick={handleStartOrRefreshStatus}
+                disabled={startOrRefreshStatusMutation.isPending}
+                onClick={() => startOrRefreshStatusMutation.mutate()}
               >
-                <RefreshCcw className="mr-2" />
+                {startOrRefreshStatusMutation.isPending ? (
+                  <Spinner data-icon="inline-start" />
+                ) : (
+                  <RefreshCcwIcon data-icon="inline-start" />
+                )}
                 Mettre à jour
               </Button>
             )}
