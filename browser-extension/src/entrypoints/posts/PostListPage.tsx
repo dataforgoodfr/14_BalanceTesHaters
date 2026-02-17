@@ -1,5 +1,4 @@
 import { Link } from "react-router";
-import { Post } from "../../shared/model/post";
 import {
   getPosts as getPostsFromStorage,
   deleteAllPosts,
@@ -20,36 +19,70 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import DisplayPublicationDate from "./DisplayPublicationDate";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { RefreshCwIcon, TrashIcon } from "lucide-react";
 
 function PostListPage() {
-  const [posts, setPosts] = useState<Post[] | undefined>(undefined);
-  useEffect(() => {
-    getPostsFromStorage().then((posts) => {
-      console.log("Posts", posts);
-      setPosts(posts.filter((p) => p != undefined));
-    });
-  }, []);
+  const queryClient = useQueryClient();
+  const queryKey = ["posts"];
 
-  function handleDeleteAllPosts() {
-    deleteAllPosts().then(() => {
-      // TODO replace with propoer data refresh
-      globalThis.location.reload();
-    });
-  }
+  const postsQuery = useQuery({
+    queryKey: queryKey,
+    queryFn: getPostsFromStorage,
+  });
+
+  const refreshMutation = useMutation({
+    mutationFn: () => Promise.resolve(),
+    onSuccess: () => {
+      // Invalidate and refetch
+      return queryClient.invalidateQueries({ queryKey: queryKey });
+    },
+  });
+
+  const deleteAllMutation = useMutation({
+    mutationFn: deleteAllPosts,
+    onSuccess: () => {
+      // Invalidate and refetch
+      return queryClient.invalidateQueries({ queryKey: queryKey });
+    },
+  });
 
   return (
     <>
       <h1>Publications collectées</h1>
 
-      {!posts && <Spinner className="size-8" />}
-      {posts && (
+      {postsQuery.isLoading && <Spinner className="size-8" />}
+      {postsQuery.data && (
         <>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              refreshMutation.mutate();
+            }}
+          >
+            {refreshMutation.isPending ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <RefreshCwIcon data-icon="inline-start" />
+            )}
+            Recharger
+          </Button>
           <Button
             variant="destructive"
             size="sm"
-            disabled={posts.length == 0}
-            onClick={handleDeleteAllPosts}
+            disabled={
+              postsQuery.data.length == 0 || deleteAllMutation.isPending
+            }
+            onClick={() => {
+              deleteAllMutation.mutate();
+            }}
           >
+            {deleteAllMutation.isPending ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <TrashIcon data-icon="inline-start" />
+            )}
             Tout supprimer
           </Button>
           <Table className="text-left">
@@ -65,7 +98,7 @@ function PostListPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {posts.map((post, index) => (
+              {postsQuery.data.map((post, index) => (
                 <TableRow key={index}>
                   <TableCell>
                     <div>

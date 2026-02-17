@@ -21,7 +21,7 @@ export async function deleteAllPosts() {
   await writePostLists([]);
 }
 
-export async function removePost(postId: string, scrapedAt: string) {
+export async function deletePost(postId: string, scrapedAt: string) {
   const posts = await getPosts();
   const filtered = posts.filter(
     (p) => !(p.postId === postId && p.scrapedAt === scrapedAt),
