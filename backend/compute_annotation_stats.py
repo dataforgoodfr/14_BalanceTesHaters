@@ -101,6 +101,19 @@ class NocoDBService:
 
         return annotations
 
+    def get_table_info(self) -> dict[str, Any]:
+        """Fetch table metadata from NocoDB."""
+        url = f"{self.base_url}/api/v2/meta/tables/{self.annotation_table_id}"
+        headers = {
+            "accept": "application/json",
+            "xc-token": self.token
+        }
+
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        return response.json()
+
     def count_annotations(
         self,
         annotation_category_filter: list[AnnotatedCategory] | None = None,  # FIXME: allow to filter rows for which no category is defined
@@ -276,6 +289,10 @@ if __name__ == "__main__":
         token=nocodb_token
     )
 
+    # Fetch table info to get the table name
+    table_info = service.get_table_info()
+    table_name = table_info.get("title", nocodb_annotation_table_id)
+
     total_count = service.count_annotations()
 
     count_by_category = {}
@@ -341,6 +358,8 @@ if __name__ == "__main__":
     # Combine special categories with display languages
     final_stats = {**special_stats, **display_languages}
 
+    print(f"***** Table: {table_name} *****")
+    print("")
     print("***** Count by category *****")
     print(count_by_category_string)
     print("")
