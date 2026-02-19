@@ -8,7 +8,13 @@ import markdown from "@eslint/markdown";
 import css from "@eslint/css";
 
 export default defineConfig([
-  globalIgnores([".wxt/", ".output/"]),
+  globalIgnores([
+    ".wxt/",
+    ".output/",
+    "playwright-report",
+    "test-results",
+    "coverage",
+  ]),
   configPrettier,
   eslint.configs.recommended,
   markdown.configs.processor,

@@ -11,29 +11,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ScrapTabMessage } from "../background/scraping/scrap-tab-message";
 
-const sendScrapMessage = () => {
-  browser.runtime.sendMessage({ msgType: "scrap-active-tab" });
+const sendScrapMessage = (tabId: number) => {
+  console.log("Popup - Sending ScrapTabMessage");
+  const message: ScrapTabMessage = {
+    msgType: "scrap-tab",
+    tabId: tabId,
+  };
+  browser.runtime.sendMessage(message);
 };
 
 const reportPageUrl = browser.runtime.getURL("/posts.html");
 
+async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
+  const parsedUrl = URL.parse(url);
+  const tabUrl = parsedUrl?.hash?.substring(1);
+  if (tabUrl) {
+    console.log("trying to link to tab with url " + tabUrl);
+    const queryOptions = { url: tabUrl };
+    const [tab] = await browser.tabs.query(queryOptions);
+    return tab;
+  } else {
+    return (await getCurrentTab())!;
+  }
+}
+
 export default function App() {
   useInitializeTheme();
-  const [currentTab, setCurrentTab] = useState<Browser.tabs.Tab | undefined>(
+  const [linkedTab, setLinkedTab] = useState<Browser.tabs.Tab | undefined>(
     undefined,
   );
   useEffect(() => {
-    getCurrentTab().then((tab) => {
-      setCurrentTab(tab);
+    queryLinkedTab(document.URL).then((tab) => {
+      setLinkedTab(tab);
     });
   }, []);
 
   const parsedUrl = useMemo(() => {
-    return (
-      currentTab?.url !== undefined && parseSocialNetworkUrl(currentTab.url)
-    );
-  }, [currentTab]);
+    return linkedTab?.url !== undefined && parseSocialNetworkUrl(linkedTab.url);
+  }, [linkedTab]);
 
   return (
     <>
@@ -55,11 +72,17 @@ export default function App() {
         </CardHeader>
         <CardFooter className="flex-col gap-2">
           {parsedUrl && (
-            <Button className="w-full" onClick={() => sendScrapMessage()}>
+            <Button
+              data-testid="start-scraping-button"
+              className="w-full"
+              disabled={!linkedTab?.id}
+              onClick={() => sendScrapMessage(linkedTab?.id || NaN)}
+            >
               Analyser ce post
             </Button>
           )}
           <Button
+            data-testid="view-analysis-button"
             className="w-full"
             variant="outline"
             render={

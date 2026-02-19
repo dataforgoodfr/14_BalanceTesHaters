@@ -31,7 +31,7 @@ export async function deletePost(postId: string, scrapedAt: string) {
 
 export async function getPosts(): Promise<Post[]> {
   const partial = await browser.storage.local.get("posts");
-  const rawPosts = partial["posts"];
+  const rawPosts = partial["posts"] || [];
 
   const PostArraySchema = PostSchema.array();
   const result = PostArraySchema.safeParse(rawPosts);
@@ -62,6 +62,11 @@ export async function getPostByIdAndScrapedAt(
 ): Promise<Post | undefined> {
   const posts = await getPosts();
   return posts.find((p) => p.postId === postId && p.scrapedAt === scrapedAt);
+}
+
+export async function getPostsById(postId: string): Promise<Post[]> {
+  const posts = await getPosts();
+  return posts.filter((p) => p.postId === postId);
 }
 
 async function writePostLists(newPosts: Post[]) {
