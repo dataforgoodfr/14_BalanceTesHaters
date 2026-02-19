@@ -12,8 +12,15 @@ const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 type InstagramPostElements = {
   channelHeader: HTMLElement;
   scrollableArea: HTMLElement;
-  commentsContainer: HTMLElement;
 };
+
+/**
+ * In a thread, comments might not be visible.
+ * In that case there is nothing to scrap.
+ */
+type CommentThread =
+  | { isVisible: true; comment: Comment }
+  | { isVisible: false };
 
 export class InstagramPostNativeScraper {
   private INSTAGRAM_URL = "https://www.instagram.com/";
@@ -38,19 +45,21 @@ export class InstagramPostNativeScraper {
     const postElements = this.selectPostElements();
 
     this.debug("Scraping author...");
-    const author = this.scrapPostAuthor(postElements);
+    const author = this.scrapPostAuthor(postElements.channelHeader);
     this.debug(`author.name: ${author.name}`);
 
     this.debug("Scraping textContent...");
-    const textContent = this.scrapPostTextContent(postElements);
+    const textContent = this.scrapPostTextContent(postElements.scrollableArea);
     this.debug(`textContent: ${textContent.replaceAll("\n", "")}`);
 
     this.debug("Scraping publishedAt...");
-    const publishedAt = this.scrapPostPublishedAt(postElements);
+    const publishedAt = this.scrapPostPublishedAt(postElements.scrollableArea);
     this.debug(`publishedAt: ${publishedAt}`);
 
     this.debug("Scraping comments...");
-    const comments: Comment[] = await this.scrapPostComments(postElements);
+    const comments: Comment[] = await this.scrapPostComments(
+      postElements.scrollableArea,
+    );
     this.debug(`${comments.length} comments`);
 
     const duration = Date.now() - startTime;
@@ -93,22 +102,15 @@ export class InstagramPostNativeScraper {
       HTMLElement,
     );
 
-    const commentsContainer = selectOrThrow(
-      scrollableArea,
-      ":scope>div>div:nth-of-type(3)",
-      HTMLElement,
-    );
-
     return {
       channelHeader,
       scrollableArea,
-      commentsContainer,
     };
   }
 
-  private scrapPostAuthor(postElements: InstagramPostElements): Author {
+  private scrapPostAuthor(channelHeader: HTMLElement): Author {
     const channelElement = selectOrThrow(
-      postElements.channelHeader,
+      channelHeader,
       ":scope a",
       HTMLElement,
     );
@@ -129,50 +131,50 @@ export class InstagramPostNativeScraper {
     };
   }
 
-  private scrapPostTextContent(postElements: InstagramPostElements): string {
+  private scrapPostTextContent(element: HTMLElement): string {
     const textContentElement = selectOrThrow(
-      postElements.scrollableArea,
+      element,
       ":scope span>div>span",
       HTMLElement,
     );
     return textContentElement.textContent;
   }
 
-  private scrapPostPublishedAt(
-    postElements: InstagramPostElements,
-  ): PublicationDate {
-    const timeElement = selectOrThrow(
-      postElements.scrollableArea,
-      ":scope time",
-      HTMLElement,
-    );
+  private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
+    const timeElement = selectOrThrow(element, ":scope time", HTMLElement);
     return {
       type: "absolute",
       date: timeElement.getAttribute("datetime")!,
     };
   }
 
-  private async scrapPostComments(
-    postElements: InstagramPostElements,
-  ): Promise<Comment[]> {
-    postElements.commentsContainer.scrollIntoView();
+  private async scrapPostComments(element: HTMLElement): Promise<Comment[]> {
+    const commentsContainer = selectOrThrow(
+      element,
+      ":scope>div>div:nth-of-type(3)",
+      HTMLElement,
+    );
+    commentsContainer.scrollIntoView();
 
     this.debug("Loading all comment threads...");
-    await this.loadAllTopLevelComments(postElements);
+    await this.loadAllTopLevelComments(commentsContainer);
 
-    const comments = this.scrapCommentThreads(postElements);
+    const comments = this.scrapCommentThreads(commentsContainer);
     this.debug("Comments metada:", comments);
 
     // TODO: Sort by newest
     // TODO: Take screenshots
+    // TODO: Open replies
+    // TODO: Open long comments
     // TODO: Scrap replies
-    // TODO: Make it work on Reels
+    // TODO: Make it work on Reels or create another scraper for Reels,
+    // if the structure of Reels differs too much.
 
     return comments;
   }
 
-  private async loadAllTopLevelComments(postElements: InstagramPostElements) {
-    let spinner = this.selectSpinner(postElements);
+  private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
+    let spinner = this.selectSpinner(commentsContainer);
     // TODO Improve this function.
     // Make sure this doesn't result in an infinite loop because of an error. Define a timeout.
     // Make sure every comment is scraped.
@@ -181,50 +183,76 @@ export class InstagramPostNativeScraper {
       spinner.scrollIntoView();
       // Wait a bit to let page load stuff
       await new Promise((resolve) => setTimeout(resolve, 500));
-      spinner = this.selectSpinner(postElements);
+      spinner = this.selectSpinner(commentsContainer);
     }
   }
 
   private selectSpinner(
-    postElements: InstagramPostElements,
+    commentsContainer: HTMLElement,
   ): HTMLElement | undefined {
-    return select(
-      postElements.commentsContainer,
-      ":scope [role=progressbar]",
-      HTMLElement,
-    );
+    return select(commentsContainer, ":scope [role=progressbar]", HTMLElement);
   }
 
-  private scrapCommentThreads(postElements: InstagramPostElements): Comment[] {
-    const comments: Comment[] = [];
+  private scrapCommentThreads(commentsContainer: HTMLElement): Comment[] {
+    const comments: CommentThread[] = [];
     const commentElements = selectAll(
-      postElements.commentsContainer,
+      commentsContainer,
       ":scope>div",
       HTMLElement,
     );
+
     for (const comment of commentElements) {
       comments.push(this.scrapCommentThread(comment));
     }
-    return comments;
+
+    return comments
+      .filter((thread) => thread.isVisible)
+      .map((thread) => thread.comment);
   }
 
-  private scrapCommentThread(_: HTMLElement): Comment {
-    // TODO scrap the comment
+  private scrapCommentThread(commentElement: HTMLElement): CommentThread {
+    const baseElement = selectOrThrow(
+      commentElement,
+      ":scope>div>div>div:nth-of-type(2)>div>div",
+      HTMLElement,
+    );
+
+    // TODO Scrap media such as images. For now, skip comments that uses media.
+    const image = select(baseElement, ":scope img", HTMLElement);
+
+    if (image) {
+      return { isVisible: false };
+    }
+
+    const postContent = selectOrThrow(
+      baseElement,
+      ":scope>div>div:nth-of-type(2)>span",
+      HTMLElement,
+    );
+
+    const channelHeader = selectOrThrow(
+      baseElement,
+      ":scope>div>div",
+      HTMLElement,
+    );
+
+    const author = this.scrapPostAuthor(channelHeader);
+    const scrapedAt = currentIsoDate();
+    const publishedAt = this.scrapPostPublishedAt(channelHeader);
+
     return {
-      id: crypto.randomUUID(),
-      author: {
-        name: "",
-        accountHref: "",
+      isVisible: true,
+      comment: {
+        id: crypto.randomUUID(),
+        author,
+        textContent: postContent.textContent,
+        publishedAt: publishedAt,
+        // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
+        screenshotData: "",
+        scrapedAt,
+        replies: [],
+        nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
       },
-      textContent: "",
-      publishedAt: {
-        type: "absolute",
-        date: "",
-      },
-      screenshotData: "screenshot",
-      scrapedAt: "screenshotDate",
-      replies: [],
-      nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
     };
   }
 }
