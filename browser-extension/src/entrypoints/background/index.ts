@@ -1,6 +1,5 @@
 import { upsertPost } from "../../shared/storage/posts-storage";
-import { getCurrentTab } from "../../shared/utils/getCurrentTab";
-import { isScrapActiveTabMessage } from "./scraping/scrap-active-tab-message";
+import { isScrapTabMessage } from "./scraping/scrap-tab-message";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
 import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
@@ -19,8 +18,10 @@ export default defineBackground(() => {
   ) {
     console.debug("Background - Message received:", message, sender);
 
-    if (isScrapActiveTabMessage(message)) {
-      scrapActiveTab();
+    if (isScrapTabMessage(message)) {
+      browser.tabs.get(message.tabId).then((tab) => {
+        return scrapTab(tab);
+      });
       return;
     } else if (isScreenshotSenderTab(message)) {
       screenshotSenderTab(sender).then((data) => {
@@ -52,9 +53,7 @@ export default defineBackground(() => {
   browser.runtime.onMessage.addListener(handleMessages);
 });
 
-async function scrapActiveTab() {
-  const tab = await getCurrentTab();
-
+async function scrapTab(tab: Browser.tabs.Tab) {
   if (tab) {
     console.debug("Background - Scraping post from active tab ", {
       tabId: tab.id,

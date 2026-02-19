@@ -27,4 +27,10 @@ web-ext.config.ts
 
 # cancel the "lib" exclusion defined in root .gitignore  
 !lib
+
+# exclude vitest coverage report
 coverage
+
+# exclude playwright outputs report
+playwright-report
+test-results
