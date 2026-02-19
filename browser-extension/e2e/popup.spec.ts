@@ -11,7 +11,7 @@ test.describe("Test popup content", () => {
     // Open popup
     const popupPage = await PopupPageObject.open(extensionId, context);
 
-    // Test view analaysis is present
+    // Test view analysis is present
     await expect(popupPage.viewAnalysisButton()).toBeVisible();
 
     // Test start scraping button not present

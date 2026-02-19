@@ -1,4 +1,4 @@
-import { test as base, chromium, BrowserContext, Page } from "@playwright/test";
+import { test as base, chromium, BrowserContext } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -8,13 +8,12 @@ const __dirname = path.dirname(__filename);
 type ExtensionFixtures = {
   context: BrowserContext;
   extensionId: string;
-  popupPage: Page;
 };
 
 export const test = base.extend<ExtensionFixtures>({
   // eslint-disable-next-line no-empty-pattern
   context: async ({}, use) => {
-    const pathToExtension = path.join(__dirname, "../.output/chrome-mv3-dev");
+    const pathToExtension = path.join(__dirname, "../.output/chrome-mv3");
     const context = await chromium.launchPersistentContext("", {
       headless: false, // Extensions require headed mode
       args: [

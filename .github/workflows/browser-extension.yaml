@@ -37,6 +37,9 @@ jobs:
         run: pnpm test
 
   e2e-tests:
+    defaults:
+      run:
+        working-directory: browser-extension
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -51,10 +54,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Install Playwright browsers
-        working-directory: ./browser-extension
         run: pnpm exec playwright install chromium
       - name: Build extension
-        working-directory: ./browser-extension
         run: pnpm build
 
       - name: Install xvfb
