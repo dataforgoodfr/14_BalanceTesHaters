@@ -33,7 +33,7 @@ test.describe("YouTube Video Scraping", () => {
     const longComment = post.comments.find((c) =>
       c.author.name.startsWith("@lucilefo"),
     );
-    // Test end of commen is captured
+    // Test end of comment is captured
     expect(longComment?.textContent).toContain("quotidiennement.");
 
     const commentWithRepliesAndLikes = post.comments.find((c) =>

@@ -18,11 +18,4 @@ export default defineConfig({
       },
     },
   ],
-  webServer: {
-    // Mock server for backend API
-    command: "npx tsx e2e/mock-server.ts",
-    port: 8000,
-    reuseExistingServer: !process.env.CI,
-    timeout: 10000,
-  },
 });
