@@ -50,7 +50,7 @@ function PostDetailPage() {
   });
 
   return (
-    <>
+    <div className="p-4">
       {isLoading && <div>Loading...</div>}
       {post && (
         <>
@@ -68,7 +68,7 @@ function PostDetailPage() {
             <Button
               variant="link"
               render={
-                <Link to="/">
+                <Link to="/posts">
                   <MoveLeft /> Retour à la liste des publications
                 </Link>
               }
@@ -134,7 +134,7 @@ function PostDetailPage() {
           <CommentTreeTable comments={post.comments} />
         </>
       )}
-    </>
+    </div>
   );
 }
 
