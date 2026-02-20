@@ -160,15 +160,7 @@ export class InstagramPostNativeScraper {
     await this.loadAllTopLevelComments(commentsContainer);
 
     const comments = this.scrapCommentThreads(commentsContainer);
-    this.debug("Comments metada:", comments);
-
-    // TODO: Sort by newest
-    // TODO: Take screenshots
-    // TODO: Open replies
-    // TODO: Open long comments
-    // TODO: Scrap replies
-    // TODO: Make it work on Reels or create another scraper for Reels,
-    // if the structure of Reels differs too much.
+    this.debug("Comments metadata:", comments);
 
     return comments;
   }
