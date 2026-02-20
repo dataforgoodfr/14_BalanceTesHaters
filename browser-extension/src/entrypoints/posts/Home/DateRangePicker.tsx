@@ -18,7 +18,7 @@ function DateRangePicker() {
   });
 
   return (
-    <div className="flex items-center  gap-2">
+    <div className="flex items-center gap-2">
       <Input
         value={`${dateRange?.from ? format(dateRange.from, "dd-MM-yyyy") : ""} - ${dateRange?.to ? format(dateRange.to, "dd-MM-yyyy") : ""}`}
         readOnly
