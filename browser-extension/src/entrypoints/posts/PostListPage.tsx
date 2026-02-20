@@ -48,7 +48,7 @@ function PostListPage() {
   });
 
   return (
-    <>
+    <div className="p-4">
       <h1>Publications collectées</h1>
 
       {postsQuery.isLoading && <Spinner className="size-8" />}
@@ -154,7 +154,7 @@ function PostListPage() {
           </Table>
         </>
       )}
-    </>
+    </div>
   );
 }
 

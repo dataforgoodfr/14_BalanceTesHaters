@@ -7,8 +7,8 @@ import DateRangePicker from "./DateRangePicker";
 
 function HomePage() {
   return (
-    <>
-      <h1 className="mb-5">Vue d&apos;ensemble</h1>
+    <div className="p-4">
+      <h1 className="mt-2 mb-5">Vue d&apos;ensemble</h1>
       <div className="flex justify-between mb-5">
         <SourceSelector />
         <DateRangePicker />
@@ -21,7 +21,7 @@ function HomePage() {
         <ActiveAuthors />
         <CategoryDistribution />
       </div>
-    </>
+    </div>
   );
 }
 
