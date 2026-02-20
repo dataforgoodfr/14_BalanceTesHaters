@@ -3,7 +3,7 @@ import WorkInProgress from "../WorkInProgress";
 
 function HarassmentTrendChart() {
   return (
-    <Card className="w-full  relative mb-4">
+    <Card className="w-full relative">
       <CardHeader>Évolution de l&apos;harcèlement</CardHeader>
       <CardContent className="p-4">
         <WorkInProgress />

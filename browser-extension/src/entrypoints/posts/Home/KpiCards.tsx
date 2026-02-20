@@ -3,7 +3,7 @@ import WorkInProgress from "../WorkInProgress";
 
 function KpiCards() {
   return (
-    <div className="flex gap-4 justify-between mb-6">
+    <div className="flex gap-4 justify-between">
       <KpiCard
         title="Part des commentaires haineurs"
         value="6%"
