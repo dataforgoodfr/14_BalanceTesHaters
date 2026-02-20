@@ -1,5 +1,5 @@
 import { Calendar } from "@/components/ui/calendar";
-import {  addMonths, format } from "date-fns";
+import { addMonths, format } from "date-fns";
 import { type DateRange } from "react-day-picker";
 import React from "react";
 import {
