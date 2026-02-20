@@ -6,14 +6,16 @@ import "./App.css";
 import { DebugPage } from "./DebugPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
+import HomePage from "./Home/HomePage";
 
 export default function App() {
   useInitializeTheme();
   return (
     <QueryClientProvider client={queryClient}>
-      <HashRouter>
+         <HashRouter>
         <Routes>
-          <Route index path="/" element={<PostListPage />} />
+          <Route index path="/" element={<HomePage />} />
+          <Route index path="/posts" element={<PostListPage />} />
           <Route path="/debug" element={<DebugPage />} />
           <Route path="/:postId/:scrapedAt" element={<PostDetailPage />} />
         </Routes>
