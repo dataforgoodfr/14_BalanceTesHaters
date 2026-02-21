@@ -15,12 +15,12 @@ type InstagramPostElements = {
 };
 
 /**
- * In a thread, comments might not be visible.
- * In that case there is nothing to scrap.
+ * In a thread, sometimes a comment can not be parsed.
+ * In that case there is nothing to scrap => failure.
  */
-type CommentThread =
-  | { isVisible: true; comment: Comment }
-  | { isVisible: false };
+type CommentThread = 
+  | { scrapingStatus: "success", comment: Comment }
+  | { scrapingStatus: "failure", message: string }
 
 export class InstagramPostNativeScraper {
   private INSTAGRAM_URL = "https://www.instagram.com/";
@@ -198,7 +198,7 @@ export class InstagramPostNativeScraper {
     }
 
     return comments
-      .filter((thread) => thread.isVisible)
+      .filter((thread) => thread.scrapingStatus === "success")
       .map((thread) => thread.comment);
   }
 
@@ -213,7 +213,7 @@ export class InstagramPostNativeScraper {
     const image = select(baseElement, ":scope img", HTMLElement);
 
     if (image) {
-      return { isVisible: false };
+      return { scrapingStatus: "failure", message: "Scraping images posts is not supported yet" };
     }
 
     const postContent = selectOrThrow(
@@ -233,7 +233,7 @@ export class InstagramPostNativeScraper {
     const publishedAt = this.scrapPostPublishedAt(channelHeader);
 
     return {
-      isVisible: true,
+      scrapingStatus: "success",
       comment: {
         id: crypto.randomUUID(),
         author,
