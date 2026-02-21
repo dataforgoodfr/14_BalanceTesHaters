@@ -27,12 +27,12 @@ type CommentPreScreenshot = {
 };
 
 /**
- * In a thread, comments might not be visible.
- * In that case there is nothing to scrap.
+ * In a thread, sometimes a comment can not be parsed.
+ * In that case there is nothing to scrap => failure.
  */
 type CommentThread =
-  | { isVisible: true; comment: Comment }
-  | { isVisible: false };
+  | { scrapingStatus: "success"; comment: Comment }
+  | { scrapingStatus: "failure"; message: string };
 
 export class YoutubePostNativeScrapper {
   public constructor() {}
@@ -204,7 +204,7 @@ export class YoutubePostNativeScrapper {
         ),
       )
     )
-      .filter((thread) => thread.isVisible)
+      .filter((thread) => thread.scrapingStatus === "success")
       .map((thread) => thread.comment);
   }
 
@@ -230,7 +230,8 @@ export class YoutubePostNativeScrapper {
     // It occurs for instance in this video: https://www.youtube.com/watch?v=gluz-XXBvTk
     if (!isVisible(commentContainer)) {
       return {
-        isVisible: false,
+        scrapingStatus: "failure",
+        message: "The comment is not visible",
       };
     }
 
@@ -264,7 +265,7 @@ export class YoutubePostNativeScrapper {
         ...commentPreScreenshot.comment,
         screenshotData: base64PngData,
       },
-      isVisible: true,
+      scrapingStatus: "success",
     };
   }
 
