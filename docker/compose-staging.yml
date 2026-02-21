@@ -7,8 +7,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    #volumes:
-    #  - ./postgres:/docker-entrypoint-initdb.d
     healthcheck:
       interval: 10s
       retries: 10
