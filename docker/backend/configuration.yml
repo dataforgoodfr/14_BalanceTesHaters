@@ -1,4 +1,0 @@
-logging_configuration_file: logging.ini
-db:
-  pg_dsn: postgresql+asyncpg://postgres:postgres@db/postgres
-  engine_echo: false
