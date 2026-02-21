@@ -211,7 +211,7 @@ export class InstagramPostNativeScraper {
     if (image) {
       return {
         scrapingStatus: "failure",
-        message: "Scraping images posts is not supported yet",
+        message: "Scraping images comments is not supported yet",
       };
     }
 
