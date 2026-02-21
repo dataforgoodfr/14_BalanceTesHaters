@@ -16,11 +16,19 @@ A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement
 source .venv/bin/activate
 ```
 
+## Configuration de l'environnement
+
+Exporter la configuration, comme dans l'exemple suivant:
+```
+export BTH_ENGINE_ECHO=0
+export BTH_LOGGING_CONFIGURATION_FILE=logging.ini
+export BTH_PG_DSN=postgresql+asyncpg://postgres:postgres@db/postgres
+```
+
 ## Création de la base de données
 
 Nécessite un serveur de base de données PostgreSQL
 
-- configurer les paramètres d'accès à la base de données dans le fichier [configuration.yml](configuration.yml)
 - lancer la commande: 
 ```
 alembic upgrade head

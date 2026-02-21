@@ -1,20 +1,12 @@
 import pathlib
 
-from pydantic import BaseModel, PostgresDsn
-from pydantic_settings import BaseSettings, SettingsConfigDict, YamlConfigSettingsSource
-
-
-class DbSettings(BaseModel):
-    pg_dsn: PostgresDsn
-    engine_echo: bool
+from pydantic import PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    db: DbSettings
+    pg_dsn: PostgresDsn
+    engine_echo: bool = False
     logging_configuration_file: pathlib.Path
 
-    model_config = SettingsConfigDict(yaml_file="configuration.yml")
-
-    @classmethod
-    def settings_customise_sources(cls, settings_cls: type[BaseSettings], **kwargs):
-        return (YamlConfigSettingsSource(settings_cls),)
+    model_config = SettingsConfigDict(env_prefix="BTH_")
