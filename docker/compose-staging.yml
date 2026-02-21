@@ -9,6 +9,11 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./postgres:/docker-entrypoint-initdb.d
+    healthcheck:
+      interval: 10s
+      retries: 10
+      test: 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
+      timeout: 2s
   api:
     build: 
       context: ..
@@ -16,4 +21,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.balanceteshaters-app.rule=Host(`balanceteshaters-app.services.d4g.fr`)
+      - traefik.http.routers.balanceteshaters-app.entryPoints=webtls
+      - traefik.http.routers.balanceteshaters-app.tls=true
+      - traefik.docker.network=d4g-internal
+      - traefik.http.services.balanceteshaters-app.loadbalancer.server.port=8000
