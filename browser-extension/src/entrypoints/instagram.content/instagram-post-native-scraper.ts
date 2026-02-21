@@ -5,7 +5,8 @@ import {
   selectOrThrow,
   select,
   selectAll,
-} from "../../shared/dom-scraping/dom-scraping";
+} from "@/shared/dom-scraping/dom-scraping";
+import { INSTAGRAM_URL } from "@/shared/social-network-url";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -18,13 +19,11 @@ type InstagramPostElements = {
  * In a thread, sometimes a comment can not be parsed.
  * In that case there is nothing to scrap => failure.
  */
-type CommentThread = 
-  | { scrapingStatus: "success", comment: Comment }
-  | { scrapingStatus: "failure", message: string }
+type CommentThread =
+  | { scrapingStatus: "success"; comment: Comment }
+  | { scrapingStatus: "failure"; message: string };
 
 export class InstagramPostNativeScraper {
-  private INSTAGRAM_URL = "https://www.instagram.com/";
-
   public constructor() {}
 
   private debug(...data: typeof console.debug.arguments) {
@@ -120,10 +119,7 @@ export class InstagramPostNativeScraper {
       ":scope span",
       HTMLElement,
     ).textContent;
-    const channelUrl = new URL(
-      channelElementHref,
-      this.INSTAGRAM_URL,
-    ).toString();
+    const channelUrl = new URL(channelElementHref, INSTAGRAM_URL).toString();
 
     return {
       name: channelName,
@@ -213,7 +209,10 @@ export class InstagramPostNativeScraper {
     const image = select(baseElement, ":scope img", HTMLElement);
 
     if (image) {
-      return { scrapingStatus: "failure", message: "Scraping images posts is not supported yet" };
+      return {
+        scrapingStatus: "failure",
+        message: "Scraping images posts is not supported yet",
+      };
     }
 
     const postContent = selectOrThrow(

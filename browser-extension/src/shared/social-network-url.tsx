@@ -1,5 +1,8 @@
 import { SocialNetworkName } from "./model/social-network-name";
 
+export const YOUTUBE_URL = new URL("https://www.youtube.com");
+export const INSTAGRAM_URL = new URL("https://www.instagram.com");
+
 export interface SocialNetworkUrlInfo {
   type: "post";
   socialNetwork: SocialNetworkName;
@@ -15,7 +18,10 @@ export function parseSocialNetworkUrl(
   }
   // split ignoring first slash
   const pathElements = parsed.pathname.substring(1).split("/");
-  if (parsed.hostname === "www.youtube.com" && parsed.pathname === "/watch") {
+  if (
+    parsed.hostname === YOUTUBE_URL.hostname &&
+    parsed.pathname === "/watch"
+  ) {
     const postId = parsed.searchParams.get("v");
     if (!postId) {
       return false;
@@ -27,7 +33,7 @@ export function parseSocialNetworkUrl(
     };
   }
   if (
-    (parsed.hostname === "www.instagram.com" &&
+    (parsed.hostname === INSTAGRAM_URL.hostname &&
       pathElements.length > 1 &&
       pathElements[0] === "p") ||
     pathElements[1] === "p"
