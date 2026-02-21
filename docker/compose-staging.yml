@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - 5432
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres:/docker-entrypoint-initdb.d
+  api:
+    build: 
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
