@@ -1,4 +1,4 @@
-import { SocialNetworkName } from "./model/social-network-name";
+import { SocialNetworkName } from "./model/SocialNetworkName";
 
 export const YOUTUBE_URL = new URL("https://www.youtube.com");
 export const INSTAGRAM_URL = new URL("https://www.instagram.com");

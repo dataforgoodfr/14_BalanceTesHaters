@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import {
-  getPosts as getPostsFromStorage,
-  deleteAllPosts,
-} from "../../shared/storage/posts-storage";
+  getPostSnapshots as getPostsFromStorage,
+  deleteAllPostSnapshots,
+} from "../../shared/storage/post-snapshot-storage";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -40,7 +40,7 @@ function PostListPage() {
   });
 
   const deleteAllMutation = useMutation({
-    mutationFn: deleteAllPosts,
+    mutationFn: deleteAllPostSnapshots,
     onSuccess: () => {
       // Invalidate and refetch
       return queryClient.invalidateQueries({ queryKey: queryKey });
@@ -117,9 +117,7 @@ function PostListPage() {
                         variant="outline"
                         size={"xs"}
                         render={
-                          <Link to={"/" + post.postId + "/" + post.scrapedAt}>
-                            D&eacute;tails
-                          </Link>
+                          <Link to={"/posts/" + post.id}>D&eacute;tails</Link>
                         }
                       />
                     </div>

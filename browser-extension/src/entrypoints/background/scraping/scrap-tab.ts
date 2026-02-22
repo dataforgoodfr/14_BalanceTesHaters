@@ -1,10 +1,10 @@
 import { parseSocialNetworkUrl } from "../../../shared/social-network-url";
-import { Post } from "../../../shared/model/post";
+import { PostSnapshot } from "../../../shared/model/PostSnapshot";
 import { createScraper } from "./create-scraper";
 
 export async function scrapTab(
   tab: globalThis.Browser.tabs.Tab,
-): Promise<Post> {
+): Promise<PostSnapshot> {
   if (tab.url === undefined) {
     throw new Error("Url of tab is undefined");
   }

@@ -1,5 +1,5 @@
-import type { Post } from "@/shared/model/post";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 
 export interface Scraper {
-  scrapTab(tab: Browser.tabs.Tab): Promise<Post>;
+  scrapTab(tab: Browser.tabs.Tab): Promise<PostSnapshot>;
 }

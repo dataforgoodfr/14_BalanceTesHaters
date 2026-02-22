@@ -1,12 +1,13 @@
-import { Author, Comment, Post as ScrapingPost } from "@/shared/model/post";
+import { CommentSnapshot, PostSnapshot } from "@/shared/model/PostSnapshot";
 import {
   ClassificationAuthor,
   ClassificationComment,
   ClassificationRequest,
 } from "../api/submitClassificationRequest";
+import { Author } from "@/shared/model/Author";
 
 export function mapPostToClassificationRequest(
-  post: ScrapingPost,
+  post: PostSnapshot,
 ): ClassificationRequest {
   return {
     title: post.title,
@@ -16,7 +17,7 @@ export function mapPostToClassificationRequest(
   };
 }
 
-function mapCommentForApi(comment: Comment): ClassificationComment {
+function mapCommentForApi(comment: CommentSnapshot): ClassificationComment {
   return {
     id: comment.id,
     text_content: comment.textContent,

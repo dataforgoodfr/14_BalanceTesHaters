@@ -7,7 +7,7 @@ import {
   flexRender,
   Row,
 } from "@tanstack/react-table";
-import { Comment } from "@/shared/model/post";
+import { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   Table,
   TableBody,
@@ -35,7 +35,7 @@ import DisplayPublicationDate from "./DisplayPublicationDate";
 import { Badge } from "@/components/ui/badge";
 
 interface CommentTreeTableProps {
-  comments: Comment[];
+  comments: CommentSnapshot[];
 }
 
 export function CommentTreeTable({ comments }: CommentTreeTableProps) {
@@ -69,11 +69,15 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
     setExpandedState({});
   };
 
-  const getRowId = (_: Comment, index: number, parent?: Row<Comment>) => {
+  const getRowId = (
+    _: CommentSnapshot,
+    index: number,
+    parent?: Row<CommentSnapshot>,
+  ) => {
     return parent ? `${parent.id}-${index}` : `${index}`;
   };
 
-  const columns = useMemo<ColumnDef<Comment>[]>(
+  const columns = useMemo<ColumnDef<CommentSnapshot>[]>(
     () => [
       {
         accessorKey: "author",

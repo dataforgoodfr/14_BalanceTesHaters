@@ -1,13 +1,13 @@
-import { Comment, Post } from "@/shared/model/post";
+import { CommentSnapshot, PostSnapshot } from "@/shared/model/PostSnapshot";
 import {
   ClassificationResult,
   CommentClassificationResult,
 } from "../api/getClassificationResult";
 
 export function mergeClassificationResultIntoPost(
-  post: Post,
+  post: PostSnapshot,
   result: ClassificationResult,
-): Post {
+): PostSnapshot {
   // Update comments with classifications only if COMPLETED
   const comments =
     result.status === "COMPLETED"
@@ -15,7 +15,7 @@ export function mergeClassificationResultIntoPost(
           commentWithClassification(c, result.comments || {}),
         )
       : post.comments;
-  const updatedPost: Post = {
+  const updatedPost: PostSnapshot = {
     ...post,
     classificationStatus: result.status,
     comments: comments,
@@ -24,9 +24,9 @@ export function mergeClassificationResultIntoPost(
 }
 
 function commentWithClassification(
-  comment: Comment,
+  comment: CommentSnapshot,
   commentClassifications: Record<string, CommentClassificationResult>,
-): Comment {
+): CommentSnapshot {
   const classificationResult = commentClassifications[comment.id];
   return {
     ...comment,

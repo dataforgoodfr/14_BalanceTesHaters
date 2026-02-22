@@ -1,24 +1,24 @@
-import { getPostByIdAndScrapedAt } from "@/shared/storage/posts-storage";
-import { isRunningClassificationStatus } from "@/shared/model/post";
+import { getPostSnapshotById } from "@/shared/storage/post-snapshot-storage";
 import { Link, useParams } from "react-router";
 import { CommentTreeTable } from "./CommentTreeTable";
 import { Binary, Check, MoveLeft, RefreshCcwIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { SubmitClassificationRequestMessage } from "../background/classification/submitClassificationForPostMessage";
-import { updatePostWithClassificationResultMessage } from "../background/classification/updatePostWithClassificationResultMessage";
+import { UpdatePostWithClassificationResultMessage } from "../background/classification/updatePostWithClassificationResultMessage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
+import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
 
 function PostDetailPage() {
-  const { postId, scrapedAt } = useParams();
-
+  const params = useParams();
+  const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
 
-  const queryKey = ["posts", postId, scrapedAt];
+  const queryKey = ["posts", snapshotId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
-    queryFn: () => getPostByIdAndScrapedAt(postId!, scrapedAt!),
+    queryFn: () => getPostSnapshotById(snapshotId),
   });
 
   const startOrRefreshStatusMutation = useMutation({
@@ -30,15 +30,13 @@ function PostDetailPage() {
       if (!post.classificationStatus) {
         const message: SubmitClassificationRequestMessage = {
           msgType: "submit-classification-request",
-          postId: post.postId,
-          scrapedAt: post.scrapedAt,
+          postSnapshotId: post.id,
         };
         await browser.runtime.sendMessage(message);
       } else if (isRunningClassificationStatus(post.classificationStatus)) {
-        const message: updatePostWithClassificationResultMessage = {
+        const message: UpdatePostWithClassificationResultMessage = {
           msgType: "update-post-classification",
-          postId: post.postId,
-          scrapedAt: post.scrapedAt,
+          postSnapshotId: post.id,
         };
         await browser.runtime.sendMessage(message);
       }

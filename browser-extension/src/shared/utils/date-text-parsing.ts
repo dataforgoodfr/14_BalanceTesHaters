@@ -1,4 +1,4 @@
-import { PublicationDate } from "../model/post";
+import { PublicationDate } from "../model/PublicationDate";
 
 type Language = "fr" | "en";
 type TimeUnit = "year" | "month" | "week" | "day" | "hour" | "minute";

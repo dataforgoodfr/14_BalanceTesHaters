@@ -1,4 +1,4 @@
-import { Post, PostSchema } from "@/shared/model/post";
+import { PostSnapshot, PostSnapshotSchema } from "@/shared/model/PostSnapshot";
 import { sleep } from "@/shared/utils/sleep";
 import { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "./evaluateInBackgroundWorker";
@@ -7,7 +7,7 @@ export async function waitForPostStored(
   context: BrowserContext,
   postId: string,
   timeout: number,
-): Promise<Post> {
+): Promise<PostSnapshot> {
   const startDate = Date.now();
   for (;;) {
     const posts = await e2eReadAllPostsFromStorage(context);
@@ -25,7 +25,7 @@ export async function waitForPostStored(
 
 async function e2eReadAllPostsFromStorage(
   context: BrowserContext,
-): Promise<Post[]> {
+): Promise<PostSnapshot[]> {
   const evaluationFn = async () => {
     const partial = await browser.storage.local.get("posts");
     return partial["posts"] || [];
@@ -35,5 +35,5 @@ async function e2eReadAllPostsFromStorage(
     evaluationFn,
   );
 
-  return PostSchema.array().parse(posts);
+  return PostSnapshotSchema.array().parse(posts);
 }

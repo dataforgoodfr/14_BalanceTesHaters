@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Post, Comment, AbsoluteDate } from "@/shared/model/post";
+import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { AbsoluteDate } from "@/shared/model/PublicationDate";
 import {
   ClassificationResult,
   ClassificationResultStatus,
@@ -16,8 +17,9 @@ describe("mergeClassificationResultIntoPost", () => {
       date: isoDate,
     };
   }
-  function createMockPost(comments: Comment[]): Post {
+  function createMockPost(comments: CommentSnapshot[]): PostSnapshot {
     return {
+      id: "64632925-64d4-4673-8ca7-58ff690022c5",
       url: "https://example.com/post/123",
       publishedAt: { type: "absolute", date: "2024-01-15T10:00:00.000Z" },
       scrapedAt: "2024-01-15T12:00:00.000Z",
