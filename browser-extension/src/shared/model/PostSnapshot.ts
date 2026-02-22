@@ -76,6 +76,13 @@ export const PostSnapshotSchema = z.object({
    * Content for text post or description of post for video posts
    */
   textContent: z.string().optional(),
+
+  /**
+   * Main image allowing to identify the  post:
+   * e.g. Post cover image url for video/reel, the photo for a photo posts
+   */
+  coverImageUrl: z.url().optional(),
+
   comments: CommentSnapshotSchema.array(),
 
   /**

@@ -16,6 +16,7 @@ classDiagram
         author: Author
         textContent: string?
         title: string?
+        coverImageUrl: string?
         comments: CommentSnapshot[]
 
         classificationJobId: string?
