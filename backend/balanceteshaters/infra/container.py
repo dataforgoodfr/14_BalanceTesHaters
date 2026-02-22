@@ -18,7 +18,7 @@ class Container(containers.DeclarativeContainer):
     )
 
     database = providers.ThreadSafeSingleton(
-        Database, db_dsn=settings().db.pg_dsn, db_echo=settings().db.engine_echo
+        Database, db_dsn=settings().pg_dsn, db_echo=settings().engine_echo
     )
 
     classification_task = providers.Factory(ClassificationTask, db=database.provided)
