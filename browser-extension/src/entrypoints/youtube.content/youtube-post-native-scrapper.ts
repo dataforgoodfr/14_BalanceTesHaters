@@ -1,4 +1,5 @@
-import { Author, Post, Comment, PublicationDate } from "@/shared/model/post";
+import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { parseSocialNetworkUrl } from "../../shared/social-network-url";
 import { encodePng, Image } from "image-js";
@@ -16,6 +17,7 @@ import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
 import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
 import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
+import { Author } from "@/shared/model/Author";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -23,7 +25,7 @@ type CommentPreScreenshot = {
    * The rect this screenshot occupies relative to document top.
    */
   area: Rect;
-  comment: Omit<Comment, "screenshotData">;
+  comment: Omit<CommentSnapshot, "screenshotData">;
 };
 
 /**
@@ -31,7 +33,7 @@ type CommentPreScreenshot = {
  * In that case there is nothing to scrap => failure.
  */
 type CommentThread =
-  | { scrapingStatus: "success"; comment: Comment }
+  | { scrapingStatus: "success"; comment: CommentSnapshot }
   | { scrapingStatus: "failure"; message: string };
 
 export class YoutubePostNativeScrapper {
@@ -41,7 +43,7 @@ export class YoutubePostNativeScrapper {
     console.debug(LOG_PREFIX, ...data);
   }
 
-  async scrapPost(): Promise<Post> {
+  async scrapPost(): Promise<PostSnapshot> {
     this.debug("Start Scrraping... ", document.URL);
     const url = document.URL;
     const urlInfo = parseSocialNetworkUrl(url);
@@ -72,13 +74,14 @@ export class YoutubePostNativeScrapper {
     this.debug(`publishedAt: ${publishedAt}`);
 
     this.debug("Scraping comments...");
-    const comments: Comment[] = await this.scrapPostComments();
+    const comments: CommentSnapshot[] = await this.scrapPostComments();
     this.debug(`${comments.length} comments`);
 
     const duration = Date.now() - startTime;
     this.debug(`Scraping took ${duration}ms`);
 
     return {
+      id: crypto.randomUUID(),
       postId: urlInfo.postId,
       socialNetwork: "YOUTUBE",
       scrapedAt: scrapTimestamp,
@@ -147,7 +150,7 @@ export class YoutubePostNativeScrapper {
     throw new Error("Failed to scrap post author");
   }
 
-  private async scrapPostComments(): Promise<Comment[]> {
+  private async scrapPostComments(): Promise<CommentSnapshot[]> {
     const commentsSectionHandle = selectOrThrow(
       document,
       "#comments",
@@ -196,7 +199,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
     fullPageScreenshot: Image,
-  ): Promise<Comment[]> {
+  ): Promise<CommentSnapshot[]> {
     return (
       await Promise.all(
         threadContainers.map((threadContainer) =>
@@ -272,7 +275,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
     fullPageScreenshot: Image,
-  ): Promise<Comment[]> {
+  ): Promise<CommentSnapshot[]> {
     const expandedThreadsContainer = select(
       repliesContainer,
       "#expanded-threads",

@@ -3,7 +3,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { PublicationDate, RelativeDate } from "@/shared/model/post";
+import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 
 export default function DisplayPublicationDate({
   date: at,

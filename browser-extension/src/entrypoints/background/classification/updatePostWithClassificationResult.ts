@@ -1,22 +1,19 @@
 import {
-  getPostByIdAndScrapedAt,
-  upsertPost,
-} from "@/shared/storage/posts-storage";
+  getPostSnapshotById,
+  updatePostSnapshot,
+} from "@/shared/storage/post-snapshot-storage";
 import { getClassificationResult } from "./api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "./mapping/mergeClassificationResultIntoPost";
 
 export async function updatePostWithClassificationResult(
-  postId: string,
-  scrapedAt: string,
+  postSnapshotId: string,
 ): Promise<boolean> {
   console.debug(
-    "updatePostWithClassificationResult - postId:",
-    postId,
-    "scrapedAt:",
-    scrapedAt,
+    "updatePostWithClassificationResult - postSnapshotId:",
+    postSnapshotId,
   );
 
-  const post = await getPostByIdAndScrapedAt(postId, scrapedAt);
+  const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
     console.warn("Post does not exist!! ignoring request");
     return false;
@@ -31,7 +28,7 @@ export async function updatePostWithClassificationResult(
     const result = await getClassificationResult(classificationJobId);
 
     const updatedPost = mergeClassificationResultIntoPost(post, result);
-    await upsertPost(updatedPost);
+    await updatePostSnapshot(updatedPost);
 
     return true;
   } catch (error) {

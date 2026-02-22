@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { waitForPostStored } from "./utils/waitForPostStored";
 import { triggerYoutubeVideoScraping } from "./utils/triggerYoutubeVideoScraping";
-import { Comment } from "@/shared/model/post";
+import { CommentSnapshot } from "@/shared/model/PostSnapshot";
 
 test.describe("YouTube Video Scraping", () => {
   test("Test scraping video", async ({ extensionId, context }) => {
@@ -46,6 +46,6 @@ test.describe("YouTube Video Scraping", () => {
   });
 });
 
-function flatten(comments: Comment[]): Comment[] {
+function flatten(comments: CommentSnapshot[]): CommentSnapshot[] {
   return [...comments, ...comments.flatMap((c) => flatten(c.replies))];
 }

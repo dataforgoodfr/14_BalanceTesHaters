@@ -20,7 +20,7 @@ export default function App() {
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route path="/:postId/:scrapedAt" element={<PostDetailPage />} />
+            <Route path="/posts/:snapshotId" element={<PostDetailPage />} />
           </Routes>
         </div>
       </HashRouter>

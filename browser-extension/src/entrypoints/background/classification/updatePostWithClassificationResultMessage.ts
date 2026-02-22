@@ -1,12 +1,11 @@
-export interface updatePostWithClassificationResultMessage {
+export interface UpdatePostWithClassificationResultMessage {
   msgType: "update-post-classification";
-  postId: string;
-  scrapedAt: string;
+  postSnapshotId: string;
 }
 
 export function isUpdatePostWithClassificationResultMessage(
   message: unknown,
-): message is updatePostWithClassificationResultMessage {
+): message is UpdatePostWithClassificationResultMessage {
   return (
     typeof message === "object" &&
     message !== null &&

@@ -1,7 +1,6 @@
 export interface SubmitClassificationRequestMessage {
   msgType: "submit-classification-request";
-  postId: string;
-  scrapedAt: string;
+  postSnapshotId: string;
 }
 
 export function isSubmitClassificationRequestMessage(

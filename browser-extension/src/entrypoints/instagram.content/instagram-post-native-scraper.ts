@@ -1,4 +1,5 @@
-import { Author, Post, Comment, PublicationDate } from "@/shared/model/post";
+import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { parseSocialNetworkUrl } from "@/shared/social-network-url";
 import {
@@ -7,6 +8,7 @@ import {
   selectAll,
 } from "@/shared/dom-scraping/dom-scraping";
 import { INSTAGRAM_URL } from "@/shared/social-network-url";
+import { Author } from "@/shared/model/Author";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -20,7 +22,7 @@ type InstagramPostElements = {
  * In that case there is nothing to scrap => failure.
  */
 type CommentThread =
-  | { scrapingStatus: "success"; comment: Comment }
+  | { scrapingStatus: "success"; comment: CommentSnapshot }
   | { scrapingStatus: "failure"; message: string };
 
 export class InstagramPostNativeScraper {
@@ -30,7 +32,7 @@ export class InstagramPostNativeScraper {
     console.debug(LOG_PREFIX, ...data);
   }
 
-  async scrapPost(): Promise<Post> {
+  async scrapPost(): Promise<PostSnapshot> {
     this.debug("Start Scraping... ", document.URL);
 
     const url = document.URL;
@@ -56,7 +58,7 @@ export class InstagramPostNativeScraper {
     this.debug(`publishedAt: ${publishedAt}`);
 
     this.debug("Scraping comments...");
-    const comments: Comment[] = await this.scrapPostComments(
+    const comments: CommentSnapshot[] = await this.scrapPostComments(
       postElements.scrollableArea,
     );
     this.debug(`${comments.length} comments`);
@@ -65,6 +67,7 @@ export class InstagramPostNativeScraper {
     this.debug(`Scraping took ${duration}ms`);
 
     return {
+      id: crypto.randomUUID(),
       url,
       publishedAt,
       scrapedAt,
@@ -144,7 +147,9 @@ export class InstagramPostNativeScraper {
     };
   }
 
-  private async scrapPostComments(element: HTMLElement): Promise<Comment[]> {
+  private async scrapPostComments(
+    element: HTMLElement,
+  ): Promise<CommentSnapshot[]> {
     const commentsContainer = selectOrThrow(
       element,
       ":scope>div>div:nth-of-type(3)",
@@ -181,7 +186,9 @@ export class InstagramPostNativeScraper {
     return select(commentsContainer, ":scope [role=progressbar]", HTMLElement);
   }
 
-  private scrapCommentThreads(commentsContainer: HTMLElement): Comment[] {
+  private scrapCommentThreads(
+    commentsContainer: HTMLElement,
+  ): CommentSnapshot[] {
     const comments: CommentThread[] = [];
     const commentElements = selectAll(
       commentsContainer,

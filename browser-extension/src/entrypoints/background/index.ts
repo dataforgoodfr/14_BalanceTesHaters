@@ -1,4 +1,4 @@
-import { upsertPost } from "../../shared/storage/posts-storage";
+import { insertPostSnapshot } from "../../shared/storage/post-snapshot-storage";
 import { isScrapTabMessage } from "./scraping/scrap-tab-message";
 import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
@@ -30,21 +30,19 @@ export default defineBackground(() => {
       return true;
     } else if (isSubmitClassificationRequestMessage(message)) {
       console.debug("Background - Request classification  message");
-      submitClassificationRequestForPost(
-        message.postId,
-        message.scrapedAt,
-      ).then((success: boolean) => {
-        sendResponse({ success: success });
-      });
+      submitClassificationRequestForPost(message.postSnapshotId).then(
+        (success: boolean) => {
+          sendResponse({ success: success });
+        },
+      );
       return true;
     } else if (isUpdatePostWithClassificationResultMessage(message)) {
       console.debug("Background - Update classification status");
-      updatePostWithClassificationResult(
-        message.postId,
-        message.scrapedAt,
-      ).then((success: boolean) => {
-        sendResponse({ success: success });
-      });
+      updatePostWithClassificationResult(message.postSnapshotId).then(
+        (success: boolean) => {
+          sendResponse({ success: success });
+        },
+      );
       return true;
     }
   }
@@ -59,16 +57,10 @@ async function scrapTab(tab: Browser.tabs.Tab) {
       tabId: tab.id,
       url: tab.url,
     });
-    const socialNetworkPost = await scrapPostFromTab(tab);
-    console.debug(
-      "Background - storing post to local storage",
-      socialNetworkPost,
-    );
-    await upsertPost(socialNetworkPost);
+    const postSnapshot = await scrapPostFromTab(tab);
+    console.debug("Background - storing post to local storage", postSnapshot);
+    await insertPostSnapshot(postSnapshot);
 
-    await submitClassificationRequestForPost(
-      socialNetworkPost.postId,
-      socialNetworkPost.scrapedAt,
-    );
+    await submitClassificationRequestForPost(postSnapshot.id);
   }
 }

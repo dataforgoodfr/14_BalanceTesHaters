@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PublicationDateTextParsing } from "../date-text-parsing";
-import { PublicationDate } from "@/shared/model/post";
+import { PublicationDate } from "@/shared/model/PublicationDate";
 
 describe("Date conversion from text", () => {
   describe("Parse to unknown date", () => {
