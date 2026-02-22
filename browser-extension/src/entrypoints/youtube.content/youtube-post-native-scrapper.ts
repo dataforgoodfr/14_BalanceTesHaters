@@ -85,6 +85,7 @@ export class YoutubePostNativeScrapper {
       postId: urlInfo.postId,
       socialNetwork: "YOUTUBE",
       scrapedAt: scrapTimestamp,
+      coverImageUrl: this.coverImageUrl(urlInfo.postId),
       url: url,
       author: author,
       publishedAt: publishedAt,
@@ -520,5 +521,9 @@ export class YoutubePostNativeScrapper {
     const nbLikesParsed = Number.parseInt(nbLikesStr);
 
     return Number.isNaN(nbLikesParsed) ? 0 : nbLikesParsed;
+  }
+
+  private coverImageUrl(postId: string): string {
+    return `https://i.ytimg.com/vi/${postId}/hq720.jpg`;
   }
 }
