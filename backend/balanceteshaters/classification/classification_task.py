@@ -1,7 +1,9 @@
 import datetime
 import logging
+import random
 from uuid import UUID
 
+from balanceteshaters.classification.category import AnnotatedCategory
 from balanceteshaters.infra.database import Database
 from balanceteshaters.model.base import JobStatus
 from balanceteshaters.model.repositories import (
@@ -38,13 +40,18 @@ class ClassificationTask:
         for comment in comments:
             comment_id = comment["id"]
             self.logger.info(f"Classifying comment with id {comment_id}")
+            categorie = []
+            if random.random() <= 0.2:
+                nb_categories = random.randint(1, 3)
+                categorie = random.choices(
+                    [e.value for e in AnnotatedCategory], k=nb_categories
+                )
+
             classifications[comment_id] = {
-                "classification": [
-                    "Categorie 1"
-                ],  # TODO: replace with actual classification result
-                "classified_at": datetime.datetime.now(
-                    datetime.timezone.utc
-                ).isoformat().replace("+00:00", "Z"),
+                "classification": categorie,
+                "classified_at": datetime.datetime.now(datetime.timezone.utc)
+                .isoformat()
+                .replace("+00:00", "Z"),
             }
             classifications.update(
                 await self.classify_comments(comment.get("replies", []))

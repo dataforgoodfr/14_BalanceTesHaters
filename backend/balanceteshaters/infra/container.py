@@ -1,6 +1,6 @@
 import logging.config
 
-from balanceteshaters.classification_task import ClassificationTask
+from balanceteshaters.classification.classification_task import ClassificationTask
 from balanceteshaters.infra.database import Database
 from balanceteshaters.infra.settings import Settings
 from dependency_injector import containers, providers

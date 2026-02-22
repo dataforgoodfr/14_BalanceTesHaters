@@ -4,7 +4,7 @@ import logging
 from typing import Annotated
 from uuid import UUID
 
-from balanceteshaters.classification_task import ClassificationTask
+from balanceteshaters.classification.classification_task import ClassificationTask
 from balanceteshaters.infra.container import Container
 from balanceteshaters.infra.database import Database
 from balanceteshaters.model.base import JobStatus
