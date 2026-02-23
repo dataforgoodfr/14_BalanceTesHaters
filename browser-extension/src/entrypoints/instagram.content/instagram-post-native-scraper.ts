@@ -1,14 +1,13 @@
 import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
-import { parseSocialNetworkUrl } from "@/shared/social-network-url";
 import {
   selectOrThrow,
   select,
   selectAll,
 } from "@/shared/dom-scraping/dom-scraping";
-import { INSTAGRAM_URL } from "@/shared/social-network-url";
 import { Author } from "@/shared/model/Author";
+import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -36,12 +35,11 @@ export class InstagramPostNativeScraper {
     this.debug("Start Scraping... ", document.URL);
 
     const url = document.URL;
-    const urlInfo = parseSocialNetworkUrl(url);
-    if (!urlInfo) {
-      throw new Error();
+    const pageInfo = instagramPageInfo(url);
+    if (!pageInfo.isScrapablePost) {
+      throw new Error("Not on a scrapable page");
     }
 
-    const startTime = Date.now();
     const scrapedAt = currentIsoDate();
     const postElements = this.selectPostElements();
 
@@ -63,9 +61,6 @@ export class InstagramPostNativeScraper {
     );
     this.debug(`${comments.length} comments`);
 
-    const duration = Date.now() - startTime;
-    this.debug(`Scraping took ${duration}ms`);
-
     return {
       id: crypto.randomUUID(),
       url,
@@ -73,7 +68,7 @@ export class InstagramPostNativeScraper {
       scrapedAt,
       author,
       comments,
-      postId: urlInfo.postId,
+      postId: pageInfo.postId,
       socialNetwork: "INSTAGRAM",
       textContent,
     };

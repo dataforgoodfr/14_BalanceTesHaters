@@ -1,7 +1,6 @@
 import { useState } from "react";
 import "./App.css";
 import { getCurrentTab } from "@/shared/utils/getCurrentTab";
-import { parseSocialNetworkUrl } from "@/shared/social-network-url";
 import { useInitializeTheme } from "@/styles/useInitializeTheme";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScrapTabMessage } from "../background/scraping/scrap-tab-message";
+import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
+import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 
 const sendScrapMessage = (tabId: number) => {
   console.log("Popup - Sending ScrapTabMessage");
@@ -20,6 +21,7 @@ const sendScrapMessage = (tabId: number) => {
     tabId: tabId,
   };
   browser.runtime.sendMessage(message);
+  window.close();
 };
 
 const reportPageUrl = browser.runtime.getURL("/posts.html");
@@ -39,44 +41,48 @@ async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
 
 export default function App() {
   useInitializeTheme();
+
   const [linkedTab, setLinkedTab] = useState<Browser.tabs.Tab | undefined>(
     undefined,
   );
+  const [pageInfo, setPageInfo] = useState<SocialNetworkPageInfo | undefined>(
+    undefined,
+  );
   useEffect(() => {
-    queryLinkedTab(document.URL).then((tab) => {
-      setLinkedTab(tab);
-    });
+    queryLinkedTab(document.URL)
+      .then((tab) => {
+        setLinkedTab(tab);
+        return new ScrapingContentScriptClient(
+          tab.id!,
+        ).getTabSocialNetworkPageInfo();
+      })
+      .then((linkedPageInfo) => setPageInfo(linkedPageInfo));
   }, []);
-
-  const parsedUrl = useMemo(() => {
-    return linkedTab?.url !== undefined && parseSocialNetworkUrl(linkedTab.url);
-  }, [linkedTab]);
 
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>Balance Tes Haters</CardTitle>
-          {!parsedUrl && (
+          {!pageInfo?.isScrapablePost && (
             <CardDescription>
               Pour capturer des commentaires et les analyser naviguez vers une
               publication d&apos;un réseau social supporté (youtube,
               instagram...) puis ouvrez l&apos;extension à nouveau.
             </CardDescription>
           )}
-          {parsedUrl && (
+          {pageInfo && pageInfo.isScrapablePost && (
             <CardDescription>
-              Vous êtes sur un {parsedUrl.type} {parsedUrl.socialNetwork}.
+              Vous êtes sur une publication {pageInfo.socialNetwork} analyzable.
             </CardDescription>
           )}
         </CardHeader>
         <CardFooter className="flex-col gap-2">
-          {parsedUrl && (
+          {linkedTab && pageInfo?.isScrapablePost && (
             <Button
               data-testid="start-scraping-button"
               className="w-full"
-              disabled={!linkedTab?.id}
-              onClick={() => sendScrapMessage(linkedTab?.id || NaN)}
+              onClick={() => sendScrapMessage(linkedTab.id!)}
             >
               Analyser ce post
             </Button>

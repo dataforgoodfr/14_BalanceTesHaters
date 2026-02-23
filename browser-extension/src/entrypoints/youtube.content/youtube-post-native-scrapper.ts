@@ -1,7 +1,6 @@
 import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
-import { parseSocialNetworkUrl } from "../../shared/social-network-url";
 import { encodePng, Image } from "image-js";
 
 import {
@@ -18,6 +17,7 @@ import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
 import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import { Author } from "@/shared/model/Author";
+import { youtubePageInfo } from "./youtubePageInfo";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -46,11 +46,10 @@ export class YoutubePostNativeScrapper {
   async scrapPost(): Promise<PostSnapshot> {
     this.debug("Start Scrraping... ", document.URL);
     const url = document.URL;
-    const urlInfo = parseSocialNetworkUrl(url);
-    if (!urlInfo) {
-      throw new Error();
+    const pageInfo = youtubePageInfo(url);
+    if (!pageInfo.isScrapablePost) {
+      throw new Error("Current page is not scrapable");
     }
-    const startTime = Date.now();
     const scrapTimestamp = currentIsoDate();
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
@@ -77,12 +76,9 @@ export class YoutubePostNativeScrapper {
     const comments: CommentSnapshot[] = await this.scrapPostComments();
     this.debug(`${comments.length} comments`);
 
-    const duration = Date.now() - startTime;
-    this.debug(`Scraping took ${duration}ms`);
-
     return {
       id: crypto.randomUUID(),
-      postId: urlInfo.postId,
+      postId: pageInfo.postId,
       socialNetwork: "YOUTUBE",
       scrapedAt: scrapTimestamp,
       url: url,
