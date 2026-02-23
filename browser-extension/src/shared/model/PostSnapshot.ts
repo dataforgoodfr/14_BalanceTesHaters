@@ -69,7 +69,7 @@ export const PostSnapshotSchema = z.object({
   /**
    * Timestamp of scrap - ISO datetime
    */
-  scrapedAt: z.string(),
+  scrapedAt: z.iso.datetime(),
   author: AuthorSchema,
 
   /**
