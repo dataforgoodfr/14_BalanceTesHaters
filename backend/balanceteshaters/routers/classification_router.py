@@ -45,6 +45,7 @@ async def post_classification_job(
         asyncio.create_task(classificationTask.classify(classification_job.id))
         return {"job_id": str(classification_job.id)}
 
+
 @router.get("/")
 @inject
 async def list_classification_jobs(
@@ -80,3 +81,18 @@ async def get_classification_job(
             "comments": classification_job.result,
             "status": classification_job.status.value,
         }
+
+
+@router.get("/{job_id}/comments")
+@inject
+async def get_classification_job_comments(
+    job_id: str,
+    db: Annotated[Database, Depends(Provide[Container.database])],
+):
+    async with db.get_session() as session, session.begin():
+        classification_job = await classification_job_repository.find_by_id(
+            session, UUID(job_id)
+        )
+        if not classification_job:
+            raise HTTPException(404, {"error": "Classification job not found"})
+        return classification_job.comments
