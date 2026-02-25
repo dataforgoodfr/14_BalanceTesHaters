@@ -52,7 +52,7 @@ if __name__ == "__main__":
     fieldnames = list(Annotation.model_fields.keys()) + ["predicted_category"]
 
     # Load prompt instructions from external file
-    prompt_file = Path(__file__).resolve().parent / "classification_prompt.txt"
+    prompt_file = Path(__file__).resolve().parent / "binary_classification_prompt.txt"
     if not prompt_file.exists():
         raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
     prompt_instructions = prompt_file.read_text(encoding="utf-8").strip()
