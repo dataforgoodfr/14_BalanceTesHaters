@@ -81,7 +81,7 @@ export class YoutubePostNativeScrapper {
       postId: pageInfo.postId,
       socialNetwork: "YOUTUBE",
       scrapedAt: scrapTimestamp,
-      coverImageUrl: this.coverImageUrl(urlInfo.postId),
+      coverImageUrl: this.coverImageUrl(pageInfo.postId),
       url: url,
       author: author,
       publishedAt: publishedAt,
