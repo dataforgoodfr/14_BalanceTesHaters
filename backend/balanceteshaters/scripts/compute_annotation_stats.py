@@ -44,7 +44,8 @@ class Annotation(BaseModel):
     id: int = Field(..., description="ID from NocoDB")
     # FIXME: add CreatedAt and UpdatedAt
     comment: str = Field(..., description="Comment text")
-    original_file_name: str = Field(..., description="Name of the file from which this comment was imported")
+    original_file_name: str | None = Field(None, description="Name of the file from which this comment was imported")
+
     annotated_category: list[AnnotatedCategory] | None = Field(None, description="Category that was chosen to annotate this comment")
     annotation_confidence: AnnotationConfidence | None = Field(None, description="Confidence level of the assigner when choosing `annotated_category`")
     comment_translation: str | None = Field(None, description="Translation in french of the comment (when applicable)")
