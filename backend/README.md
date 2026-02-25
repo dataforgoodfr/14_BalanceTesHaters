@@ -23,7 +23,10 @@ Exporter la configuration, comme dans l'exemple suivant:
 export BTH_ENGINE_ECHO=0
 export BTH_LOGGING_CONFIGURATION_FILE=logging.ini
 export BTH_PG_DSN=postgresql+asyncpg://postgres:postgres@db/postgres
+export BTH_API_TOKEN="xxxxx"
 ```
+
+`BTH_API_TOKEN` correspond au token d'accès aux API protégées. Ce paramètres doit être fourni par l'administrateur qui déploie le backend.
 
 ## Création de la base de données
 
