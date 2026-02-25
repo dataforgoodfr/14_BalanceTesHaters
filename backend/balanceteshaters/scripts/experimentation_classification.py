@@ -44,6 +44,12 @@ if __name__ == "__main__":
     output_file_path = data_dir / f"predictions_{nocodb_annotation_table_id}_{model_name_for_file}.csv"
     fieldnames = list(Annotation.model_fields.keys()) + ["predicted_category"]
 
+    # Load prompt instructions from external file
+    prompt_file = Path(__file__).resolve().parent / "classification_prompt.txt"
+    if not prompt_file.exists():
+        raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
+    prompt_instructions = prompt_file.read_text(encoding="utf-8").strip()
+
     with output_file_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
@@ -53,7 +59,7 @@ if __name__ == "__main__":
         for idx, record in iterator:
             response = chat(
                 model=args.model,
-                messages=[{'role': 'user', 'content': "Classifie le prompt dans une des catégories et ne répond qu'avec la catégorie choisie, aucun texte autre que le nom de catégorie : 'ABSENCE_DE_CYBERHARCELEMENT', 'CYBERHARCELEMENT_DEFINITION_GENERALE', 'CYBERHARCELEMENT_A_CARACTERE_SEXUEL, 'MENACES', ''INCITATION_AU_SUICIDE', 'INJURE_ET_DIFFAMATION_PUBLIQUE', 'DOXXING', ''INCITATION_A_LA_HAINE'. Prompt à classifier :"+str(record.comment)}],
+                messages=[{'role': 'user', 'content': f"{prompt_instructions} Prompt à classifier : {record.comment}"}],
             )
             content = response.message.content
             output = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
