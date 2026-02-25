@@ -42,18 +42,20 @@ async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
 export default function App() {
   useInitializeTheme();
 
-  const [linkedTab, setLinkedTab] = useState<Browser.tabs.Tab | undefined>(
-    undefined,
-  );
+  const [linkedTabId, setLinkedTabId] = useState<number | undefined>(undefined);
   const [pageInfo, setPageInfo] = useState<SocialNetworkPageInfo | undefined>(
     undefined,
   );
   useEffect(() => {
     queryLinkedTab(document.URL)
       .then((tab) => {
-        setLinkedTab(tab);
+        if (tab.id === undefined) {
+          console.error("tab.id undefined on tab", tab);
+          return;
+        }
+        setLinkedTabId(tab.id);
         return new ScrapingContentScriptClient(
-          tab.id!,
+          tab.id,
         ).getTabSocialNetworkPageInfo();
       })
       .then((linkedPageInfo) => setPageInfo(linkedPageInfo));
@@ -78,11 +80,11 @@ export default function App() {
           )}
         </CardHeader>
         <CardFooter className="flex-col gap-2">
-          {linkedTab && pageInfo?.isScrapablePost && (
+          {linkedTabId && pageInfo?.isScrapablePost && (
             <Button
               data-testid="start-scraping-button"
               className="w-full"
-              onClick={() => sendScrapMessage(linkedTab.id!)}
+              onClick={() => sendScrapMessage(linkedTabId)}
             >
               Analyser ce post
             </Button>
