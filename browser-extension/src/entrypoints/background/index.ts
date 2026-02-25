@@ -1,12 +1,11 @@
-import { insertPostSnapshot } from "../../shared/storage/post-snapshot-storage";
 import { isScrapTabMessage } from "./scraping/scrap-tab-message";
-import { scrapTab as scrapPostFromTab } from "./scraping/scrap-tab";
 import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
 import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
 import { submitClassificationRequestForPost } from "./classification/submitClassificationForPost";
 import { isSubmitClassificationRequestMessage } from "./classification/submitClassificationForPostMessage";
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
+import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
 
 export default defineBackground(() => {
   console.log("Hello background!", { extensionId: browser.runtime.id });
@@ -20,7 +19,7 @@ export default defineBackground(() => {
 
     if (isScrapTabMessage(message)) {
       browser.tabs.get(message.tabId).then((tab) => {
-        return scrapTab(tab);
+        scrapTab(tab);
       });
       return;
     } else if (isScreenshotSenderTab(message)) {
@@ -52,15 +51,17 @@ export default defineBackground(() => {
 });
 
 async function scrapTab(tab: Browser.tabs.Tab) {
-  if (tab) {
+  if (tab && tab.id) {
     console.debug("Background - Scraping post from active tab ", {
       tabId: tab.id,
       url: tab.url,
     });
-    const postSnapshot = await scrapPostFromTab(tab);
-    console.debug("Background - storing post to local storage", postSnapshot);
-    await insertPostSnapshot(postSnapshot);
-
-    await submitClassificationRequestForPost(postSnapshot.id);
+    const contentScriptClient = new ScrapingContentScriptClient(tab.id);
+    const result = await contentScriptClient.scrapPost();
+    if (result.type === "success") {
+      await submitClassificationRequestForPost(result.postSnapshotId);
+    } else {
+      console.error("Scraping failed", result.message);
+    }
   }
 }
