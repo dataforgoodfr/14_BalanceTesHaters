@@ -39,7 +39,7 @@ class ClassificationTask:
         classifications = dict()
         for comment in comments:
             comment_id = comment["id"]
-            self.logger.info(f"Classifying comment with id {comment_id}")
+            self.logger.debug(f"Classifying comment with id {comment_id}")
             categorie = []
             if random.random() <= 0.2:
                 nb_categories = random.randint(1, 3)

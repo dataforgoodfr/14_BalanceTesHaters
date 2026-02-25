@@ -31,7 +31,9 @@ def upgrade() -> None:
         sa.Column("comments", JSONB, nullable=True),
         sa.Column(
             "status",
-            sa.Enum("SUBMITTED", "IN_PROGRESS", "COMPLETED", name="jobstatus"),
+            sa.Enum(
+                "SUBMITTED", "IN_PROGRESS", "COMPLETED", "FAILED", name="jobstatus"
+            ),
             nullable=False,
             server_default="SUBMITTED",
         ),

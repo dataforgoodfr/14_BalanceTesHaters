@@ -54,3 +54,12 @@ async def update_job_result(
 async def list_jobs(session: AsyncSession) -> list[ClassificationJob]:
     result = await session.execute(select(ClassificationJob))
     return result.scalars().all()
+
+
+async def list_jobs_by_status(
+    session: AsyncSession, status: JobStatus
+) -> list[ClassificationJob]:
+    result = await session.execute(
+        select(ClassificationJob).where(ClassificationJob.status == status)
+    )
+    return result.scalars().all()
