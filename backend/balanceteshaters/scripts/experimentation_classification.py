@@ -8,9 +8,16 @@ import os
 import argparse
 import csv
 from pathlib import Path
+import sys
 from dotenv import load_dotenv
 import re
 from ollama import chat
+
+# Allow running this file directly while keeping package imports working.
+PROJECT_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_BACKEND_DIR))
+
 from compute_annotation_stats import Annotation, NocoDBService
 from tqdm import tqdm
 
