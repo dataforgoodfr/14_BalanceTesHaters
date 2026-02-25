@@ -36,9 +36,15 @@ if __name__ == "__main__":
             "You need to set the env variable BTH_BACKEND_URL with the URL of the BalanceTesHaters backend instance you want to connect to"
         )
 
+    if "BTH_API_TOKEN" not in os.environ:
+        raise ValueError(
+            "You need to set the env variable BTH_API_TOKEN with the API token to authenticate to the BalanceTesHaters backend instance"
+        )
+
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
     bth_backend_url: str = os.environ["BTH_BACKEND_URL"]
+    bth_token_api: str = os.environ["BTH_API_TOKEN"]
 
     nocodb = NocoDBService(
         base_url=nocodb_base_url,
@@ -58,7 +64,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if not args.job_id:
         print("Available jobs:")
-        response = requests.get(f"{bth_backend_url}/classification/")
+        response = requests.get(
+            f"{bth_backend_url}/classification/", headers={"x-token": bth_token_api}
+        )
         response.raise_for_status()
         for job in response.json():
             print(
@@ -67,7 +75,8 @@ if __name__ == "__main__":
     else:
         print(f"Uploading comments for job {args.job_id}...")
         response = requests.get(
-            f"{bth_backend_url}/classification/{args.job_id}/comments"
+            f"{bth_backend_url}/classification/{args.job_id}/comments",
+            headers={"x-token": bth_token_api},
         )
         response.raise_for_status()
         comments = response.json()
