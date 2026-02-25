@@ -1,6 +1,6 @@
 import { SocialNetworkScraper } from "./SocialNetworkScraper";
 import { ScrapTabResult } from "./ScrapTabResult";
-import { isCsPageInfoMessage, isCsScrapTabMessage } from "./messages";
+import { isScsPageInfoMessage, isScsScrapTabMessage } from "./messages";
 import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { CommentSnapshot } from "@/shared/model/PostSnapshot";
@@ -10,18 +10,31 @@ export class ScrapingContentScript {
 
   constructor(private readonly scraper: SocialNetworkScraper) {}
 
+  /**
+   * Handle scrapers shared messages.
+   * Returned value conforms to webext message handling:
+   * * true to indicate that message is handled and async response is returned
+   * * undefined to indicate message not handled so that another listener can respond
+   * See https://developer.chrome.com/docs/extensions/develop/concepts/messaging#responses
+   * @param message
+   * @param sender
+   * @param sendResponse
+   * @returns
+   */
   public handleMessage(
     message: unknown,
     sender: Browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
-  ): boolean | undefined {
-    if (isCsPageInfoMessage(message)) {
+  ): true | undefined {
+    if (isScsPageInfoMessage(message)) {
       console.info(`[SCS] - Received ${message.msgType} message from`, sender);
       this.getPageInfo().then(sendResponse);
+      // Return true to indicate async response to web-ext-messaging
       return true;
-    } else if (isCsScrapTabMessage(message)) {
+    } else if (isScsScrapTabMessage(message)) {
       console.info(`[SCS] - Received ${message.msgType} message from`, sender);
       this.scrapPost().then(sendResponse);
+      // Return true to indicate async response to web-ext-messaging
       return true;
     }
   }

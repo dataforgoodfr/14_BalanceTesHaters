@@ -2,7 +2,7 @@ export type ScsPageInfoMessage = typeof SCS_GET_PAGE_INFO_MESSAGE;
 export const SCS_GET_PAGE_INFO_MESSAGE = {
   msgType: "scs-get-page-info",
 } as const;
-export function isCsPageInfoMessage(
+export function isScsPageInfoMessage(
   message: unknown,
 ): message is ScsPageInfoMessage {
   return (
@@ -18,7 +18,7 @@ export const SCS_SCRAP_TAB_MESSAGE = {
 } as const;
 export type ScsScrapTabMessage = typeof SCS_SCRAP_TAB_MESSAGE;
 
-export function isCsScrapTabMessage(
+export function isScsScrapTabMessage(
   message: unknown,
 ): message is ScsScrapTabMessage {
   return (
