@@ -36,6 +36,31 @@ jobs:
       - name: Test
         run: pnpm test
 
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: browser-extension
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: "browser-extension/package.json"
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: "browser-extension/package.json"
+          cache-dependency-path: "browser-extension/pnpm-lock.yaml"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build extension zip
+        run: pnpm zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bth-extension.zip
+          path: browser-extension/bth-extension-*.zip
+          retention-days: 30
+
   e2e-tests:
     defaults:
       run:
