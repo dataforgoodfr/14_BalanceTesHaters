@@ -55,18 +55,29 @@ jobs:
         run: pnpm install
       - name: Build extension zip
         run: pnpm zip
+
       - uses: actions/upload-artifact@v4
+        id: upload-bth-extension-artifact
         with:
           if-no-files-found: error
           name: bth-extension.zip
           path: browser-extension/.output/bth-extension-*.zip
           retention-days: 30
 
-      - uses: "marvinpinto/action-automatic-releases@v1.2.1"
-        #if: github.ref == 'refs/heads/main'
+      - name: Comment PR with extension artifacts link
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            Extension Build: <${{ steps.upload-bth-extension-artifact.outputs.artifact-url }}>
+          comment-tag: extension-artifacts
+
+      - name: Update assets on extension-latest release
+        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        ## if: github.ref == 'refs/heads/main'
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "bth-extension-latest"
+          automatic_release_tag: "extension-latest"
           prerelease: true
           title: "Extension Development Build"
           files: browser-extension/.output/bth-extension-*.zip
