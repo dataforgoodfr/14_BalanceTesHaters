@@ -59,7 +59,7 @@ jobs:
         with:
           if-no-files-found: error
           name: bth-extension.zip
-          path: browser-extension/.output/bth-extension-*.zip
+          path: .output/bth-extension-*.zip
           retention-days: 30
 
   e2e-tests:
