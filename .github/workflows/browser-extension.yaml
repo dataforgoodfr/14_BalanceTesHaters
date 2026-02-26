@@ -62,8 +62,8 @@ jobs:
           path: browser-extension/.output/bth-extension-*.zip
           retention-days: 30
 
-      - uses: "marvinpinto/action-automatic-releases@1.2.1"
-        if: github.ref == 'refs/heads/master'
+      - uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        #if: github.ref == 'refs/heads/main'
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "bth-extension-latest"
