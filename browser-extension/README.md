@@ -18,11 +18,11 @@ Pour installer depuis un zip:
 - Accéder à la page "Extensions" en cliquant sur le menu "..." > "Extensions" > "Gérer les extensions":
 - Activez le mode développeur en cliquant sur le bouton en haut à droite
 - Cliquez sur le bouton "Charger l'extension non empaquetée", puis sélectionnez le répertoire où l'extension a été dézippée plus haut.
-  ![Menu](doc/install-ext-screenshot1.png)
-  ![Page gérer les extensions](doc/install-ext-screenshot2.png)
+  ![Menu](doc/install-step1.png)
+  ![Page gérer les extensions](doc/install-step2.png)
 
 3. Épingler l'extension en cliquant sur le bouton puzzle puis sur l'épingle à côté de l'extension
-   ![Epingler l'extension](doc/install-ext-step3.png)
+   ![Epingler l'extension](doc/install-setp3.png)
 
 # Utiliser l'extension
 
