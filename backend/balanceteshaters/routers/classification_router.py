@@ -7,13 +7,14 @@ from uuid import UUID
 from balanceteshaters.classification.classification_task import ClassificationTask
 from balanceteshaters.infra.container import Container
 from balanceteshaters.infra.database import Database
+from balanceteshaters.infra.settings import Settings
 from balanceteshaters.model.base import JobStatus
 from balanceteshaters.model.repositories import (
     classification_job as classification_job_repository,
 )
 from balanceteshaters.routers.classification_model import ClassificationJob
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 
 router = APIRouter()
 
@@ -46,6 +47,28 @@ async def post_classification_job(
         return {"job_id": str(classification_job.id)}
 
 
+@router.get("/")
+@inject
+async def list_classification_jobs(
+    db: Annotated[Database, Depends(Provide[Container.database])],
+    settings: Annotated[Settings, Depends(Provide[Container.settings])],
+    x_token: Annotated[str | None, Header()] = None,
+):
+    if not x_token or x_token != settings.api_token:
+        raise HTTPException(401, {"error": "Unauthorized"})
+    async with db.get_session() as session, session.begin():
+        classification_jobs = await classification_job_repository.list_jobs(session)
+        return [
+            {
+                "id": str(job.id),
+                "title": job.title,
+                "status": job.status.value,
+                "submitted_at": job.submitted_at.isoformat().replace("+00:00", "Z"),
+            }
+            for job in classification_jobs
+        ]
+
+
 @router.get("/{job_id}")
 @inject
 async def get_classification_job(
@@ -63,3 +86,22 @@ async def get_classification_job(
             "comments": classification_job.result,
             "status": classification_job.status.value,
         }
+
+
+@router.get("/{job_id}/comments")
+@inject
+async def get_classification_job_comments(
+    job_id: str,
+    db: Annotated[Database, Depends(Provide[Container.database])],
+    settings: Annotated[Settings, Depends(Provide[Container.settings])],
+    x_token: Annotated[str | None, Header()] = None,
+):
+    if not x_token or x_token != settings.api_token:
+        raise HTTPException(401, {"error": "Unauthorized"})
+    async with db.get_session() as session, session.begin():
+        classification_job = await classification_job_repository.find_by_id(
+            session, UUID(job_id)
+        )
+        if not classification_job:
+            raise HTTPException(404, {"error": "Classification job not found"})
+        return classification_job.comments
