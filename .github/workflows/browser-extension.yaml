@@ -61,7 +61,7 @@ jobs:
         with:
           if-no-files-found: error
           name: bth-extension.zip
-          path: browser-extension/.output/bth-extension-*.zip
+          path: .output/*
           retention-days: 30
 
       - name: Comment PR with extension artifacts link
@@ -80,7 +80,7 @@ jobs:
           automatic_release_tag: "extension-latest"
           prerelease: true
           title: "Extension Development Build"
-          files: browser-extension/.output/bth-extension-*.zip
+          files: .output/*
 
   e2e-tests:
     defaults:
