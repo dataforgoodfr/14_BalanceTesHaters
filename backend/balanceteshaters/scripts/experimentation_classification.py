@@ -18,10 +18,10 @@ PROJECT_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
-from compute_annotation_stats import Annotation, NocoDBService
-from tqdm import tqdm
-
 if __name__ == "__main__":
+    from compute_annotation_stats import Annotation, NocoDBService
+    from tqdm import tqdm
+    
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
