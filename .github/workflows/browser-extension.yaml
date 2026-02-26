@@ -36,6 +36,53 @@ jobs:
       - name: Test
         run: pnpm test
 
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: browser-extension
+    steps:
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: "browser-extension/package.json"
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: "browser-extension/package.json"
+          cache-dependency-path: "browser-extension/pnpm-lock.yaml"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build extension zip
+        run: pnpm zip
+
+      - uses: actions/upload-artifact@v4
+        id: upload-bth-extension-artifact
+        if: false
+        with:
+          if-no-files-found: error
+          name: bth-extension.zip
+          path: ${{github.workspace}}/browser-extension/.output/
+          retention-days: 30
+
+      - name: Comment PR with extension artifacts link
+        if: github.event_name == 'pull_request' && steps.upload-bth-extension-artifact.outcome == 'success'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            Extension build artifacts: <${{ steps.upload-bth-extension-artifact.outputs.artifact-url }}>
+          comment-tag: extension-artifacts
+
+      - name: Update assets on extension-latest release
+        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        ## if: github.ref == 'refs/heads/main'
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "extension-latest"
+          prerelease: true
+          title: "Extension Development Build"
+          files: browser-extension/.output/
+
   e2e-tests:
     defaults:
       run:
