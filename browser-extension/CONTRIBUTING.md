@@ -42,7 +42,7 @@ e.g. `pnpm dlx shadcn@latest add accordion`
 
 ## Documentation d'architecture
 
-Voir [../docs/frontens](../docs/frontend)
+[Voir la doc d'architecture frontend](../docs/frontend)
 
 ## Stack de l'extension:
 

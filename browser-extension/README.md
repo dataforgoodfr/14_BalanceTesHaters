@@ -8,13 +8,12 @@ Voir [./CONTRIBUTING.md](./CONTRIBUTING.md)
 
 # Installer l'extension
 
-Pour installer en mode dev voir [./CONTRIBUTING.md](./CONTRIBUTING.md)
+(Pour installer en mode dev voir [./CONTRIBUTING.md](./CONTRIBUTING.md))
 
 Pour installer depuis un zip:
 
-- Télécharger le zip localement
-- Dézipper le fichier
-  - Copier le chemin vers le répertoire local
+- Télécharger le zip
+- Dézipper le fichier et copier le chemin vers le répertoire dézippé
 - Ouvrir Google Chrome
 - Accéder à la page "Extensions" en cliquant sur le menu "..." > "Extensions" > "Gérer les extensions":
 - Activez le mode développeur en cliquant sur le bouton en haut à droite
