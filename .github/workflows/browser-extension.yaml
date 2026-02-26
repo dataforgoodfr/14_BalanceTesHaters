@@ -59,8 +59,17 @@ jobs:
         with:
           if-no-files-found: error
           name: bth-extension.zip
-          path: .output/bth-extension-*.zip
+          path: browser-extension/.output/bth-extension-*.zip
           retention-days: 30
+
+      - uses: "marvinpinto/action-automatic-releases@1.2.1"
+        if: github.ref == 'refs/heads/master'
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "bth-extension-latest"
+          prerelease: true
+          title: "Extension Development Build"
+          files: browser-extension/.output/bth-extension-*.zip
 
   e2e-tests:
     defaults:
