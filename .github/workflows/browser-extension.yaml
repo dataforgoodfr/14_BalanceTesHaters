@@ -61,7 +61,7 @@ jobs:
         with:
           if-no-files-found: error
           name: bth-extension.zip
-          path: browser-extension/.output/
+          path: ${{github.workspace}}/browser-extension/.output/
           retention-days: 30
 
       - name: Comment PR with extension artifacts link
