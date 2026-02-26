@@ -1,11 +1,11 @@
-# Comment developer l'extension
+# Comment développer l'extension
 
-## Installer l'environement de dev
+# Installer l'environnement de dev
 
 - Installer pnpm
-- `pnpm install` dans le repertoire browser-extension
+- `pnpm install` dans le répertoire browser-extension
 
-## Installer l'extensien en mode dev dans chrome
+## Installer l'extension en mode dev dans Chrome
 
 - Lancer `pnpm dev` qui lance un serveur
 - Charger le répertoire .output/chrome-mv3-dev comme extension non empaquetée (voir https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked)
@@ -23,26 +23,26 @@ Verifier le formattage et le lint de code:
 Lancer les tests automatiques:
 
 - `pnpm test` lance les tests unitaires basé sur vitest
-- `pnpm test:e2e` lint le code et fix les issues qu'il peut corriger automatiquement
+- `pnpm test:e2e` lance les tests end-to-end avec Playwright
 
 # Configurer l'extension pour pointer vers le backend de classification locale
 
-Par défaut l'extension utilise le backend de classification déployé en stsaging.
-Pour utiliser un backend déployé localement: copier .env.example vers .env et décommenter la ligne VITE_BACKEND_API_BASE_URL=http://localhost:8000
+Par défaut l'extension utilise le backend de classification déployé en staging.
+Pour utiliser un backend déployé localement: copier `.env.example` vers `.env` et décommenter la ligne `VITE_BACKEND_API_BASE_URL=http://localhost:8000`
 
-Voir dans (../backend/README.md) sur comment démarrer le backend.
+Voir dans [](../backend/README.md) pour comment démarrer le backend.
 
-# Ajouter de composants le la library ui shadcn
+# Ajouter des composants de la library UI shadcn
 
 Explorer les composants ici: https://ui.shadcn.com/docs/components
-Lancer la commande indiquer dans la doc du composant pour l'installer
+Lancer la commande indiquée dans la doc du composant pour l'installer
 e.g. `pnpm dlx shadcn@latest add accordion`
 
 # Architecture
 
-## Doc d'architectures
+## Documentation d'architecture
 
-Voir (../docs/frontend)
+Voir [../docs/frontens](../docs/frontend)
 
 ## Stack de l'extension:
 
