@@ -58,6 +58,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         id: upload-bth-extension-artifact
+        if: false
         with:
           if-no-files-found: error
           name: bth-extension.zip
@@ -65,11 +66,11 @@ jobs:
           retention-days: 30
 
       - name: Comment PR with extension artifacts link
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.upload-bth-extension-artifact.outcome == 'success'
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
-            Extension Build: <${{ steps.upload-bth-extension-artifact.outputs.artifact-url }}>
+            Extension build artifacts: <${{ steps.upload-bth-extension-artifact.outputs.artifact-url }}>
           comment-tag: extension-artifacts
 
       - name: Update assets on extension-latest release
