@@ -22,7 +22,6 @@ function DateRangePicker({ value, onChange }: DateRangePickerProps) {
     value ?? { from: addMonths(today, -3), to: today },
   );
 
-  // keep internal state in sync if the parent controls it
   React.useEffect(() => {
     if (value !== undefined) {
       setDateRange(value);

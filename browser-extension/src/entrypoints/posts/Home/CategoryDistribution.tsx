@@ -7,8 +7,10 @@ type CategoryDistributionProps = {
   isLoading: boolean;
 };
 
-function CategoryDistribution({ posts, isLoading }: Readonly<CategoryDistributionProps>) {
-  // will use posts to compute distribution
+function CategoryDistribution({
+  posts,
+  isLoading,
+}: Readonly<CategoryDistributionProps>) {
   return (
     <Card className="w-full relative">
       <CardHeader>Répartition par catégories</CardHeader>
