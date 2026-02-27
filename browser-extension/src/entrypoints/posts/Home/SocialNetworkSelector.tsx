@@ -5,13 +5,25 @@ type SocialNetworkSelectorProps = Readonly<{
   onChange: (values: string[]) => void;
 }>;
 
-function SocialNetworkSelector({ value, onChange }: SocialNetworkSelectorProps) {
+function SocialNetworkSelector({
+  value,
+  onChange,
+}: SocialNetworkSelectorProps) {
+  const handleChange = (newVals: string[]) => {
+    if(newVals.length === 0) {
+      // prevent deselecting all options, at least one should be selected
+      return;
+    }
+    onChange(newVals);
+  };
+
   return (
     <div className="p-3">
       <ToggleGroup
+        multiple
         variant="outline"
         value={value}
-        onValueChange={onChange}
+        onValueChange={handleChange}
         aria-label="Réseau social"
       >
         <ToggleGroupItem
