@@ -12,13 +12,17 @@ type KpiCardsProps = {
 function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
   let percentageOfHatefulComments = 0;
   let numberOfHatefulComments = 0;
+  let numberOfHatefulAuthors = 0;
 
   const allComments = posts?.flatMap((post) => post.comments) ?? [];
 
   if (allComments.length !== 0) {
-    numberOfHatefulComments = allComments.filter((c) => IsCommentHateful(c)).length;
+    const hatefulComments = allComments.filter((c) => IsCommentHateful(c));
+    numberOfHatefulComments = hatefulComments.length;
     percentageOfHatefulComments =
       (numberOfHatefulComments / allComments.length) * 100;
+    numberOfHatefulAuthors = new Set(hatefulComments.map((c) => c.author.name))
+      .size;
   }
 
   return (
@@ -31,13 +35,13 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
         <KpiCard
           title="Part des commentaires haineurs"
           value={percentageOfHatefulComments.toFixed(2) + "%"}
-          isWorkInProgress={true}
+          isWorkInProgress={false}
           isLoading={isLoading}
         ></KpiCard>
         <KpiCard
           title="Nombre de commentaires haineux"
           value={`${numberOfHatefulComments.toString()}/${allComments.length.toString()}`}
-          isWorkInProgress={true}
+          isWorkInProgress={false}
           isLoading={isLoading}
         ></KpiCard>
         <KpiCard
@@ -48,8 +52,8 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
         ></KpiCard>
         <KpiCard
           title="Nombre d'auteurs des commentaires haineux"
-          value="6"
-          isWorkInProgress={true}
+          value={numberOfHatefulAuthors.toString()}
+          isWorkInProgress={false}
           isLoading={isLoading}
         ></KpiCard>
       </div>
