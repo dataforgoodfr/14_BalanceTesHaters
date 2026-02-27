@@ -7,8 +7,10 @@ type HarassmentTrendChartProps = {
   isLoading: boolean;
 };
 
-function HarassmentTrendChart({ posts, isLoading }: Readonly<HarassmentTrendChartProps>) {
-  // placeholder - use `posts` to build chart
+function HarassmentTrendChart({
+  posts,
+  isLoading,
+}: Readonly<HarassmentTrendChartProps>) {
   return (
     <Card className="w-full relative">
       <CardHeader>Évolution de l&apos;harcèlement</CardHeader>

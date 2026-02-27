@@ -1,5 +1,8 @@
 import { PostSnapshot, PostSnapshotSchema } from "@/shared/model/PostSnapshot";
-import { IsCommentPublishedAfter as IsPostPublishedAfter, IsCommentPublishedBefore as IsPostPublishedBefore } from "../utils/post-util";
+import {
+  IsCommentPublishedAfter as IsPostPublishedAfter,
+  IsCommentPublishedBefore as IsPostPublishedBefore,
+} from "../utils/post-util";
 
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
@@ -77,12 +80,17 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
   // Conserver uniquement les snapshots les plus récents
   posts = posts.reduce((latestPosts: PostSnapshot[], currentPost) => {
     // Si le post n'est pas encore dans la liste des posts les plus récents, on l'ajoute
-    if(latestPosts.every((p) => p.postId !== currentPost.postId)) {
+    if (latestPosts.every((p) => p.postId !== currentPost.postId)) {
       latestPosts.push(currentPost);
     } else {
       // Si le post est déjà dans la liste, on vérifie si le snapshot actuel est plus récent que celui déjà présent
-      const existingPostIndex = latestPosts.findIndex((p) => p.postId === currentPost.postId);
-      if (existingPostIndex !== -1 && currentPost.scrapedAt > latestPosts[existingPostIndex].scrapedAt) {
+      const existingPostIndex = latestPosts.findIndex(
+        (p) => p.postId === currentPost.postId,
+      );
+      if (
+        existingPostIndex !== -1 &&
+        currentPost.scrapedAt > latestPosts[existingPostIndex].scrapedAt
+      ) {
         latestPosts[existingPostIndex] = currentPost;
       }
     }

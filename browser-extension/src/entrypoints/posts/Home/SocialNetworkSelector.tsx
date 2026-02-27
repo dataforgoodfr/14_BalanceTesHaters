@@ -10,7 +10,7 @@ function SocialNetworkSelector({
   onChange,
 }: SocialNetworkSelectorProps) {
   const handleChange = (newVals: string[]) => {
-    if(newVals.length === 0) {
+    if (newVals.length === 0) {
       // prevent deselecting all options, at least one should be selected
       return;
     }

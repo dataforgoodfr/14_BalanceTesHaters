@@ -33,7 +33,7 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
       )}
       <div className="flex gap-4 justify-between">
         <KpiCard
-          title="Part des commentaires haineurs"
+          title="Part des commentaires haineux"
           value={percentageOfHatefulComments.toFixed(2) + "%"}
           isWorkInProgress={false}
           isLoading={isLoading}
