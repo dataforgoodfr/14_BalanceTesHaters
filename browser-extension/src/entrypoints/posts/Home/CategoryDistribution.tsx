@@ -1,7 +1,14 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
+import { PostSnapshot } from "@/shared/model/PostSnapshot";
 
-function CategoryDistribution() {
+type CategoryDistributionProps = {
+  posts: PostSnapshot[] | undefined;
+  isLoading: boolean;
+};
+
+function CategoryDistribution({ posts, isLoading }: Readonly<CategoryDistributionProps>) {
+  // will use posts to compute distribution
   return (
     <Card className="w-full relative">
       <CardHeader>Répartition par catégories</CardHeader>

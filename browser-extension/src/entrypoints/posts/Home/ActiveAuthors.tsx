@@ -2,8 +2,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { CircleUserRound } from "lucide-react";
+import { PostSnapshot } from "@/shared/model/PostSnapshot";
 
-function ActiveAuthors() {
+type ActiveAuthorsProps = {
+  posts: PostSnapshot[] | undefined;
+  isLoading: boolean;
+};
+
+function ActiveAuthors({ posts, isLoading }: Readonly<ActiveAuthorsProps>) {
+  // could calculate active authors from `posts`
   return (
     <Card className="w-full relative">
       <CardHeader>Auteurs actifs</CardHeader>

@@ -1,21 +1,27 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-function SourceSelector() {
+type SocialNetworkSelectorProps = Readonly<{
+  value: string[];
+  onChange: (values: string[]) => void;
+}>;
+
+function SocialNetworkSelector({ value, onChange }: SocialNetworkSelectorProps) {
   return (
     <div className="p-3">
       <ToggleGroup
         variant="outline"
-        defaultValue={["youtube"]}
-        aria-label="Platform"
+        value={value}
+        onValueChange={onChange}
+        aria-label="Réseau social"
       >
         <ToggleGroupItem
-          value="youtube"
+          value="YOUTUBE"
           aria-label="Visualiser les résultats YouTube"
         >
           YouTube
         </ToggleGroupItem>
         <ToggleGroupItem
-          value="instagram"
+          value="INSTAGRAM"
           aria-label="Visualiser les résultats Instagram"
         >
           Instagram
@@ -25,4 +31,4 @@ function SourceSelector() {
   );
 }
 
-export default SourceSelector;
+export default SocialNetworkSelector;

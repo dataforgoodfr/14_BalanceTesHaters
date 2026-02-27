@@ -11,12 +11,28 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-function DateRangePicker() {
+type DateRangePickerProps = Readonly<{
+  value?: DateRange;
+  onChange?: (range: DateRange | undefined) => void;
+}>;
+
+function DateRangePicker({ value, onChange }: DateRangePickerProps) {
   const today = new Date();
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: addMonths(today, -3),
-    to: today,
-  });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+    value ?? { from: addMonths(today, -3), to: today },
+  );
+
+  // keep internal state in sync if the parent controls it
+  React.useEffect(() => {
+    if (value !== undefined) {
+      setDateRange(value);
+    }
+  }, [value]);
+
+  const handleSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
+    onChange?.(range);
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -35,7 +51,7 @@ function DateRangePicker() {
             mode="range"
             defaultMonth={dateRange?.from}
             selected={dateRange}
-            onSelect={setDateRange}
+            onSelect={handleSelect}
             numberOfMonths={2}
             disabled={(date) =>
               date > new Date() || date < new Date("1900-01-01")
