@@ -65,6 +65,28 @@ export async function getPostSnapshots(): Promise<PostSnapshot[]> {
 
   return validPosts;
 }
+
+export async function getPostSnapshotsBySocialNetworkAndPeriod(
+  socialNetworkFilter: string[] = [],
+  from?: Date,
+  to?: Date,
+): Promise<PostSnapshot[]> {
+  let posts = await getPostSnapshots();
+  console.log(socialNetworkFilter);
+  if (socialNetworkFilter && socialNetworkFilter.length > 0) {
+    posts = posts.filter((p) => socialNetworkFilter.includes(p.socialNetwork));
+  }
+
+  if (from) {
+    posts = posts.filter((p) => new Date(p.scrapedAt) >= from);
+  }
+  if (to) {
+    posts = posts.filter((p) => new Date(p.scrapedAt) <= to);
+  }
+
+  return posts;
+}
+
 export async function getPostSnapshotById(
   postSnapshotId: string,
 ): Promise<PostSnapshot | undefined> {
