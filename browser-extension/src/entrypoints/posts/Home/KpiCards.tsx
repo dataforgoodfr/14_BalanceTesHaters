@@ -2,7 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { Spinner } from "@/components/ui/spinner";
-import { IsCommentHateful } from "@/shared/utils/post-util";
+import {
+  getAllCommentsAndRepliesFromPostList,
+  isCommentHateful,
+} from "@/shared/utils/post-util";
+import { getPercentage } from "@/shared/utils/maths";
+import { X } from "lucide-react";
 
 type KpiCardsProps = {
   posts: PostSnapshot[] | undefined;
@@ -14,13 +19,20 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
   let numberOfHatefulComments = 0;
   let numberOfHatefulAuthors = 0;
 
-  const allComments = posts?.flatMap((post) => post.comments) ?? [];
+  const allComments = getAllCommentsAndRepliesFromPostList(posts ?? []);
+  console.log(
+    "allComments",
+    allComments,
+    allComments.map((c) => c.textContent),
+  );
 
   if (allComments.length !== 0) {
-    const hatefulComments = allComments.filter((c) => IsCommentHateful(c));
+    const hatefulComments = allComments.filter((c) => isCommentHateful(c));
     numberOfHatefulComments = hatefulComments.length;
-    percentageOfHatefulComments =
-      (numberOfHatefulComments / allComments.length) * 100;
+    percentageOfHatefulComments = getPercentage(
+      numberOfHatefulComments,
+      allComments.length,
+    );
     numberOfHatefulAuthors = new Set(hatefulComments.map((c) => c.author.name))
       .size;
   }

@@ -4,7 +4,10 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { CircleUserRound } from "lucide-react";
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { Spinner } from "@/components/ui/spinner";
-import { IsCommentHateful } from "@/shared/utils/post-util";
+import {
+  getAllCommentsAndRepliesFromPostList,
+  isCommentHateful,
+} from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
 
 type AuthorStats = {
@@ -19,30 +22,26 @@ type ActiveAuthorsProps = {
 };
 
 function ActiveAuthors({ posts, isLoading }: Readonly<ActiveAuthorsProps>) {
-  const allComments = posts?.flatMap((post) => post.comments) ?? [];
+  const allComments = getAllCommentsAndRepliesFromPostList(posts ?? []);
+
   const authorStatsList = allComments
     .reduce((authorStatsList: AuthorStats[], currentComment) => {
-      // Si le post n'est pas encore dans la liste des posts les plus récents, on l'ajoute
-      if (
-        authorStatsList.every(
-          (author) => author.name !== currentComment.author.name,
-        )
-      ) {
+      const existingAuthorIndex = authorStatsList.findIndex(
+        (author) => author.name === currentComment.author.name,
+      );
+
+      // Si l'auteur n'est pas encore dans la liste des posts les plus récents, on l'ajoute
+      if (existingAuthorIndex === -1) {
         authorStatsList.push({
           name: currentComment.author.name,
           numberOfComments: 1,
-          numberOfHatefulComments: IsCommentHateful(currentComment) ? 1 : 0,
+          numberOfHatefulComments: isCommentHateful(currentComment) ? 1 : 0,
         });
       } else {
-        // Si le post est déjà dans la liste, on incrémente le nombre de commentaires
-        const existingAuthorIndex = authorStatsList.findIndex(
-          (author) => author.name === currentComment.author.name,
-        );
-        if (existingAuthorIndex !== -1) {
-          authorStatsList[existingAuthorIndex].numberOfComments += 1;
-          if (IsCommentHateful(currentComment)) {
-            authorStatsList[existingAuthorIndex].numberOfHatefulComments += 1;
-          }
+        // Si l'auteur est déjà dans la liste, on incrémente le nombre de commentaires
+        authorStatsList[existingAuthorIndex].numberOfComments += 1;
+        if (isCommentHateful(currentComment)) {
+          authorStatsList[existingAuthorIndex].numberOfHatefulComments += 1;
         }
       }
       return authorStatsList;
