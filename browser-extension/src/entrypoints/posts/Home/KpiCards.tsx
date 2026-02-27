@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { Spinner } from "@/components/ui/spinner";
-import { IsCommentHateful } from "@/shared/utils/classification-util";
+import { IsCommentHateful } from "@/shared/utils/post-util";
 
 type KpiCardsProps = {
   posts: PostSnapshot[] | undefined;
