@@ -1,4 +1,5 @@
 import { PostSnapshot, PostSnapshotSchema } from "@/shared/model/PostSnapshot";
+import { IsCommentPublishedAfter as IsPostPublishedAfter, IsCommentPublishedBefore as IsPostPublishedBefore } from "../utils/post-util";
 
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
@@ -72,16 +73,17 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
   to?: Date,
 ): Promise<PostSnapshot[]> {
   let posts = await getPostSnapshots();
-  console.log(socialNetworkFilter);
   if (socialNetworkFilter && socialNetworkFilter.length > 0) {
     posts = posts.filter((p) => socialNetworkFilter.includes(p.socialNetwork));
   }
 
+console.log(posts);
+
   if (from) {
-    posts = posts.filter((p) => new Date(p.scrapedAt) >= from);
+    posts = posts.filter((p) => IsPostPublishedAfter(p, from));
   }
   if (to) {
-    posts = posts.filter((p) => new Date(p.scrapedAt) <= to);
+    posts = posts.filter((p) => IsPostPublishedBefore(p, to));
   }
 
   return posts;
