@@ -73,11 +73,26 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
   to?: Date,
 ): Promise<PostSnapshot[]> {
   let posts = await getPostSnapshots();
+
+  // Conserver uniquement les snapshots les plus récents
+  posts = posts.reduce((latestPosts: PostSnapshot[], currentPost) => {
+    // Si le post n'est pas encore dans la liste des posts les plus récents, on l'ajoute
+    if(latestPosts.every((p) => p.postId !== currentPost.postId)) {
+      latestPosts.push(currentPost);
+    } else {
+      // Si le post est déjà dans la liste, on vérifie si le snapshot actuel est plus récent que celui déjà présent
+      const existingPostIndex = latestPosts.findIndex((p) => p.postId === currentPost.postId);
+      if (existingPostIndex !== -1 && currentPost.scrapedAt > latestPosts[existingPostIndex].scrapedAt) {
+        latestPosts[existingPostIndex] = currentPost;
+      }
+    }
+    return latestPosts;
+  }, []);
+
+  // Application des filtres de réseau social et de période de publication
   if (socialNetworkFilter && socialNetworkFilter.length > 0) {
     posts = posts.filter((p) => socialNetworkFilter.includes(p.socialNetwork));
   }
-
-console.log(posts);
 
   if (from) {
     posts = posts.filter((p) => IsPostPublishedAfter(p, from));
