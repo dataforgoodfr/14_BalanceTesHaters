@@ -7,7 +7,6 @@ import {
   isCommentHateful,
 } from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
-import { X } from "lucide-react";
 
 type KpiCardsProps = {
   posts: PostSnapshot[] | undefined;
