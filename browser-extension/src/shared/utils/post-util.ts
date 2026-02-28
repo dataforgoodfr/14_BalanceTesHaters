@@ -52,16 +52,9 @@ export function getAllCommentsAndRepliesFromPost(
 export function getAllRepliesFromComment(
   comment: CommentSnapshot,
 ): CommentSnapshot[] {
-  return comment.replies?.reduce((allComments: CommentSnapshot[], reply) => {
-    // Ajout des réponses directes du commentaire actuel
-    allComments.push(reply);
+  if (!comment.replies || comment.replies.length === 0) {
+    return [];
+  }
 
-    if (reply.replies.length > 0) {
-      // Appel récursif pour chaque réponse afin d'obtenir les réponses imbriquées
-      reply.replies.forEach((reply) => {
-        allComments.push(...getAllRepliesFromComment(reply));
-      });
-    }
-    return allComments;
-  }, []);
+  return comment.replies.flatMap((r) => [r, ...getAllRepliesFromComment(r)]);
 }
