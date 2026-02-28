@@ -162,4 +162,7 @@ cython_debug/
 # Precommit hooks: ruff cache
 .ruff_cache
 
+# Data
+backend/balanceteshaters/data/
+
 .DS_Store

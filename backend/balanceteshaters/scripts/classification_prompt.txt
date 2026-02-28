@@ -1,0 +1,2 @@
+Classifie le prompt dans une des catégories et ne répond qu'avec la catégorie choisie, aucun texte autre que le nom de catégorie : 'ABSENCE_DE_CYBERHARCELEMENT', 'CYBERHARCELEMENT_DEFINITION_GENERALE', 'CYBERHARCELEMENT_A_CARACTERE_SEXUEL, 'MENACES', ''INCITATION_AU_SUICIDE', 'INJURE_ET_DIFFAMATION_PUBLIQUE', 'DOXXING', ''INCITATION_A_LA_HAINE'.
+

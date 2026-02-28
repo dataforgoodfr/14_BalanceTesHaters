@@ -1,0 +1,3 @@
+id,comment,original_file_name,annotated_category,annotation_confidence,comment_translation,original_category,predicted_category
+4,jesus is king 👑,barbara.xlsx,Cyberharcèlement (définition générale),0 (no confidence / high doubt),"""Jésus est roi""",Religion,MENACES
+5,Yuck.,barbara.xlsx,Injure et diffamation publique,1 (high confidence / no doubt),Beurk.,Insulte,INJURE_ET_DIFFAMATION_PUBLIQUE

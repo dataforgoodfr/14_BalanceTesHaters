@@ -44,33 +44,28 @@ class Annotation(BaseModel):
     id: int = Field(..., description="ID from NocoDB")
     # FIXME: add CreatedAt and UpdatedAt
     comment: str = Field(..., description="Comment text")
-    original_file_name: str = Field(
-        ..., description="Name of the file from which this comment was imported"
-    )
-    annotated_category: AnnotatedCategory | None = Field(
-        None, description="Category that was chosen to annotate this comment"
-    )
-    annotation_confidence: AnnotationConfidence | None = Field(
-        None,
-        description="Confidence level of the assigner when choosing `annotated_category`",
-    )
-    comment_translation: str | None = Field(
-        None, description="Translation in french of the comment (when applicable)"
-    )
-    original_category: str | None = Field(
-        None, description="Category that was assigned in the original file"
-    )
+    original_file_name: str | None = Field(None, description="Name of the file from which this comment was imported")
+
+    annotated_category: list[AnnotatedCategory] | None = Field(None, description="Category that was chosen to annotate this comment")
+    annotation_confidence: AnnotationConfidence | None = Field(None, description="Confidence level of the assigner when choosing `annotated_category`")
+    comment_translation: str | None = Field(None, description="Translation in french of the comment (when applicable)")
+    original_category: str | None = Field(None, description="Category that was assigned in the original file")
 
     @model_validator(mode="before")
     @classmethod
     def parse_id(cls, data: Any) -> Any:
         if "Id" not in data:
             raise ValueError("Missing field 'Id'")
-
         # Rename 'Id' to 'id'
         data["id"] = data["Id"]
         del data["Id"]
+    
+        return data
 
+    @model_validator(mode='before')
+    @classmethod
+    def handle_annotated_category(cls, data: Any) -> Any:
+        data['annotated_category']=data['annotated_category'].split(',')
         return data
 
 
