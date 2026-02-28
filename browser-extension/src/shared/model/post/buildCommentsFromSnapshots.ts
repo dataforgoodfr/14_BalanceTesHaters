@@ -1,99 +1,108 @@
 import { PostComment } from "./Post";
-import { CommentSnapshot, PostSnapshot } from "../PostSnapshot";
-import { LayoutTemplate } from "lucide-react";
-import { PublicationDate } from "../PublicationDate";
+import {
+  CommentSnapshot,
+  flattenCommentsSnapshotReplies,
+  PostSnapshot,
+} from "../PostSnapshot";
 
-/**
- * 
-### 
- PostSnapshot1
-  => Commentaire 1
-  => Commentaire 2
-  => Commentaire 3 
-
-PostSnapshot2
-  => Commentaire 1
-  => Commentaire 2 => Edité
-  => Commentaire 3 => Supprimé
-  => Commentaire 4 
-
-Post
-  => Commentaire 1
-  => Commentaire 2
-  => Commentaire 2 v2
-  => Commentaire 3 (supprimé) 
-  => Commentaire 4
- */
-class CommentsBuilder {
-  private readonly commentsHolders: CommentSnapshotsHolder[] = [];
-
-  constructor() {}
-
+type CommentSnapshotWithPostSnapshotInfo = {
   /**
-   * To be called in order for each  snapshots from oldest to most recent
-   * @param commentSnapshots
+   * True if part of latest post snapshot
    */
-  addSnapshotComments(commentSnapshots: CommentSnapshot[]): void {
-    let minIndex = 0;
-    for (const commentSnapshot of commentSnapshots) {
-      const matching = self.findMatchingCommentIndex(minIndex, commentSnapshot);
-
-      if (this.commentsHolders.length < minIndex) {
-        this.commentsHolders.push({ snapshots: [commentSnapshot] });
-        continue;
-      }
-
-      minIndex++;
-    }
-  }
-
-  private findMatchingCommentIndex(
-    minIndex: number,
-    commentSnapshot: CommentSnapshot,
-  ): number {
-    this.commentsHolders.findIndex((holder, index) => 
-      index >= minIndex && isHolderMatchingComment(holder.
-    );
-  }
-
-  
-
-  buildComments(): PostComment[] {
-    return [];
-  }
-}
-
-export function buildCommentsFromSnapshots(
-  allCommentSnapshots: CommentSnapshot[][],
-): PostComment[] {
-  const builder = new CommentsBuilder();
-  for (const snapshotComments of allCommentSnapshots) {
-    builder.addSnapshotComments(snapshotComments);
-  }
-
-  return builder.buildComments();
-}
-
-function isHolderMatchingComment(commentsSnapshotsHolder: CommentSnapshotsHolder, commentSnapshot:CommentSnapshot): boolean {
-    
-  const lastestSnapshot = commentsSnapshotsHolder.snapshots[commentsSnapshotsHolder.snapshots.length - 1]!;
-  if (lastestSnapshot.commentId && commentSnapshot.commentId) {
-    return lastestSnapshot.commentId == commentSnapshot.commentId
-  }
-  // Fallback to author + date comparison
-  return lastestSnapshot.author == commentSnapshot.author && areDateMatching(lastestSnapshot.publishedAt, commentSnapshot.publishedAt)
-  
-}
-
-function areDateMatching(date1:PublicationDate, date2:PublicationDate): boolean {
-  if (date1.type === "absolute" && date2.type === "absolute") {
-    return date1.date == date2.date;
-  }
-  throw new Error("Comparing non absolute date is not yet implemented");
-}
-
-type CommentSnapshotsHolder = {
-  // Keeps positional comments
-  // undefined if comment is not present for snapshot at corresponding index
-  snapshots: Array<CommentSnapshot | undefined>;
+  isLatestPostSnapshot: boolean;
+  commentSnapshot: CommentSnapshot;
 };
+export function buildCommentsFromSnapshots(
+  postSnapshots: PostSnapshot[],
+): PostComment[] {
+  // Flatten all comments from all snapshots adding  post index info
+  const flattenedCommentSnapshots: CommentSnapshotWithPostSnapshotInfo[] =
+    postSnapshots.flatMap((postSnapshot, postSnapshotIndex) =>
+      flattenCommentsSnapshotReplies(postSnapshot.comments).map(
+        (commentSnapshot) => ({
+          commentSnapshot,
+          isLatestPostSnapshot: postSnapshotIndex === postSnapshots.length - 1,
+        }),
+      ),
+    );
+
+  // Group them by comment id
+  const groupedCommentSnapshots = Object.groupBy(
+    flattenedCommentSnapshots,
+    (cs) => commentId(cs.commentSnapshot),
+  );
+
+  // For each group build the resulting comments
+  return Object.entries(groupedCommentSnapshots).flatMap(
+    ([_, commentSnapshotsInGroup]) =>
+      buildPostCommentsForGroup(commentSnapshotsInGroup || []),
+  );
+}
+
+function buildPostCommentsForGroup(
+  snapshotCommentsInGroup: CommentSnapshotWithPostSnapshotInfo[],
+): PostComment[] {
+  if (snapshotCommentsInGroup.length === 0) return [];
+
+  const postComments: PostComment[] = [];
+
+  // ADD first
+  snapshotCommentsInGroup.forEach((commentSnapshotWihPostInfo, index) => {
+    if (
+      // Also keep first snapshot
+      index === 0 ||
+      // Also keep first snapshot that changes text
+      commentSnapshotWihPostInfo.commentSnapshot.textContent !==
+        snapshotCommentsInGroup[index - 1].commentSnapshot.textContent
+    ) {
+      const snapshotsCommentsAfter = snapshotCommentsInGroup.slice(index + 1);
+      postComments.push(
+        createPostComment(commentSnapshotWihPostInfo.commentSnapshot, {
+          isNew: commentSnapshotWihPostInfo.isLatestPostSnapshot,
+          // Deleted means
+          isDeleted:
+            //  - A snapshot after changed text
+            snapshotsCommentsAfter.some(
+              (other) =>
+                commentSnapshotWihPostInfo.commentSnapshot.textContent !==
+                other.commentSnapshot.textContent,
+            ) ||
+            //  - Comment was completely deleted => No snapshot after have the isLatestPostSnapshot
+            (!commentSnapshotWihPostInfo.isLatestPostSnapshot &&
+              snapshotCommentsInGroup
+                .slice(index + 1)
+                .every((other) => !other.isLatestPostSnapshot)),
+        }),
+      );
+    }
+  });
+  // iterator on remaining
+  return postComments;
+}
+
+function createPostComment(
+  commentSnapshot: CommentSnapshot,
+  postCommentSpecificProps: Pick<PostComment, "isNew" | "isDeleted">,
+): PostComment {
+  return {
+    commentSnapshotId: commentSnapshot.id,
+    author: commentSnapshot.author,
+    publishedAt: commentSnapshot.publishedAt,
+    textContent: commentSnapshot.textContent,
+    classification: commentSnapshot.classification,
+    classifiedAt: commentSnapshot.classifiedAt,
+    ...postCommentSpecificProps,
+  };
+}
+
+function commentId(comment: CommentSnapshot): string {
+  if (comment.commentId) {
+    return comment.commentId;
+  }
+
+  if (comment.publishedAt.type === "absolute") {
+    // Use author + date as alternate comment id
+    return comment.author.name + "@" + comment.publishedAt.date;
+  }
+  throw new Error("Need a comment id or an oabsolute date");
+}

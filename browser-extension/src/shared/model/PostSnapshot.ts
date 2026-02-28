@@ -3,6 +3,7 @@ import { PublicationDateSchema } from "./PublicationDate";
 import { SocialNetworkNameSchema } from "./SocialNetworkName";
 import { AuthorSchema } from "./Author";
 import { ClassificationStatusSchema } from "./ClassificationStatus";
+import { CommentSnapshot } from "./PostSnapshot";
 
 export const CommentSnapshotSchema = z.object({
   /**
@@ -104,3 +105,17 @@ export const PostSnapshotSchema = z.object({
  * A post snapshot represents a social network post scraped as scraped at a given date
  */
 export type PostSnapshot = z.infer<typeof PostSnapshotSchema>;
+
+/**
+ * Flatten comments hierarchy into a single list
+ * @param comments
+ * @returns
+ */
+export function flattenCommentsSnapshotReplies(
+  comments: CommentSnapshot[],
+): CommentSnapshot[] {
+  return comments.flatMap((c) => [
+    c,
+    ...flattenCommentsSnapshotReplies(c.replies),
+  ]);
+}

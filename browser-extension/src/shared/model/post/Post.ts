@@ -1,7 +1,4 @@
-import { build } from "wxt";
 import { CommentSnapshot, PostSnapshot } from "../PostSnapshot";
-import { id } from "date-fns/locale";
-
 /**
  * Merged view of Post Snapshot
  */
@@ -16,19 +13,15 @@ export type Post = Pick<
   | "coverImageUrl"
   | "textContent"
 > & {
+  // Flat list of all comments
   comments: PostComment[];
 };
 
 export type PostComment = Pick<
   CommentSnapshot,
-  | "commentId"
-  | "author"
-  | "publishedAt"
-  | "textContent"
-  | "classification"
-  | "classifiedAt"
+  "author" | "publishedAt" | "textContent" | "classification" | "classifiedAt"
 > & {
-  replies: PostComment[];
+  commentSnapshotId: string;
   /**
    * True if comment was added in latest snapshot of post
    */
@@ -36,5 +29,5 @@ export type PostComment = Pick<
   /**
    * True if comment was deleted in a more recent snapshot of post
    */
-  isDelete: boolean;
+  isDeleted: boolean;
 };

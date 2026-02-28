@@ -29,6 +29,6 @@ export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
     coverImageUrl: latest.coverImageUrl,
     textContent: latest.textContent,
     title: latest.title,
-    comments: buildCommentsFromSnapshots(snapshots.map((s) => s.comments)),
+    comments: buildCommentsFromSnapshots(snapshots),
   };
 }
