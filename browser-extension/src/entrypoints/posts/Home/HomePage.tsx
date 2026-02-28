@@ -50,10 +50,10 @@ function HomePage() {
 
       <KpiCards posts={data} isLoading={isLoading} />
 
-      <HarassmentTrendChart posts={data} isLoading={isLoading} />
+      <HarassmentTrendChart />
       <div className="flex gap-4">
         <ActiveAuthors posts={data} isLoading={isLoading} />
-        <CategoryDistribution posts={data} isLoading={isLoading} />
+        <CategoryDistribution />
       </div>
     </div>
   );
