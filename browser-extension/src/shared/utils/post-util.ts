@@ -1,6 +1,7 @@
-import { CommentSnapshot, PostSnapshot } from "../model/PostSnapshot";
+import { PostComment } from "../model/post/Post";
+import { PostSnapshot } from "../model/PostSnapshot";
 
-export function isCommentHateful(comment: CommentSnapshot): boolean {
+export function isCommentHateful(comment: PostComment): boolean {
   return (comment.classification?.length ?? 0) > 0;
 }
 
@@ -24,37 +25,4 @@ export function isPostPublishedBefore(post: PostSnapshot, date: Date): boolean {
     case "unknown date":
       return true; // if we don't know the date, we always consider the comment as published after the given date (to avoid excluding it from analyses)
   }
-}
-
-// Récupère tous les commentaires d'une liste de posts, ainsi que toutes leurs réponses (de manière récursive)
-export function getAllCommentsAndRepliesFromPostList(
-  posts: PostSnapshot[],
-): CommentSnapshot[] {
-  return posts.flatMap((post) => getAllCommentsAndRepliesFromPost(post));
-}
-
-// Récupère tous les commentaires d'un post, ainsi que toutes leurs réponses (de manière récursive)
-export function getAllCommentsAndRepliesFromPost(
-  post: PostSnapshot,
-): CommentSnapshot[] {
-  return (
-    post.comments.reduce((allComments: CommentSnapshot[], currentComment) => {
-      allComments.push(
-        currentComment,
-        ...getAllRepliesFromComment(currentComment),
-      );
-      return allComments;
-    }, []) ?? []
-  );
-}
-
-// Récupère récursivement toutes les réponses d'un commentaire
-export function getAllRepliesFromComment(
-  comment: CommentSnapshot,
-): CommentSnapshot[] {
-  if (!comment.replies || comment.replies.length === 0) {
-    return [];
-  }
-
-  return comment.replies.flatMap((r) => [r, ...getAllRepliesFromComment(r)]);
 }

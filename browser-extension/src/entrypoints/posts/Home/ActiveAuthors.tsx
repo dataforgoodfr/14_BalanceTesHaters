@@ -2,13 +2,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { CircleUserRound } from "lucide-react";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  getAllCommentsAndRepliesFromPostList,
-  isCommentHateful,
-} from "@/shared/utils/post-util";
+import { isCommentHateful } from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
+import { Post } from "@/shared/model/post/Post";
 
 type AuthorStats = {
   name: string;
@@ -17,12 +14,12 @@ type AuthorStats = {
 };
 
 type ActiveAuthorsProps = {
-  posts: PostSnapshot[] | undefined;
+  posts: Post[] | undefined;
   isLoading: boolean;
 };
 
 function ActiveAuthors({ posts, isLoading }: Readonly<ActiveAuthorsProps>) {
-  const allComments = getAllCommentsAndRepliesFromPostList(posts ?? []);
+  const allComments = (posts || []).flatMap((p) => p.comments);
 
   const authorStatsList = allComments
     .reduce((authorStatsList: AuthorStats[], currentComment) => {

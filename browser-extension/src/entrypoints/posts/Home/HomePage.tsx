@@ -6,7 +6,7 @@ import SocialNetworkSelector from "./SocialNetworkSelector";
 import DateRangePicker from "./DateRangePicker";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getPostSnapshotsBySocialNetworkAndPeriod } from "@/shared/storage/post-snapshot-storage";
+import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { addMonths } from "date-fns";
 import { type DateRange } from "react-day-picker";
 
@@ -30,7 +30,7 @@ function HomePage() {
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
-      getPostSnapshotsBySocialNetworkAndPeriod(
+      getPostsBySocialNetworkAndPeriod(
         socialNetworkFilter,
         dateRange?.from,
         dateRange?.to,
