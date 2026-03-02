@@ -12,7 +12,13 @@ import sys
 from dotenv import load_dotenv
 import re
 from ollama import chat
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+import torch
+
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,  
+    bnb_4bit_compute_dtype=torch.float16,
+)
 
 
 
@@ -65,10 +71,14 @@ if __name__ == "__main__":
         writer.writeheader()
 
         iterator = enumerate(tqdm(data, desc="Classifying", unit="rec", total=total))
+        tokenizer = AutoTokenizer.from_pretrained(args.model)
+        model = AutoModelForCausalLM.from_pretrained(
+            args.model,
+            quantization_config=bnb_config,
+            device_map="auto",
+        )
 
         for idx, record in iterator:
-            tokenizer = AutoTokenizer.from_pretrained(args.model)
-            model = AutoModelForCausalLM.from_pretrained(args.model)
             messages = [{'role': 'user', 'content': f"{prompt_instructions} Prompt à classifier : {record.comment}"}]
             inputs = tokenizer.apply_chat_template(
             	messages,

@@ -6,6 +6,7 @@ A prendre en compte : si le commentaire semble ironique, sarcastique, cela peut 
 
 Par exemple (tu trouveras justement des exemples d'ironie ou d'emojis qui sont déjà du cyberharcèlement car ils semblent dénigrer la personne à qui ils s'adressent):
 - 💩 : 1
+- 🐒 : 1
 - ❤️ : 0
 - Tu es grosse : 1
 - Belle vidéo ! : 0
@@ -14,10 +15,14 @@ Par exemple (tu trouveras justement des exemples d'ironie ou d'emojis qui sont d
 - Va te f**** : 1
 - Répugnant : 1
 - Bravo : 0
+- Que Dieu te guide… : 1
+- Tu es incroyable ! 0
+- On t'aime ! 0
 
 
 Explication des exemples (Ces explications sont faites pour t'aider, tu ne dois pas en fournir dans tes réponses):
 - L'emoji 💩 dans le contexte d'un commentaire sur un réseau social sous-entend que le contenu est "merdique", ce qui peut constituer du cyberharcèlement.
+- L'emoji 🐒 sous-entend souvent "tu es un singe" pour dire "ce que tu as dit est bête", donc c'est dénigrant 
 - L'emoji ❤️ est bienveillant
 - 'Tu es grosse' est une attaque et dénigrent la personne concernée
 - 'Belle vidéo' est positif, glorifiant
@@ -26,5 +31,8 @@ Explication des exemples (Ces explications sont faites pour t'aider, tu ne dois 
 - 'Va te f****' : L'insulte est masquée par les ***, mais le commentaire veut dire "Va te faire foutre", ce qui est clairement dénigrant
 - 'Répugnant' : Clairement dénigrant
 - 'Bravo' : Positif 
+- 'Que Dieu te guide...' : la phrase à elle seule semble indiquer que la personne est "égarée", ce qui est déjà dénigrant, et les '...' rajoute un ton négatif.
+- 'Tu es incroyable' est très positif et aucune ponctuation n'indique un ton ironique 
+- 'On t'aime !' est également dit de façon positive, encore plus avec la ponctuation'!' 
 
-Avant de répondre, découpe ton raisonnement étape par étape, et pose-toi notamment ces questions : le commentaire global semble-t-il dénigrant, même de façon ironique ? Est-il fait pour blesser, dénigrer ? Ou bien valorise-t-il une personne ou un contenu ? 
+Avant de répondre, découpe ton raisonnement étape par étape, et pose-toi notamment ces questions : le commentaire global semble-t-il dénigrant, même de façon ironique ? Est-il fait pour blesser, dénigrer ? Ou bien valorise-t-il une personne ou un contenu ? Si c'est un emoji, quelle peut être sa signification, et est-ce que cela est négatif ? 
