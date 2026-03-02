@@ -3,6 +3,7 @@ import {
   isPostPublishedAfter as IsPostPublishedAfter,
   isPostPublishedBefore as IsPostPublishedBefore,
 } from "../utils/post-util";
+import { SocialNetworkName } from "../model/SocialNetworkName";
 
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
@@ -77,24 +78,6 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
 ): Promise<PostSnapshot[]> {
   let posts = await getPostSnapshots();
 
-  // Conserver uniquement les snapshots les plus récents
-  posts = posts.reduce((latestPosts: PostSnapshot[], currentPost) => {
-    const existingPostIndex = latestPosts.findIndex(
-      (p) => p.postId === currentPost.postId,
-    );
-
-    // Si le post n'est pas encore dans la liste des posts les plus récents, on l'ajoute
-    if (existingPostIndex === -1) {
-      latestPosts.push(currentPost);
-    } else if (
-      currentPost.scrapedAt > latestPosts[existingPostIndex].scrapedAt
-    ) {
-      // Si le post est déjà dans la liste et si le snapshot actuel est plus récent, on le met à jour
-      latestPosts[existingPostIndex] = currentPost;
-    }
-    return latestPosts;
-  }, []);
-
   // Application des filtres de réseau social et de période de publication
   if (socialNetworkFilter && socialNetworkFilter.length > 0) {
     posts = posts.filter((p) => socialNetworkFilter.includes(p.socialNetwork));
@@ -110,19 +93,21 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
   return posts;
 }
 
+export async function getPostSnapshotsForPostId(
+  socialNetwork: SocialNetworkName,
+  postId: string,
+): Promise<PostSnapshot[]> {
+  const posts = await getPostSnapshots();
+  return posts.filter(
+    (p) => p.socialNetwork === socialNetwork && p.postId === postId,
+  );
+}
+
 export async function getPostSnapshotById(
   postSnapshotId: string,
 ): Promise<PostSnapshot | undefined> {
   const posts = await getPostSnapshots();
   return posts.find((p) => p.id === postSnapshotId);
-}
-
-export async function getPostSnapshotByPostIdAndScrapedAt(
-  postId: string,
-  scrapedAt: string,
-): Promise<PostSnapshot | undefined> {
-  const posts = await getPostSnapshots();
-  return posts.find((p) => p.postId === postId && p.scrapedAt === scrapedAt);
 }
 
 export async function getPostSnapshotsByPostId(

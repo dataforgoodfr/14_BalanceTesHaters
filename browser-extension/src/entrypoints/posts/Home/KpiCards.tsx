@@ -1,15 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { Spinner } from "@/components/ui/spinner";
-import {
-  getAllCommentsAndRepliesFromPostList,
-  isCommentHateful,
-} from "@/shared/utils/post-util";
+import { isCommentHateful } from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
+import { Post } from "@/shared/model/post/Post";
 
 type KpiCardsProps = {
-  posts: PostSnapshot[] | undefined;
+  posts: Post[] | undefined;
   isLoading: boolean;
 };
 
@@ -18,13 +15,7 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
   let numberOfHatefulComments = 0;
   let numberOfHatefulAuthors = 0;
 
-  const allComments = getAllCommentsAndRepliesFromPostList(posts ?? []);
-  console.log(
-    "allComments",
-    allComments,
-    allComments.map((c) => c.textContent),
-  );
-
+  const allComments = (posts || []).flatMap((p) => p.comments);
   if (allComments.length !== 0) {
     const hatefulComments = allComments.filter((c) => isCommentHateful(c));
     numberOfHatefulComments = hatefulComments.length;
