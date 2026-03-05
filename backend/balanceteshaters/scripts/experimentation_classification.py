@@ -12,6 +12,7 @@ import re
 import sys
 from pathlib import Path
 
+from balanceteshaters.services.nocodb import NocoDBService
 from dotenv import load_dotenv
 from ollama import chat
 
@@ -37,10 +38,12 @@ if __name__ == "__main__":
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
     nocodb_annotation_table_id: str = os.environ["NOCODB_ANNOTATION_TABLE_ID"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
+    nocodb_base_id: str = os.environ["NOCODB_BASE_ID"]
+    nocodb = NocoDBService(
+        nocodb_url=nocodb_base_url, token=nocodb_token, base_id=nocodb_base_id
+    )
     service = AnnotationService(
-        base_url=nocodb_base_url,
-        annotation_table_id=nocodb_annotation_table_id,
-        token=nocodb_token,
+        nocodb=nocodb, annotation_table_id=nocodb_annotation_table_id
     )
 
     data = service.get_annotations()

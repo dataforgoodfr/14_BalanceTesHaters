@@ -73,12 +73,6 @@ class Annotation(BaseModel):
 
         return data
 
-    @model_validator(mode="before")
-    @classmethod
-    def handle_annotated_category(cls, data: Any) -> Any:
-        data["annotated_category"] = data["annotated_category"].split(",")
-        return data
-
 
 class AnnotationService:
     def __init__(self, nocodb: NocoDBService, annotation_table_id: str):
@@ -86,15 +80,19 @@ class AnnotationService:
         self.nocodb = nocodb
 
     def get_annotations(self, limit: int = 25) -> list[Annotation]:
-        response = self.nocodb.get_records(table_id=self.annotation_table_id)
+        response_dict = self.nocodb.get_records(
+            table_id=self.annotation_table_id, limit=limit
+        )
 
-        response_dict: dict[str, Any] = response.json()
-        if "list" not in response_dict:
+        if "records" not in response_dict:
             raise ValueError("No record found in response")
 
         annotations = []
-        records: list[dict[str, Any]] = response_dict["list"]
-        for record in records:
+        records: list[dict[str, Any]] = response_dict["records"]
+        for r in records:
+            record = {}
+            record["Id"] = r["id"]
+            record = record | r["fields"]
             annotation = Annotation.model_validate(record)
             annotations.append(annotation)
 
