@@ -12,6 +12,7 @@ import re
 import sys
 from pathlib import Path
 
+from balanceteshaters.services.annotation import Annotation, AnnotationService
 from balanceteshaters.services.nocodb import NocoDBService
 from dotenv import load_dotenv
 from ollama import chat
@@ -22,7 +23,6 @@ if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
 if __name__ == "__main__":
-    from compute_annotation_stats import Annotation, AnnotationService
     from tqdm import tqdm
 
     parser = argparse.ArgumentParser()
