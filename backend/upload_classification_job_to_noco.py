@@ -8,7 +8,6 @@ from balanceteshaters.services.nocodb import NocoDBService
 def upload_comments(service, comments: dict[str, str]):
     for comment in comments:
         nocodb.create_record(
-            base_id="ppi0re931qn0gqh",
             table_id="m352wosvedsw45k",
             data={
                 "fields": {
@@ -47,8 +46,7 @@ if __name__ == "__main__":
     bth_token_api: str = os.environ["BTH_API_TOKEN"]
 
     nocodb = NocoDBService(
-        base_url=nocodb_base_url,
-        token=nocodb_token,
+        base_url=nocodb_base_url, token=nocodb_token, base_id="ppi0re931qn0gqh"
     )
 
     # Parse command-line arguments
