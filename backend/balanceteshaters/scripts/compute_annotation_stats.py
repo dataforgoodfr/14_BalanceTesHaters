@@ -5,8 +5,8 @@ import unicodedata
 from enum import Enum
 from typing import Any
 
-import requests
 from balanceteshaters.classification.category import AnnotatedCategory
+from balanceteshaters.services.nocodb import NocoDBService
 from lingua import LanguageDetectorBuilder
 from pydantic import BaseModel, Field, model_validator
 
@@ -44,12 +44,23 @@ class Annotation(BaseModel):
     id: int = Field(..., description="ID from NocoDB")
     # FIXME: add CreatedAt and UpdatedAt
     comment: str = Field(..., description="Comment text")
-    original_file_name: str | None = Field(None, description="Name of the file from which this comment was imported")
+    original_file_name: str | None = Field(
+        None, description="Name of the file from which this comment was imported"
+    )
 
-    annotated_category: list[AnnotatedCategory] | None = Field(None, description="Category that was chosen to annotate this comment")
-    annotation_confidence: AnnotationConfidence | None = Field(None, description="Confidence level of the assigner when choosing `annotated_category`")
-    comment_translation: str | None = Field(None, description="Translation in french of the comment (when applicable)")
-    original_category: str | None = Field(None, description="Category that was assigned in the original file")
+    annotated_category: list[AnnotatedCategory] | None = Field(
+        None, description="Category that was chosen to annotate this comment"
+    )
+    annotation_confidence: AnnotationConfidence | None = Field(
+        None,
+        description="Confidence level of the assigner when choosing `annotated_category`",
+    )
+    comment_translation: str | None = Field(
+        None, description="Translation in french of the comment (when applicable)"
+    )
+    original_category: str | None = Field(
+        None, description="Category that was assigned in the original file"
+    )
 
     @model_validator(mode="before")
     @classmethod
@@ -59,30 +70,23 @@ class Annotation(BaseModel):
         # Rename 'Id' to 'id'
         data["id"] = data["Id"]
         del data["Id"]
-    
+
         return data
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def handle_annotated_category(cls, data: Any) -> Any:
-        data['annotated_category']=data['annotated_category'].split(',')
+        data["annotated_category"] = data["annotated_category"].split(",")
         return data
 
 
-class NocoDBService:
-    def __init__(self, base_url: str, annotation_table_id: str, token: str):
-        self.base_url = base_url
+class AnnotationService:
+    def __init__(self, nocodb: NocoDBService, annotation_table_id: str):
         self.annotation_table_id = annotation_table_id
-        self.token = token
+        self.nocodb = nocodb
 
     def get_annotations(self, limit: int = 25) -> list[Annotation]:
-        url = f"{self.base_url}/api/v2/tables/{self.annotation_table_id}/records"
-        headers = {"accept": "application/json", "xc-token": self.token}
-        params = {"limit": limit}
-
-        # FIXME: Implement pagination by leveraging the key "pageInfo" and the parameter "offset"
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
+        response = self.nocodb.get_records(table_id=self.annotation_table_id)
 
         response_dict: dict[str, Any] = response.json()
         if "list" not in response_dict:
@@ -96,16 +100,6 @@ class NocoDBService:
 
         return annotations
 
-    def get_table_info(self) -> dict[str, Any]:
-        """Fetch table metadata from NocoDB."""
-        url = f"{self.base_url}/api/v2/meta/tables/{self.annotation_table_id}"
-        headers = {"accept": "application/json", "xc-token": self.token}
-
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-
-        return response.json()
-
     def build_where_clause(
         self,
         annotation_category_filter: list[AnnotatedCategory] | None = None,
@@ -116,11 +110,11 @@ class NocoDBService:
             annotation_category_filter is not None
             and annotation_confidence_filter is not None
         ):
-            return f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})~and((annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)})"
+            return f"(annotated_category,anyof,{','.join(f"'{category.value}'" for category in annotation_category_filter)})~and((annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)})"
         elif annotation_category_filter is not None:
-            return f"(annotated_category,anyof,{','.join(category.value for category in annotation_category_filter)})"
+            return f"(annotated_category,anyof,{','.join(f"'{category.value}'" for category in annotation_category_filter)})"
         elif annotation_confidence_filter is not None:
-            return f"(annotation_confidence,anyof,{','.join(confidence.value for confidence in annotation_confidence_filter)}"
+            return f"(annotation_confidence,anyof,{','.join(f"'{category.value}'" for confidence in annotation_confidence_filter)}"
         return None
 
     def fetch_records_paginated(
@@ -137,21 +131,12 @@ class NocoDBService:
         Returns:
             List of all records matching the criteria
         """
-        url = f"{self.base_url}/api/v2/tables/{self.annotation_table_id}/records"
-        headers = {"accept": "application/json", "xc-token": self.token}
-
         all_records = []
         offset = 0
 
         while True:
-            params = {"limit": limit, "offset": offset, "fields": ",".join(fields)}
-            if where_clause is not None:
-                params["where"] = where_clause
+            response_dict = self.nocodb.get_records(table_id=self.annotation_table_id)
 
-            response = requests.get(url, headers=headers, params=params)
-            response.raise_for_status()
-
-            response_dict: dict[str, Any] = response.json()
             if "list" not in response_dict:
                 break
 
@@ -239,25 +224,16 @@ class NocoDBService:
         | None = None,  # FIXME: allow to filter rows for which no category is defined
         annotation_confidence_filter: list[AnnotationConfidence] | None = None,
     ) -> int:
-        url = f"{self.base_url}/api/v2/tables/{self.annotation_table_id}/records/count"
-        headers = {"accept": "application/json", "xc-token": self.token}
-
         where_string = self.build_where_clause(
             annotation_category_filter, annotation_confidence_filter
         )
+        self.nocodb.count_records(
+            table_id=self.annotation_table_id, where_str=where_string
+        )
 
-        params = {}
-        if where_string is not None:
-            params["where"] = where_string
-
-        response = requests.get(url, headers=headers, params=params)
-        response.raise_for_status()
-
-        response_dict: dict[str, Any] = response.json()
-        if "count" not in response_dict:
-            raise ValueError("No count found in response")
-
-        count = response_dict["count"]
+        count = self.nocodb.count_records(
+            table_id=self.annotation_table_id, where_str=where_string
+        )
         return count
 
     def count_languages(
@@ -336,16 +312,18 @@ if __name__ == "__main__":
         )
 
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
+    nocodb_base_id: str = os.environ["NOCODB_BASE_ID"]
     nocodb_annotation_table_id: str = os.environ["NOCODB_ANNOTATION_TABLE_ID"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
-    service = NocoDBService(
-        base_url=nocodb_base_url,
-        annotation_table_id=nocodb_annotation_table_id,
-        token=nocodb_token,
+    nocodb = NocoDBService(
+        nocodb_url=nocodb_base_url, token=nocodb_token, base_id=nocodb_base_id
+    )
+    service = AnnotationService(
+        nocodb=nocodb, annotation_table_id=nocodb_annotation_table_id
     )
 
     # Fetch table info to get the table name
-    table_info = service.get_table_info()
+    table_info = nocodb.get_table_info(nocodb_annotation_table_id)
     table_name = table_info.get("title", nocodb_annotation_table_id)
 
     total_count = service.count_annotations()
