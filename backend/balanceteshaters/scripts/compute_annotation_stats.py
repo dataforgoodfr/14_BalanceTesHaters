@@ -1,36 +1,9 @@
 import argparse
 import os
-import string
-import unicodedata
 
 from balanceteshaters.classification.category import AnnotatedCategory
 from balanceteshaters.services.annotation import AnnotationService
 from balanceteshaters.services.nocodb import NocoDBService
-
-
-def is_symbol(char: str) -> bool:
-    """Check if a character is a symbol (emoji, punctuation, etc.)"""
-    # Check if it's punctuation
-    if char in string.punctuation:
-        return True
-
-    # Check if it's an emoji or symbol using unicode category
-    # As seen here https://www.unicode.org/reports/tr44/tr44-34.html#General_Category_Values
-    # P	refers to Punctuations
-    # S	to Symbols
-
-    category = unicodedata.category(char)
-    return category.startswith("S") or category.startswith("P")
-
-
-def calculate_symbol_proportion(text: str) -> float:
-    """Calculate the proportion of symbols (emoji, punctuation) in text"""
-    if not text:
-        return 0.0
-
-    symbol_count = sum(1 for char in text if is_symbol(char))
-    return symbol_count / len(text)
-
 
 if __name__ == "__main__":
     # Parse command-line arguments

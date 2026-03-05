@@ -1,3 +1,5 @@
+import string
+import unicodedata
 from enum import Enum
 from typing import Any
 
@@ -84,7 +86,7 @@ class AnnotationService:
         elif annotation_category_filter is not None:
             return f"(annotated_category,anyof,{','.join(f"'{category.value}'" for category in annotation_category_filter)})"
         elif annotation_confidence_filter is not None:
-            return f"(annotation_confidence,anyof,{','.join(f"'{category.value}'" for confidence in annotation_confidence_filter)}"
+            return f"(annotation_confidence,anyof,{','.join(f"'{confidence.value}'" for confidence in annotation_confidence_filter)}"
         return None
 
     def fetch_records_paginated(
@@ -142,7 +144,7 @@ class AnnotationService:
         text_stripped = text.strip()
 
         # Check if text is too short or mostly symbols
-        symbol_proportion = calculate_symbol_proportion(text_stripped)
+        symbol_proportion = self.calculate_symbol_proportion(text_stripped)
         tokens = text_stripped.split()
 
         if len(tokens) < 3 or symbol_proportion > 0.5:
@@ -251,3 +253,25 @@ class AnnotationService:
 
         # Calculate and return statistics
         return self.calculate_language_stats(language_counts, empty_count)
+
+    def is_symbol(self, char: str) -> bool:
+        """Check if a character is a symbol (emoji, punctuation, etc.)"""
+        # Check if it's punctuation
+        if char in string.punctuation:
+            return True
+
+        # Check if it's an emoji or symbol using unicode category
+        # As seen here https://www.unicode.org/reports/tr44/tr44-34.html#General_Category_Values
+        # P	refers to Punctuations
+        # S	to Symbols
+
+        category = unicodedata.category(char)
+        return category.startswith("S") or category.startswith("P")
+
+    def calculate_symbol_proportion(self, text: str) -> float:
+        """Calculate the proportion of symbols (emoji, punctuation) in text"""
+        if not text:
+            return 0.0
+
+        symbol_count = sum(1 for char in text if self.is_symbol(char))
+        return symbol_count / len(text)
