@@ -4,13 +4,17 @@ Created on Wed Feb 18 18:20:41 2026
 
 @author: cindy
 """
-import os
+
 import argparse
 import csv
-from pathlib import Path
-import sys
-from dotenv import load_dotenv
+import os
 import re
+import sys
+from pathlib import Path
+
+from balanceteshaters.services.annotation import Annotation, AnnotationService
+from balanceteshaters.services.nocodb import NocoDBService
+from dotenv import load_dotenv
 from ollama import chat
 
 # Allow running this file directly while keeping package imports working.
@@ -19,9 +23,8 @@ if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
 if __name__ == "__main__":
-    from compute_annotation_stats import Annotation, NocoDBService
     from tqdm import tqdm
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
@@ -35,10 +38,12 @@ if __name__ == "__main__":
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
     nocodb_annotation_table_id: str = os.environ["NOCODB_ANNOTATION_TABLE_ID"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
-    service = NocoDBService(
-        base_url=nocodb_base_url,
-        annotation_table_id=nocodb_annotation_table_id,
-        token=nocodb_token
+    nocodb_base_id: str = os.environ["NOCODB_BASE_ID"]
+    nocodb = NocoDBService(
+        nocodb_url=nocodb_base_url, token=nocodb_token, base_id=nocodb_base_id
+    )
+    service = AnnotationService(
+        nocodb=nocodb, annotation_table_id=nocodb_annotation_table_id
     )
 
     data = service.get_annotations()
@@ -48,7 +53,9 @@ if __name__ == "__main__":
     data_dir.mkdir(parents=True, exist_ok=True)
 
     model_name_for_file = re.sub(r"[^A-Za-z0-9._-]+", "_", args.model)
-    output_file_path = data_dir / f"predictions_{nocodb_annotation_table_id}_{model_name_for_file}.csv"
+    output_file_path = (
+        data_dir / f"predictions_{nocodb_annotation_table_id}_{model_name_for_file}.csv"
+    )
     fieldnames = list(Annotation.model_fields.keys()) + ["predicted_category"]
 
     # Load prompt instructions from external file
@@ -66,12 +73,21 @@ if __name__ == "__main__":
         for idx, record in iterator:
             response = chat(
                 model=args.model,
-                messages=[{'role': 'user', 'content': f"{prompt_instructions} Prompt à classifier : {record.comment}"}],
+                messages=[
+                    {
+                        "role": "user",
+                        "content": f"{prompt_instructions} Prompt à classifier : {record.comment}",
+                    }
+                ],
             )
             content = response.message.content
             output = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
             row = record.model_dump(mode="json")
-            row["annotated_category"] = ",".join(row["annotated_category"]) if row["annotated_category"] else None
+            row["annotated_category"] = (
+                ",".join(row["annotated_category"])
+                if row["annotated_category"]
+                else None
+            )
             row["predicted_category"] = output
             writer.writerow(row)
             csv_file.flush()
