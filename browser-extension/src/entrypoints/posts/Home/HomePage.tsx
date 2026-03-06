@@ -2,7 +2,7 @@ import KpiCards from "./KpiCards";
 import HarassmentTrendChart from "./HarassmentTrendChard";
 import ActiveAuthors from "./ActiveAuthors";
 import CategoryDistribution from "./CategoryDistribution";
-import SocialNetworkSelector from "./SocialNetworkSelector";
+import SocialNetworkSelector from "../Shared/SocialNetworkSelector";
 import DateRangePicker from "./DateRangePicker";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
