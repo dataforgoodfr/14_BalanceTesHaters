@@ -22,7 +22,10 @@ export default function App() {
             <Route index path="/posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
             <Route index path="/raw-posts" element={<RawPostListPage />} />
-            <Route path="/raw-posts/:snapshotId" element={<RawPostDetailPage />} />
+            <Route
+              path="/raw-posts/:snapshotId"
+              element={<RawPostDetailPage />}
+            />
           </Routes>
         </div>
       </HashRouter>
