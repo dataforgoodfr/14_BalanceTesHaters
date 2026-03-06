@@ -1,6 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router";
-import PostListPage from "./PostListPage";
-import PostDetailPage from "./PostDetailPage";
+import PostListPage from "./Developer/RawPostListPage";
+import PostDetailPage from "./Developer/RawPostDetailPage";
 import { useInitializeTheme } from "@/styles/useInitializeTheme";
 import "./App.css";
 import { DebugPage } from "./DebugPage";
@@ -18,9 +18,9 @@ export default function App() {
           <SidePanelMenu />
           <Routes>
             <Route index path="/" element={<HomePage />} />
-            <Route index path="/posts" element={<PostListPage />} />
+            <Route index path="/raw-posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route path="/posts/:snapshotId" element={<PostDetailPage />} />
+            <Route path="/raw-posts/:snapshotId" element={<PostDetailPage />} />
           </Routes>
         </div>
       </HashRouter>
