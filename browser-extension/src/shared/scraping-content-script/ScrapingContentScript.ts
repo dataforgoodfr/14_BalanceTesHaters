@@ -1,12 +1,17 @@
 import { SocialNetworkScraper } from "./SocialNetworkScraper";
 import { ScrapTabResult } from "./ScrapTabResult";
-import { isScsPageInfoMessage, isScsScrapTabMessage } from "./messages";
+import {
+  isScsPageInfoMessage,
+  isScsScrapTabMessage,
+  isScsGetScrapingStatusMessage,
+} from "./messages";
 import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { ScrapingStatus as ScrapingStatus } from "./ScrapingStatus";
 
 export class ScrapingContentScript {
-  private scrapingInProgress: boolean = false;
+  private scrapingStatus: ScrapingStatus = { type: "not-started" };
 
   constructor(private readonly scraper: SocialNetworkScraper) {}
 
@@ -36,11 +41,20 @@ export class ScrapingContentScript {
       this.scrapPost().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
+    } else if (isScsGetScrapingStatusMessage(message)) {
+      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      this.getScrapingStatus().then(sendResponse);
+      // Return true to indicate async response to web-ext-messaging
+      return true;
     }
   }
 
   private getPageInfo(): Promise<SocialNetworkPageInfo> {
     return this.scraper.getSocialNetworkPageInfo();
+  }
+
+  private getScrapingStatus(): Promise<ScrapingStatus> {
+    return Promise.resolve(this.scrapingStatus);
   }
 
   private async scrapPost(): Promise<ScrapTabResult> {
@@ -52,7 +66,7 @@ export class ScrapingContentScript {
         message: "Page not scrapable",
       };
     }
-    if (this.scrapingInProgress) {
+    if (this.scrapingStatus.type === "running") {
       console.error("[SCS] - Scraping is already running");
       return {
         type: "error",
@@ -61,7 +75,9 @@ export class ScrapingContentScript {
     }
     console.info("[SCS] - Start scraping");
     try {
-      this.scrapingInProgress = true;
+      this.scrapingStatus = {
+        type: "running",
+      };
       const start = Date.now();
       const postSnapshot = await this.scraper.scrapPagePost();
       console.info("[SCS] - Scraping completed");
@@ -76,19 +92,25 @@ export class ScrapingContentScript {
       console.info(
         `[SCS] - Scraping took: ${durationSec} seconds for ${allCommentsCount} comments`,
       );
+      this.scrapingStatus = {
+        type: "completed",
+      };
       return {
         type: "success",
         postSnapshotId: postSnapshot.id,
         durationMs: durationMs,
       };
     } catch (e) {
+      const errorMessage = String(e);
+      this.scrapingStatus = {
+        type: "error",
+        errorMessage,
+      };
       console.error("[SCS] - Unexpected error while scraping", e);
       return {
         type: "error",
-        message: String(e),
+        message: errorMessage,
       };
-    } finally {
-      this.scrapingInProgress = false;
     }
   }
 
