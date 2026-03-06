@@ -1,11 +1,14 @@
 import {
   SCS_GET_PAGE_INFO_MESSAGE,
   SCS_SCRAP_TAB_MESSAGE,
+  SCS_GET_SCRAPING_STATUS_MESSAGE,
   ScsPageInfoMessage,
   ScsScrapTabMessage,
+  ScsGetScrapingStatusMessage,
 } from "./messages";
 import { ScrapTabResult } from "./ScrapTabResult";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
+import { ScrapingStatus } from "./ScrapingStatus";
 
 /**
  * Client to communicate with content script in a specific tabId.
@@ -43,6 +46,23 @@ export class ScrapingContentScriptClient {
         type: "error",
         message: "No Scraping Content script registered for this url",
       };
+    }
+    return response;
+  }
+
+  /**
+   * Get the current scraping status for this tab
+   */
+  async getScrapingStatus(): Promise<ScrapingStatus> {
+    const response = await this.safeSendMessage<
+      ScsGetScrapingStatusMessage,
+      ScrapingStatus
+    >(SCS_GET_SCRAPING_STATUS_MESSAGE);
+    if (response === NO_CONTENT_SCRIPT) {
+      // Tab does not have a scraping content script
+      return Promise.reject(
+        new Error("No Scraping Content script registered for this url"),
+      );
     }
     return response;
   }
