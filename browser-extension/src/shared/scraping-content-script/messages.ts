@@ -28,3 +28,20 @@ export function isScsScrapTabMessage(
     message.msgType === SCS_SCRAP_TAB_MESSAGE.msgType
   );
 }
+
+export const SCS_GET_SCRAPING_STATUS_MESSAGE = {
+  msgType: "scs-get-scraping-status",
+} as const;
+export type ScsGetScrapingStatusMessage =
+  typeof SCS_GET_SCRAPING_STATUS_MESSAGE;
+
+export function isScsGetScrapingStatusMessage(
+  message: unknown,
+): message is ScsGetScrapingStatusMessage {
+  return (
+    typeof message === "object" &&
+    message !== null &&
+    "msgType" in message &&
+    message.msgType === SCS_GET_SCRAPING_STATUS_MESSAGE.msgType
+  );
+}

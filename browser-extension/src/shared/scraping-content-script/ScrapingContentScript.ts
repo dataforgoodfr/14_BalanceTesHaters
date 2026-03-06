@@ -1,9 +1,14 @@
 import { SocialNetworkScraper } from "./SocialNetworkScraper";
 import { ScrapTabResult } from "./ScrapTabResult";
-import { isScsPageInfoMessage, isScsScrapTabMessage } from "./messages";
+import {
+  isScsPageInfoMessage,
+  isScsScrapTabMessage,
+  isScsGetScrapingStatusMessage,
+} from "./messages";
 import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { ScrapingStatus } from "./ScrapingStatus";
 
 export class ScrapingContentScript {
   private scrapingInProgress: boolean = false;
@@ -36,11 +41,22 @@ export class ScrapingContentScript {
       this.scrapPost().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
+    } else if (isScsGetScrapingStatusMessage(message)) {
+      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      this.getScrapingStatus().then(sendResponse);
+      // Return true to indicate async response to web-ext-messaging
+      return true;
     }
   }
 
   private getPageInfo(): Promise<SocialNetworkPageInfo> {
     return this.scraper.getSocialNetworkPageInfo();
+  }
+
+  private getScrapingStatus(): Promise<ScrapingStatus> {
+    return Promise.resolve({
+      isScrapingInProgress: this.scrapingInProgress,
+    });
   }
 
   private async scrapPost(): Promise<ScrapTabResult> {
