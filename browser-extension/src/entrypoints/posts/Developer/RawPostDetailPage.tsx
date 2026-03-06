@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
 
-function PostDetailPage() {
+function RawPostDetailPage() {
   const params = useParams();
   const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
@@ -136,4 +136,4 @@ function PostDetailPage() {
   );
 }
 
-export default PostDetailPage;
+export default RawPostDetailPage;

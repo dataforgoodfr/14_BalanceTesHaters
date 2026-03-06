@@ -14,7 +14,7 @@ function SidePanelMenu() {
         <Link to="/">Vue d&apos;ensemble</Link>
       </Button>
       <Button variant="ghost">
-        <Link to="/raw-posts">Publications analysées</Link>
+        <Link to="/posts">Publications analysées</Link>
       </Button>
       <Button variant="ghost">
         <Link to="/">Aide et ressources</Link>

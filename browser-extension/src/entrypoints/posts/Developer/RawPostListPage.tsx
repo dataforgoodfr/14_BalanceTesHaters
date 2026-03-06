@@ -22,7 +22,7 @@ import DisplayPublicationDate from "./DisplayPublicationDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCwIcon, TrashIcon } from "lucide-react";
 
-function PostListPage() {
+function RawPostListPage() {
   const queryClient = useQueryClient();
   const queryKey = ["posts"];
 
@@ -163,4 +163,4 @@ function ellipsis(str: string, maxLength: number = 50): string {
   return str.substring(0, maxLength - 1) + "…";
 }
 
-export default PostListPage;
+export default RawPostListPage;
