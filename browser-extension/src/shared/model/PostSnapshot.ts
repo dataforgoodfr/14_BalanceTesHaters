@@ -3,7 +3,7 @@ import { ClassificationStatusSchema } from "./ClassificationStatus";
 import { PostSharedPropertiesSchema } from "./PostSharedProperties";
 import { CommentSharedPropertiesSchema } from "./CommentSharedPropertiesSchema";
 
-export const CommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
+const NonRecursiveCommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
   /**
    * Comment snapshot unique id.
    * Note that this id is different from one scraping to another
@@ -26,10 +26,22 @@ export const CommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
    */
   scrapedAt: z.iso.datetime(),
 
+  nbLikes: z.int(),
+}).refine(
+  (val) => val.commentId != undefined || val.publishedAt.type === "absolute",
+  {
+    error: "Comment need either a commentId or an absolute date",
+  },
+);
+
+// Use an intermediate CommentWithoutRepliesSchema Zod Schema to avoid typescript error
+// "replies' implicitly has return type 'any' because it does not have a return type annotation
+// and is referenced directly or indirectly in one of its return expressions. "
+// When combining refine and recursive schema
+export const CommentSnapshotSchema = NonRecursiveCommentSnapshotSchema.extend({
   get replies() {
     return CommentSnapshotSchema.array();
   },
-  nbLikes: z.int(),
 });
 
 export type CommentSnapshot = z.infer<typeof CommentSnapshotSchema>;
