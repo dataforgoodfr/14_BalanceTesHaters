@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import {
   getPostSnapshots as getPostsFromStorage,
   deleteAllPostSnapshots,
-} from "../../shared/storage/post-snapshot-storage";
+} from "../../../shared/storage/post-snapshot-storage";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -22,7 +22,7 @@ import DisplayPublicationDate from "./DisplayPublicationDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCwIcon, TrashIcon } from "lucide-react";
 
-function PostListPage() {
+function RawPostListPage() {
   const queryClient = useQueryClient();
   const queryKey = ["posts"];
 
@@ -117,7 +117,9 @@ function PostListPage() {
                         variant="outline"
                         size={"xs"}
                         render={
-                          <Link to={"/posts/" + post.id}>D&eacute;tails</Link>
+                          <Link to={"/raw-posts/" + post.id}>
+                            D&eacute;tails
+                          </Link>
                         }
                       />
                     </div>
@@ -163,4 +165,4 @@ function ellipsis(str: string, maxLength: number = 50): string {
   return str.substring(0, maxLength - 1) + "…";
 }
 
-export default PostListPage;
+export default RawPostListPage;

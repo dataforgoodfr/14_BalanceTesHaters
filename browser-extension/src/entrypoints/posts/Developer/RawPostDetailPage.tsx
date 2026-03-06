@@ -4,13 +4,13 @@ import { CommentTreeTable } from "./CommentTreeTable";
 import { Binary, Check, MoveLeft, RefreshCcwIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DisplayPublicationDate from "./DisplayPublicationDate";
-import { SubmitClassificationRequestMessage } from "../background/classification/submitClassificationForPostMessage";
-import { UpdatePostWithClassificationResultMessage } from "../background/classification/updatePostWithClassificationResultMessage";
+import { SubmitClassificationRequestMessage } from "../../background/classification/submitClassificationForPostMessage";
+import { UpdatePostWithClassificationResultMessage } from "../../background/classification/updatePostWithClassificationResultMessage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
 
-function PostDetailPage() {
+function RawPostDetailPage() {
   const params = useParams();
   const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ function PostDetailPage() {
             <Button
               variant="link"
               render={
-                <Link to="/posts">
+                <Link to="/raw-posts">
                   <MoveLeft /> Retour à la liste des publications
                 </Link>
               }
@@ -136,4 +136,4 @@ function PostDetailPage() {
   );
 }
 
-export default PostDetailPage;
+export default RawPostDetailPage;

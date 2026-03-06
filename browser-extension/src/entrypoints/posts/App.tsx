@@ -1,6 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router";
-import PostListPage from "./PostListPage";
-import PostDetailPage from "./PostDetailPage";
+import RawPostListPage from "./Developer/RawPostListPage";
+import RawPostDetailPage from "./Developer/RawPostDetailPage";
 import { useInitializeTheme } from "@/styles/useInitializeTheme";
 import "./App.css";
 import { DebugPage } from "./DebugPage";
@@ -8,6 +8,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 import HomePage from "./Home/HomePage";
 import SidePanelMenu from "./SidePanelMenu";
+import PostListPage from "./PostList/PostListPage";
 
 export default function App() {
   useInitializeTheme();
@@ -20,7 +21,11 @@ export default function App() {
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route path="/posts/:snapshotId" element={<PostDetailPage />} />
+            <Route index path="/raw-posts" element={<RawPostListPage />} />
+            <Route
+              path="/raw-posts/:snapshotId"
+              element={<RawPostDetailPage />}
+            />
           </Routes>
         </div>
       </HashRouter>

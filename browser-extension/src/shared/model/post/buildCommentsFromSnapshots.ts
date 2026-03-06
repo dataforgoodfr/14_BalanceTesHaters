@@ -133,5 +133,6 @@ function commentId(comment: CommentSnapshot): string {
     // Use author + date as alternate comment id
     return comment.author.name + "@" + comment.publishedAt.date;
   }
-  throw new Error("Need a comment id or an oabsolute date");
+
+  throw new Error("Need a comment id or an absolute date");
 }
