@@ -134,8 +134,5 @@ function commentId(comment: CommentSnapshot): string {
     return comment.author.name + "@" + comment.publishedAt.date;
   }
 
-  // As a last resort generate a random id.
-  // This means that we won't be able to track this comment across snapshots,
-  // but at least it will be included in the analysis of the snapshot in which it appears.
-  return crypto.randomUUID();
+  throw new Error("Need a comment id or an absolute date");
 }
