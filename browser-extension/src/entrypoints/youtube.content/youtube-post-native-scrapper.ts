@@ -18,6 +18,7 @@ import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/
 import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
+import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -431,14 +432,21 @@ export class YoutubePostNativeScrapper {
     const scrapDate = currentIsoDate();
 
     const author: Author = await this.scrapCommentAuthor(commentContainer);
-    const publishedAtText = selectOrThrow(
+    const publishedTimeElement = selectOrThrow(
       commentContainer,
       "#published-time-text",
       HTMLElement,
-    ).innerText;
-
+    );
+    const publishedAtText = publishedTimeElement.innerText;
     const publishedAt = new PublicationDateTextParsing(publishedAtText).parse();
     this.debug(`publishedAtInfo: ${publishedAt}`);
+
+    const commentHref = selectOrThrow(
+      publishedTimeElement,
+      "a",
+      HTMLAnchorElement,
+    ).href;
+    const commentId = extractCommentIdFromCommentHref(commentHref);
 
     const commentTextHandle = selectOrThrow(
       commentContainer,
@@ -454,6 +462,7 @@ export class YoutubePostNativeScrapper {
     const commentPre: CommentPreScreenshot = {
       comment: {
         id: crypto.randomUUID(),
+        commentId,
         textContent: commentText,
         author: author,
         publishedAt: publishedAt,
