@@ -10,6 +10,11 @@ export type Post = PostSharedProperties & {
    * Built from PostSnapshot comments by deduping on comment id and consecutive same text content
    */
   comments: PostComment[];
+
+  /**
+   * Date of the last snapshot on which this post is based.
+   */
+  lastAnalysisDate: string;
 };
 
 export type PostComment = CommentSharedProperties & {

@@ -53,6 +53,7 @@ function PostListPage() {
                 <Checkbox className="mr-2" />
                 <div className="w-full">
                   <div className="flex">
+                    {/* TODO Ajouter image pour instagram si réalisable*/}
                     {post.socialNetwork === "YOUTUBE" && (
                       <img
                         src={`https://img.youtube.com/vi/${post.postId}/0.jpg`}
@@ -70,7 +71,16 @@ function PostListPage() {
                     </div>
                   </div>
                   <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                    <div className="font-semibold"> Analyse du 12</div>
+                    <div className="font-semibold">
+                      Analyse du{" "}
+                      {new Date(post.lastAnalysisDate).toLocaleDateString(
+                        undefined,
+                        {
+                          day: "numeric",
+                          month: "short",
+                        },
+                      )}
+                    </div>
                     <div>
                       <Button variant="ghost" size="sm">
                         Relancer l&apos;analyse
