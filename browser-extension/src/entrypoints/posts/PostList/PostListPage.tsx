@@ -81,7 +81,6 @@ function PostListPage() {
                           {post.url}
                         </a>
                       </span>
-                      {/* TODO à remplacer par un composant dédié conforme aux maquettes */}
                       <DisplayPublishedDate date={post.publishedAt} />
                     </div>
                   </div>

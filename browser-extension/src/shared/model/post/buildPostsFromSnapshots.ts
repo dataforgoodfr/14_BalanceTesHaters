@@ -7,7 +7,6 @@ export function buildPostsFromSnapshots(snapshots: PostSnapshot[]): Post[] {
     snapshots,
     (s) => s.socialNetwork + " " + s.postId,
   );
-  
   return Object.values(groupedByPost)
     .filter((v) => v !== undefined)
     .map((postSnapshotGroup) => buildPostFromSnapshots(postSnapshotGroup));
