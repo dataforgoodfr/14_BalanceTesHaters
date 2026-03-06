@@ -329,7 +329,7 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot = createMinimalPostSnapshot([comment]);
 
       expect(() => buildCommentsFromSnapshots([snapshot])).toThrow(
-        "Need a comment id or an oabsolute date",
+        "Need a comment id or an absolute date",
       );
     });
   });
