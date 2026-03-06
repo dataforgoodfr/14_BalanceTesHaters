@@ -31,7 +31,8 @@ function PostListPage() {
 
       {data && data.length > 0 && (
         <span className="text-gray-500 text-left text-lg ms-2 mt-0">
-          {data.length} publication{data.length > 1 ? "s" : ""} analysée{data.length > 1 ? "s" : ""}
+          {data.length} publication{data.length > 1 ? "s" : ""} analysée
+          {data.length > 1 ? "s" : ""}
         </span>
       )}
 

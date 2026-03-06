@@ -117,7 +117,9 @@ function RawPostListPage() {
                         variant="outline"
                         size={"xs"}
                         render={
-                          <Link to={"/raw-posts/" + post.id}>D&eacute;tails</Link>
+                          <Link to={"/raw-posts/" + post.id}>
+                            D&eacute;tails
+                          </Link>
                         }
                       />
                     </div>
