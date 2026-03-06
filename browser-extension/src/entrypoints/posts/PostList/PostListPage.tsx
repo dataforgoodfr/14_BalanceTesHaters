@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowDownUp, Funnel } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
+import DisplayPublishedDate from "./DisplayPublishedDate";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -28,6 +28,12 @@ function PostListPage() {
         value={socialNetworkFilter}
         onChange={setSocialNetworkFilter}
       />
+
+      {data && data.length > 0 && (
+        <span className="text-gray-500 text-left text-lg ms-2 mt-0">
+          {data.length} publication{data.length > 1 ? "s" : ""} analysée{data.length > 1 ? "s" : ""}
+        </span>
+      )}
 
       <div className="flex gap-3">
         <Input placeholder="Rechercher" />
@@ -61,13 +67,22 @@ function PostListPage() {
                         className="w-48 h-32 object-cover mr-4 rounded"
                       />
                     )}
-                    <div className="text-left flex flex-col items-start">
-                      <span className="font-semibold text-lg mb-1">
+                    <div className="text-left flex flex-col items-start gap-1">
+                      <span className="font-semibold text-lg">
                         {post.title}
                       </span>
-                      <span className="mt-0">URL: {post.url}</span>
+                      <span className="">
+                        URL:{" "}
+                        <a
+                          href={post.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {post.url}
+                        </a>
+                      </span>
                       {/* TODO à remplacer par un composant dédié conforme aux maquettes */}
-                      <DisplayPublicationDate date={post.publishedAt} />
+                      <DisplayPublishedDate date={post.publishedAt} />
                     </div>
                   </div>
                   <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
@@ -82,10 +97,18 @@ function PostListPage() {
                       )}
                     </div>
                     <div>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-white"
+                      >
                         Relancer l&apos;analyse
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-white"
+                      >
                         Voir le détail
                       </Button>
                     </div>
