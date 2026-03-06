@@ -7,6 +7,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowDownUp, Funnel } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -38,14 +40,50 @@ function PostListPage() {
       </div>
 
       {isLoading && <Spinner className="size-8" />}
-      {!isLoading && (!data || data.length === 0) && <p className="text-center">Aucune publication</p>}
+      {!isLoading && (!data || data.length === 0) && (
+        <p className="text-center">Aucune publication</p>
+      )}
 
-      <div>
-        {data && data.length > 0 && (
-          <Card>
-            <CardContent>Hello</CardContent>
-          </Card>
-        )}
+      <div className="flex flex-col gap-4">
+        {data &&
+          data.length > 0 &&
+          data.map((post) => (
+            <Card key={post.postId}>
+              <CardContent className="flex items-center gap-5">
+                <Checkbox className="mr-2" />
+                <div className="w-full">
+                  <div className="flex">
+                    {post.socialNetwork === "YOUTUBE" && (
+                      <img
+                        src={`https://img.youtube.com/vi/${post.postId}/0.jpg`}
+                        alt=""
+                        className="w-48 h-32 object-cover mr-4 rounded"
+                      />
+                    )}
+                    <div className="text-left flex flex-col items-start">
+                      <span className="font-semibold text-lg mb-1">
+                        {post.title}
+                      </span>
+                      <span className="mt-0">URL: {post.url}</span>
+                      {/* TODO à remplacer par un composant dédié conforme aux maquettes */}
+                      <DisplayPublicationDate date={post.publishedAt} />
+                    </div>
+                  </div>
+                  <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
+                    <div className="font-semibold"> Analyse du 12</div>
+                    <div>
+                      <Button variant="ghost" size="sm">
+                        Relancer l&apos;analyse
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        Voir le détail
+                      </Button>
+                    </div>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
       </div>
     </div>
   );
