@@ -133,5 +133,10 @@ function commentId(comment: CommentSnapshot): string {
     // Use author + date as alternate comment id
     return comment.author.name + "@" + comment.publishedAt.date;
   }
-  throw new Error("Need a comment id or an oabsolute date");
+
+  // As a last resort generate a random id. 
+  // This means that we won't be able to track this comment across snapshots,
+  // but at least it will be included in the analysis of the snapshot in which it appears.
+  return crypto.randomUUID(); 
+  
 }
