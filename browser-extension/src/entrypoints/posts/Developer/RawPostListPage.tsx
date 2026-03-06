@@ -2,7 +2,7 @@ import { Link } from "react-router";
 import {
   getPostSnapshots as getPostsFromStorage,
   deleteAllPostSnapshots,
-} from "../../shared/storage/post-snapshot-storage";
+} from "../../../shared/storage/post-snapshot-storage";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -117,7 +117,7 @@ function PostListPage() {
                         variant="outline"
                         size={"xs"}
                         render={
-                          <Link to={"/posts/" + post.id}>D&eacute;tails</Link>
+                          <Link to={"/raw-posts/" + post.id}>D&eacute;tails</Link>
                         }
                       />
                     </div>
