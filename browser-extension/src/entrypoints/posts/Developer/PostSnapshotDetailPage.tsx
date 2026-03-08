@@ -10,7 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
 
-function RawPostDetailPage() {
+function PostSnapshotDetailPage() {
   const params = useParams();
   const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ function RawPostDetailPage() {
             <Button
               variant="link"
               render={
-                <Link to="/raw-posts">
+                <Link to="/post-snapshots">
                   <MoveLeft /> Retour à la liste des publications
                 </Link>
               }
@@ -136,4 +136,4 @@ function RawPostDetailPage() {
   );
 }
 
-export default RawPostDetailPage;
+export default PostSnapshotDetailPage;

@@ -1,6 +1,6 @@
 import { HashRouter, Route, Routes } from "react-router";
-import RawPostListPage from "./Developer/RawPostListPage";
-import RawPostDetailPage from "./Developer/RawPostDetailPage";
+import PostSnapshotListPage from "./Developer/PostSnapshotListPage";
+import PostSnapshotDetailPage from "./Developer/PostSnapshotDetailPage";
 import { useInitializeTheme } from "@/styles/useInitializeTheme";
 import "./App.css";
 import { DebugPage } from "./DebugPage";
@@ -21,10 +21,10 @@ export default function App() {
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route index path="/raw-posts" element={<RawPostListPage />} />
+            <Route index path="/post-snapshots" element={<PostSnapshotListPage />} />
             <Route
-              path="/raw-posts/:snapshotId"
-              element={<RawPostDetailPage />}
+              path="/post-snapshots/:snapshotId"
+              element={<PostSnapshotDetailPage />}
             />
           </Routes>
         </div>

@@ -46,10 +46,10 @@ export async function deletePostSnapshot(postSnapshotId: string) {
 
 export async function getPostSnapshots(): Promise<PostSnapshot[]> {
   const partial = await browser.storage.local.get("posts");
-  const rawPosts = partial["posts"] || [];
+  const postSnapshotList = partial["posts"] || [];
 
   const PostArraySchema = PostSnapshotSchema.array();
-  const result = PostArraySchema.safeParse(rawPosts);
+  const result = PostArraySchema.safeParse(postSnapshotList);
   if (result.success) {
     return result.data;
   }
@@ -59,9 +59,9 @@ export async function getPostSnapshots(): Promise<PostSnapshot[]> {
     result.error,
   );
   const validPosts: PostSnapshot[] = [];
-  if (Array.isArray(rawPosts)) {
-    for (const rawPost of rawPosts) {
-      const postResult = PostSnapshotSchema.safeParse(rawPost);
+  if (Array.isArray(postSnapshotList)) {
+    for (const postSnapshot of postSnapshotList) {
+      const postResult = PostSnapshotSchema.safeParse(postSnapshot);
       if (postResult.success) {
         validPosts.push(postResult.data);
       }
