@@ -21,7 +21,11 @@ export default function App() {
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
             <Route path="/debug" element={<DebugPage />} />
-            <Route index path="/post-snapshots" element={<PostSnapshotListPage />} />
+            <Route
+              index
+              path="/post-snapshots"
+              element={<PostSnapshotListPage />}
+            />
             <Route
               path="/post-snapshots/:snapshotId"
               element={<PostSnapshotDetailPage />}

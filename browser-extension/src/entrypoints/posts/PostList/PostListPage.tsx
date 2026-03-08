@@ -97,16 +97,10 @@ function PostListPage() {
                       )}
                     </div>
                     <div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                      >
+                      <Button variant="ghost" size="sm">
                         Relancer l&apos;analyse
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                      >
+                      <Button variant="ghost" size="sm">
                         Voir le détail
                       </Button>
                     </div>
