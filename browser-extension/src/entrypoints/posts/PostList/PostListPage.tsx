@@ -100,14 +100,12 @@ function PostListPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="hover:bg-white"
                       >
                         Relancer l&apos;analyse
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="hover:bg-white"
                       >
                         Voir le détail
                       </Button>
