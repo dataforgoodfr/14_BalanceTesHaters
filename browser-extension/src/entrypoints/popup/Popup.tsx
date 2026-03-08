@@ -13,6 +13,7 @@ import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/Sc
 import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
+import { ScrapingStatus } from "@/shared/scraping-content-script/ScrapingStatus";
 
 const sendScrapMessage = (tabId: number) => {
   console.log("Popup - Sending ScrapTabMessage");
@@ -30,10 +31,13 @@ async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
   const parsedUrl = URL.parse(url);
   const tabUrl = parsedUrl?.hash?.substring(1);
   if (tabUrl) {
-    console.log("trying to link to tab with url " + tabUrl);
+    console.log("Querying to tab with url " + tabUrl);
     const queryOptions = { url: tabUrl };
-    const [tab] = await browser.tabs.query(queryOptions);
-    return tab;
+    const tabs = await browser.tabs.query(queryOptions);
+    if (tabs.length === 0) {
+      throw new Error("Couldn't find a tab with url: " + tabUrl);
+    }
+    return tabs[0];
   } else {
     return (await getCurrentTab())!;
   }
@@ -42,6 +46,7 @@ async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
 type LinkedTabInfo = {
   tabId: number;
   pageInfo: SocialNetworkPageInfo;
+  scrapingStatus?: ScrapingStatus;
 };
 
 async function queryLinkedTabInfo(): Promise<LinkedTabInfo> {
@@ -52,38 +57,70 @@ async function queryLinkedTabInfo(): Promise<LinkedTabInfo> {
   const client = new ScrapingContentScriptClient(tab.id);
   const pageInfo = await client.getTabSocialNetworkPageInfo();
 
+  const scrapingStatus = pageInfo.isScrapablePost
+    ? await client.getScrapingStatus()
+    : undefined;
+
   return {
     tabId: tab.id,
     pageInfo,
+    scrapingStatus,
   };
 }
 export function Popup() {
   const {
     isPending,
-    error,
+    error: queryError,
     data: tabInfo,
   } = useQuery({
     queryKey: ["linkedTabInfo"],
     queryFn: queryLinkedTabInfo,
+    refetchInterval: 2000,
   });
 
   if (isPending) {
     return <Spinner />;
   }
-  if (error) {
-    return <span>Oops! Impossible de récupéré les infos du tab courant!!</span>;
+  if (queryError) {
+    return (
+      <span>
+        Oops! Impossible de récupéréer les infos du tab courant!!
+        <pre>{queryError.message}</pre>
+      </span>
+    );
   }
 
   const isScrapablePost = tabInfo.pageInfo.isScrapablePost;
+  const isScrapingRunning =
+    tabInfo.scrapingStatus && tabInfo.scrapingStatus.type === "running";
+  const isScrapingNotStarted =
+    tabInfo.scrapingStatus && tabInfo.scrapingStatus.type === "not-started";
   return (
     <Card>
       <CardHeader>
         <CardTitle>Balance Tes Haters</CardTitle>
-
         {isScrapablePost ? (
           <CardDescription>
-            Vous êtes sur une publication {tabInfo.pageInfo.socialNetwork}{" "}
-            analyzable.
+            {tabInfo.scrapingStatus &&
+              tabInfo.scrapingStatus.type === "error" && (
+                <p>
+                  La capture à échouer:
+                  <pre>{tabInfo.scrapingStatus.errorMessage}</pre>
+                </p>
+              )}
+            {isScrapingRunning && (
+              <p>
+                <Spinner className="inline mx-1" /> Capture en cours.
+                <br />
+                Merci de patienter.
+              </p>
+            )}
+            {isScrapingNotStarted && (
+              <p>
+                Vous êtes sur une publication {tabInfo.pageInfo.socialNetwork}{" "}
+                analyzable.
+              </p>
+            )}
           </CardDescription>
         ) : (
           <CardDescription>
@@ -98,8 +135,10 @@ export function Popup() {
           <Button
             data-testid="start-scraping-button"
             className="w-full"
+            disabled={isScrapingRunning}
             onClick={() => sendScrapMessage(tabInfo.tabId)}
           >
+            {isScrapingRunning && <Spinner data-icon="inline-start" />}
             Analyser ce post
           </Button>
         )}
