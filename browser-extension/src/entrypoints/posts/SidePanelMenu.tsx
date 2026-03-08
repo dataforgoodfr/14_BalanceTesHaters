@@ -20,7 +20,7 @@ function SidePanelMenu() {
         <Link to="/">Aide et ressources</Link>
       </Button>
       <Button variant="ghost">
-        <Link to="/raw-posts">[Dev] Données brutes</Link>
+        <Link to="/post-snapshots">[Dev] Données brutes</Link>
       </Button>
     </div>
   );
