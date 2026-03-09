@@ -3,6 +3,7 @@ import { getCurrentTab } from "@/shared/utils/getCurrentTab";
 import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -24,8 +25,6 @@ const sendScrapMessage = (tabId: number) => {
   browser.runtime.sendMessage(message);
   window.close();
 };
-
-const reportPageUrl = browser.runtime.getURL("/posts.html");
 
 async function queryLinkedTab(url: string): Promise<Browser.tabs.Tab> {
   const parsedUrl = URL.parse(url);
@@ -67,6 +66,8 @@ async function queryLinkedTabInfo(): Promise<LinkedTabInfo> {
     scrapingStatus,
   };
 }
+
+const title = "Balance Tes Haters";
 export function Popup() {
   const {
     isPending,
@@ -89,71 +90,134 @@ export function Popup() {
       </span>
     );
   }
-
-  const isScrapablePost = tabInfo.pageInfo.isScrapablePost;
-  const isScrapingRunning =
-    tabInfo.scrapingStatus && tabInfo.scrapingStatus.type === "running";
-  const isScrapingNotStarted =
-    tabInfo.scrapingStatus && tabInfo.scrapingStatus.type === "not-started";
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Balance Tes Haters</CardTitle>
-        {isScrapablePost ? (
-          <CardDescription>
-            {tabInfo.scrapingStatus &&
-              tabInfo.scrapingStatus.type === "failed" && (
-                <p>
-                  La capture à échouer:
-                  <pre>{tabInfo.scrapingStatus.errorMessage}</pre>
-                </p>
-              )}
-            {isScrapingRunning && (
-              <p>
-                <Spinner className="inline mx-1" /> Capture en cours.
-                <br />
-                Merci de patienter.
-              </p>
-            )}
-            {isScrapingNotStarted && (
-              <p>
-                Vous êtes sur une publication {tabInfo.pageInfo.socialNetwork}{" "}
-                analyzable.
-              </p>
-            )}
-          </CardDescription>
-        ) : (
+  if (!tabInfo.pageInfo.isScrapablePost || !tabInfo.scrapingStatus) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>
             Pour capturer des commentaires et les analyser naviguez vers une
             publication d&apos;un réseau social supporté (youtube, instagram...)
             puis ouvrez l&apos;extension à nouveau.
           </CardDescription>
-        )}
-      </CardHeader>
-      <CardFooter className="flex-col gap-2">
-        {isScrapablePost && (
-          <Button
-            data-testid="start-scraping-button"
-            className="w-full"
-            disabled={isScrapingRunning}
-            onClick={() => sendScrapMessage(tabInfo.tabId)}
-          >
-            {isScrapingRunning && <Spinner data-icon="inline-start" />}
-            Analyser ce post
-          </Button>
-        )}
+        </CardHeader>
+        <CardFooter className="flex-col gap-2">
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
 
-        <Button
-          data-testid="view-analysis-button"
-          className="w-full"
-          variant="outline"
-          render={
-            <a href={reportPageUrl} target="bth-posts">
-              Voir les analyses précedentes
-            </a>
-          }
-        ></Button>
-      </CardFooter>
-    </Card>
+  if (tabInfo.scrapingStatus.type === "not-started") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>
+            Vous êtes sur une publication {tabInfo.pageInfo.socialNetwork}{" "}
+            analyzable.
+          </p>
+        </CardContent>
+        <CardFooter className="flex-col gap-2">
+          <StartScrapingButton tabId={tabInfo.tabId} />
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  if (
+    tabInfo.scrapingStatus.type === "running" ||
+    tabInfo.scrapingStatus.type === "canceling"
+  ) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>
+            <Spinner className="inline mx-1" /> Analyse en cours.
+          </p>
+        </CardContent>
+        <CardFooter className="flex-col gap-2">
+          <CancelScrapingButton tabId={tabInfo.tabId} />
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  if (tabInfo.scrapingStatus.type === "canceled") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>Capture annulée.</CardContent>
+        <CardFooter className="flex-col gap-2">
+          <StartScrapingButton tabId={tabInfo.tabId} />
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
+  if (tabInfo.scrapingStatus.type === "failed") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <p>La capture a échouée.</p>
+        </CardContent>
+        <CardFooter className="flex-col gap-2">
+          <StartScrapingButton tabId={tabInfo.tabId} />
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
+}
+
+function StartScrapingButton({ tabId }: { tabId: number }) {
+  return (
+    <Button
+      data-testid="start-scraping-button"
+      className="w-full"
+      onClick={() => sendScrapMessage(tabId)}
+    >
+      Analyser cette publication
+    </Button>
+  );
+}
+
+function CancelScrapingButton({ tabId }: { tabId: number }) {
+  return (
+    <Button
+      className="w-full"
+      onClick={() => new ScrapingContentScriptClient(tabId).cancelScraping()}
+    >
+      Annuler l&apos;analyse
+    </Button>
+  );
+}
+
+function ViewPreviousAnalysesButton() {
+  const reportPageUrl = browser.runtime.getURL("/posts.html");
+  return (
+    <Button
+      data-testid="view-analyses-button"
+      className="w-full"
+      variant="outline"
+      render={
+        <a href={reportPageUrl} target="bth-posts">
+          Voir les analyses précedentes
+        </a>
+      }
+    ></Button>
   );
 }

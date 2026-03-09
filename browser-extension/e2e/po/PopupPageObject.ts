@@ -18,7 +18,7 @@ export class PopupPageObject {
   }
 
   viewAnalysisButton(): Locator {
-    return this.page.getByTestId("view-analysis-button");
+    return this.page.getByTestId("view-analyses-button");
   }
 
   startScrapingButton(): Locator {
