@@ -12,24 +12,30 @@ import re
 import sys
 from pathlib import Path
 
-from balanceteshaters.services.annotation import Annotation, AnnotationService
-from balanceteshaters.services.nocodb import NocoDBService
-from dotenv import load_dotenv
-from ollama import chat
-
 # Allow running this file directly while keeping package imports working.
 PROJECT_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
+from balanceteshaters.services.annotation import Annotation, AnnotationService
+from balanceteshaters.services.nocodb import NocoDBService
+from dotenv import load_dotenv
+from transformers import pipeline
+from tqdm import tqdm
+
+
 if __name__ == "__main__":
-    from tqdm import tqdm
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        default="qwen3:1.7b",
-        help="ollama model name to use for classification",
+        default="Qwen/Qwen3.5-2B",
+        help="HuggingFace model ID to use for classification",
+    )
+    parser.add_argument(
+        "--print-progress",
+        action="store_true",
+        help="Show a tqdm progress bar while classifying",
     )
 
     args = parser.parse_args()
@@ -64,23 +70,30 @@ if __name__ == "__main__":
         raise FileNotFoundError(f"Prompt file not found: {prompt_file}")
     prompt_instructions = prompt_file.read_text(encoding="utf-8").strip()
 
+    # Load model once before the loop — device_map="auto" picks MPS/CUDA/CPU
+    print(f"Loading model {args.model}...")
+    classifier = pipeline(
+        "text-generation",
+        model=args.model,
+        device_map="auto",
+        torch_dtype="auto",
+    )
+
     with output_file_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
 
-        iterator = enumerate(tqdm(data, desc="Classifying", unit="rec", total=total))
+        iterator = enumerate(tqdm(data, desc="Classifying", unit="rec", total=total)) if args.print_progress else enumerate(data)
 
         for idx, record in iterator:
-            response = chat(
-                model=args.model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"{prompt_instructions} Prompt à classifier : {record.comment}",
-                    }
-                ],
-            )
-            content = response.message.content
+            messages = [
+                {
+                    "role": "user",
+                    "content": f"{prompt_instructions} Prompt à classifier : {record.comment}",
+                }
+            ]
+            response = classifier(messages, max_new_tokens=16)
+            content = response[0]["generated_text"][-1]["content"]
             output = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
             row = record.model_dump(mode="json")
             row["annotated_category"] = (
