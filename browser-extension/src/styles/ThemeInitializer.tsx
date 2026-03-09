@@ -1,6 +1,11 @@
-import { useEffect } from "react";
+import { PropsWithChildren } from "react";
 
-export function useInitializeTheme() {
+export function ThemeInitializer({ children }: PropsWithChildren) {
+  useInitializeTheme();
+  return <>{children}</>;
+}
+
+function useInitializeTheme() {
   useEffect(() => {
     const root = window.document.documentElement;
 

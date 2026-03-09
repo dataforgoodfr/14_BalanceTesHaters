@@ -1,4 +1,3 @@
-import "./App.css";
 import { getCurrentTab } from "@/shared/utils/getCurrentTab";
 import { Button } from "@/components/ui/button";
 import {
