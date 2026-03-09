@@ -17,11 +17,11 @@ PROJECT_BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
-from balanceteshaters.services.annotation import Annotation, AnnotationService
-from balanceteshaters.services.nocodb import NocoDBService
-from dotenv import load_dotenv
-from transformers import pipeline
-from tqdm import tqdm
+from balanceteshaters.services.annotation import Annotation, AnnotationService  # noqa: E402
+from balanceteshaters.services.nocodb import NocoDBService  # noqa: E402
+from dotenv import load_dotenv  # noqa: E402
+from transformers import pipeline  # noqa: E402
+from tqdm import tqdm  # noqa: E402
 
 
 if __name__ == "__main__":
