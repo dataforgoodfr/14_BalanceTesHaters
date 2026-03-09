@@ -19,10 +19,10 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "check-all": "pnpm lint && pnpm format:check && pnpm test run && pnpm compile",
-    "test:e2e": "playwright test --retries=3",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:debug": "playwright test --debug",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test",
+    "test:e2e:ui": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --ui",
+    "test:e2e:debug": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --debug",
+    "test:e2e:report": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright show-report"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",

@@ -10,10 +10,15 @@ type ExtensionFixtures = {
   extensionId: string;
 };
 
+const CHROME_BUILD_PATH = "../.output/chrome-mv3";
+
 export const test = base.extend<ExtensionFixtures>({
   // eslint-disable-next-line no-empty-pattern
   context: async ({}, use) => {
-    const pathToExtension = path.join(__dirname, "../.output/chrome-mv3");
+    const pathToExtension = path.join(
+      __dirname,
+      process.env.PATH_TO_EXTENSION || CHROME_BUILD_PATH,
+    );
     const context = await chromium.launchPersistentContext("", {
       headless: false, // Extensions require headed mode
       args: [
