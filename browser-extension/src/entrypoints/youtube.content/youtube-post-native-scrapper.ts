@@ -11,6 +11,7 @@ import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
+import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostInfoTooltipText";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -108,13 +109,23 @@ export class YoutubePostNativeScrapper {
       "#description #info",
       HTMLElement,
     );
-    infoElement.scrollIntoView();
-    const value = this.scrapingSupport.select(
-      infoElement,
-      "span:nth-child(3)",
-      HTMLElement,
+    // Open tooltip by triggering mouseenter
+    infoElement.dispatchEvent(
+      new MouseEvent("mouseenter", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
     );
-    return new PublicationDateTextParsing(value?.innerText ?? "").parse();
+    const tooltipText = this.scrapingSupport.selectOrThrow(
+      document,
+      "#description #tooltip",
+      HTMLElement,
+    ).innerText;
+    return {
+      type: "absolute",
+      date: extractIsoDateFromPostInfoTooltipText(tooltipText),
+    };
   }
 
   private async scrapPostAuthor(): Promise<Author> {
