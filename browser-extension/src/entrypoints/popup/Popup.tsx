@@ -102,7 +102,7 @@ export function Popup() {
         {isScrapablePost ? (
           <CardDescription>
             {tabInfo.scrapingStatus &&
-              tabInfo.scrapingStatus.type === "error" && (
+              tabInfo.scrapingStatus.type === "failed" && (
                 <p>
                   La capture à échouer:
                   <pre>{tabInfo.scrapingStatus.errorMessage}</pre>
@@ -142,6 +142,7 @@ export function Popup() {
             Analyser ce post
           </Button>
         )}
+
         <Button
           data-testid="view-analysis-button"
           className="w-full"

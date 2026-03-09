@@ -1,12 +1,10 @@
-export type ScrapTabResult = ScrapTabSuccess | ScrapTabError;
+import {
+  ScrapingCanceled,
+  ScrapingSucceeded,
+  ScrapingFailed,
+} from "./ScrapingStatus";
 
-export type ScrapTabSuccess = {
-  type: "success";
-  postSnapshotId: string;
-  durationMs: number;
-};
-
-export type ScrapTabError = {
-  type: "error";
-  message: string;
-};
+export type ScrapingResult =
+  | ScrapingSucceeded
+  | ScrapingFailed
+  | ScrapingCanceled;
