@@ -3,16 +3,18 @@ import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNe
 import { youtubePageInfo } from "./youtubePageInfo";
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { YoutubePostNativeScrapper } from "./youtube-post-native-scrapper";
+import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 
 export class YoutubeScraper implements SocialNetworkScraper {
   async getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
     return youtubePageInfo(document.URL);
   }
 
-  async scrapPagePost(): Promise<PostSnapshot> {
+  async scrapPagePost(abortSignal: AbortSignal): Promise<PostSnapshot> {
     // Note by @sarod:
     // Code delegates to YoutubePostNativeScrapper rather than merge them in a single class
     // to minimize merge conflicts but these could be merged later
-    return new YoutubePostNativeScrapper().scrapPost();
+    const scrapingSupport = new ScrapingSupport(abortSignal);
+    return new YoutubePostNativeScrapper(scrapingSupport).scrapPost();
   }
 }

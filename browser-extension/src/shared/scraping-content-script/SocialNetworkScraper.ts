@@ -4,5 +4,5 @@ import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 export interface SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo>;
 
-  scrapPagePost(): Promise<PostSnapshot>;
+  scrapPagePost(abortSignal: AbortSignal): Promise<PostSnapshot>;
 }

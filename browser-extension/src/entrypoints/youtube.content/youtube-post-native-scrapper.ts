@@ -3,15 +3,7 @@ import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { encodePng, Image } from "image-js";
 
-import {
-  isVisible,
-  resumeHostPage,
-  select,
-  selectAll,
-  selectOrThrow,
-  waitForSelector,
-} from "../../shared/dom-scraping/dom-scraping";
-import { sleep } from "../../shared/utils/sleep";
+import { ScrapingSupport } from "../../shared/scraping/ScrapingSupport";
 import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
 import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
@@ -38,7 +30,7 @@ type CommentThread =
   | { scrapingStatus: "failure"; message: string };
 
 export class YoutubePostNativeScrapper {
-  public constructor() {}
+  public constructor(private scrapingSupport: ScrapingSupport) {}
 
   private debug(...data: typeof console.debug.arguments) {
     console.debug(LOG_PREFIX, ...data);
@@ -55,7 +47,9 @@ export class YoutubePostNativeScrapper {
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
     this.debug("Pause video...");
-    selectOrThrow(document, "video", HTMLVideoElement).pause();
+    this.scrapingSupport
+      .selectOrThrow(document, "video", HTMLVideoElement)
+      .pause();
 
     this.debug("Scraping title...");
     const title = await this.scrapPostTitle();
@@ -93,48 +87,69 @@ export class YoutubePostNativeScrapper {
   }
 
   private scrapPostTitle(): string {
-    return selectOrThrow(document, ".watch-active-metadata #title", HTMLElement)
-      .innerText;
+    return this.scrapingSupport.selectOrThrow(
+      document,
+      ".watch-active-metadata #title",
+      HTMLElement,
+    ).innerText;
   }
 
   private scrapPostTextContent() {
-    return selectOrThrow(document, "#description #snippet-text", HTMLElement)
-      .innerText;
+    return this.scrapingSupport.selectOrThrow(
+      document,
+      "#description #snippet-text",
+      HTMLElement,
+    ).innerText;
   }
 
   private scrapPostPublishedAt(): PublicationDate {
-    const infoElement = selectOrThrow(
+    const infoElement = this.scrapingSupport.selectOrThrow(
       document,
       "#description #info",
       HTMLElement,
     );
     infoElement.scrollIntoView();
-    const value = select(infoElement, "span:nth-child(3)", HTMLElement);
+    const value = this.scrapingSupport.select(
+      infoElement,
+      "span:nth-child(3)",
+      HTMLElement,
+    );
     return new PublicationDateTextParsing(value?.innerText ?? "").parse();
   }
 
   private async scrapPostAuthor(): Promise<Author> {
-    const channelNameEl = select(document, "#owner #channel-name", HTMLElement);
+    const channelNameEl = this.scrapingSupport.select(
+      document,
+      "#owner #channel-name",
+      HTMLElement,
+    );
 
-    if (channelNameEl && isVisible(channelNameEl)) {
+    if (channelNameEl && this.scrapingSupport.isVisible(channelNameEl)) {
       const channelName = channelNameEl.innerText;
 
-      const link = selectOrThrow(channelNameEl, "a", HTMLAnchorElement);
+      const link = this.scrapingSupport.selectOrThrow(
+        channelNameEl,
+        "a",
+        HTMLAnchorElement,
+      );
       const channelUrl = link.href;
       return {
         name: channelName,
         accountHref: channelUrl,
       };
     }
-    const attributedChannelNameEl = select(
+    const attributedChannelNameEl = this.scrapingSupport.select(
       document,
       "#owner #attributed-channel-name",
       HTMLElement,
     );
-    if (attributedChannelNameEl && isVisible(attributedChannelNameEl)) {
+    if (
+      attributedChannelNameEl &&
+      this.scrapingSupport.isVisible(attributedChannelNameEl)
+    ) {
       const channelName = attributedChannelNameEl.innerText;
 
-      const link = selectOrThrow(
+      const link = this.scrapingSupport.selectOrThrow(
         attributedChannelNameEl,
         "a",
         HTMLAnchorElement,
@@ -149,7 +164,7 @@ export class YoutubePostNativeScrapper {
   }
 
   private async scrapPostComments(): Promise<CommentSnapshot[]> {
-    const commentsSectionHandle = selectOrThrow(
+    const commentsSectionHandle = this.scrapingSupport.selectOrThrow(
       document,
       "#comments",
       HTMLElement,
@@ -174,13 +189,17 @@ export class YoutubePostNativeScrapper {
 
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
-    waitForSelector(commentsSectionHandle, "#comment-container", HTMLElement);
+    this.scrapingSupport.waitForSelector(
+      commentsSectionHandle,
+      "#comment-container",
+      HTMLElement,
+    );
 
     this.debug("Capturing full page screenshot");
     const fullPageScreenshot = await this.capturePageScreenshot();
 
     this.debug("Capturing comment threads...");
-    const threadContainers = selectAll(
+    const threadContainers = this.scrapingSupport.selectAll(
       commentsSectionHandle,
       "#contents > ytd-comment-thread-renderer",
       HTMLElement,
@@ -220,7 +239,7 @@ export class YoutubePostNativeScrapper {
     commentThreadContainer: HTMLElement,
     fullPageScreenshot: Image,
   ): Promise<CommentThread> {
-    const commentContainer = selectOrThrow(
+    const commentContainer = this.scrapingSupport.selectOrThrow(
       commentThreadContainer,
       "#comment-container",
       HTMLElement,
@@ -229,7 +248,7 @@ export class YoutubePostNativeScrapper {
     // Comments in replies are sometime duplicated in other threads they don't belong to.
     // In that case they are not visible.
     // It occurs for instance in this video: https://www.youtube.com/watch?v=gluz-XXBvTk
-    if (!isVisible(commentContainer)) {
+    if (!this.scrapingSupport.isVisible(commentContainer)) {
       return {
         scrapingStatus: "failure",
         message: "The comment is not visible",
@@ -238,7 +257,7 @@ export class YoutubePostNativeScrapper {
 
     const commentPreScreenshot = await this.scrapComment(commentContainer);
 
-    const repliesContainer = select(
+    const repliesContainer = this.scrapingSupport.select(
       commentThreadContainer,
       "#replies",
       HTMLElement,
@@ -274,7 +293,7 @@ export class YoutubePostNativeScrapper {
     repliesContainer: HTMLElement,
     fullPageScreenshot: Image,
   ): Promise<CommentSnapshot[]> {
-    const expandedThreadsContainer = select(
+    const expandedThreadsContainer = this.scrapingSupport.select(
       repliesContainer,
       "#expanded-threads",
       HTMLElement,
@@ -286,7 +305,7 @@ export class YoutubePostNativeScrapper {
       return [];
     }
 
-    const repliesThreads = selectAll(
+    const repliesThreads = this.scrapingSupport.selectAll(
       expandedThreadsContainer,
       // To avoid capturing comment threads nested a level deeper, use an accurate selector.
       // If you figure out a better selector, feel free to improve this.
@@ -299,31 +318,39 @@ export class YoutubePostNativeScrapper {
 
   private async capturePageScreenshot(): Promise<Image> {
     // Hide matshead overlay that prevent screenshoting elements
-    const masthead = selectOrThrow(
+    const masthead = this.scrapingSupport.selectOrThrow(
       document,
       "#masthead-container",
       HTMLElement,
     );
     masthead.style.visibility = "hidden";
-    await resumeHostPage();
+    await this.scrapingSupport.resumeHostPage();
 
     try {
-      return await captureFullPageScreenshot();
+      return await captureFullPageScreenshot(this.scrapingSupport);
     } finally {
       masthead.style.visibility = "visible";
-      await resumeHostPage();
+      await this.scrapingSupport.resumeHostPage();
     }
   }
 
   private async sortCommentsByNewest() {
-    const sortMenu = await waitForSelector(
+    const sortMenu = await this.scrapingSupport.waitForSelector(
       document,
       "#comments #sort-menu",
       HTMLElement,
     );
-    selectOrThrow(sortMenu, "#trigger", HTMLElement).click();
+    this.scrapingSupport
+      .selectOrThrow(sortMenu, "#trigger", HTMLElement)
+      .click();
 
-    (await waitForSelector(sortMenu, "a:nth-child(2)", HTMLElement)).click();
+    (
+      await this.scrapingSupport.waitForSelector(
+        sortMenu,
+        "a:nth-child(2)",
+        HTMLElement,
+      )
+    ).click();
   }
 
   private async loadAllTopLevelComments(): Promise<void> {
@@ -335,16 +362,16 @@ export class YoutubePostNativeScrapper {
     let previousSpinnersCount = undefined;
     let lastChangeTime = Date.now();
     for (;;) {
-      const spinners = selectAll(
-        document,
-        "#comments #spinner",
-        HTMLElement,
-      ).filter(isVisible);
-      const comments = selectAll(
-        document,
-        "#comments ytd-comment-thread-renderer",
-        HTMLElement,
-      ).filter(isVisible);
+      const spinners = this.scrapingSupport
+        .selectAll(document, "#comments #spinner", HTMLElement)
+        .filter((e) => this.scrapingSupport.isVisible(e));
+      const comments = this.scrapingSupport
+        .selectAll(
+          document,
+          "#comments ytd-comment-thread-renderer",
+          HTMLElement,
+        )
+        .filter((e) => this.scrapingSupport.isVisible(e));
       this.debug("comments:", comments.length, "spinners:", spinners.length);
       if (spinners.length > 0) {
         const lastSpinner = spinners[spinners.length - 1];
@@ -367,33 +394,39 @@ export class YoutubePostNativeScrapper {
         previousSpinnersCount = spinners.length;
       }
       // Wait a bit to let page load stuff
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await this.scrapingSupport.sleep(200);
     }
   }
 
   private async loadAllReplies() {
-    const repliesButton = selectAll(
-      document,
-      "#replies #more-replies button" +
-        "," +
-        "#replies #more-replies-sub-thread button",
-      HTMLElement,
-    ).filter(isVisible);
+    const repliesButton = this.scrapingSupport
+      .selectAll(
+        document,
+        "#replies #more-replies button" +
+          "," +
+          "#replies #more-replies-sub-thread button",
+        HTMLElement,
+      )
+      .filter((e) => this.scrapingSupport.isVisible(e));
     this.debug("Expanding ", repliesButton.length, " replies button...");
     for (const b of repliesButton) {
       b.scrollIntoView();
 
       b.click();
-      await resumeHostPage();
+      await this.scrapingSupport.resumeHostPage();
     }
 
     // expand more replies button
     for (;;) {
-      const moreRepliesButtons = selectAll(
-        document,
-        'button[aria-label="Afficher plus de réponses"]',
-        HTMLElement,
-      ).filter(isVisible);
+      await this.scrapingSupport.resumeHostPage();
+
+      const moreRepliesButtons = this.scrapingSupport
+        .selectAll(
+          document,
+          'button[aria-label="Afficher plus de réponses"]',
+          HTMLElement,
+        )
+        .filter((e) => this.scrapingSupport.isVisible(e));
 
       if (moreRepliesButtons.length === 0) {
         return;
@@ -406,23 +439,23 @@ export class YoutubePostNativeScrapper {
         for (const b of moreRepliesButtons) {
           b.scrollIntoView();
           b.click();
-          await resumeHostPage();
+          await this.scrapingSupport.resumeHostPage();
         }
         //
-        await sleep(500);
+        await this.scrapingSupport.sleep(500);
       }
     }
   }
 
   private async expandLongComments() {
-    const readMoreButton = selectAll(document, "#more", HTMLElement).filter(
-      isVisible,
-    );
+    const readMoreButton = this.scrapingSupport
+      .selectAll(document, "#more", HTMLElement)
+      .filter((e) => this.scrapingSupport.isVisible(e));
     this.debug("Expanding ", readMoreButton.length, " read more button...");
     for (const b of readMoreButton) {
       b.scrollIntoView();
       b.click();
-      await resumeHostPage();
+      await this.scrapingSupport.resumeHostPage();
     }
   }
 
@@ -432,7 +465,7 @@ export class YoutubePostNativeScrapper {
     const scrapDate = currentIsoDate();
 
     const author: Author = await this.scrapCommentAuthor(commentContainer);
-    const publishedTimeElement = selectOrThrow(
+    const publishedTimeElement = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "#published-time-text",
       HTMLElement,
@@ -441,14 +474,14 @@ export class YoutubePostNativeScrapper {
     const publishedAt = new PublicationDateTextParsing(publishedAtText).parse();
     this.debug(`publishedAtInfo: ${publishedAt}`);
 
-    const commentHref = selectOrThrow(
+    const commentHref = this.scrapingSupport.selectOrThrow(
       publishedTimeElement,
       "a",
       HTMLAnchorElement,
     ).href;
     const commentId = extractCommentIdFromCommentHref(commentHref);
 
-    const commentTextHandle = selectOrThrow(
+    const commentTextHandle = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "#content-text",
       HTMLElement,
@@ -485,7 +518,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentAuthor(
     commentContainer: HTMLElement,
   ): Promise<Author> {
-    const authorTextHandle = selectOrThrow(
+    const authorTextHandle = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "a#author-text",
       HTMLAnchorElement,
@@ -517,7 +550,7 @@ export class YoutubePostNativeScrapper {
   }
 
   private scrapNbLikes(commentContainer: HTMLElement): number {
-    const nbLikesStr = selectOrThrow(
+    const nbLikesStr = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "#vote-count-middle",
       HTMLElement,

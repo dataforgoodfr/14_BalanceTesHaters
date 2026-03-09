@@ -1,8 +1,7 @@
 import { encodePng, Image } from "image-js";
 import { captureTabScreenshotAsDataUrl } from "./screenshot-cs-tab";
 import { ScreenshotFragment } from "./screenshot-fragment";
-import { sleep } from "../../utils/sleep";
-import { selectOrThrow } from "../../dom-scraping/dom-scraping";
+import { ScrapingSupport } from "../../scraping/ScrapingSupport";
 import { buildFullImageFromFragments } from "./full-image";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
@@ -10,13 +9,17 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 const STORE_SCREENSHOT_FOR_DEBUG = false;
 
 const logPrefix = "[Screenshoting]";
-export async function captureFullPageScreenshot(): Promise<Image> {
+export async function captureFullPageScreenshot(
+  scrapingSupport: ScrapingSupport,
+): Promise<Image> {
   let remaining_attempts = 10;
   for (;;) {
     try {
       console.debug(logPrefix, "Capturing fragments...");
-      const pageScreenshots = await capturePageScreenshotFragments();
+      const pageScreenshots =
+        await capturePageScreenshotFragments(scrapingSupport);
       console.debug(logPrefix, "Building full image from fragments...");
+      scrapingSupport.throwIfAborted();
       const fullPageScreenshot = buildFullImageFromFragments(pageScreenshots);
 
       if (STORE_SCREENSHOT_FOR_DEBUG) {
@@ -37,7 +40,7 @@ export async function captureFullPageScreenshot(): Promise<Image> {
               remaining_attempts +
               " attempts remaining.",
           );
-          await sleep(2000);
+          await scrapingSupport.sleep(2000);
         } else {
           throw e;
         }
@@ -66,8 +69,14 @@ class WindowScrolledException extends Error {
   }
 }
 
-async function capturePageScreenshotFragments(): Promise<ScreenshotFragment[]> {
-  const scrollable = selectOrThrow(document, "html", HTMLHtmlElement);
+async function capturePageScreenshotFragments(
+  scrapingSupport: ScrapingSupport,
+): Promise<ScreenshotFragment[]> {
+  const scrollable = scrapingSupport.selectOrThrow(
+    document,
+    "html",
+    HTMLHtmlElement,
+  );
   if (scrollable.scrollWidth > window.innerWidth) {
     console.warn(
       logPrefix,
@@ -77,6 +86,7 @@ async function capturePageScreenshotFragments(): Promise<ScreenshotFragment[]> {
 
   const screenshots: ScreenshotFragment[] = [];
   for (;;) {
+    scrapingSupport.throwIfAborted();
     const requestedTop = screenshots
       .map((s) => s.catpureArea.height)
       .reduce((sum, v) => sum + v, 0);
@@ -101,7 +111,7 @@ async function capturePageScreenshotFragments(): Promise<ScreenshotFragment[]> {
 
     // This sleep seems required for screenshot to capture the right content.
     // This may be due to some js moving pieces on scroll on the youtube page?
-    await sleep(200);
+    await scrapingSupport.sleep(200);
     if (requestedTop >= scrollable.scrollHeight) {
       return screenshots;
     }

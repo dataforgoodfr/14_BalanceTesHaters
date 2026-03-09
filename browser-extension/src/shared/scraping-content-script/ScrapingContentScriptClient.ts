@@ -2,11 +2,13 @@ import {
   SCS_GET_PAGE_INFO_MESSAGE,
   SCS_SCRAP_TAB_MESSAGE,
   SCS_GET_SCRAPING_STATUS_MESSAGE,
+  SCS_CANCEL_SCRAP_TAB_MESSAGE,
   ScsPageInfoMessage,
   ScsScrapTabMessage,
   ScsGetScrapingStatusMessage,
+  ScsCancelScrapTabMessage,
 } from "./messages";
-import { ScrapTabResult } from "./ScrapTabResult";
+import { ScrapingResult } from "./ScrapTabResult";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { ScrapingStatus } from "./ScrapingStatus";
 
@@ -35,16 +37,16 @@ export class ScrapingContentScriptClient {
     return response;
   }
 
-  async scrapPost(): Promise<ScrapTabResult> {
+  async scrapPost(): Promise<ScrapingResult> {
     const response = await this.safeSendMessage<
       ScsScrapTabMessage,
-      ScrapTabResult
+      ScrapingResult
     >(SCS_SCRAP_TAB_MESSAGE);
     if (response === NO_CONTENT_SCRIPT) {
       // No Scraping Content script registered for this url
       return {
-        type: "error",
-        message: "No Scraping Content script registered for this url",
+        type: "failed",
+        errorMessage: "No Scraping Content script registered for this url",
       };
     }
     return response;
@@ -65,6 +67,19 @@ export class ScrapingContentScriptClient {
       );
     }
     return response;
+  }
+
+  /**
+   * Cancel the currently running scraping operation for this tab
+   */
+  async cancelScraping(): Promise<void> {
+    const response = await this.safeSendMessage<
+      ScsCancelScrapTabMessage,
+      ScrapingResult
+    >(SCS_CANCEL_SCRAP_TAB_MESSAGE);
+    if (response === NO_CONTENT_SCRIPT) {
+      throw new Error("No Scraping Content script registered for this url");
+    }
   }
 
   private async safeSendMessage<M, R>(

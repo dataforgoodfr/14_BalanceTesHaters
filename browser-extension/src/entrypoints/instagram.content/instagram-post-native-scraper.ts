@@ -1,11 +1,7 @@
 import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
-import {
-  selectOrThrow,
-  select,
-  selectAll,
-} from "@/shared/dom-scraping/dom-scraping";
+import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 
@@ -25,7 +21,7 @@ type CommentThread =
   | { scrapingStatus: "failure"; message: string };
 
 export class InstagramPostNativeScraper {
-  public constructor() {}
+  public constructor(private scrapingSupport: ScrapingSupport) {}
 
   private debug(...data: typeof console.debug.arguments) {
     console.debug(LOG_PREFIX, ...data);
@@ -75,25 +71,25 @@ export class InstagramPostNativeScraper {
   }
 
   private selectPostElements(): InstagramPostElements {
-    const mainContainer = selectOrThrow(
+    const mainContainer = this.scrapingSupport.selectOrThrow(
       document,
       "main>div>div>div",
       HTMLElement,
     );
 
-    const socialContainer = selectOrThrow(
+    const socialContainer = this.scrapingSupport.selectOrThrow(
       mainContainer,
       ":scope>div:nth-of-type(2)>div",
       HTMLElement,
     );
 
-    const channelHeader = selectOrThrow(
+    const channelHeader = this.scrapingSupport.selectOrThrow(
       socialContainer,
       ":scope>div:nth-of-type(1)",
       HTMLElement,
     );
 
-    const scrollableArea = selectOrThrow(
+    const scrollableArea = this.scrapingSupport.selectOrThrow(
       socialContainer,
       ":scope>div:nth-of-type(2)",
       HTMLElement,
@@ -106,13 +102,13 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapPostAuthor(channelHeader: HTMLElement): Author {
-    const channelElement = selectOrThrow(
+    const channelElement = this.scrapingSupport.selectOrThrow(
       channelHeader,
       ":scope a",
       HTMLElement,
     );
     const channelElementHref = channelElement.getAttribute("href")!;
-    const channelName = selectOrThrow(
+    const channelName = this.scrapingSupport.selectOrThrow(
       channelElement,
       ":scope span",
       HTMLElement,
@@ -126,7 +122,7 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapPostTextContent(element: HTMLElement): string {
-    const textContentElement = selectOrThrow(
+    const textContentElement = this.scrapingSupport.selectOrThrow(
       element,
       ":scope span>div>span",
       HTMLElement,
@@ -135,7 +131,11 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
-    const timeElement = selectOrThrow(element, ":scope time", HTMLElement);
+    const timeElement = this.scrapingSupport.selectOrThrow(
+      element,
+      ":scope time",
+      HTMLElement,
+    );
     return {
       type: "absolute",
       date: timeElement.getAttribute("datetime")!,
@@ -145,7 +145,7 @@ export class InstagramPostNativeScraper {
   private async scrapPostComments(
     element: HTMLElement,
   ): Promise<CommentSnapshot[]> {
-    const commentsContainer = selectOrThrow(
+    const commentsContainer = this.scrapingSupport.selectOrThrow(
       element,
       ":scope>div>div:nth-of-type(3)",
       HTMLElement,
@@ -164,10 +164,12 @@ export class InstagramPostNativeScraper {
   private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
     let spinner = this.selectSpinner(commentsContainer);
     // TODO Improve this function.
-    // Make sure this doesn't result in an infinite loop because of an error. Define a timeout.
+    // Make sure this doesn't result in an infinite loop because an error. Define a timeout.
     // Make sure every comment is scraped.
     // I think it should not be that different from the processing of the youtube scraper.
     while (spinner) {
+      this.scrapingSupport.resumeHostPage(); // throws if aborted
+
       spinner.scrollIntoView();
       // Wait a bit to let page load stuff
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -178,14 +180,18 @@ export class InstagramPostNativeScraper {
   private selectSpinner(
     commentsContainer: HTMLElement,
   ): HTMLElement | undefined {
-    return select(commentsContainer, ":scope [role=progressbar]", HTMLElement);
+    return this.scrapingSupport.select(
+      commentsContainer,
+      ":scope [role=progressbar]",
+      HTMLElement,
+    );
   }
 
   private scrapCommentThreads(
     commentsContainer: HTMLElement,
   ): CommentSnapshot[] {
     const comments: CommentThread[] = [];
-    const commentElements = selectAll(
+    const commentElements = this.scrapingSupport.selectAll(
       commentsContainer,
       ":scope>div",
       HTMLElement,
@@ -201,14 +207,18 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapCommentThread(commentElement: HTMLElement): CommentThread {
-    const baseElement = selectOrThrow(
+    const baseElement = this.scrapingSupport.selectOrThrow(
       commentElement,
       ":scope>div>div>div:nth-of-type(2)>div>div",
       HTMLElement,
     );
 
     // TODO Scrap media such as images. For now, skip comments that uses media.
-    const image = select(baseElement, ":scope img", HTMLElement);
+    const image = this.scrapingSupport.select(
+      baseElement,
+      ":scope img",
+      HTMLElement,
+    );
 
     if (image) {
       return {
@@ -217,13 +227,13 @@ export class InstagramPostNativeScraper {
       };
     }
 
-    const postContent = selectOrThrow(
+    const postContent = this.scrapingSupport.selectOrThrow(
       baseElement,
       ":scope>div>div:nth-of-type(2)>span",
       HTMLElement,
     );
 
-    const channelHeader = selectOrThrow(
+    const channelHeader = this.scrapingSupport.selectOrThrow(
       baseElement,
       ":scope>div>div",
       HTMLElement,

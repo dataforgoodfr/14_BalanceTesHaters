@@ -58,10 +58,12 @@ async function scrapTab(tab: Browser.tabs.Tab) {
     });
     const contentScriptClient = new ScrapingContentScriptClient(tab.id);
     const result = await contentScriptClient.scrapPost();
-    if (result.type === "success") {
+    if (result.type === "succeeded") {
       await submitClassificationRequestForPost(result.postSnapshotId);
-    } else {
-      console.error("Scraping failed", result.message);
+    } else if (result.type === "failed") {
+      console.error("Scraping failed", result.errorMessage);
+    } else if (result.type === "canceled") {
+      console.error("Scraping canceled");
     }
   }
 }
