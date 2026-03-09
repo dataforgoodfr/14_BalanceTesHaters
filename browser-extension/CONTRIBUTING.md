@@ -20,10 +20,11 @@ Vérifier le formatage et le lint de code:
 - `pnpm lint` lint le code avec eslint
 - `pnpm lint:fix` lint le code et fix les issues qu'il peut corriger automatiquement
 
-Lancer les tests automatiques:
-
-- `pnpm test` lance les tests unitaires basés sur vitest
-- `pnpm test:e2e` lance les tests end-to-end avec Playwright
+- Lancer les tests unitaires (vitest): `pnpm test`
+- Lancer les tests end 2 end (playwright):
+  - **Necessite que `pnpm dev` soit lancé à coté**
+  - `pnpm test:e2e` execute les tests et affiche le rapport.
+  - `pnpm test:e2e:ui` lance les tests end-to-end avec Playwright UI.
 
 # Configurer l'extension pour pointer vers le backend de classification locale
 
