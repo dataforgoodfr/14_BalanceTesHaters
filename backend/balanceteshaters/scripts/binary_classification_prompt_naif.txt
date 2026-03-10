@@ -1,0 +1,1 @@
+Classifie le prompt de façon binaire selon s'il s'agit de cyberharcèlement ou non. Sois assez sensible, attention au sarcasme et aux emojis péjoratifs. Ne réponds qu'avec "0" pour un commentaire bénin ou "1" pour du cyberharcèlement.
