@@ -29,7 +29,8 @@ if str(PROJECT_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(PROJECT_BACKEND_DIR))
 
 if __name__ == "__main__":
-    from compute_annotation_stats import Annotation, NocoDBService
+    from balanceteshaters.services.annotation import Annotation, AnnotationService
+    from balanceteshaters.services.nocodb import NocoDBService
     from tqdm import tqdm
     
     parser = argparse.ArgumentParser()
@@ -40,14 +41,18 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     load_dotenv()
+    nocodb_base_id: str = os.environ["NOCODB_BASE_ID"]
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
     nocodb_annotation_table_id: str = os.environ["NOCODB_ANNOTATION_TABLE_ID"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
-    service = NocoDBService(
-        base_url=nocodb_base_url,
-        annotation_table_id=nocodb_annotation_table_id,
-        token=nocodb_token
+
+    nocodb = NocoDBService(
+        nocodb_url=nocodb_base_url, token=nocodb_token, base_id=nocodb_base_id
     )
+    service = AnnotationService(
+        nocodb=nocodb, annotation_table_id=nocodb_annotation_table_id
+    )
+
     data = service.get_annotations()
     total = len(data)
     data_dir = Path(__file__).resolve().parent.parent / "data"
