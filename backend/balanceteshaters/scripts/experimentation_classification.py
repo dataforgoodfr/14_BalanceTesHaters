@@ -36,8 +36,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--model",
-        default="Qwen/Qwen3-8B",
-        help="ollama model name to use for classification",
+        default="Qwen/Qwen3-1.7B",
+        help="model name to use for classification",
     )
     args = parser.parse_args()
     load_dotenv()
