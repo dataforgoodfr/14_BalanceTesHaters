@@ -181,6 +181,22 @@ export function Popup() {
       </Card>
     );
   }
+  if (tabInfo.scrapingStatus.type === "succeeded") {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+
+        <CardContent>
+          <p>La capture est terminée!</p>
+        </CardContent>
+        <CardFooter className="flex-col gap-2">
+          <ViewPreviousAnalysesButton />
+        </CardFooter>
+      </Card>
+    );
+  }
 }
 
 function StartScrapingButton({ tabId }: { tabId: number }) {
