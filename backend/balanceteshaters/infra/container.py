@@ -1,6 +1,7 @@
 import logging.config
 
 from balanceteshaters.classification.classification_task import ClassificationTask
+from balanceteshaters.classification.slm_classifier import SLMClassifier
 from balanceteshaters.infra.database import Database
 from balanceteshaters.infra.settings import Settings
 from dependency_injector import containers, providers
@@ -21,4 +22,12 @@ class Container(containers.DeclarativeContainer):
         Database, db_dsn=settings().pg_dsn, db_echo=settings().engine_echo
     )
 
-    classification_task = providers.Factory(ClassificationTask, db=database.provided)
+    slm_classifier = providers.ThreadSafeSingleton(
+        SLMClassifier, model_name=settings().slm_model_name
+    )
+
+    classification_task = providers.Factory(
+        ClassificationTask,
+        db=database.provided,
+        classifier=slm_classifier.provided,
+    )
