@@ -14,12 +14,25 @@ function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
   >(["YOUTUBE"]);
+  const [searchTerm, setSearchTerm] = React.useState("");
   const queryKey = ["posts", socialNetworkFilter];
 
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () => getPostsBySocialNetworkAndPeriod(socialNetworkFilter),
   });
+
+  const filteredPosts = React.useMemo(() => {
+    if (!data || data.length === 0 || !searchTerm.trim()) {
+      return data || [];
+    }
+    const searchValue = searchTerm.trim().toLowerCase();
+    return data.filter((post) => {
+      const title = post.title?.toLowerCase() ?? "";
+      const description = post.textContent?.toLowerCase() ?? "";
+      return title.includes(searchValue) || description.includes(searchValue);
+    });
+  }, [data, searchTerm]);
 
   return (
     <div className="p-4 flex flex-col gap-6 w-3/4">
@@ -29,15 +42,19 @@ function PostListPage() {
         onChange={setSocialNetworkFilter}
       />
 
-      {data && data.length > 0 && (
+      {filteredPosts && filteredPosts.length > 0 && (
         <span className="text-gray-500 text-left text-lg ms-2 mt-0">
-          {data.length} publication{data.length > 1 ? "s" : ""} analysée
-          {data.length > 1 ? "s" : ""}
+          {filteredPosts.length} publication{filteredPosts.length > 1 ? "s" : ""} analysée
+          {filteredPosts.length > 1 ? "s" : ""}
         </span>
       )}
 
       <div className="flex gap-3">
-        <Input placeholder="Rechercher" />
+        <Input
+          placeholder="Rechercher"
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+        />
         <Button variant="outline">
           Filtrer <Funnel />
         </Button>
@@ -47,14 +64,14 @@ function PostListPage() {
       </div>
 
       {isLoading && <Spinner className="size-8" />}
-      {!isLoading && (!data || data.length === 0) && (
+      {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
         <p className="text-center">Aucune publication</p>
       )}
 
       <div className="flex flex-col gap-4">
-        {data &&
-          data.length > 0 &&
-          data.map((post) => (
+        {filteredPosts &&
+          filteredPosts.length > 0 &&
+          filteredPosts.map((post) => (
             <Card key={post.postId}>
               <CardContent className="flex items-center gap-5">
                 <Checkbox className="mr-2" />
