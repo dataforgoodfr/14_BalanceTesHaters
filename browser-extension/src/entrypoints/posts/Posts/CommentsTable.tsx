@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import {
   useReactTable,
+  getPaginationRowModel,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
@@ -29,12 +30,51 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Button } from "@/components/ui/button";
+import React from "react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination";
+import { Field, FieldLabel } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function CommentsTable({
   comments,
 }: Readonly<{
   comments: PostComment[];
 }>) {
+  const [inputValue, setInputValue] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
+  //  à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(inputValue), 500);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  const filteredComments = React.useMemo(
+    () =>
+      comments.filter(
+        (comment) =>
+          comment.textContent
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          comment.author.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      ),
+    [comments, searchTerm],
+  );
+
   const columns = useMemo<ColumnDef<PostComment>[]>(
     () => [
       {
@@ -77,18 +117,19 @@ export default function CommentsTable({
         size: 13,
         cell: ({ row }) => (
           <div className="">
-            {row.original.classification?.map((category) => {
-              return (
-                <>
+            {[...new Set(row.original.classification ?? [])].map(
+              (category: string) => {
+                return (
                   <div
                     key={category}
                     className="bg-gray-200 rounded-full px-2 py-1 my-2 overflow-hidden text-ellipsis"
+                    title={category}
                   >
                     {category}
                   </div>
-                </>
-              );
-            })}
+                );
+              },
+            )}
           </div>
         ),
       },
@@ -117,16 +158,27 @@ export default function CommentsTable({
   );
 
   const table = useReactTable({
-    data: comments,
+    data: filteredComments,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageIndex: 0, //custom initial page index
+        pageSize: 10, //custom default page size
+      },
+    },
   });
 
   return (
     <div className="rounded-md border mt-2">
       <div className="p-3 flex justify-between">
         <InputGroup className="mx-4 w-1/3">
-          <InputGroupInput id="input-group-url" placeholder="Rechercher" />
+          <InputGroupInput
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+            placeholder="Rechercher"
+          />
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>
@@ -175,6 +227,45 @@ export default function CommentsTable({
           ))}
         </TableBody>
       </Table>
+      <div className="flex items-center justify-between gap-4 p-6 mt-3 mb-6">
+        <Field orientation="horizontal" className="w-fit">
+          <FieldLabel htmlFor="select-rows-per-page">
+            Nombre de commentaires par page
+          </FieldLabel>
+          <Select
+            defaultValue={table.getState().pagination.pageSize}
+            onValueChange={(e) => {
+              table.setPageSize(Number(e));
+            }}
+          >
+            <SelectTrigger className="w-20" id="select-rows-per-page">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="start">
+              <SelectGroup>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent>
+            {table.getCanPreviousPage() && (
+              <PaginationItem>
+                <PaginationPrevious onClick={() => table.previousPage()} />
+              </PaginationItem>
+            )}
+            {table.getCanNextPage() && (
+              <PaginationItem>
+                <PaginationNext onClick={() => table.nextPage()} />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }
