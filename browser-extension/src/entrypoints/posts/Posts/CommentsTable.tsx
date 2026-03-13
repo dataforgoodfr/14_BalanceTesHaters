@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowDownUp,
+  Eye,
   EyeClosed,
   Funnel,
   SearchIcon,
@@ -55,13 +56,21 @@ export default function CommentsTable({
 }>) {
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
+    new Set(),
+  );
 
-  // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
-  //  à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
-  React.useEffect(() => {
-    const timer = setTimeout(() => setSearchTerm(inputValue), 500);
-    return () => clearTimeout(timer);
-  }, [inputValue]);
+  const toggleCommentVisibility = (rowId: string) => {
+    setVisibleComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowId)) {
+        next.delete(rowId);
+      } else {
+        next.add(rowId);
+      }
+      return next;
+    });
+  };
 
   const filteredComments = React.useMemo(
     () =>
@@ -74,6 +83,13 @@ export default function CommentsTable({
       ),
     [comments, searchTerm],
   );
+
+  // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
+  //  à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setSearchTerm(inputValue), 500);
+    return () => clearTimeout(timer);
+  }, [inputValue]);
 
   const columns = useMemo<ColumnDef<PostComment>[]>(
     () => [
@@ -98,18 +114,36 @@ export default function CommentsTable({
         header: "Commentaire",
         size: 35,
         cell: ({ row }) => (
-          <div className="text-wrap">{row.original.textContent}</div>
+          <div
+            className={`${visibleComments.has(row.id) ? "text-wrap" : "blur-sm overflow-hidden"}`}
+          >
+            {row.original.textContent}
+          </div>
         ),
       },
       {
         id: "vue",
-        size: 5,
+        size: 7,
         header: () => (
-          <div className="flex gap-2">
-            Vue <EyeClosed />
+          <div className="flex items-center gap-1">
+            <span>Vue</span>
+            <Button variant="ghost" onClick={() => setAllCommentsVisibility()}>
+              {visibleComments.size === filteredComments.length ? (
+                <Eye />
+              ) : (
+                <EyeClosed />
+              )}
+            </Button>
           </div>
         ),
-        cell: () => <EyeClosed />,
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            onClick={() => toggleCommentVisibility(row.id)}
+          >
+            {visibleComments.has(row.id) ? <Eye /> : <EyeClosed />}
+          </Button>
+        ),
       },
       {
         accessorKey: "classification",
@@ -136,13 +170,13 @@ export default function CommentsTable({
       {
         id: "gravite",
         header: "Gravité",
-        size: 8,
+        size: 7,
         cell: () => "-",
       },
       {
         id: "propos",
         header: "Propos",
-        size: 8,
+        size: 7,
         cell: () => "-",
       },
       {
@@ -154,7 +188,7 @@ export default function CommentsTable({
         ),
       },
     ],
-    [],
+    [visibleComments],
   );
 
   const table = useReactTable({
@@ -169,6 +203,18 @@ export default function CommentsTable({
       },
     },
   });
+
+  const setAllCommentsVisibility = () => {
+    if (visibleComments.size === filteredComments.length) {
+      setVisibleComments(new Set());
+    } else {
+      // Generate row IDs for ALL filtered comments, not just paginated ones
+      const allVisibleRowIds = new Set(
+        filteredComments.map((_, i) => i.toString()),
+      );
+      setVisibleComments(allVisibleRowIds);
+    }
+  };
 
   return (
     <div className="rounded-md border mt-2">
