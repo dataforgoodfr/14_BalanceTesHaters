@@ -36,7 +36,7 @@ function PostListPage() {
   }, [data, searchTerm]);
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-3/4">
+    <div className="p-4 flex flex-col gap-6 w-5/6">
       <h1 className="mt-2">Publications analysées</h1>
       <SocialNetworkSelector
         value={socialNetworkFilter}
@@ -57,10 +57,10 @@ function PostListPage() {
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
         />
-        <Button variant="outline">
+        <Button variant="outline" disabled>
           Filtrer <Funnel />
         </Button>
-        <Button variant="outline">
+        <Button variant="outline" disabled>
           Trier <ArrowDownUp />
         </Button>
       </div>
