@@ -61,7 +61,7 @@ export default function CommentsTable({
   );
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
-  //  dans le tableau, en stockant leurs IDs dans un Set 
+  //  dans le tableau, en stockant leurs IDs dans un Set
   const toggleCommentVisibility = (rowId: string) => {
     setVisibleComments((prev) => {
       const next = new Set(prev);
@@ -88,7 +88,7 @@ export default function CommentsTable({
 
   // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
   // à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
-  // Les performances n'étaient pas top avec le filtrage à chaque frappe 
+  // Les performances n'étaient pas top avec le filtrage à chaque frappe
   React.useEffect(() => {
     const timer = setTimeout(() => setSearchTerm(inputValue), 500);
     return () => clearTimeout(timer);
@@ -99,7 +99,7 @@ export default function CommentsTable({
     () => [
       {
         id: "selection",
-        size: 5, 
+        size: 5,
         cell: () => <Checkbox className="ms-3 me-5" />,
       },
       {
@@ -206,8 +206,8 @@ export default function CommentsTable({
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
-        pageIndex: 0, 
-        pageSize: 10, 
+        pageIndex: 0,
+        pageSize: 10,
       },
     },
   });
@@ -216,7 +216,7 @@ export default function CommentsTable({
     if (visibleComments.size === filteredComments.length) {
       setVisibleComments(new Set());
     } else {
-      // Génération des identifiants pour tous les rows 
+      // Génération des identifiants pour tous les rows
       const allVisibleRowIds = new Set(
         filteredComments.map((_, i) => i.toString()),
       );

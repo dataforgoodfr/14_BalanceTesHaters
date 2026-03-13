@@ -18,7 +18,10 @@ type ActiveAuthorsProps = {
   isLoading: boolean;
 };
 
-function ActiveAuthors({ postComments, isLoading }: Readonly<ActiveAuthorsProps>) {
+function ActiveAuthors({
+  postComments,
+  isLoading,
+}: Readonly<ActiveAuthorsProps>) {
   const authorStatsList = postComments
     .reduce((authorStatsList: AuthorStats[], currentComment) => {
       const existingAuthorIndex = authorStatsList.findIndex(

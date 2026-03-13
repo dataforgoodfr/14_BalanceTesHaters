@@ -21,7 +21,11 @@ export default function App() {
           <Routes>
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
-            <Route index path="/posts/:socialNetworkName/:postId" element={<PostDetailPage />} />
+            <Route
+              index
+              path="/posts/:socialNetworkName/:postId"
+              element={<PostDetailPage />}
+            />
             <Route path="/debug" element={<DebugPage />} />
             <Route
               index

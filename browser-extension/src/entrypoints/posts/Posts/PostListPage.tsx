@@ -98,7 +98,11 @@ function PostListPage() {
                         variant="ghost"
                         size="sm"
                         render={
-                          <Link to={"/posts/"+ post.socialNetwork + "/" + post.postId}>
+                          <Link
+                            to={
+                              "/posts/" + post.socialNetwork + "/" + post.postId
+                            }
+                          >
                             Voir le détail
                           </Link>
                         }
