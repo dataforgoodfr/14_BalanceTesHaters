@@ -1,10 +1,9 @@
 import { Post } from "@/shared/model/post/Post";
 import DisplayPublishedDate from "../Posts/DisplayPublishedDate";
 
-
-function PostSummary( { post } : Readonly<{ post: Post }>) {
+function PostSummary({ post }: Readonly<{ post: Post }>) {
   return (
-    <div className="flex">  
+    <div className="flex">
       {/* TODO Ajouter image pour instagram si réalisable*/}
       {post.socialNetwork === "YOUTUBE" && (
         <img

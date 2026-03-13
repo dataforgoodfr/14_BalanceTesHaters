@@ -17,7 +17,7 @@ function PostDetailPage() {
   const params = useParams();
   const postId = params.postId || "";
   const socialNetworkName = params.socialNetworkName as SocialNetworkName;
-  
+
   const queryKey = ["posts", postId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
