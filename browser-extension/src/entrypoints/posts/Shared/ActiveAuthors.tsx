@@ -5,7 +5,7 @@ import { CircleUserRound } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
-import { Post } from "@/shared/model/post/Post";
+import { PostComment } from "@/shared/model/post/Post";
 
 type AuthorStats = {
   name: string;
@@ -14,20 +14,18 @@ type AuthorStats = {
 };
 
 type ActiveAuthorsProps = {
-  posts: Post[] | undefined;
+  postComments: PostComment[];
   isLoading: boolean;
 };
 
-function ActiveAuthors({ posts, isLoading }: Readonly<ActiveAuthorsProps>) {
-  const allComments = (posts || []).flatMap((p) => p.comments);
-
-  const authorStatsList = allComments
+function ActiveAuthors({ postComments, isLoading }: Readonly<ActiveAuthorsProps>) {
+  const authorStatsList = postComments
     .reduce((authorStatsList: AuthorStats[], currentComment) => {
       const existingAuthorIndex = authorStatsList.findIndex(
         (author) => author.name === currentComment.author.name,
       );
 
-      // Si l'auteur n'est pas encore dans la liste des posts les plus récents, on l'ajoute
+      // Si l'auteur n'est pas encore dans la liste des commentaires les plus récents, on l'ajoute
       if (existingAuthorIndex === -1) {
         authorStatsList.push({
           name: currentComment.author.name,

@@ -1,7 +1,7 @@
 import KpiCards from "./KpiCards";
 import HarassmentTrendChart from "./HarassmentTrendChard";
-import ActiveAuthors from "./ActiveAuthors";
-import CategoryDistribution from "./CategoryDistribution";
+import ActiveAuthors from "../Shared/ActiveAuthors";
+import CategoryDistribution from "../Shared/CategoryDistribution";
 import SocialNetworkSelector from "../Shared/SocialNetworkSelector";
 import DateRangePicker from "./DateRangePicker";
 import React from "react";
@@ -37,6 +37,9 @@ function HomePage() {
       ),
   });
 
+  const allComments = (data || []).flatMap((p) => p.comments);
+
+
   return (
     <div className="p-4 flex flex-col gap-6">
       <h1 className="mt-2">Vue d&apos;ensemble</h1>
@@ -52,7 +55,7 @@ function HomePage() {
 
       <HarassmentTrendChart />
       <div className="flex gap-4">
-        <ActiveAuthors posts={data} isLoading={isLoading} />
+        <ActiveAuthors postComments={allComments} isLoading={isLoading} />
         <CategoryDistribution />
       </div>
     </div>
