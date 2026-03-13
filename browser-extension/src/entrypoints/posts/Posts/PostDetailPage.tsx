@@ -17,7 +17,7 @@ function PostDetailPage() {
   const params = useParams();
   const postId = params.postId || "";
   const socialNetworkName = params.socialNetworkName as SocialNetworkName;
-
+  
   const queryKey = ["posts", postId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
@@ -29,8 +29,8 @@ function PostDetailPage() {
   let numberOfHatefulAuthors = 0;
 
   const allComments = post?.comments || [];
+  const hatefulComments = allComments.filter((c) => isCommentHateful(c));
   if (allComments.length !== 0) {
-    const hatefulComments = allComments.filter((c) => isCommentHateful(c));
     numberOfHatefulComments = hatefulComments.length;
     percentageOfHatefulComments = getPercentage(
       numberOfHatefulComments,
@@ -127,7 +127,7 @@ function PostDetailPage() {
               <span className="text-gray-500">
                 Sélectionner les commentaires pour créer un rapport
               </span>
-              <CommentsTable comments={post.comments} />
+              <CommentsTable comments={hatefulComments} />
             </div>
           </div>
         </>
