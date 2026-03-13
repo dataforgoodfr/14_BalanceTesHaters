@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowDownUp, Funnel } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import DisplayPublishedDate from "./DisplayPublishedDate";
+import { Link } from "react-router";
+import PostSummary from "../Shared/PostSummary";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -44,7 +45,8 @@ function PostListPage() {
 
       {filteredPosts && filteredPosts.length > 0 && (
         <span className="text-gray-500 text-left text-lg ms-2 mt-0">
-          {filteredPosts.length} publication{filteredPosts.length > 1 ? "s" : ""} analysée
+          {filteredPosts.length} publication
+          {filteredPosts.length > 1 ? "s" : ""} analysée
           {filteredPosts.length > 1 ? "s" : ""}
         </span>
       )}
@@ -76,32 +78,7 @@ function PostListPage() {
               <CardContent className="flex items-center gap-5">
                 <Checkbox className="mr-2" />
                 <div className="w-full">
-                  <div className="flex">
-                    {/* TODO Ajouter image pour instagram si réalisable*/}
-                    {post.socialNetwork === "YOUTUBE" && (
-                      <img
-                        src={`https://img.youtube.com/vi/${post.postId}/0.jpg`}
-                        alt=""
-                        className="w-48 h-32 object-cover mr-4 rounded"
-                      />
-                    )}
-                    <div className="text-left flex flex-col items-start gap-1">
-                      <span className="font-semibold text-lg">
-                        {post.title}
-                      </span>
-                      <span className="">
-                        URL:{" "}
-                        <a
-                          href={post.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {post.url}
-                        </a>
-                      </span>
-                      <DisplayPublishedDate date={post.publishedAt} />
-                    </div>
-                  </div>
+                  <PostSummary post={post} />
                   <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                     <div className="font-semibold">
                       Analyse du{" "}
@@ -117,9 +94,15 @@ function PostListPage() {
                       <Button variant="ghost" size="sm">
                         Relancer l&apos;analyse
                       </Button>
-                      <Button variant="ghost" size="sm">
-                        Voir le détail
-                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        render={
+                          <Link to={"/posts/"+ post.socialNetwork + "/" + post.postId}>
+                            Voir le détail
+                          </Link>
+                        }
+                      ></Button>
                     </div>
                   </Card>
                 </div>

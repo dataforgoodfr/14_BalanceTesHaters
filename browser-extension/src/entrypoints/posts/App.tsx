@@ -8,7 +8,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 const queryClient = new QueryClient();
 import HomePage from "./Home/HomePage";
 import SidePanelMenu from "./SidePanelMenu";
-import PostListPage from "./PostList/PostListPage";
+import PostListPage from "./Posts/PostListPage";
+import PostDetailPage from "./Posts/PostDetailPage";
 
 export default function App() {
   useInitializeTheme();
@@ -20,6 +21,7 @@ export default function App() {
           <Routes>
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />
+            <Route index path="/posts/:socialNetworkName/:postId" element={<PostDetailPage />} />
             <Route path="/debug" element={<DebugPage />} />
             <Route
               index
