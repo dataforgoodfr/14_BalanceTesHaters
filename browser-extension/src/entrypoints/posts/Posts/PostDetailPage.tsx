@@ -11,6 +11,7 @@ import { isCommentHateful } from "@/shared/utils/post-util";
 import { getPercentage } from "@/shared/utils/maths";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
+import CommentsTable from "./CommentsTable";
 
 function PostDetailPage() {
   const params = useParams();
@@ -27,7 +28,7 @@ function PostDetailPage() {
   let numberOfHatefulComments = 0;
   let numberOfHatefulAuthors = 0;
 
-  const allComments = (post?.comments || []);
+  const allComments = post?.comments || [];
   if (allComments.length !== 0) {
     const hatefulComments = allComments.filter((c) => isCommentHateful(c));
     numberOfHatefulComments = hatefulComments.length;
@@ -40,7 +41,7 @@ function PostDetailPage() {
   }
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-3/4">
+    <div className="p-4 flex flex-col gap-6 w-5/6">
       {isLoading && <div>Chargement...</div>}
       {post && (
         <>
@@ -114,9 +115,19 @@ function PostDetailPage() {
                 </div>
               </div>
               <div className="flex gap-4">
-                <ActiveAuthors postComments={post.comments} isLoading={isLoading} />
+                <ActiveAuthors
+                  postComments={post.comments}
+                  isLoading={isLoading}
+                />
                 <CategoryDistribution />
               </div>
+            </div>
+            <div className="text-left">
+              <h2>Commentaires malveillants</h2>
+              <span className="text-gray-500">
+                Sélectionner les commentaires pour créer un rapport
+              </span>
+              <CommentsTable comments={post.comments} />
             </div>
           </div>
         </>
