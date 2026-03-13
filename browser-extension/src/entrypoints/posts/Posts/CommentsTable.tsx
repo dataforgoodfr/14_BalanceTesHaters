@@ -60,6 +60,8 @@ export default function CommentsTable({
     new Set(),
   );
 
+  // Permet de suivre les commentaires actuellement affichés (non floutés)
+  //  dans le tableau, en stockant leurs IDs dans un Set 
   const toggleCommentVisibility = (rowId: string) => {
     setVisibleComments((prev) => {
       const next = new Set(prev);
@@ -85,17 +87,19 @@ export default function CommentsTable({
   );
 
   // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
-  //  à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
+  // à chaque frappe de l'utilisateur, mais seulement après un court délai d'inactivité (500ms ici)
+  // Les performances n'étaient pas top avec le filtrage à chaque frappe 
   React.useEffect(() => {
     const timer = setTimeout(() => setSearchTerm(inputValue), 500);
     return () => clearTimeout(timer);
   }, [inputValue]);
 
+  // La taille de chaque colonne est convertie ensuite en pourcentage. Attention, la somme doit faire 100%.
   const columns = useMemo<ColumnDef<PostComment>[]>(
     () => [
       {
         id: "selection",
-        size: 5, // % de la largeur totale du tableau
+        size: 5, 
         cell: () => <Checkbox className="ms-3 me-5" />,
       },
       {
@@ -168,12 +172,14 @@ export default function CommentsTable({
         ),
       },
       {
+        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
         id: "gravite",
         header: "Gravité",
         size: 7,
         cell: () => "-",
       },
       {
+        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
         id: "propos",
         header: "Propos",
         size: 7,
@@ -188,6 +194,8 @@ export default function CommentsTable({
         ),
       },
     ],
+    // Les colonnes seront rafraichies lorsque visibleComments change, pour
+    // mettre à jour les icônes d'œil et les classes de floutage
     [visibleComments],
   );
 
@@ -198,8 +206,8 @@ export default function CommentsTable({
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
-        pageIndex: 0, //custom initial page index
-        pageSize: 10, //custom default page size
+        pageIndex: 0, 
+        pageSize: 10, 
       },
     },
   });
@@ -208,7 +216,7 @@ export default function CommentsTable({
     if (visibleComments.size === filteredComments.length) {
       setVisibleComments(new Set());
     } else {
-      // Generate row IDs for ALL filtered comments, not just paginated ones
+      // Génération des identifiants pour tous les rows 
       const allVisibleRowIds = new Set(
         filteredComments.map((_, i) => i.toString()),
       );
