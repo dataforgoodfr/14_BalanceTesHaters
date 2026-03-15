@@ -14,6 +14,7 @@ import {
   scrapingFailed,
   ScrapingStatus,
 } from "./ScrapingStatus";
+import { ScrapingSupport } from "./ScrapingSupport";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -85,11 +86,19 @@ export class ScrapingContentScript {
     try {
       this.scrapingStatus = {
         type: "running",
+        progress: 0,
       };
       const start = Date.now();
-      const postSnapshot = await this.scraper.scrapPagePost(
+      const scrapingSupport = new ScrapingSupport(
         this.scrapAbortController.signal,
+        (progress) => {
+          this.scrapingStatus = {
+            type: "running",
+            progress: progress,
+          };
+        },
       );
+      const postSnapshot = await this.scraper.scrapPagePost(scrapingSupport);
       console.info("[SCS] - Scraping completed");
 
       // Store post snapshot

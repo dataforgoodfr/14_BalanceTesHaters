@@ -1,7 +1,7 @@
 import { encodePng, Image } from "image-js";
 import { captureTabScreenshotAsDataUrl } from "./screenshot-cs-tab";
 import { ScreenshotFragment } from "./screenshot-fragment";
-import { ScrapingSupport } from "../../scraping/ScrapingSupport";
+import { ScrapingSupport } from "../../scraping-content-script/ScrapingSupport";
 import { buildFullImageFromFragments } from "./full-image";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";

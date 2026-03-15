@@ -1,7 +1,7 @@
 import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import { ScrapingSupport } from "@/shared/scraping-content-script/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 

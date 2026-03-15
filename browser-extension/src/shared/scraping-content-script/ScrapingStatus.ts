@@ -11,6 +11,10 @@ export type ScrapingNotStarted = {
 };
 export type ScrapingRunning = {
   type: "running";
+  /**
+   * Progress percent
+   */
+  progress: number;
 };
 /**
  * Scraping completed successfully

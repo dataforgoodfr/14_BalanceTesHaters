@@ -3,7 +3,14 @@ import { sleep } from "../utils/sleep";
 type Class<T> = new () => T;
 
 export class ScrapingSupport {
-  constructor(private abortSignal: AbortSignal) {}
+  constructor(
+    private abortSignal: AbortSignal,
+    private updateProgessCallback: (progress: number) => void,
+  ) {}
+
+  updateProgress(progress: number) {
+    this.updateProgessCallback(progress);
+  }
 
   /**
    * Check if aborted and throw if so.

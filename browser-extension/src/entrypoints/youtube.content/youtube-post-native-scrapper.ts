@@ -3,7 +3,7 @@ import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { encodePng, Image } from "image-js";
 
-import { ScrapingSupport } from "../../shared/scraping/ScrapingSupport";
+import { ScrapingSupport } from "../../shared/scraping-content-script/ScrapingSupport";
 import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
 import { Rect } from "../../shared/native-screenshoting/cs/rect";
 import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
@@ -194,9 +194,11 @@ export class YoutubePostNativeScrapper {
 
     this.debug("Expanding all replies...");
     await this.loadAllReplies();
+    this.scrapingSupport.updateProgress(10);
 
     this.debug("Expanding long comments...");
     await this.expandLongComments();
+    this.scrapingSupport.updateProgress(15);
 
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
@@ -208,6 +210,7 @@ export class YoutubePostNativeScrapper {
 
     this.debug("Capturing full page screenshot");
     const fullPageScreenshot = await this.capturePageScreenshot();
+    this.scrapingSupport.updateProgress(25);
 
     this.debug("Capturing comment threads...");
     const threadContainers = this.scrapingSupport.selectAll(
