@@ -3,7 +3,7 @@ import logging
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from balanceteshaters.classification.category import AnnotatedCategory
+from balanceteshaters.classification.category import BinaryLabel
 
 logger = logging.getLogger(__name__)
 
@@ -95,5 +95,5 @@ class SLMClassifier:
         logger.debug("SLM parsed answer: %s", answer)
 
         if answer == "1":
-            return [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE.value]
-        return []
+            return [BinaryLabel.HARCELEMENT.value]
+        return [BinaryLabel.ABSENCE_DE_CYBERHARCELEMENT.value]
