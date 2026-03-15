@@ -9,5 +9,6 @@ class Settings(BaseSettings):
     engine_echo: bool = False
     logging_configuration_file: pathlib.Path
     api_token: str
+    slm_model_name: str = "Qwen/Qwen3-1.7B-GPTQ-Int8"
 
     model_config = SettingsConfigDict(env_prefix="BTH_")
