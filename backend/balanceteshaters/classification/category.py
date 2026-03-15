@@ -10,3 +10,7 @@ class AnnotatedCategory(Enum):
     INJURE_ET_DIFFAMATION_PUBLIQUE = "Injure et diffamation publique"
     DOXXING = "Doxxing"
     INCITATION_A_LA_HAINE = "Incitation à la haine"
+
+class BinaryLabel(Enum):
+    HARCELEMENT = "HARCELEMENT"
+    ABSENCE_DE_CYBERHARCELEMENT = "ABSENCE_DE_CYBERHARCELEMENT"
