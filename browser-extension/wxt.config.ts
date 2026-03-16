@@ -19,6 +19,7 @@ export default defineConfig({
       "unlimitedStorage",
       "activeTab",
       "alarms",
+      "notifications",
     ],
     host_permissions: ["<all_urls>", "https://www.youtube.com/*"],
   },

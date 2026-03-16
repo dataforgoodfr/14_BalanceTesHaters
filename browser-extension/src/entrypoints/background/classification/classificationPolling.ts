@@ -1,5 +1,7 @@
 import { getPostSnapshotsPendingClassification } from "@/shared/storage/post-snapshot-storage";
 import { updatePostWithClassificationResult } from "./updatePostWithClassificationResult";
+import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import { notifyClassificationCompleted } from "./notifyClassificationCompleted";
 
 /**
  * Register and start the classification results polling.
@@ -41,9 +43,15 @@ async function onClassificationPollingAlarm(): Promise<void> {
     );
 
     let errorCount = 0;
+    const snapshotsWithCompletedClassifications: PostSnapshot[] = [];
     for (const post of pendingPosts) {
       try {
-        await updatePostWithClassificationResult(post.id);
+        const classificationResult = await updatePostWithClassificationResult(
+          post.id,
+        );
+        if (classificationResult.status === "COMPLETED") {
+          snapshotsWithCompletedClassifications.push(post);
+        }
       } catch (error) {
         console.error(
           "[Classification Polling] - Failed for snapshotPostId:",
@@ -54,10 +62,19 @@ async function onClassificationPollingAlarm(): Promise<void> {
         errorCount++;
       }
     }
+
     const logFn = errorCount > 0 ? console.info : console.debug;
     logFn(
       `[Classification Polling] - Completed - Success: ${pendingPosts.length - errorCount}, Failed: ${errorCount}`,
     );
+    if (snapshotsWithCompletedClassifications.length > 0) {
+      console.debug(
+        "Notifying user of " +
+          snapshotsWithCompletedClassifications.length +
+          " completed classifications.",
+      );
+      notifyClassificationCompleted(snapshotsWithCompletedClassifications);
+    }
   } catch (error) {
     console.error("Error during classification polling:", error);
   }
