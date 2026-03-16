@@ -7,7 +7,7 @@ import { mergeClassificationResultIntoPost } from "./mapping/mergeClassification
 
 export async function updatePostWithClassificationResult(
   postSnapshotId: string,
-): Promise<boolean> {
+): Promise<void> {
   console.debug(
     "updatePostWithClassificationResult - postSnapshotId:",
     postSnapshotId,
@@ -15,24 +15,29 @@ export async function updatePostWithClassificationResult(
 
   const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
-    console.warn("Post does not exist!! ignoring request");
-    return false;
+    throw new Error(
+      `updatePostWithClassificationResult failed: PostSnapshot "${postSnapshotId}" not found in storage.`,
+    );
   }
   const classificationJobId = post.classificationJobId;
   if (!classificationJobId) {
-    console.warn("Post doesn't have a classificationJobId!!");
-    return false;
+    throw new Error(
+      `updatePostWithClassificationResult failed: PostSnapshot "${postSnapshotId}" doesn't have a classificationJobId.`,
+    );
   }
-  try {
-    console.debug("Getting ClassificationResult from backend");
-    const result = await getClassificationResult(classificationJobId);
 
-    const updatedPost = mergeClassificationResultIntoPost(post, result);
-    await updatePostSnapshot(updatedPost);
+  console.debug(
+    "updatePostWithClassificationResult - Getting ClassificationResult from backend",
+  );
+  const classificationResult =
+    await getClassificationResult(classificationJobId);
 
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
+  console.debug(
+    "updatePostWithClassificationResult - merging ClassificationResult into PostSnapshot",
+  );
+  const updatedPost = mergeClassificationResultIntoPost(
+    post,
+    classificationResult,
+  );
+  await updatePostSnapshot(updatedPost);
 }
