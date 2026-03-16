@@ -2,12 +2,15 @@ import {
   getPostSnapshotById,
   updatePostSnapshot,
 } from "@/shared/storage/post-snapshot-storage";
-import { getClassificationResult } from "./api/getClassificationResult";
+import {
+  ClassificationResult,
+  getClassificationResult,
+} from "./api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "./mapping/mergeClassificationResultIntoPost";
 
 export async function updatePostWithClassificationResult(
   postSnapshotId: string,
-): Promise<void> {
+): Promise<ClassificationResult> {
   console.debug(
     "updatePostWithClassificationResult - postSnapshotId:",
     postSnapshotId,
@@ -40,4 +43,5 @@ export async function updatePostWithClassificationResult(
     classificationResult,
   );
   await updatePostSnapshot(updatedPost);
+  return classificationResult;
 }
