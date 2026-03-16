@@ -12,6 +12,7 @@ import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
 import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostInfoTooltipText";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -37,7 +38,7 @@ export class YoutubePostNativeScrapper {
     console.debug(LOG_PREFIX, ...data);
   }
 
-  async scrapPost(): Promise<PostSnapshot> {
+  async scrapPost(progressManager: ProgressManager): Promise<PostSnapshot> {
     this.debug("Start Scrraping... ", document.URL);
     const url = document.URL;
     const pageInfo = youtubePageInfo(url);
@@ -68,8 +69,14 @@ export class YoutubePostNativeScrapper {
     const publishedAt = this.scrapPostPublishedAt();
     this.debug(`publishedAt: ${publishedAt}`);
 
+    // Init accounts for 1%
+    progressManager.setProgress(1);
+
     this.debug("Scraping comments...");
-    const comments: CommentSnapshot[] = await this.scrapPostComments();
+    const comments: CommentSnapshot[] = await this.scrapPostComments(
+      // Scraping comments accounts for 99% of progress
+      progressManager.subTaskProgressManager({ from: 1, to: 100 }),
+    );
     this.debug(`${comments.length} comments`);
 
     return {
@@ -174,7 +181,9 @@ export class YoutubePostNativeScrapper {
     throw new Error("Failed to scrap post author");
   }
 
-  private async scrapPostComments(): Promise<CommentSnapshot[]> {
+  private async scrapPostComments(
+    progressManager: ProgressManager,
+  ): Promise<CommentSnapshot[]> {
     const commentsSectionHandle = this.scrapingSupport.selectOrThrow(
       document,
       "#comments",
@@ -185,19 +194,22 @@ export class YoutubePostNativeScrapper {
     this.debug("Sorting comments by newest...");
     await this.sortCommentsByNewest();
 
-    this.debug("Loading all comment threads...");
-    await this.loadAllTopLevelComments();
+    await this.loadAllComments(
+      progressManager.subTaskProgressManager({ from: 0, to: 50 }),
+    );
 
-    // TODO fix Load replies is unstable:
-    // * it sometimes stuck indefinitely with 1 remainign more Replies to click
-    // * some elements are still not rendered when it finishes
+    const comments = await this.scrapLoadedComments(
+      commentsSectionHandle,
+      progressManager.subTaskProgressManager({ from: 50, to: 100 }),
+    );
 
-    this.debug("Expanding all replies...");
-    await this.loadAllReplies();
+    return comments;
+  }
 
-    this.debug("Expanding long comments...");
-    await this.expandLongComments();
-
+  private async scrapLoadedComments(
+    commentsSectionHandle: HTMLElement,
+    progressManager: ProgressManager,
+  ) {
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
     this.scrapingSupport.waitForSelector(
@@ -207,7 +219,9 @@ export class YoutubePostNativeScrapper {
     );
 
     this.debug("Capturing full page screenshot");
-    const fullPageScreenshot = await this.capturePageScreenshot();
+    const fullPageScreenshot = await this.capturePageScreenshot(
+      progressManager.subTaskProgressManager({ from: 0, to: 95 }),
+    );
 
     this.debug("Capturing comment threads...");
     const threadContainers = this.scrapingSupport.selectAll(
@@ -219,9 +233,26 @@ export class YoutubePostNativeScrapper {
       threadContainers,
       fullPageScreenshot,
     );
+    progressManager.setProgress(100);
     this.debug("Comments metada:", comments);
-
     return comments;
+  }
+
+  private async loadAllComments(progressManager: ProgressManager) {
+    this.debug("Loading all comment threads...");
+    await this.loadAllTopLevelComments();
+    progressManager.setProgress(50);
+
+    // TODO fix Load replies is unstable:
+    // * it sometimes stuck indefinitely with 1 remainign more Replies to click
+    // * some elements are still not rendered when it finishes
+    this.debug("Expanding all replies...");
+    await this.loadAllReplies();
+    progressManager.setProgress(75);
+
+    this.debug("Expanding long comments...");
+    await this.expandLongComments();
+    progressManager.setProgress(100);
   }
 
   private async scrapCommentThreads(
@@ -327,7 +358,9 @@ export class YoutubePostNativeScrapper {
     return this.scrapCommentThreads(repliesThreads, fullPageScreenshot);
   }
 
-  private async capturePageScreenshot(): Promise<Image> {
+  private async capturePageScreenshot(
+    progressManager: ProgressManager,
+  ): Promise<Image> {
     // Hide matshead overlay that prevent screenshoting elements
     const masthead = this.scrapingSupport.selectOrThrow(
       document,
@@ -338,7 +371,10 @@ export class YoutubePostNativeScrapper {
     await this.scrapingSupport.resumeHostPage();
 
     try {
-      return await captureFullPageScreenshot(this.scrapingSupport);
+      return await captureFullPageScreenshot(
+        this.scrapingSupport,
+        progressManager,
+      );
     } finally {
       masthead.style.visibility = "visible";
       await this.scrapingSupport.resumeHostPage();
