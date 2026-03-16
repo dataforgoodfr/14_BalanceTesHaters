@@ -6,6 +6,7 @@ import { isSubmitClassificationRequestMessage } from "./classification/submitCla
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
 import { scrapTabAndSubmitClassificationRequest } from "./scraping/scrapTab";
+import { startClassificationPolling } from "./classification/classificationPolling";
 
 export default defineBackground(() => {
   console.info(
@@ -15,6 +16,9 @@ export default defineBackground(() => {
 
   console.debug("Background - Registering message listener");
   browser.runtime.onMessage.addListener(handleIncomingMessages);
+
+  console.debug("Background - Register classification polling alarm");
+  startClassificationPolling();
 });
 
 /**
