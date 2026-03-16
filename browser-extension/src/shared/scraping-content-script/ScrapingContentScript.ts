@@ -14,6 +14,7 @@ import {
   scrapingFailed,
   ScrapingStatus,
 } from "./ScrapingStatus";
+import { ProgressManager } from "./ProgressManager";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -85,10 +86,28 @@ export class ScrapingContentScript {
     try {
       this.scrapingStatus = {
         type: "running",
+        progress: 0,
       };
       const start = Date.now();
       const postSnapshot = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
+        new ProgressManager((progress) => {
+          if (this.scrapingStatus.type !== "running") {
+            // Not running anymore
+            // Probably canceling
+            return;
+          }
+          const roundedProgress = Math.round(progress);
+          const durationSec = Math.round((Date.now() - start) / 1000);
+
+          console.info(
+            `[SCS] - Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
+          );
+          this.scrapingStatus = {
+            type: "running",
+            progress: roundedProgress,
+          };
+        }),
       );
       console.info("[SCS] - Scraping completed");
 

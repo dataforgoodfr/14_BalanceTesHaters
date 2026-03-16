@@ -5,26 +5,31 @@ import { ScrapingSupport } from "../../scraping/ScrapingSupport";
 import { buildFullImageFromFragments } from "./full-image";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 const STORE_SCREENSHOT_FOR_DEBUG = false;
 
 const logPrefix = "[Screenshoting]";
 export async function captureFullPageScreenshot(
   scrapingSupport: ScrapingSupport,
+  progressManager: ProgressManager,
 ): Promise<Image> {
   let remaining_attempts = 10;
   for (;;) {
     try {
       console.debug(logPrefix, "Capturing fragments...");
-      const pageScreenshots =
-        await capturePageScreenshotFragments(scrapingSupport);
+      const pageScreenshots = await capturePageScreenshotFragments(
+        scrapingSupport,
+        // Consider that capturing screenshots amount for 90% of screenshoting work
+        progressManager.subTaskProgressManager({ from: 0, to: 90 }),
+      );
       console.debug(logPrefix, "Building full image from fragments...");
       scrapingSupport.throwIfAborted();
       const fullPageScreenshot = buildFullImageFromFragments(pageScreenshots);
-
       if (STORE_SCREENSHOT_FOR_DEBUG) {
         await storeForDebug(fullPageScreenshot);
       }
+      progressManager.setProgress(100);
       return fullPageScreenshot;
     } catch (e) {
       if (
@@ -71,6 +76,7 @@ class WindowScrolledException extends Error {
 
 async function capturePageScreenshotFragments(
   scrapingSupport: ScrapingSupport,
+  progressManager: ProgressManager,
 ): Promise<ScreenshotFragment[]> {
   const scrollable = scrapingSupport.selectOrThrow(
     document,
@@ -85,6 +91,10 @@ async function capturePageScreenshotFragments(
   }
 
   const screenshots: ScreenshotFragment[] = [];
+  const expectedFragmentsCount = Math.ceil(
+    scrollable.scrollHeight / window.innerHeight,
+  );
+  const progressPerFragment = 100 / expectedFragmentsCount;
   for (;;) {
     scrapingSupport.throwIfAborted();
     const requestedTop = screenshots
@@ -134,6 +144,7 @@ async function capturePageScreenshotFragments(
       catpureArea: area,
       screenshotDataUrl: dataUrl,
     });
+    progressManager.setProgress(screenshots.length * progressPerFragment);
   }
 }
 
