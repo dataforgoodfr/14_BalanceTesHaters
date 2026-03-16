@@ -4,6 +4,7 @@ import {
   isPostPublishedBefore as IsPostPublishedBefore,
 } from "../utils/post-util";
 import { SocialNetworkName } from "../model/SocialNetworkName";
+import { isRunningClassificationStatus } from "../model/ClassificationStatus";
 
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
@@ -115,6 +116,32 @@ export async function getPostSnapshotsByPostId(
 ): Promise<PostSnapshot[]> {
   const posts = await getPostSnapshots();
   return posts.filter((p) => p.postId === postId);
+}
+
+/**
+ * Get all post snapshots that have a classificationJobId but whose classification
+ * is not yet completed or failed. This is used to periodically poll for classification results.
+ * @returns PostSnapshots that need their classification results updated
+ */
+export async function getPostSnapshotsPendingClassification(): Promise<
+  PostSnapshot[]
+> {
+  const posts = await getPostSnapshots();
+  return posts.filter((p) => {
+    // Must have a classification job ID
+    if (!p.classificationJobId) {
+      return false;
+    }
+    // Must NOT be completed or failed - use the helper function
+    if (
+      p.classificationStatus &&
+      !isRunningClassificationStatus(p.classificationStatus)
+    ) {
+      return false;
+    }
+    // Include posts with no status, or SUBMITTED/IN_PROGRESS status
+    return true;
+  });
 }
 
 async function writePostSnapshotsLists(newPosts: PostSnapshot[]) {
