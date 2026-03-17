@@ -6,15 +6,20 @@ import argparse
 import logging
 
 def get_predictions(filepath: Path):
-    df = pl.read_csv(filepath)
+    full_df = pl.read_csv(filepath)
     
+    # filter out un-annotated lines
+    filtered_df = full_df.filter(pl.col("annotated_category").is_not_null())
+
+    # df debug preview
+    # filtered_df.glimpse()
+
     # Safe values means True if "Absence de cyberharcèlement" (no harrassment)
-    # Un-annotaded lines are considered safe... to be debated
-    safe_values = tuple(df["annotated_category"].str.contains("Absence de cyberharcèlement").fill_null(False).to_list())
-    
+    safe_values = tuple(filtered_df["annotated_category"].str.contains("Absence de cyberharcèlement").to_list())
+
     # True must mean abusive comment, so
     true_values = tuple(not value for value in safe_values)
-    predicted_values = tuple(df["predicted_category"])
+    predicted_values = tuple(filtered_df["predicted_category"])
     
     return true_values, predicted_values
 
@@ -37,7 +42,7 @@ def evaluate_classification(true_values, predicted_values):
 
 if __name__ == "__main__":
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
 
     parser = argparse.ArgumentParser(description="""
@@ -62,7 +67,9 @@ if __name__ == "__main__":
     true_values, predicted_values = get_predictions(input_csv_path)
     
     logging.debug(f"{true_values=}")
+    logging.debug(f"{len(true_values)=}")
     logging.debug(f"{predicted_values=}")
+    logging.debug(f"{len(predicted_values)=}")
     
     # compute metrics
     f1_score, recall_score, precision_score = \
