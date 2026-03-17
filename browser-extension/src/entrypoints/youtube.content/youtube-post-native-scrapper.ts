@@ -200,7 +200,7 @@ export class YoutubePostNativeScrapper {
 
     this.debug("Capturing loaded comments...");
     // Wait for at least one to be present
-    this.scrapingSupport.waitForSelector(
+    this.scrapingSupport.waitForSelectorOrThrow(
       commentsSectionHandle,
       "#comment-container",
       HTMLElement,
@@ -346,7 +346,7 @@ export class YoutubePostNativeScrapper {
   }
 
   private async sortCommentsByNewest() {
-    const sortMenu = await this.scrapingSupport.waitForSelector(
+    const sortMenu = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
       "#comments #sort-menu",
       HTMLElement,
@@ -356,7 +356,7 @@ export class YoutubePostNativeScrapper {
       .click();
 
     (
-      await this.scrapingSupport.waitForSelector(
+      await this.scrapingSupport.waitForSelectorOrThrow(
         sortMenu,
         "a:nth-child(2)",
         HTMLElement,

@@ -155,6 +155,9 @@ export class InstagramPostNativeScraper {
     this.debug("Loading all comment threads...");
     await this.loadAllTopLevelComments(commentsContainer);
 
+    this.debug("Expanding all replies...");
+    await this.loadAllReplies(commentsContainer);
+
     const comments = this.scrapCommentThreads(commentsContainer);
     this.debug("Comments metadata:", comments);
 
@@ -174,6 +177,45 @@ export class InstagramPostNativeScraper {
       // Wait a bit to let page load stuff
       await new Promise((resolve) => setTimeout(resolve, 500));
       spinner = this.selectSpinner(commentsContainer);
+    }
+  }
+
+  private async loadAllReplies(commentsContainer: HTMLElement) {
+    const repliesThreadElements = this.scrapingSupport.selectAll(
+      commentsContainer,
+      ":scope>div>div:nth-of-type(2)",
+      HTMLElement,
+    );
+
+    for (const replyThreadElement of repliesThreadElements) {
+      const expandRepliesElement = this.scrapingSupport.selectOrThrow(
+        replyThreadElement,
+        ":scope>div>div>span",
+        HTMLElement,
+      );
+      expandRepliesElement.scrollIntoView();
+      expandRepliesElement.click();
+
+      this.loadMoreReplies(replyThreadElement);
+    }
+  }
+
+  private async loadMoreReplies(replyThreadElement: HTMLElement) {
+    for (;;) {
+      const waitForSelectorResult = await this.scrapingSupport.waitForSelector(
+        replyThreadElement,
+        ":scope>div:nth-of-type(2)>div>span",
+        HTMLElement,
+        {
+          timeout: 5000,
+        },
+      );
+      if (waitForSelectorResult.status === "failure") {
+        return;
+      }
+      const nextLoadMoreMessageElement = waitForSelectorResult.element;
+      nextLoadMoreMessageElement.scrollIntoView();
+      nextLoadMoreMessageElement.click();
     }
   }
 
