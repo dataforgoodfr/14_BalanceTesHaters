@@ -1,12 +1,9 @@
-"""
-This script computes statistical indicators on two array-like objects containing boolean values.
-Projected application is to evaluate the accuracy of binary classification of abusive messages.
-"""
 import random
 import sklearn
 from pathlib import Path
 import polars as pl
-
+import argparse
+import logging
 
 def get_predictions(filepath: Path):
     df = pl.read_csv(filepath)
@@ -39,16 +36,33 @@ def evaluate_classification(true_values, predicted_values):
 
 
 if __name__ == "__main__":
+
+    logging.basicConfig(level=logging.DEBUG)
+
+
+    parser = argparse.ArgumentParser(description="""
+    This script computes statistical indicators on two array-like objects containing boolean values.
+    Projected application is to evaluate the accuracy of binary classification of abusive messages.
+    Path to csv file containing both annotations and predictions can be supplied as an optional argument.
+    Otherwise, default csv path value will be deducted from environment variables. 
+    In that case, user may need to execute the prediction script for the csv file to exist in the default location.
+    """)
+    parser.add_argument("path_to_input_csv", type=Path, help="Path to csv file containing both annotations and predictions (optional)")
+    args = parser.parse_args()
+
+    # Determine input csv path
+    input_csv_path = args.path_to_input_csv
+    logging.info(f"provided input csv path : {args.path_to_input_csv}")
     
     # get test classification data
     # true_values = get_random_true_values()
     # predicted_values = get_random_predicted_values()
     
     # get data from csv file
-    true_values, predicted_values = get_predictions(Path("./balanceteshaters/data/predictions_mui76cxchdkre7j_Qwen_Qwen2.5-7B-Instruct.csv"))
+    true_values, predicted_values = get_predictions(input_csv_path)
     
-    print(f"{true_values=}")
-    print(f"{predicted_values=}")
+    logging.debug(f"{true_values=}")
+    logging.debug(f"{predicted_values=}")
     
     # compute metrics
     f1_score, recall_score, precision_score = \
