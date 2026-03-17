@@ -1,7 +1,6 @@
 import logging
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from llama_cpp import Llama
 
 from balanceteshaters.classification.category import BinaryLabel
 
@@ -50,15 +49,16 @@ Ne Réponds qu'avec "0" pour un commentaire bénin ou "1" pour du cyberharcèlem
 
 
 class SLMClassifier:
-    def __init__(self, model_name: str):
-        logger.info("Loading SLM model: %s", model_name)
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name, torch_dtype="auto", device_map="auto"
+    def __init__(self, model_path: str, n_threads: int, n_ctx: int):
+        logger.info("Loading GGUF model: %s (threads=%d, ctx=%d)", model_path, n_threads, n_ctx)
+        self.llm = Llama(
+            model_path=model_path,
+            n_threads=n_threads,
+            n_ctx=n_ctx,
+            n_batch=512,
+            verbose=False,
         )
-        logger.info("SLM model loaded successfully")
+        logger.info("GGUF model loaded successfully")
 
     def classify(self, text: str) -> list[str]:
         messages = [
@@ -67,27 +67,14 @@ class SLMClassifier:
                 "content": f"{CLASSIFICATION_PROMPT} Prompt à classifier : {text}",
             }
         ]
-        inputs = self.tokenizer.apply_chat_template(
-            messages,
-            add_generation_prompt=True,
-            tokenize=True,
-            return_dict=True,
-            return_tensors="pt",
-            enable_thinking=False,
-        ).to(self.model.device)
 
-        with torch.no_grad():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=200,
-                do_sample=False,
-                pad_token_id=self.tokenizer.pad_token_id,
-            )
-
-        decoded = self.tokenizer.decode(
-            outputs[0][inputs["input_ids"].shape[-1] :], skip_special_tokens=True
+        response = self.llm.create_chat_completion(
+            messages=messages,
+            max_tokens=20,
+            temperature=0.0,
         )
-        output = decoded.strip()
+
+        output = response["choices"][0]["message"]["content"].strip()
         logger.debug("SLM raw answer for %r: %r", text[:80], output)
 
         digits = [ch for ch in reversed(output) if ch in ("0", "1")]
