@@ -1,27 +1,23 @@
 import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
-import { encodePng, Image } from "image-js";
+import { encodePng } from "image-js";
 
 import { ScrapingSupport } from "../../shared/scraping/ScrapingSupport";
 import { uint8ArrayToBase64 } from "../../shared/utils/base-64";
-import { Rect } from "../../shared/native-screenshoting/cs/rect";
-import { captureFullPageScreenshot } from "../../shared/native-screenshoting/cs/page-screenshot";
+import {
+  captureFullPageScreenshot,
+  FullPageScreenshotResult,
+} from "../../shared/native-screenshoting/cs/page-screenshot";
 import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
 import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostInfoTooltipText";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
-type CommentPreScreenshot = {
-  /**
-   * The rect this screenshot occupies relative to document top.
-   */
-  area: Rect;
-  comment: Omit<CommentSnapshot, "screenshotData">;
-};
+import { withRetry } from "../../shared/utils/withRetry";
+const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 /**
  * In a thread, sometimes a comment can not be parsed.
@@ -37,9 +33,15 @@ export class YoutubePostNativeScrapper {
   private debug(...data: typeof console.debug.arguments) {
     console.debug(LOG_PREFIX, ...data);
   }
+  private info(...data: typeof console.debug.arguments) {
+    console.info(LOG_PREFIX, ...data);
+  }
+  private warn(...data: typeof console.debug.arguments) {
+    console.warn(LOG_PREFIX, ...data);
+  }
 
   async scrapPost(progressManager: ProgressManager): Promise<PostSnapshot> {
-    this.debug("Start Scrraping... ", document.URL);
+    this.info("Start Scraping... ", document.URL);
     const url = document.URL;
     const pageInfo = youtubePageInfo(url);
     if (!pageInfo.isScrapablePost) {
@@ -210,36 +212,49 @@ export class YoutubePostNativeScrapper {
     commentsSectionHandle: HTMLElement,
     progressManager: ProgressManager,
   ) {
-    this.debug("Capturing loaded comments...");
-    // Wait for at least one to be present
-    this.scrapingSupport.waitForSelector(
-      commentsSectionHandle,
-      "#comment-container",
-      HTMLElement,
-    );
+    return withRetry({
+      maxAttempts: 10,
+      retryOn: (e) => e instanceof WindowResizedSinceScreenshotError,
+      beforeRetry: ({ remainingAttempts }) => {
+        this.warn(
+          "Window Resized - restarting scrapLoadedComments remainingAttempts:",
+          remainingAttempts,
+        );
+      },
+      retry: async () => {
+        // Wait for at least one to be present
+        this.scrapingSupport.waitForSelector(
+          commentsSectionHandle,
+          "#comment-container",
+          HTMLElement,
+        );
 
-    this.debug("Capturing full page screenshot");
-    const fullPageScreenshot = await this.capturePageScreenshot(
-      progressManager.subTaskProgressManager({ from: 0, to: 95 }),
-    );
+        this.info("Capturing full page screenshot");
+        const fullPageScreenshot = await this.capturePageScreenshot(
+          progressManager.subTaskProgressManager({ from: 0, to: 95 }),
+        );
 
-    this.debug("Capturing comment threads...");
-    const threadContainers = this.scrapingSupport.selectAll(
-      commentsSectionHandle,
-      "#contents > ytd-comment-thread-renderer",
-      HTMLElement,
-    );
-    const comments = this.scrapCommentThreads(
-      threadContainers,
-      fullPageScreenshot,
-    );
-    progressManager.setProgress(100);
-    this.debug("Comments metada:", comments);
-    return comments;
+        this.info("Capturing comment threads...");
+        const threadContainers = this.scrapingSupport.selectAll(
+          commentsSectionHandle,
+          "#contents > ytd-comment-thread-renderer",
+          HTMLElement,
+        );
+        const comments = this.scrapCommentThreads(
+          threadContainers,
+          fullPageScreenshot,
+        );
+        progressManager.setProgress(100);
+        this.debug("Comments metada:", comments);
+        return comments;
+      },
+    });
   }
 
   private async loadAllComments(progressManager: ProgressManager) {
-    this.debug("Loading all comment threads...");
+    this.info("Loading all comments...");
+
+    this.debug("Loading top level comments...");
     await this.loadAllTopLevelComments();
     progressManager.setProgress(50);
 
@@ -257,7 +272,7 @@ export class YoutubePostNativeScrapper {
 
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
-    fullPageScreenshot: Image,
+    fullPageScreenshot: FullPageScreenshotResult,
   ): Promise<CommentSnapshot[]> {
     return (
       await Promise.all(
@@ -279,7 +294,7 @@ export class YoutubePostNativeScrapper {
    */
   private async scrapCommentThread(
     commentThreadContainer: HTMLElement,
-    fullPageScreenshot: Image,
+    fullPageScreenshot: FullPageScreenshotResult,
   ): Promise<CommentThread> {
     const commentContainer = this.scrapingSupport.selectOrThrow(
       commentThreadContainer,
@@ -297,7 +312,10 @@ export class YoutubePostNativeScrapper {
       };
     }
 
-    const commentPreScreenshot = await this.scrapComment(commentContainer);
+    const comment = await this.scrapCommentWithoutReplies(
+      commentContainer,
+      fullPageScreenshot,
+    );
 
     const repliesContainer = this.scrapingSupport.select(
       commentThreadContainer,
@@ -306,34 +324,21 @@ export class YoutubePostNativeScrapper {
     );
 
     if (repliesContainer) {
-      commentPreScreenshot.comment.replies = await this.scrapCommentReplies(
+      comment.replies = await this.scrapCommentReplies(
         repliesContainer,
         fullPageScreenshot,
       );
     }
 
-    const screenshotImage = fullPageScreenshot.crop({
-      origin: {
-        row: commentPreScreenshot.area.y,
-        column: commentPreScreenshot.area.x,
-      },
-      height: commentPreScreenshot.area.height,
-      width: commentPreScreenshot.area.width,
-    });
-    const base64PngData = uint8ArrayToBase64(encodePng(screenshotImage));
-
     return {
-      comment: {
-        ...commentPreScreenshot.comment,
-        screenshotData: base64PngData,
-      },
+      comment,
       scrapingStatus: "success",
     };
   }
 
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
-    fullPageScreenshot: Image,
+    fullPageScreenshot: FullPageScreenshotResult,
   ): Promise<CommentSnapshot[]> {
     const expandedThreadsContainer = this.scrapingSupport.select(
       repliesContainer,
@@ -360,7 +365,7 @@ export class YoutubePostNativeScrapper {
 
   private async capturePageScreenshot(
     progressManager: ProgressManager,
-  ): Promise<Image> {
+  ): Promise<FullPageScreenshotResult> {
     // Hide matshead overlay that prevent screenshoting elements
     const masthead = this.scrapingSupport.selectOrThrow(
       document,
@@ -506,9 +511,10 @@ export class YoutubePostNativeScrapper {
     }
   }
 
-  private async scrapComment(
+  private async scrapCommentWithoutReplies(
     commentContainer: HTMLElement,
-  ): Promise<CommentPreScreenshot> {
+    fullPageScreenshot: FullPageScreenshotResult,
+  ): Promise<CommentSnapshot> {
     const scrapDate = currentIsoDate();
 
     const author: Author = await this.scrapCommentAuthor(commentContainer);
@@ -539,27 +545,38 @@ export class YoutubePostNativeScrapper {
     const commentText = this.scrapCommentText(commentTextHandle);
 
     const boundingBox = commentContainer.getBoundingClientRect();
-    const commentPre: CommentPreScreenshot = {
-      comment: {
-        id: crypto.randomUUID(),
-        commentId,
-        textContent: commentText,
-        author: author,
-        publishedAt: publishedAt,
-        scrapedAt: scrapDate,
-        // TODO capture replies
-        replies: [],
-        nbLikes: nbLikes,
-      },
+    if (
+      window.innerWidth !== fullPageScreenshot.viewPortSize.width ||
+      window.innerHeight !== fullPageScreenshot.viewPortSize.height
+    ) {
+      // Windows resized since screenshot
+      // This surely have changed page layout
+      // We cannot proceed as we need bounding box and screenshot to match
+      throw new WindowResizedSinceScreenshotError();
+    }
 
-      area: {
-        x: Math.floor(boundingBox.x + window.scrollX),
-        y: Math.floor(boundingBox.y + window.scrollY),
-        width: Math.ceil(boundingBox.width),
-        height: Math.ceil(boundingBox.height),
+    const screenshotImage = fullPageScreenshot.image.crop({
+      origin: {
+        column: Math.floor(boundingBox.x + window.scrollX),
+        row: Math.floor(boundingBox.y + window.scrollY),
       },
+      width: Math.ceil(boundingBox.width),
+      height: Math.ceil(boundingBox.height),
+    });
+    const screenshotData = uint8ArrayToBase64(encodePng(screenshotImage));
+
+    return {
+      id: crypto.randomUUID(),
+      commentId,
+      textContent: commentText,
+      author: author,
+      publishedAt: publishedAt,
+      scrapedAt: scrapDate,
+      nbLikes: nbLikes,
+      screenshotData,
+      // replies are captured in other method
+      replies: [],
     };
-    return commentPre;
   }
 
   private async scrapCommentAuthor(
@@ -612,3 +629,5 @@ export class YoutubePostNativeScrapper {
     return `https://i.ytimg.com/vi/${postId}/hq720.jpg`;
   }
 }
+
+class WindowResizedSinceScreenshotError extends Error {}
