@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     logging_configuration_file: pathlib.Path
     api_token: str
 
-    slm_model_path: str = "/models/qwen3-1.7b-q4_k_m.gguf"
+    slm_model_path: str = "/models/Qwen3-1.7B-Q4_K_M.gguf"
     slm_n_threads: int = 4
     slm_n_ctx: int = 2048
     slm_max_batch_size: int = 16
