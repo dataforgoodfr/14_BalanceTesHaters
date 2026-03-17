@@ -31,7 +31,20 @@ def get_random_predicted_values():
     predicted_values = tuple(random.choice([0, 1]) for _ in range(30))
     return predicted_values
 
-def evaluate_classification(true_values, predicted_values):
+def evaluate_classification(filepath: Path):
+    
+    # get data from csv file
+    true_values, predicted_values = get_predictions(filepath)    
+    
+    # get test classification data
+    # true_values = get_random_true_values()
+    # predicted_values = get_random_predicted_values()
+    
+    logging.debug(f"{true_values=}")
+    logging.debug(f"{len(true_values)=}")
+    logging.debug(f"{predicted_values=}")
+    logging.debug(f"{len(predicted_values)=}")
+    
     f1_score = sklearn.metrics.f1_score(true_values, predicted_values)
     recall_score = sklearn.metrics.recall_score(true_values, predicted_values)
     precision_score = sklearn.metrics.precision_score(true_values, predicted_values)
@@ -59,21 +72,10 @@ if __name__ == "__main__":
     input_csv_path = args.path_to_input_csv
     logging.info(f"provided input csv path : {args.path_to_input_csv}")
     
-    # get test classification data
-    # true_values = get_random_true_values()
-    # predicted_values = get_random_predicted_values()
-    
-    # get data from csv file
-    true_values, predicted_values = get_predictions(input_csv_path)
-    
-    logging.debug(f"{true_values=}")
-    logging.debug(f"{len(true_values)=}")
-    logging.debug(f"{predicted_values=}")
-    logging.debug(f"{len(predicted_values)=}")
     
     # compute metrics
     f1_score, recall_score, precision_score = \
-        evaluate_classification(true_values, predicted_values)
+        evaluate_classification(input_csv_path)
     
     # display metrics
     print(f"{f1_score=}")
