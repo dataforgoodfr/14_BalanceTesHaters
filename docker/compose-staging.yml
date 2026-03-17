@@ -28,7 +28,7 @@ services:
       - BTH_SLM_MAX_BATCH_SIZE=${BTH_SLM_MAX_BATCH_SIZE:-16}
       - BTH_SLM_BATCH_TIMEOUT_S=${BTH_SLM_BATCH_TIMEOUT_S:-0.5}
     ports:
-      - "${BTH_API_PORT:-8000}:8000"
+      - "${BTH_API_PORT:-8001}:8000"
     volumes:
       - ./models:/models:ro
     depends_on:
