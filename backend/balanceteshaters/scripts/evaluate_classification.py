@@ -11,6 +11,10 @@ def get_predictions(filepath: Path):
     # filter out un-annotated lines
     filtered_df = full_df.filter(pl.col("annotated_category").is_not_null())
 
+    # filter out rows with a predicted value other than 0 or 1
+    # FIXME: We should avoid getting such predictions in the first place
+    filtered_df = full_df.filter(pl.col("predicted_category").is_in(["0", "1"]))
+
     # df debug preview
     # filtered_df.glimpse()
 
@@ -19,7 +23,7 @@ def get_predictions(filepath: Path):
 
     # True must mean abusive comment, so
     true_values = tuple(not value for value in safe_values)
-    predicted_values = tuple(filtered_df["predicted_category"])
+    predicted_values = tuple(int(value) for value in filtered_df["predicted_category"])
     
     return true_values, predicted_values
 
