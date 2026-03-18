@@ -107,20 +107,27 @@ class AnnotationService:
         offset = 0
 
         while True:
-            response_dict = self.nocodb.get_records(table_id=self.annotation_table_id)
+            response_dict = self.nocodb.get_records(
+                table_id=self.annotation_table_id,
+                where_str=where_clause,
+                offset=offset,
+                limit=limit,
+            )
 
-            if "list" not in response_dict:
+            if "records" not in response_dict:
                 break
 
-            records: list[dict[str, Any]] = response_dict["list"]
+            records: list[dict[str, Any]] = response_dict["records"]
             if not records:
                 break
 
-            all_records.extend(records)
+            record_dicts = [record["fields"] for record in records if "fields" in record and record["fields"] is not None]
+
+            all_records.extend(record_dicts)
 
             # Check if there are more pages
-            page_info = response_dict.get("pageInfo", {})
-            if not page_info.get("isLastPage", True):
+            next_url = response_dict.get("next")
+            if next_url is not None:
                 offset += limit
             else:
                 break

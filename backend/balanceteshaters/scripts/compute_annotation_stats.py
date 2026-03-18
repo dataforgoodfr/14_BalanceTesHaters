@@ -1,9 +1,12 @@
 import argparse
 import os
+from dotenv import load_dotenv
 
 from balanceteshaters.classification.category import AnnotatedCategory
 from balanceteshaters.services.annotation import AnnotationService
 from balanceteshaters.services.nocodb import NocoDBService
+
+load_dotenv()
 
 if __name__ == "__main__":
     # Parse command-line arguments
