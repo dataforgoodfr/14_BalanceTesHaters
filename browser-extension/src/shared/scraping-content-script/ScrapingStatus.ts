@@ -48,6 +48,11 @@ export function scrapingFailed(errorMessage: string): ScrapingFailed {
   };
 }
 
+/**
+ * Returns true if scraping is Completed or not started and a new scraping can be started
+ * @param scrapingStatus
+ * @returns
+ */
 export function isScrapingStartable(
   scrapingStatus: ScrapingStatus,
 ): scrapingStatus is
@@ -60,6 +65,23 @@ export function isScrapingStartable(
   );
 }
 
+/**
+ * Returns true if scraping is in progress (running or canceling but not completely canceled yet)
+ * @param scrapingStatus
+ */
+export function isScrapingInProgress(
+  scrapingStatus: ScrapingStatus,
+): scrapingStatus is ScrapingRunning | ScrapingCanceling {
+  return (
+    scrapingStatus.type === "running" || scrapingStatus.type === "canceling"
+  );
+}
+
+/**
+ * Returns true of scraping is completed with success, failure or canceled
+ * @param scrapingStatus
+ * @returns
+ */
 export function isScrapingCompleted(
   scrapingStatus: ScrapingStatus,
 ): scrapingStatus is ScrapingSucceeded | ScrapingFailed | ScrapingCanceled {
