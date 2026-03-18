@@ -195,9 +195,13 @@ export class InstagramPostNativeScraper {
       );
       expandRepliesElement.scrollIntoView();
       expandRepliesElement.click();
-
-      this.loadMoreReplies(replyThreadElement);
     }
+
+    await Promise.all(
+      repliesThreadElements.map((replyThreadElement) =>
+        this.loadMoreReplies(replyThreadElement),
+      ),
+    );
   }
 
   private async loadMoreReplies(replyThreadElement: HTMLElement) {
@@ -207,7 +211,7 @@ export class InstagramPostNativeScraper {
         ":scope>div:nth-of-type(2)>div>span",
         HTMLElement,
         {
-          timeout: 5000,
+          timeout: 2000,
         },
       );
       if (waitForSelectorResult.status === "failure") {
@@ -232,28 +236,66 @@ export class InstagramPostNativeScraper {
   private scrapCommentThreads(
     commentsContainer: HTMLElement,
   ): CommentSnapshot[] {
-    const comments: CommentThread[] = [];
-    const commentElements = this.scrapingSupport.selectAll(
+    const commentThreads: CommentThread[] = [];
+    const commentThreadContainers = this.scrapingSupport.selectAll(
       commentsContainer,
       ":scope>div",
       HTMLElement,
     );
 
-    for (const comment of commentElements) {
-      comments.push(this.scrapCommentThread(comment));
+    for (const commentThread of commentThreadContainers) {
+      commentThreads.push(this.scrapCommentThread(commentThread));
     }
 
-    return comments
+    return commentThreads
       .filter((thread) => thread.scrapingStatus === "success")
       .map((thread) => thread.comment);
   }
 
   private scrapCommentThread(commentElement: HTMLElement): CommentThread {
-    const baseElement = this.scrapingSupport.selectOrThrow(
+    const commentThreadContentElement = this.scrapingSupport.selectOrThrow(
       commentElement,
-      ":scope>div>div>div:nth-of-type(2)>div>div",
+      ":scope>div",
       HTMLElement,
     );
+
+    const commentThread = this.scrapCommentThreadContent(
+      commentThreadContentElement,
+    );
+
+    if (commentThread.scrapingStatus === "failure") {
+      return commentThread;
+    }
+
+    const repliesContainer = this.scrapingSupport.select(
+      commentElement,
+      ":scope>div:nth-of-type(2)>ul",
+      HTMLElement,
+    );
+
+    if (repliesContainer) {
+      commentThread.comment.replies =
+        this.scrapCommentReplies(repliesContainer);
+    }
+
+    return commentThread;
+  }
+
+  private scrapCommentThreadContent(
+    commentThreadContentElement: HTMLElement,
+  ): CommentThread {
+    const baseElement = this.scrapingSupport.select(
+      commentThreadContentElement,
+      ":scope>div>div:nth-of-type(2)>div>div",
+      HTMLElement,
+    );
+
+    if (!baseElement) {
+      return {
+        scrapingStatus: "failure",
+        message: "Could not scrap element " + baseElement,
+      };
+    }
 
     // TODO Scrap media such as images. For now, skip comments that uses media.
     const image = this.scrapingSupport.select(
@@ -269,6 +311,34 @@ export class InstagramPostNativeScraper {
       };
     }
 
+    const comment = this.scrapComment(baseElement);
+
+    return {
+      scrapingStatus: "success",
+      comment,
+    };
+  }
+
+  private scrapCommentReplies(
+    repliesContainer: HTMLElement,
+  ): CommentSnapshot[] {
+    const replies: CommentThread[] = [];
+    const repliesElements = this.scrapingSupport.selectAll(
+      repliesContainer,
+      ":scope>div",
+      HTMLElement,
+    );
+
+    for (const reply of repliesElements) {
+      replies.push(this.scrapCommentThreadContent(reply));
+    }
+
+    return replies
+      .filter((thread) => thread.scrapingStatus === "success")
+      .map((thread) => thread.comment);
+  }
+
+  private scrapComment(baseElement: HTMLElement): CommentSnapshot {
     const postContent = this.scrapingSupport.selectOrThrow(
       baseElement,
       ":scope>div>div:nth-of-type(2)>span",
@@ -286,18 +356,15 @@ export class InstagramPostNativeScraper {
     const publishedAt = this.scrapPostPublishedAt(channelHeader);
 
     return {
-      scrapingStatus: "success",
-      comment: {
-        id: crypto.randomUUID(),
-        author,
-        textContent: postContent.textContent,
-        publishedAt: publishedAt,
-        // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
-        screenshotData: "",
-        scrapedAt,
-        replies: [],
-        nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
-      },
+      id: crypto.randomUUID(),
+      author,
+      textContent: postContent.textContent,
+      publishedAt: publishedAt,
+      // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
+      screenshotData: "",
+      scrapedAt,
+      replies: [],
+      nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
     };
   }
 }
