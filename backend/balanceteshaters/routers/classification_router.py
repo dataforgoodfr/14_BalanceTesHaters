@@ -66,6 +66,8 @@ async def list_classification_jobs(
             {
                 "id": str(job.id),
                 "title": job.title,
+                "author": job.author,
+                "text_content": job.text_content,
                 "status": job.status.value,
                 "submitted_at": job.submitted_at.isoformat().replace("+00:00", "Z"),
             }
