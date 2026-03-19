@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 
 import requests
@@ -17,7 +18,14 @@ def upload_comments(
                     "comment": comment["text_content"],
                     "ctx_title": title,
                     "ctx_publication": text_content,
-                    "ctx_parent_comment": parent["comment"] if parent else None,
+                    "ctx_parent_comment": parent["text_content"] if parent else None,
+                    "ctx_sibling_comments": json.dumps(
+                        [
+                            c["text_content"]
+                            for c in comment["replies"]
+                            if c["id"] != comment["id"]
+                        ]
+                    ),
                 }
             },
         )
@@ -78,12 +86,13 @@ if __name__ == "__main__":
                 f"{job['id']} @ {job['submitted_at']}: {job['title']} ({job['status']})"
             )
     else:
-        job = [j for j in jobs if job["id"] == args.job_id][0]
-        print(f"Uploading comments for job {args.job_id}...")
+        jobs = jobs.json()
+        job = [j for j in jobs if j["id"] == args.job_id][0]
+        print(f"Uploading comments for job {job['id']}...")
         response = requests.get(
-            f"{bth_backend_url}/classification/{args.job_id}/comments",
+            f"{bth_backend_url}/classification/{job['id']}/comments",
             headers={"x-token": bth_token_api},
         )
         response.raise_for_status()
         comments = response.json()
-        upload_comments(nocodb, job["title"], job["text_content"], comments)
+        upload_comments(nocodb, job["title"], job["text_content"], None, comments)
