@@ -1,10 +1,13 @@
 import logging
+import re
 
 from llama_cpp import Llama
 
 from balanceteshaters.classification.category import BinaryLabel
 
 logger = logging.getLogger(__name__)
+
+THINK_TAG_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 CLASSIFICATION_PROMPT = (
 """Tu vas recevoir des commentaires provenants des réseaux sociaux (commentaires de vidéos Youtube, par exemple). Le but est de classifier ces commentaires pour savoir s'ils constituent ou non du cyberharcèlement. 
@@ -70,12 +73,16 @@ class SLMClassifier:
 
         response = self.llm.create_chat_completion(
             messages=messages,
-            max_tokens=20,
+            max_tokens=500,
             temperature=0.0,
         )
 
-        output = response["choices"][0]["message"]["content"].strip()
-        logger.debug("SLM raw answer for %r: %r", text[:80], output)
+        raw_output = response["choices"][0]["message"]["content"].strip()
+        logger.debug("SLM raw answer for %r: %r", text[:80], raw_output)
+
+        # Qwen3 wraps reasoning in <think>...</think>; strip it to get the answer
+        output = THINK_TAG_RE.sub("", raw_output).strip()
+        logger.debug("SLM output after stripping think tags: %r", output)
 
         digits = [ch for ch in reversed(output) if ch in ("0", "1")]
         answer = digits[0] if digits else "0"
