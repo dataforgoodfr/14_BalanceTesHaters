@@ -4,6 +4,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
+import { tryOrElse } from "@/lib/utils";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -122,12 +123,15 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapPostTextContent(element: HTMLElement): string {
-    const textContentElement = this.scrapingSupport.selectOrThrow(
-      element,
-      ":scope span>div>span",
-      HTMLElement,
+    return tryOrElse(
+      () =>
+        this.scrapingSupport.selectOrThrow(
+          element,
+          ":scope span>div>span",
+          HTMLElement,
+        ).textContent,
+      "",
     );
-    return textContentElement.textContent;
   }
 
   private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
@@ -145,10 +149,18 @@ export class InstagramPostNativeScraper {
   private async scrapPostComments(
     element: HTMLElement,
   ): Promise<CommentSnapshot[]> {
-    const commentsContainer = this.scrapingSupport.selectOrThrow(
-      element,
-      ":scope>div>div:nth-of-type(3)",
-      HTMLElement,
+    const commentsContainer = tryOrElse(
+      () =>
+        this.scrapingSupport.selectOrThrow(
+          element,
+          ":scope>div>div:nth-of-type(3)",
+          HTMLElement,
+        ),
+      this.scrapingSupport.selectOrThrow(
+        element,
+        ":scope>div>div:nth-of-type(2)",
+        HTMLElement,
+      ),
     );
     commentsContainer.scrollIntoView();
 
@@ -198,7 +210,13 @@ export class InstagramPostNativeScraper {
     );
 
     for (const comment of commentElements) {
-      comments.push(this.scrapCommentThread(comment));
+      try {
+        comments.push(this.scrapCommentThread(comment));
+      } catch (error) {
+        this.debug(
+          `Skipped comment ${comment} because ${(error as Error)?.message}`,
+        );
+      }
     }
 
     return comments
@@ -227,10 +245,14 @@ export class InstagramPostNativeScraper {
       };
     }
 
-    const postContent = this.scrapingSupport.selectOrThrow(
-      baseElement,
-      ":scope>div>div:nth-of-type(2)>span",
-      HTMLElement,
+    const postContent = tryOrElse(
+      () =>
+        this.scrapingSupport.selectOrThrow(
+          baseElement,
+          ":scope>div>div:nth-of-type(2)>span",
+          HTMLElement,
+        ).textContent,
+      "",
     );
 
     const channelHeader = this.scrapingSupport.selectOrThrow(
@@ -248,7 +270,7 @@ export class InstagramPostNativeScraper {
       comment: {
         id: crypto.randomUUID(),
         author,
-        textContent: postContent.textContent,
+        textContent: postContent,
         publishedAt: publishedAt,
         // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
         screenshotData: "",
