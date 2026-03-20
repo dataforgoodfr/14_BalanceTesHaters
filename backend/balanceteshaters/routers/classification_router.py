@@ -31,7 +31,11 @@ async def post_classification_job(
     classificationTask: Annotated[
         ClassificationTask, Depends(Provide[Container.classification_task])
     ],
+    settings: Annotated[Settings, Depends(Provide[Container.settings])],
+    x_token: Annotated[str | None, Header()] = None,
 ):
+    if not x_token or x_token != settings.api_token:
+        raise HTTPException(401, {"error": "Unauthorized"})
     async with db.get_session() as session, session.begin():
         classification_job = classification_job_repository.create_job(
             session,
