@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
 import Step1Plateforme from "./Step1Plateforme";
 import Step2Posts from "./Step2Posts";
+import Step3Comments from "./Step3Comments";
 
 export type ReportQueryData = {
   socialNetworkList: string[];
-  postList: string[];
+  postIdList: string[];
+  commentIdList: string[];
 };
 
 export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
@@ -37,21 +39,31 @@ export function BuildReport() {
     React.useState<ReportQueryData>();
 
   const setSocialNetworkList = (socialNetworkList: string[]) => {
-    setReportQueryData(prev => ({
-      ...prev,
+    setReportQueryData((prev) => ({
       socialNetworkList,
+      postIdList: prev?.postIdList ?? [],
+      commentIdList: prev?.commentIdList ?? [],
     }));
   };
 
-  const setPostList = (postList: string[]) => {
-    setReportQueryData(prev => ({
-      ...prev,
-      postList,
+  const setPostIdList = (postIdList: string[]) => {
+    setReportQueryData((prev) => ({
+      socialNetworkList: prev?.socialNetworkList ?? [],
+      postIdList,
+      commentIdList: prev?.commentIdList ?? [],
+    }));
+  };
+
+  const setCommentIdList = (commentIdList: string[]) => {
+    setReportQueryData((prev) => ({
+      socialNetworkList: prev?.socialNetworkList ?? [],
+      postIdList: prev?.postIdList ?? [],
+      commentIdList,
     }));
   };
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-2/3 mx-auto">
+    <div className="p-4 flex flex-col gap-6 w-full mx-auto">
       {/* Header */}
       <div className="sticky top-0"></div>
       <p>
@@ -67,7 +79,7 @@ export function BuildReport() {
           <StepperBanner />
           <StepContent
             setSocialNetworkList={setSocialNetworkList}
-            setPostList={setPostList}
+            setPostList={setPostIdList}
             reportQueryData={reportQueryData}
           />
           <StepperActions />
@@ -228,7 +240,8 @@ const StepperActions = () => {
 
 const StepContent = ({
   setSocialNetworkList,
-  setPostList,
+  setPostList: setPostIdList,
+  setCommentIdList: setCommentIdList,
   reportQueryData,
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
@@ -247,11 +260,14 @@ const StepContent = ({
       {stepper.flow.when("step-2", () => (
         <Step2Posts
           reportQueryData={reportQueryData}
-          setPostList={setPostList}
+          setPostList={setPostIdList}
         />
       ))}
       {stepper.flow.when("step-3", () => (
-        <p></p>
+        <Step3Comments
+          reportQueryData={reportQueryData}
+          setCommentIdList={setCommentIdList}
+        />
       ))}
       {stepper.flow.when("step-4", () => (
         <p></p>

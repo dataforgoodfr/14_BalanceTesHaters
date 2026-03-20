@@ -41,7 +41,7 @@ function Step2Posts({
 
   const form = useForm({
     defaultValues: {
-      postList: reportQueryData?.postList ?? [],
+      postList: reportQueryData?.postIdList ?? [],
     },
     onSubmit: () => {
       setPostList(form.state.values.postList);
@@ -108,7 +108,7 @@ function Step2Posts({
 
                           field.handleChange(nextValue);
                         }}
-                      />{" "}
+                      />
                       <div className="w-full">
                         <PostSummary post={post} />
                         <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
