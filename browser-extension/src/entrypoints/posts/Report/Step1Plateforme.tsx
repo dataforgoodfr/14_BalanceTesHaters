@@ -3,6 +3,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { useStepper, getFormId, ReportQueryData } from "./BuildReport"; // or wherever the export is
 import { useForm } from "@tanstack/react-form";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 function Step1Plateforme({
   reportQueryData,
@@ -24,8 +25,8 @@ function Step1Plateforme({
   });
 
   const options = [
-    { id: "instagram", label: "Instagram" },
-    { id: "youtube", label: "YouTube" },
+    { id: SocialNetwork.Instagram, label: "Instagram" },
+    { id: SocialNetwork.YouTube, label: "YouTube" },
   ];
 
   return (
