@@ -35,6 +35,13 @@ export function BuildReport() {
   const [reportQueryData, setReportQueryData] =
     React.useState<ReportQueryData>();
 
+  const setSocialNetworkList = (socialNetworkList: string[]) => {
+    setReportQueryData(prev => ({
+      ...prev,
+      socialNetworkList,
+    }));
+  };
+
   return (
     <div className="p-4 flex flex-col gap-6 w-full ">
       {/* Header */}
@@ -51,8 +58,8 @@ export function BuildReport() {
         >
           <StepperBanner />
           <StepContent
+            setSocialNetworkList={setSocialNetworkList}
             reportQueryData={reportQueryData}
-            setReportQueryData={setReportQueryData}
           />
           <StepperActions />
         </Stepper.Root>
@@ -211,21 +218,19 @@ const StepperActions = () => {
 };
 
 const StepContent = ({
+  setSocialNetworkList,
   reportQueryData,
-  setReportQueryData,
 }: {
+  setSocialNetworkList: (socialNetworkList: string[]) => void;
   reportQueryData: ReportQueryData | undefined;
-  setReportQueryData: React.Dispatch<
-    React.SetStateAction<ReportQueryData | undefined>
-  >;
 }) => {
   const stepper = useStepper();
   return (
     <div>
       {stepper.flow.when("step-1", () => (
         <Step1Plateforme
+          setSocialNetworkList={setSocialNetworkList}
           reportQueryData={reportQueryData}
-          setReportQueryData={setReportQueryData}
         />
       ))}
       {stepper.flow.when("step-2", () => (
