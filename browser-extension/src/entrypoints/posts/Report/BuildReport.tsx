@@ -1,11 +1,15 @@
-"use client";
-
 import { defineStepper } from "@stepperize/react";
 import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
 import Step1Plateforme from "./Step1Plateforme";
+import Step2Posts from "./Step2Posts";
+
+export type ReportQueryData = {
+  socialNetworkList: string[];
+};
 
 export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
   defineStepper(
@@ -26,6 +30,36 @@ export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
       title: "Organisation",
     },
   );
+
+export function BuildReport() {
+  const [reportQueryData, setReportQueryData] =
+    React.useState<ReportQueryData>();
+
+  return (
+    <div className="p-4 flex flex-col gap-6 w-full ">
+      {/* Header */}
+      <div className="sticky top-0"></div>
+      <p>
+        Suivez les 4 étapes pour constituer un rapport et exportez-le dans un
+        format souhaité.
+      </p>
+
+      <Scoped>
+        <Stepper.Root
+          className="w-full h-full space-y-4"
+          orientation="horizontal"
+        >
+          <StepperBanner />
+          <StepContent
+            reportQueryData={reportQueryData}
+            setReportQueryData={setReportQueryData}
+          />
+          <StepperActions />
+        </Stepper.Root>
+      </Scoped>
+    </div>
+  );
+}
 
 const StepperTriggerWrapper = () => {
   const item = useStepItemContext();
@@ -176,15 +210,26 @@ const StepperActions = () => {
   );
 };
 
-const StepContent = () => {
+const StepContent = ({
+  reportQueryData,
+  setReportQueryData,
+}: {
+  reportQueryData: ReportQueryData | undefined;
+  setReportQueryData: React.Dispatch<
+    React.SetStateAction<ReportQueryData | undefined>
+  >;
+}) => {
   const stepper = useStepper();
   return (
     <div>
       {stepper.flow.when("step-1", () => (
-        <Step1Plateforme />
+        <Step1Plateforme
+          reportQueryData={reportQueryData}
+          setReportQueryData={setReportQueryData}
+        />
       ))}
       {stepper.flow.when("step-2", () => (
-        <p></p>
+        <Step2Posts />
       ))}
       {stepper.flow.when("step-3", () => (
         <p></p>
@@ -195,30 +240,6 @@ const StepContent = () => {
     </div>
   );
 };
-
-export function BuildReport() {
-  return (
-    <div className="p-4 flex flex-col gap-6 w-full ">
-      {/* Header */}
-      <div className="sticky top-0"></div>
-      <p>
-        Suivez les 4 étapes pour constituer un rapport et exportez-le dans un
-        format souhaité.
-      </p>
-
-      <Scoped>
-        <Stepper.Root
-          className="w-full h-full space-y-4"
-          orientation="horizontal"
-        >
-          <StepperBanner />
-          <StepContent />
-          <StepperActions />
-        </Stepper.Root>
-      </Scoped>
-    </div>
-  );
-}
 
 export function getFormId(stepId: string) {
   return `${stepId}-form`;
