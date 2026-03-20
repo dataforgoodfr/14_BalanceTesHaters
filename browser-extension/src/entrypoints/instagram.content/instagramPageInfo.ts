@@ -1,3 +1,4 @@
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 
 export const INSTAGRAM_URL = new URL("https://www.instagram.com");
@@ -16,7 +17,7 @@ export function instagramPageInfo(url: string): SocialNetworkPageInfo {
     const id = pathElements[1];
     return {
       isScrapablePost: true,
-      socialNetwork: "INSTAGRAM",
+      socialNetwork: SocialNetwork.Instagram,
       postId: id,
     };
   }
@@ -25,7 +26,7 @@ export function instagramPageInfo(url: string): SocialNetworkPageInfo {
     const id = pathElements[2];
     return {
       isScrapablePost: true,
-      socialNetwork: "INSTAGRAM",
+      socialNetwork: SocialNetwork.Instagram,
       postId: id,
     };
   }

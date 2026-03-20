@@ -17,6 +17,7 @@ import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostI
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 import { withRetry } from "../../shared/utils/withRetry";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 /**
@@ -84,7 +85,7 @@ export class YoutubePostNativeScrapper {
     return {
       id: crypto.randomUUID(),
       postId: pageInfo.postId,
-      socialNetwork: "YOUTUBE",
+      socialNetwork: SocialNetwork.YouTube,
       scrapedAt: scrapTimestamp,
       coverImageUrl: this.coverImageUrl(pageInfo.postId),
       url: url,

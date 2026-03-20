@@ -7,6 +7,7 @@ import {
   CommentClassificationResult,
 } from "../../api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "../mergeClassificationResultIntoPost";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 describe("mergeClassificationResultIntoPost", () => {
   function absoluteDate(
@@ -28,7 +29,7 @@ describe("mergeClassificationResultIntoPost", () => {
         accountHref: "https://example.com/author",
       },
       postId: "post-123",
-      socialNetwork: "YOUTUBE",
+      socialNetwork: SocialNetwork.YouTube,
       comments,
     };
   }

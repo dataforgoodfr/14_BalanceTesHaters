@@ -4,17 +4,17 @@ import { Spinner } from "@/components/ui/spinner";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowDownUp, Funnel } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router";
 import PostSummary from "../Shared/PostSummary";
+import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
-  >(["YOUTUBE"]);
+  >([SocialNetwork.YouTube]);
   const [searchTerm, setSearchTerm] = React.useState("");
   const queryKey = ["posts", socialNetworkFilter];
 
@@ -51,19 +51,10 @@ function PostListPage() {
         </span>
       )}
 
-      <div className="flex gap-3">
-        <Input
-          placeholder="Rechercher"
-          value={searchTerm}
-          onChange={(event) => setSearchTerm(event.target.value)}
-        />
-        <Button variant="outline" disabled>
-          Filtrer <Funnel />
-        </Button>
-        <Button variant="outline" disabled>
-          Trier <ArrowDownUp />
-        </Button>
-      </div>
+      <SearchSortFiltersPostList
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+      />
 
       {isLoading && <Spinner className="size-8" />}
       {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
