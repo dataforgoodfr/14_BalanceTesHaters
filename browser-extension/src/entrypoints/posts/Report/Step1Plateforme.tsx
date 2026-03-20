@@ -6,19 +6,19 @@ import { useForm } from "@tanstack/react-form";
 
 function Step1Plateforme({
   reportQueryData,
-  setReportQueryData,
-}: {
+  setSocialNetworkList,
+}: Readonly<{
   reportQueryData: ReportQueryData | undefined;
-  setReportQueryData: React.Dispatch<
-    React.SetStateAction<ReportQueryData | undefined>
-  >;
-}) {
+  setSocialNetworkList: (socialNetworkList: string[]) => void;
+}>) {
   const stepper = useStepper();
 
   const form = useForm({
-    defaultValues: { socialNetworkList: reportQueryData?.socialNetworkList ?? [] },
+    defaultValues: {
+      socialNetworkList: reportQueryData?.socialNetworkList ?? [],
+    },
     onSubmit: () => {
-      setReportQueryData(form.state.values);
+      setSocialNetworkList(form.state.values.socialNetworkList);
       stepper.navigation.next();
     },
   });
