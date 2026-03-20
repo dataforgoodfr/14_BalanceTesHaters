@@ -24,14 +24,6 @@ export class ProgressManager {
   }
 
   /**
-   * Sets progress to current progress plus increment.
-   * @param increment
-   */
-  incrementProgress(increment: number) {
-    this.setProgress(this.progress + increment);
-  }
-
-  /**
    * Creates a Progress Manager for a sub task.
    * This is useful to decompose progress in sub tasks/functions
    * While keeping at each decomposition level the knowledge of what % of completion each subtask represents

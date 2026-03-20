@@ -20,32 +20,6 @@ describe("ProgressManager", () => {
     });
   });
 
-  describe("incrementProgress", () => {
-    it("should increment progress by the given amount", () => {
-      const progressValues: number[] = [];
-      const manager = new ProgressManager((progress) => {
-        progressValues.push(progress);
-      });
-
-      manager.setProgress(20);
-
-      manager.incrementProgress(30);
-      expect(progressValues[1]).toBe(50);
-    });
-
-    it("should constrain result to 0-100 range", () => {
-      const progressValues: number[] = [];
-      const manager = new ProgressManager((progress) => {
-        progressValues.push(progress);
-      });
-
-      manager.setProgress(80);
-
-      manager.incrementProgress(50);
-      expect(progressValues[1]).toBe(100);
-    });
-  });
-
   describe("subTaskProgressManager", () => {
     it("should map sub-task progress to parent progress range", () => {
       const progressValues: number[] = [];
