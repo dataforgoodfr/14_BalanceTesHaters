@@ -48,42 +48,79 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useForm } from "@tanstack/react-form";
+
+/**
+ * Merged view of Post Snapshot
+ */
+export type PostCommentWithId = PostComment & {
+  id: string;
+};
 
 export default function CommentsTable({
   comments,
+  defaultCommentIdList,
+  onSubmit,
+  formId,
 }: Readonly<{
   comments: PostComment[];
+  defaultCommentIdList: string[];
+  onSubmit: (commentIdList: string[]) => void;
+  formId: string;
 }>) {
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     new Set(),
   );
+  const [selectedComments, setSelectedComments] = React.useState<
+    PostCommentWithId[]
+  >([]);
+
+  // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
+  const commentsWithId: PostCommentWithId[] = comments.map((comment, i) => {
+    return { ...comment, id: i.toString() };
+  });
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
-  const toggleCommentVisibility = (rowId: string) => {
+  const toggleCommentVisibility = (id: string) => {
     setVisibleComments((prev) => {
       const next = new Set(prev);
-      if (next.has(rowId)) {
-        next.delete(rowId);
+      if (next.has(id)) {
+        next.delete(id);
       } else {
-        next.add(rowId);
+        next.add(id);
       }
       return next;
     });
   };
 
+  const toggleCommentSelection = (postComment: PostCommentWithId) => {
+    console.log(postComment);
+    setSelectedComments((currentSelection) => {
+      const index = currentSelection.findIndex(
+        (comment) => comment.id == postComment.id,
+      );
+      if (index > -1) {
+        currentSelection.splice(index, 1);
+      } else {
+        currentSelection.push(postComment);
+      }
+      return currentSelection;
+    });
+  };
+
   const filteredComments = React.useMemo(
     () =>
-      comments.filter(
+      commentsWithId.filter(
         (comment) =>
           comment.textContent
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           comment.author.name.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
-    [comments, searchTerm],
+    [commentsWithId, searchTerm],
   );
 
   // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
@@ -94,13 +131,36 @@ export default function CommentsTable({
     return () => clearTimeout(timer);
   }, [inputValue]);
 
+  const form = useForm({
+    defaultValues: {
+      commentIdList: defaultCommentIdList,
+    },
+    onSubmit: () => {
+      onSubmit(form.state.values.commentIdList);
+    },
+  });
+
   // La taille de chaque colonne est convertie ensuite en pourcentage. Attention, la somme doit faire 100%.
-  const columns = useMemo<ColumnDef<PostComment>[]>(
+  const columns = useMemo<ColumnDef<PostCommentWithId>[]>(
     () => [
       {
         id: "selection",
         size: 5,
-        cell: () => <Checkbox className="ms-3 me-5" />,
+        header: () => (
+          <Checkbox
+            className="ms-3 me-5"
+            onClick={() => setAllCommentsSelection()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            onClick={() =>
+              toggleCommentSelection({ ...row.original, id: row.id })
+            }
+            checked={selectedComments.some((x) => x.id == row.id)}
+            className="ms-3 me-5"
+          />
+        ),
       },
       {
         accessorKey: "author.name",
@@ -171,20 +231,20 @@ export default function CommentsTable({
           </div>
         ),
       },
-      {
-        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
-        id: "gravite",
-        header: "Gravité",
-        size: 7,
-        cell: () => "-",
-      },
-      {
-        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
-        id: "propos",
-        header: "Propos",
-        size: 7,
-        cell: () => "-",
-      },
+      // {
+      //   // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
+      //   id: "gravite",
+      //   header: "Gravité",
+      //   size: 7,
+      //   cell: () => "-",
+      // },
+      // {
+      //   // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
+      //   id: "propos",
+      //   header: "Propos",
+      //   size: 7,
+      //   cell: () => "-",
+      // },
       {
         accessorKey: "publishedAt",
         header: "Date",
@@ -196,13 +256,14 @@ export default function CommentsTable({
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
-    [visibleComments],
+    [visibleComments, selectedComments],
   );
 
   const table = useReactTable({
     data: filteredComments,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id,
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
@@ -218,14 +279,30 @@ export default function CommentsTable({
     } else {
       // Génération des identifiants pour tous les rows
       const allVisibleRowIds = new Set(
-        filteredComments.map((_, i) => i.toString()),
+        filteredComments.map((comment) => comment.id),
       );
       setVisibleComments(allVisibleRowIds);
     }
   };
 
+  const setAllCommentsSelection = () => {
+    if (selectedComments.length === filteredComments.length) {
+      setSelectedComments([]);
+    } else {
+      setSelectedComments(filteredComments);
+    }
+  };
+
   return (
-    <div className="rounded-md border mt-2">
+    <form
+      id={formId}
+      className="rounded-md border mt-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
       <div className="p-3 flex justify-between">
         <InputGroup className="mx-4 w-1/3">
           <InputGroupInput
@@ -320,6 +397,6 @@ export default function CommentsTable({
           </PaginationContent>
         </Pagination>
       </div>
-    </div>
+    </form>
   );
 }

@@ -94,6 +94,13 @@ export async function getPostSnapshotsBySocialNetworkAndPeriod(
   return posts;
 }
 
+export async function getPostSnapshotsByPostIdList(
+  postIdList: string[],
+): Promise<PostSnapshot[]> {
+  const posts = await getPostSnapshots();
+  return posts.filter((p) => postIdList.includes(p.postId));
+}
+
 export async function getPostSnapshotsForPostId(
   socialNetwork: SocialNetworkName,
   postId: string,
