@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 
 function Step1Plateforme() {
   return (
-    <div className="flex flex-col gap-6 ">
+    <div className="flex flex-col gap-6 h-9/12 ">
       <h1 className=" ">
         Sur quelle plateforme se trouvent les publications à inclure dans ce
         rapport ?
