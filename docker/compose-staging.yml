@@ -13,9 +13,12 @@ services:
       test: 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
       timeout: 2s
   api:
-    build: 
+    build:
       context: ..
       dockerfile: docker/backend/Dockerfile
+    networks:
+      - default
+      - d4g-internal
     environment:
       - BTH_ENGINE_ECHO=${BTH_ENGINE_ECHO}
       - BTH_LOGGING_CONFIGURATION_FILE=${BTH_LOGGING_CONFIGURATION_FILE}
@@ -46,3 +49,7 @@ services:
       - traefik.http.routers.balanceteshaters-app.tls=true
       - traefik.docker.network=d4g-internal
       - traefik.http.services.balanceteshaters-app.loadbalancer.server.port=8000
+
+networks:
+  d4g-internal:
+    external: true
