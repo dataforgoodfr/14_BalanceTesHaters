@@ -8,8 +8,8 @@ export function DisplayTabNotScrapable() {
       <div className="flex flex-col gap-2">
         <h2>Page non capturable</h2>
         <p>
-          Pour capturer des commentaires et les analyser naviguez vers une
-          publication d&apos;un réseau social supporté (youtube, instagram...).
+          Navigue vers une publication d&apos;un réseau social supporté
+          (youtube, instagram...) pour pouvoir lancer l&apos;analyse.
         </p>
         <ViewPreviousAnalysesButton />
       </div>
