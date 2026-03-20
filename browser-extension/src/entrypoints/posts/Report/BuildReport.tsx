@@ -1,31 +1,31 @@
 "use client";
 
-import { defineStepper, Get } from "@stepperize/react";
+import { defineStepper } from "@stepperize/react";
 import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
 
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
-import Step1Plateforme, { Step1PlateformeSchema } from "./Step1Plateforme";
+import Step1Plateforme from "./Step1Plateforme";
 
-const { Scoped, Stepper, useStepper, ...stepperDefinition } = defineStepper(
-  {
-    id: "step-1",
-    title: "Plateforme",
-    schema: Step1PlateformeSchema,
-  },
-  {
-    id: "step-2",
-    title: "Publications",
-  },
-  {
-    id: "step-3",
-    title: "Commentaires",
-  },
-  {
-    id: "step-4",
-    title: "Organisation",
-  },
-);
+export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
+  defineStepper(
+    {
+      id: "step-1",
+      title: "Plateforme",
+    },
+    {
+      id: "step-2",
+      title: "Publications",
+    },
+    {
+      id: "step-3",
+      title: "Commentaires",
+    },
+    {
+      id: "step-4",
+      title: "Organisation",
+    },
+  );
 
 const StepperTriggerWrapper = () => {
   const item = useStepItemContext();
@@ -163,13 +163,13 @@ const StepperActions = () => {
             Générer le rapport
           </Button>
         ) : (
-          <Stepper.Next
-            render={(domProps) => (
-              <Button type="button" className="w-1/6" {...domProps}>
-                Suivant <MoveRight className="h-4 w-4 ml-1" />
-              </Button>
-            )}
-          />
+          <Button
+            type="submit"
+            form={getFormId(stepper.state.current.data.id)}
+            className="w-1/6"
+          >
+            Suivant <MoveRight className="h-4 w-4 ml-1" />
+          </Button>
         )}
       </Stepper.Actions>
     </div>
@@ -218,4 +218,8 @@ export function BuildReport() {
       </Scoped>
     </div>
   );
+}
+
+export function getFormId(stepId: string) {
+  return `${stepId}-form`;
 }
