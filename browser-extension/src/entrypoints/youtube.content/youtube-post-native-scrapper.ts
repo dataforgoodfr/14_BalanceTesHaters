@@ -12,6 +12,7 @@ import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
 import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostInfoTooltipText";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 type CommentPreScreenshot = {
@@ -75,7 +76,7 @@ export class YoutubePostNativeScrapper {
     return {
       id: crypto.randomUUID(),
       postId: pageInfo.postId,
-      socialNetwork: "YOUTUBE",
+      socialNetwork: SocialNetwork.YouTube,
       scrapedAt: scrapTimestamp,
       coverImageUrl: this.coverImageUrl(pageInfo.postId),
       url: url,

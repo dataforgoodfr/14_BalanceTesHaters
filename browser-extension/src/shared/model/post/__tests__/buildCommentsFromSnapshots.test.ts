@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { buildCommentsFromSnapshots } from "../buildCommentsFromSnapshots";
 import { PostSnapshot, CommentSnapshot } from "../../PostSnapshot";
+import { SocialNetwork } from "../../SocialNetworkName";
 
 describe("buildCommentsFromSnapshots", () => {
   describe("empty input", () => {
@@ -421,7 +422,7 @@ function createMinimalPostSnapshot(comments: CommentSnapshot[]): PostSnapshot {
   return {
     id: "post-snapshot-id-" + crypto.randomUUID(),
     postId: "test-post-id",
-    socialNetwork: "YOUTUBE",
+    socialNetwork: SocialNetwork.YouTube,
     url: "https://youtube.com/watch?v=test",
     publishedAt: {
       type: "absolute",

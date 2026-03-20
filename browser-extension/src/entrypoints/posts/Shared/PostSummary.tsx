@@ -1,11 +1,12 @@
 import { Post } from "@/shared/model/post/Post";
 import DisplayPublishedDate from "../Posts/DisplayPublishedDate";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 function PostSummary({ post }: Readonly<{ post: Post }>) {
   return (
     <div className="flex">
       {/* TODO Ajouter image pour instagram si réalisable*/}
-      {post.socialNetwork === "YOUTUBE" && (
+      {post.socialNetwork === SocialNetwork.YouTube && (
         <img
           src={`https://img.youtube.com/vi/${post.postId}/0.jpg`}
           alt=""

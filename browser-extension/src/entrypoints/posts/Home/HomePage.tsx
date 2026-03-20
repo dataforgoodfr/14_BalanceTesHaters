@@ -9,12 +9,13 @@ import { useQuery } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { addMonths } from "date-fns";
 import { type DateRange } from "react-day-picker";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 function HomePage() {
   // selection state controlled by the page
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
-  >(["YOUTUBE"]);
+  >([SocialNetwork.YouTube]);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: addMonths(new Date(), -3),
     to: new Date(),

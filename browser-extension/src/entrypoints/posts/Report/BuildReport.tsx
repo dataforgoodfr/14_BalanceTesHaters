@@ -9,6 +9,7 @@ import Step2Posts from "./Step2Posts";
 
 export type ReportQueryData = {
   socialNetworkList: string[];
+  postList: string[];
 };
 
 export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
@@ -43,7 +44,7 @@ export function BuildReport() {
   };
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-full ">
+    <div className="p-4 flex flex-col gap-6 w-2/3 mx-auto">
       {/* Header */}
       <div className="sticky top-0"></div>
       <p>
@@ -226,7 +227,7 @@ const StepContent = ({
 }) => {
   const stepper = useStepper();
   return (
-    <div>
+    <div className="pt-4">
       {stepper.flow.when("step-1", () => (
         <Step1Plateforme
           setSocialNetworkList={setSocialNetworkList}
@@ -234,7 +235,8 @@ const StepContent = ({
         />
       ))}
       {stepper.flow.when("step-2", () => (
-        <Step2Posts />
+        <Step2Posts           reportQueryData={reportQueryData}
+/>
       ))}
       {stepper.flow.when("step-3", () => (
         <p></p>

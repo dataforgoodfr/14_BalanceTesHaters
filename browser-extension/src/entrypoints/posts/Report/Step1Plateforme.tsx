@@ -29,11 +29,11 @@ function Step1Plateforme({
   ];
 
   return (
-    <div className=" gap-6 h-9/12 ">
-      <h1 className="mb-3">
+    <>
+      <span className="text-xl font-bold mb-3">
         Sur quelle plateforme se trouvent les publications à inclure dans ce
         rapport ?
-      </h1>
+      </span>
       <form
         id={getFormId(stepper.state.current.data.id)}
         onSubmit={(e) => {
@@ -87,7 +87,7 @@ function Step1Plateforme({
           )}
         </form.Field>
       </form>
-    </div>
+    </>
   );
 }
 
