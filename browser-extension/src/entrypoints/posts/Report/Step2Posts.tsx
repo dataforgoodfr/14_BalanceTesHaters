@@ -1,6 +1,6 @@
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
-import { ReportQueryData, useStepper } from "./BuildReport";
+import { getFormId, ReportQueryData, useStepper } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Spinner } from "@/components/ui/spinner";
@@ -11,8 +11,10 @@ import { useForm } from "@tanstack/react-form";
 
 function Step2Posts({
   reportQueryData,
+  setPostList,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
+  setPostList: (postList: string[]) => void;
 }>) {
   const queryKey = ["posts", reportQueryData?.socialNetworkList];
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -42,7 +44,7 @@ function Step2Posts({
       postList: reportQueryData?.postList ?? [],
     },
     onSubmit: () => {
-      // setSocialNetworkList(form.state.values.socialNetworkList);
+      setPostList(form.state.values.postList);
       stepper.navigation.next();
     },
   });
@@ -63,54 +65,72 @@ function Step2Posts({
         <p className="text-center">Aucune publication</p>
       )}
 
-      <form.Field
-        name="postList"
-        validators={{
-          onChange: ({ value }) =>
-            value.length < 1
-              ? "Sélectionner au moins une publication"
-              : undefined,
+      <form
+        id={getFormId(stepper.state.current.data.id)}
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
         }}
+        className="space-y-6 p-4 flex justify-center"
       >
-        {(field) => (
-          <div className="flex flex-col gap-4">
-            {filteredPosts &&
-              filteredPosts.length > 0 &&
-              filteredPosts.map((post) => (
-                <Card key={post.postId}>
-                  <CardContent className="flex items-center gap-5">
-                  <Checkbox
-                    id={post.postId}
-                    checked={field.state.value.includes(post.postId)}
-                    onCheckedChange={(checked) => {
-                      const currentValue = field.state.value;
-                      const nextValue = checked
-                        ? [...currentValue, post.postId]
-                        : currentValue.filter((val) => val !== post.postId);
+        <form.Field
+          name="postList"
+          validators={{
+            onChange: ({ value }) =>
+              value.length < 1
+                ? "Sélectionner au moins une publication"
+                : undefined,
+          }}
+        >
+          {(field) => (
+            <div className="flex flex-col gap-4">
+              <div>
+                {field.state.meta.errors.length > 0 && (
+                  <span className="text-destructive text-sm mt-2">
+                    {field.state.meta.errors.join(", ")}
+                  </span>
+                )}
+              </div>
+              {filteredPosts &&
+                filteredPosts.length > 0 &&
+                filteredPosts.map((post) => (
+                  <Card key={post.postId}>
+                    <CardContent className="flex items-center gap-5">
+                      <Checkbox
+                        id={post.postId}
+                        checked={field.state.value.includes(post.postId)}
+                        onCheckedChange={(checked) => {
+                          const currentValue = field.state.value;
+                          const nextValue = checked
+                            ? [...currentValue, post.postId]
+                            : currentValue.filter((val) => val !== post.postId);
 
-                      field.handleChange(nextValue);
-                    }}
-                  />                    <div className="w-full">
-                      <PostSummary post={post} />
-                      <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                        <div className="font-semibold">
-                          Analyse du{" "}
-                          {new Date(post.lastAnalysisDate).toLocaleDateString(
-                            undefined,
-                            {
-                              day: "numeric",
-                              month: "short",
-                            },
-                          )}
-                        </div>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-          </div>
-        )}
-      </form.Field>
+                          field.handleChange(nextValue);
+                        }}
+                      />{" "}
+                      <div className="w-full">
+                        <PostSummary post={post} />
+                        <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
+                          <div className="font-semibold">
+                            Analyse du{" "}
+                            {new Date(post.lastAnalysisDate).toLocaleDateString(
+                              undefined,
+                              {
+                                day: "numeric",
+                                month: "short",
+                              },
+                            )}
+                          </div>
+                        </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </div>
+          )}
+        </form.Field>
+      </form>
     </div>
   );
 }

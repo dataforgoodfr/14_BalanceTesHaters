@@ -43,6 +43,13 @@ export function BuildReport() {
     }));
   };
 
+  const setPostList = (postList: string[]) => {
+    setReportQueryData(prev => ({
+      ...prev,
+      postList,
+    }));
+  };
+
   return (
     <div className="p-4 flex flex-col gap-6 w-2/3 mx-auto">
       {/* Header */}
@@ -60,6 +67,7 @@ export function BuildReport() {
           <StepperBanner />
           <StepContent
             setSocialNetworkList={setSocialNetworkList}
+            setPostList={setPostList}
             reportQueryData={reportQueryData}
           />
           <StepperActions />
@@ -220,9 +228,11 @@ const StepperActions = () => {
 
 const StepContent = ({
   setSocialNetworkList,
+  setPostList,
   reportQueryData,
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
+  setPostList: (postList: string[]) => void;
   reportQueryData: ReportQueryData | undefined;
 }) => {
   const stepper = useStepper();
@@ -235,8 +245,10 @@ const StepContent = ({
         />
       ))}
       {stepper.flow.when("step-2", () => (
-        <Step2Posts           reportQueryData={reportQueryData}
-/>
+        <Step2Posts
+          reportQueryData={reportQueryData}
+          setPostList={setPostList}
+        />
       ))}
       {stepper.flow.when("step-3", () => (
         <p></p>
