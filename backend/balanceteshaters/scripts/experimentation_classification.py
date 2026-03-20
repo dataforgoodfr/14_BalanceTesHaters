@@ -15,6 +15,7 @@ import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
+
 bnb_config = BitsAndBytesConfig(
     load_in_4bit=True,
     bnb_4bit_compute_dtype=torch.float16,
@@ -53,7 +54,16 @@ if __name__ == "__main__":
         nocodb=nocodb, annotation_table_id=nocodb_annotation_table_id
     )
 
-    data = service.get_annotations()
+    # where_clause=service.build_where_clause(
+        # annotation_category_filter="all",  # Get records with any category defined. Implicitly, it filters out any record for which a category is not defined.
+        # binary_confidence_filter=[BinaryConfidence.HIGH_CONFIDENCE]
+    # )
+
+    data = service.fetch_records_paginated()
+
+    # Keep only records which are annotated
+    data = [annotation for annotation in data if annotation.annotated_category]
+
     total = len(data)
     data_dir = Path(__file__).resolve().parent.parent / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
