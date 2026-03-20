@@ -10,10 +10,7 @@ class BatchClassifier:
     """Queues classification requests and processes them in configurable batches.
 
     Collects concurrent requests (from multiple jobs or API calls) and
-    processes them sequentially.  llama.cpp reuses the KV cache for the
-    shared system-prompt prefix, so sequential processing within a batch
-    is already efficient.  The batching controls throughput and prevents
-    resource contention on a shared host.
+    processes them sequentially.
     """
 
     def __init__(
@@ -66,9 +63,7 @@ class BatchClassifier:
                 if remaining <= 0:
                     break
                 try:
-                    item = await asyncio.wait_for(
-                        self._queue.get(), timeout=remaining
-                    )
+                    item = await asyncio.wait_for(self._queue.get(), timeout=remaining)
                     batch.append(item)
                 except asyncio.TimeoutError:
                     break
