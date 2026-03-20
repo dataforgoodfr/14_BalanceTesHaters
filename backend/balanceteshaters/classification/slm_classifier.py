@@ -9,8 +9,7 @@ logger = logging.getLogger(__name__)
 
 THINK_TAG_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
-CLASSIFICATION_PROMPT = (
-"""Tu vas recevoir des commentaires provenants des réseaux sociaux (commentaires de vidéos Youtube, par exemple). Le but est de classifier ces commentaires pour savoir s'ils constituent ou non du cyberharcèlement. 
+CLASSIFICATION_PROMPT = """Tu vas recevoir des commentaires provenants des réseaux sociaux (commentaires de vidéos Youtube, par exemple). Le but est de classifier ces commentaires pour savoir s'ils constituent ou non du cyberharcèlement.
 
 Tu recevras un exemple de commentaire et ton rôle sera de proposer une classe : tu répondras "0" si le commentaire n'est pas du cyberharcèlement, "1" si le commentaire est du cyberharcèlement. Tu ne répondras rien d'autre que 1 ou 0. 
 
@@ -48,7 +47,6 @@ Explication des exemples (Ces explications sont faites pour t'aider, tu ne dois 
 - 'On t'aime !' est également dit de façon positive, encore plus avec la ponctuation'!' 
 
 Ne Réponds qu'avec "0" pour un commentaire bénin ou "1" pour du cyberharcèlement."""
-)
 
 
 class SLMClassifier:
