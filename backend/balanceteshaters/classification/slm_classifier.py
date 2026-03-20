@@ -65,13 +65,13 @@ class SLMClassifier:
         messages = [
             {
                 "role": "user",
-                "content": f"{CLASSIFICATION_PROMPT} Prompt à classifier : {text}",
+                "content": f"{CLASSIFICATION_PROMPT} Prompt à classifier : {text} /no_think",
             }
         ]
 
         response = self.llm.create_chat_completion(
             messages=messages,
-            max_tokens=500,
+            max_tokens=16,
             temperature=0.0,
         )
 
