@@ -20,6 +20,21 @@ import {
 } from "@tanstack/react-query";
 
 /**
+ * String enum for ScrapingAndClassificationTabInfo type values
+ */
+export enum ScrapingAndClassificationTabInfoType {
+  NO_TAB = "no-tab",
+  NOT_SCRAPABLE = "not-scrapable",
+  SCRAPING_NOT_STARTED = "scraping-not-started",
+  SCRAPING_IN_PROGRESS = "scraping-in-progress",
+  SCRAPING_CANCELED = "scraping-canceled",
+  SCRAPING_FAILED = "scraping-failed",
+  CLASSIFICATION_IN_PROGRESS = "classification-in-progress",
+  CLASSIFICATION_SUCCEEDED = "classification-succeeded",
+  CLASSIFICATION_FAILED = "classification-failed",
+}
+
+/**
  * Returns scraping and classification info about the "current tab".
  * Automatically refreshes at interval and when current tab or tab url changed
  * @returns
@@ -72,51 +87,51 @@ export type ScrapingAndClassificationTabInfo =
   | TabInfoClassificationFailed;
 
 export type NoTabInfo = {
-  type: "no-tab";
+  type: ScrapingAndClassificationTabInfoType.NO_TAB;
 };
 
 export type TabInfoNotScrapableTab = {
-  type: "not-scrapable";
+  type: ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE;
   tabId: number;
 };
 
 export type TabInfoScrapingNotStarted = {
-  type: "scraping-not-started";
+  type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingNotStarted;
 };
 
 export type TabInfoScrapingInProgress = {
-  type: "scraping-in-progress";
+  type: ScrapingAndClassificationTabInfoType.SCRAPING_IN_PROGRESS;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingRunning | ScrapingCanceling;
 };
 
 export type TabInfoScrapingCanceled = {
-  type: "scraping-canceled";
+  type: ScrapingAndClassificationTabInfoType.SCRAPING_CANCELED;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingCanceled;
 };
 
 export type TabInfoScrapingFailed = {
-  type: "scraping-failed";
+  type: ScrapingAndClassificationTabInfoType.SCRAPING_FAILED;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingFailed;
 };
 
 export type TabInfoClassificationInProgess = {
-  type: "classification-in-progress";
+  type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_IN_PROGRESS;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingSucceeded;
 };
 
 export type TabInfoClassificationSucceeded = {
-  type: "classification-succeeded";
+  type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_SUCCEEDED;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingSucceeded;
@@ -125,7 +140,7 @@ export type TabInfoClassificationSucceeded = {
 };
 
 export type TabInfoClassificationFailed = {
-  type: "classification-failed";
+  type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_FAILED;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingSucceeded;
@@ -136,20 +151,20 @@ export async function queryScrapingAndClassificationTabInfo(
   tabId: number | undefined,
 ): Promise<ScrapingAndClassificationTabInfo> {
   if (tabId === undefined) {
-    return { type: "no-tab" };
+    return { type: ScrapingAndClassificationTabInfoType.NO_TAB };
   }
   const client = new ScrapingContentScriptClient(tabId);
   const pageInfo = await client.getTabSocialNetworkPageInfo();
 
   if (!pageInfo.isScrapablePost) {
-    return { type: "not-scrapable", tabId };
+    return { type: ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE, tabId };
   }
 
   const scrapingStatus = await client.getScrapingStatus();
   switch (scrapingStatus.type) {
     case "not-started":
       return {
-        type: "scraping-not-started",
+        type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED,
         tabId,
         pageInfo,
         scrapingStatus,
@@ -157,21 +172,21 @@ export async function queryScrapingAndClassificationTabInfo(
     case "running":
     case "canceling":
       return {
-        type: "scraping-in-progress",
+        type: ScrapingAndClassificationTabInfoType.SCRAPING_IN_PROGRESS,
         tabId,
         pageInfo,
         scrapingStatus,
       };
     case "canceled":
       return {
-        type: "scraping-canceled",
+        type: ScrapingAndClassificationTabInfoType.SCRAPING_CANCELED,
         tabId,
         pageInfo,
         scrapingStatus,
       };
     case "failed":
       return {
-        type: "scraping-failed",
+        type: ScrapingAndClassificationTabInfoType.SCRAPING_FAILED,
         tabId,
         pageInfo,
         scrapingStatus,
@@ -198,14 +213,14 @@ export async function buildClassificationStatus(
     case "SUBMITTED":
     case "IN_PROGRESS":
       return {
-        type: "classification-in-progress",
+        type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_IN_PROGRESS,
         tabId,
         pageInfo,
         scrapingStatus,
       };
     case "COMPLETED":
       return {
-        type: "classification-succeeded",
+        type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_SUCCEEDED,
         tabId,
         pageInfo,
         scrapingStatus,
@@ -214,7 +229,7 @@ export async function buildClassificationStatus(
       };
     case "FAILED":
       return {
-        type: "classification-failed",
+        type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_FAILED,
         tabId,
         pageInfo,
         scrapingStatus,

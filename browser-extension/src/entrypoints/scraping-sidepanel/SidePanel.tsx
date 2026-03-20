@@ -7,7 +7,10 @@ import { DisplayScrapingCanceled } from "./DisplayScrapingCanceled";
 import { DisplayClassificationInProgress } from "./DisplayClassificationInProgress";
 import { DisplayClassificationSucceeded } from "./DisplayClassificationSucceeded";
 import { DisplayClassificationFailed } from "./DisplayClassificationFailed";
-import { useScrapingAndClassificationTabInfo } from "./useScrapingAndClassificationTabInfo";
+import {
+  ScrapingAndClassificationTabInfoType,
+  useScrapingAndClassificationTabInfo,
+} from "./useScrapingAndClassificationTabInfo";
 import { getTabIdFromSidePanelUrl } from "./side-panel-url";
 
 export function SidePanel() {
@@ -26,26 +29,29 @@ export function SidePanel() {
       </>
     );
   }
-  if (isPending || tabInfo.type === "no-tab") {
+  if (
+    isPending ||
+    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB
+  ) {
     return <Spinner className="m-auto size-8" />;
   }
 
   switch (tabInfo.type) {
-    case "not-scrapable":
+    case ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE:
       return <DisplayTabNotScrapable />;
-    case "scraping-not-started":
+    case ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED:
       return <DisplayScrapingNotStarted tabInfo={tabInfo} />;
-    case "scraping-in-progress":
+    case ScrapingAndClassificationTabInfoType.SCRAPING_IN_PROGRESS:
       return <DisplayScrapingInProgress tabInfo={tabInfo} />;
-    case "scraping-failed":
+    case ScrapingAndClassificationTabInfoType.SCRAPING_FAILED:
       return <DisplayScrapingFailed tabInfo={tabInfo} />;
-    case "scraping-canceled":
+    case ScrapingAndClassificationTabInfoType.SCRAPING_CANCELED:
       return <DisplayScrapingCanceled tabInfo={tabInfo} />;
-    case "classification-in-progress":
+    case ScrapingAndClassificationTabInfoType.CLASSIFICATION_IN_PROGRESS:
       return <DisplayClassificationInProgress tabInfo={tabInfo} />;
-    case "classification-succeeded":
+    case ScrapingAndClassificationTabInfoType.CLASSIFICATION_SUCCEEDED:
       return <DisplayClassificationSucceeded tabInfo={tabInfo} />;
-    case "classification-failed":
+    case ScrapingAndClassificationTabInfoType.CLASSIFICATION_FAILED:
       return <DisplayClassificationFailed tabInfo={tabInfo} />;
   }
 }

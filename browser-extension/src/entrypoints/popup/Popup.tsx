@@ -9,7 +9,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { useScrapingAndClassificationTabInfo } from "../scraping-sidepanel/useScrapingAndClassificationTabInfo";
+import {
+  ScrapingAndClassificationTabInfoType,
+  useScrapingAndClassificationTabInfo,
+} from "../scraping-sidepanel/useScrapingAndClassificationTabInfo";
 import { startScraping } from "../scraping-sidepanel/startScraping";
 import { ViewPreviousAnalysesButton } from "../scraping-sidepanel/ViewPreviousAnalysesButton";
 import { openSidePanel } from "./openSidePanel";
@@ -39,10 +42,13 @@ export function Popup() {
     );
   }
 
-  if (isPending || tabInfo.type === "no-tab") {
+  if (
+    isPending ||
+    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB
+  ) {
     return <Spinner className="size-16 m-auto" />;
   }
-  if (tabInfo.type === "not-scrapable") {
+  if (tabInfo.type === ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE) {
     return (
       <Card>
         <CardHeader>
@@ -59,7 +65,9 @@ export function Popup() {
     );
   }
 
-  if (tabInfo.type === "scraping-not-started") {
+  if (
+    tabInfo.type === ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED
+  ) {
     return (
       <Card>
         <CardHeader>
