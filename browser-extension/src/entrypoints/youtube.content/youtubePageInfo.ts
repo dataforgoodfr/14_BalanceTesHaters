@@ -1,3 +1,4 @@
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 export const YOUTUBE_URL = new URL("https://www.youtube.com");
 
@@ -17,7 +18,7 @@ export function youtubePageInfo(url: string): SocialNetworkPageInfo {
     }
     return {
       isScrapablePost: true,
-      socialNetwork: "YOUTUBE",
+      socialNetwork: SocialNetwork.YouTube,
       postId: postId,
     };
   }

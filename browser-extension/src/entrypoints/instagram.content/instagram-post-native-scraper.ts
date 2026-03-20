@@ -4,6 +4,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -65,7 +66,7 @@ export class InstagramPostNativeScraper {
       author,
       comments,
       postId: pageInfo.postId,
-      socialNetwork: "INSTAGRAM",
+      socialNetwork: SocialNetwork.Instagram,
       textContent,
     };
   }
