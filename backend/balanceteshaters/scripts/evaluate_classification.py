@@ -65,11 +65,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="""
     This script computes statistical indicators on two array-like objects containing boolean values.
     Projected application is to evaluate the accuracy of binary classification of abusive messages.
-    Path to csv file containing both annotations and predictions can be supplied as an optional argument.
-    Otherwise, default csv path value will be deducted from environment variables. 
-    In that case, user may need to execute the prediction script for the csv file to exist in the default location.
+    Path to csv file containing both annotations and predictions is to be supplied as a required argument.
     """)
-    parser.add_argument("path_to_input_csv", type=Path, help="Path to csv file containing both annotations and predictions (optional)")
+    parser.add_argument("path_to_input_csv", type=Path, help="Path to csv file containing both annotations and predictions")
     args = parser.parse_args()
 
     # Determine input csv path
