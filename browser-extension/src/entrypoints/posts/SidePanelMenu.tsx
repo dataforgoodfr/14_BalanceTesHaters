@@ -8,7 +8,7 @@ function SidePanelMenu() {
       <div className="text-lg font-bold my-4">Balance tes haters</div>
       <Button className="text-sm mb-4">
         <Plus />
-        Créer un rapport
+        <Link to="/build-report">Créer un rapport</Link>
       </Button>
       <Button variant="ghost">
         <Link to="/">Vue d&apos;ensemble</Link>

@@ -10,6 +10,7 @@ import HomePage from "./Home/HomePage";
 import SidePanelMenu from "./SidePanelMenu";
 import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
+import { BuildReport } from "./Report/BuildReport";
 
 export default function App() {
   useInitializeTheme();
@@ -36,6 +37,7 @@ export default function App() {
               path="/post-snapshots/:snapshotId"
               element={<PostSnapshotDetailPage />}
             />
+            <Route path="/build-report" element={<BuildReport />} />
           </Routes>
         </div>
       </HashRouter>
