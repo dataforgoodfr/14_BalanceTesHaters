@@ -20,7 +20,7 @@ export function DisplayScrapingFailed({
 
         <Alert variant="destructive" className="max-w-md">
           <AlertCircleIcon />
-          <AlertTitle>Une erreur inattendue c&apos;est produite.</AlertTitle>
+          <AlertTitle>Une erreur inattendue s&apos;est produite.</AlertTitle>
           <AlertDescription>
             {tabInfo.scrapingStatus.errorMessage}
           </AlertDescription>

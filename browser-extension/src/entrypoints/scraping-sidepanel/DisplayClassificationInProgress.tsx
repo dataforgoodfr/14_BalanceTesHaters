@@ -19,7 +19,7 @@ export function DisplayClassificationInProgress({
           </AlertTitle>
           <AlertDescription>
             Suis son avancement dans &quot;Publications analysées&quot;. Tu
-            recevras une notifcation dès que les résultats sont prêts.
+            recevras une notification dès que les résultats sont prêts.
           </AlertDescription>
         </Alert>
 

@@ -48,9 +48,8 @@ export function Popup() {
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription>
-            Pour capturer des commentaires et les analyser naviguez vers une
-            publication d&apos;un réseau social supporté (youtube, instagram...)
-            puis ouvrez l&apos;extension à nouveau.
+            Navigue vers une publication d&apos;un réseau social supporté
+            (youtube, instagram...) pour pouvoir lancer l&apos;analyse.
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex-col gap-2">
