@@ -43,8 +43,8 @@ function handleIncomingMessages(
     );
     return true;
   } else if (isScreenshotSenderTab(message)) {
-    screenshotSenderTab(sender).then((data) => {
-      sendResponse(data);
+    screenshotSenderTab(sender).then((result) => {
+      sendResponse(result);
     });
     return true;
   } else if (isSubmitClassificationRequestMessage(message)) {
