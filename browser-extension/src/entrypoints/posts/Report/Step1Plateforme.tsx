@@ -1,16 +1,25 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { useStepper, getFormId } from "./BuildReport"; // or wherever the export is
+import { useStepper, getFormId, ReportQueryData } from "./BuildReport"; // or wherever the export is
 import { useForm } from "@tanstack/react-form";
 
-function Step1Plateforme() {
+function Step1Plateforme({
+  reportQueryData,
+  setReportQueryData,
+}: {
+  reportQueryData: ReportQueryData | undefined;
+  setReportQueryData: React.Dispatch<
+    React.SetStateAction<ReportQueryData | undefined>
+  >;
+}) {
   const stepper = useStepper();
 
   const form = useForm({
-    defaultValues: { socialNetworkList: [] as string[] },
+    defaultValues: { socialNetworkList: reportQueryData?.socialNetworkList ?? [] },
     onSubmit: () => {
-      if (!stepper.state.isLast) stepper.navigation.next();
+      setReportQueryData(form.state.values);
+      stepper.navigation.next();
     },
   });
 
