@@ -1,7 +1,7 @@
 FROM python:3.13-slim-trixie AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential cmake && rm -rf /var/lib/apt/lists/*
+      build-essential cmake gcc g++ && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD /backend /app
@@ -14,6 +14,8 @@ ENV CMAKE_ARGS="-DGGML_AVX=ON -DGGML_AVX2=OFF -DGGML_FMA=OFF -DGGML_F16C=OFF"
 RUN uv sync --locked
 
 FROM python:3.13-slim-trixie
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD /docker/backend/run.sh /app
