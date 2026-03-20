@@ -4,8 +4,10 @@ import { defineStepper, Get } from "@stepperize/react";
 import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
 
 import { Button } from "@/components/ui/button";
-import { Check, CircleCheck } from "lucide-react";
+import { Check, CircleCheck, Move, MoveLeft, MoveRight } from "lucide-react";
 import Step1Plateforme from "./Step1Plateforme";
+import { Link } from "react-router";
+import { Separator } from "@/components/ui/separator";
 
 const { Stepper, ...stepperDefinition } = defineStepper(
   {
@@ -100,18 +102,23 @@ const StepperSeparatorWithLabelOrientation = ({
 
 export function BuildReport() {
   return (
-    <div className="p-4 flex flex-col gap-6 w-full">
+    <div className="p-4 flex flex-col gap-6 w-full ">
+      {/* Header */}
+      <div className="sticky top-0"></div>
       <p>
         Suivez les 4 étapes pour constituer un rapport et exportez-le dans un
         format souhaité.
       </p>
-      <Stepper.Root className="w-full space-y-4" orientation="horizontal">
+      <Stepper.Root
+        className="w-full h-full space-y-4"
+        orientation="horizontal"
+      >
         {({ stepper }) => (
           <>
             <Stepper.List className="flex list-none gap-2 flex-row items-center justify-between">
               {stepper.state.all.map((stepData, index) => {
                 const currentIndex = stepper.state.current.index;
-                let status =  "inactive";
+                let status = "inactive";
                 if (index < currentIndex) {
                   status = "success";
                 } else if (index === currentIndex) {
@@ -150,33 +157,38 @@ export function BuildReport() {
               "step-3": (data) => <Content id={data.id} />,
               "step-4": (data) => <Content id={data.id} />,
             })}
-            <Stepper.Actions className="flex justify-end gap-4">
-              {!stepper.state.isLast && (
-                <Stepper.Prev
-                  render={(domProps) => (
-                    <Button type="button" variant="secondary" {...domProps}>
-                      Previous
-                    </Button>
-                  )}
-                />
-              )}
-              {stepper.state.isLast ? (
-                <Button
-                  type="button"
-                  onClick={() => stepper.navigation.reset()}
-                >
-                  Reset
-                </Button>
-              ) : (
-                <Stepper.Next
-                  render={(domProps) => (
-                    <Button type="button" {...domProps}>
-                      Next
-                    </Button>
-                  )}
-                />
-              )}
-            </Stepper.Actions>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 border-t pt-4">
+              <Stepper.Actions className="flex justify-center gap-6">
+                {!stepper.state.isLast && (
+                  <Stepper.Prev
+                    render={(domProps) => (
+                      <Button type="button" className="w-1/6" {...domProps}>
+                       <MoveLeft className="h-4 w-4 mr-1" /> Précédent 
+                      </Button>
+                    )}
+                  />
+                )}
+                {stepper.state.isLast ? (
+                  <Button
+                    type="button"
+                    className="w-1/6"
+                    onClick={() => stepper.navigation.reset()}
+                  >
+                    Générer le rapport
+                  </Button>
+                ) : (
+                  <Stepper.Next
+                    render={(domProps) => (
+                      <Button type="button" className="w-1/6" {...domProps}>
+                        Suivant <MoveRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    )}
+                  />
+                )}
+              </Stepper.Actions>
+            </div>
           </>
         )}
       </Stepper.Root>
