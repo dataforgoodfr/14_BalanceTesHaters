@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {  SocialNetwork, SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import {
+  SocialNetwork,
+  SocialNetworkName,
+} from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
 import { MoveLeft } from "lucide-react";
@@ -127,7 +130,12 @@ function PostDetailPage() {
               <span className="text-gray-500">
                 Sélectionner les commentaires pour créer un rapport
               </span>
-              <CommentsTable comments={hatefulComments} />
+              <CommentsTable
+                comments={hatefulComments}
+                defaultCommentIdList={[]}
+                formId=""
+                onSubmit={() => console.log("submitted")}
+              />
             </div>
           </div>
         </>
