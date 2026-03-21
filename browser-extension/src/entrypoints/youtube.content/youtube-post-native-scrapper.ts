@@ -258,9 +258,6 @@ export class YoutubePostNativeScrapper {
     await this.loadAllTopLevelComments();
     progressManager.setProgress(50);
 
-    // TODO fix Load replies is unstable:
-    // * it sometimes stuck indefinitely with 1 remainign more Replies to click
-    // * some elements are still not rendered when it finishes
     this.debug("Expanding all replies...");
     await this.loadAllReplies();
     progressManager.setProgress(75);
@@ -463,10 +460,19 @@ export class YoutubePostNativeScrapper {
     this.debug("Expanding ", repliesButton.length, " replies button...");
     for (const b of repliesButton) {
       b.scrollIntoView();
-
       b.click();
-      await this.scrapingSupport.resumeHostPage();
     }
+
+    //  wait for replies skeletons to disappear
+    this.debug("Waiting for replies to load...");
+    await this.scrapingSupport.sleep(500);
+    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+      document,
+      "#ghost-comment-section",
+      {
+        scrollRemainingElementsIntoView: true,
+      },
+    );
 
     // expand more replies button
     for (;;) {
@@ -475,7 +481,8 @@ export class YoutubePostNativeScrapper {
       const moreRepliesButtons = this.scrapingSupport
         .selectAll(
           document,
-          'button[aria-label="Afficher plus de réponses"]',
+          'button[aria-label="Afficher plus de réponses"],' +
+            'button[aria-label="Show more replies"]',
           HTMLElement,
         )
         .filter((e) => this.scrapingSupport.isVisible(e));
@@ -491,10 +498,17 @@ export class YoutubePostNativeScrapper {
         for (const b of moreRepliesButtons) {
           b.scrollIntoView();
           b.click();
-          await this.scrapingSupport.resumeHostPage();
         }
-        //
+        //  wait for replies skeletons to disappear
+        this.debug("Waiting for replies to load...");
         await this.scrapingSupport.sleep(500);
+        await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+          document,
+          "#ghost-comment-section",
+          {
+            scrollRemainingElementsIntoView: true,
+          },
+        );
       }
     }
   }

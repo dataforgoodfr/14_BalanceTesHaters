@@ -71,6 +71,54 @@ export class ScrapingSupport {
     );
   }
 
+  async waitUntilNoVisibleElementMatches(
+    parent: ParentNode,
+    selector: string,
+    options?: {
+      extraPredicate?: (e: HTMLElement) => boolean;
+      /**
+       * Scroll remaining elements into view to help trigger loading
+       */
+      scrollRemainingElementsIntoView?: boolean;
+      timeout?: number;
+    },
+  ): Promise<void> {
+    const timeout = options?.timeout || 30000;
+
+    const start = Date.now();
+    for (;;) {
+      let visibleElements = this.selectAll(
+        parent,
+        selector,
+        HTMLElement,
+      ).filter((e) => this.isVisible(e));
+      visibleElements = options?.extraPredicate
+        ? visibleElements.filter(options?.extraPredicate)
+        : visibleElements;
+      if (visibleElements.length === 0) {
+        return;
+      }
+      if (options?.scrollRemainingElementsIntoView) {
+        for (const e of visibleElements) {
+          e.scrollIntoView();
+          this.resumeHostPage();
+        }
+      }
+      if (Date.now() - start > timeout) {
+        throw new Error(
+          "Still " +
+            visibleElements.length +
+            " elements selector " +
+            selector +
+            " and predicate " +
+            options?.extraPredicate +
+            " after timeout",
+        );
+      }
+      await this.sleep(200);
+    }
+  }
+
   selectOrThrow<T extends Element>(
     parent: ParentNode,
     selector: string,
