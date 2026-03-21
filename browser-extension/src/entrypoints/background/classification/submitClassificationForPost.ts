@@ -7,7 +7,7 @@ import { postClassificationRequest } from "./api/submitClassificationRequest";
 
 export async function submitClassificationRequestForPost(
   postSnapshotId: string,
-): Promise<boolean> {
+): Promise<void> {
   console.debug(
     "submitClassificationRequestForPost - postSnapshotId:",
     postSnapshotId,
@@ -15,26 +15,23 @@ export async function submitClassificationRequestForPost(
 
   const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
-    console.warn("Post does not exist!! ignoring request");
-    return false;
+    throw new Error(
+      `Submit classification failed: PostSnapshot ${postSnapshotId} not found in storage`,
+    );
   }
   if (post.classificationJobId) {
-    console.warn("Post already has some classificationJobId!!");
-    return false;
+    throw new Error(
+      `Submit classification failed: PostSnapshot ${postSnapshotId} already has a classificationJobId!!`,
+    );
   }
-  console.debug("Background - Posting post to backend");
-  try {
-    const classificationJob = mapPostToClassificationRequest(post);
-    const response = await postClassificationRequest(classificationJob);
+  console.debug(
+    "submitClassificationRequestForPost - Submitting postsnapshot to backend for classification",
+  );
+  const classificationJob = mapPostToClassificationRequest(post);
+  const response = await postClassificationRequest(classificationJob);
 
-    post.classificationJobId = response.job_id;
-    post.classificationStatus = "SUBMITTED";
+  post.classificationJobId = response.job_id;
+  post.classificationStatus = "SUBMITTED";
 
-    await updatePostSnapshot(post);
-
-    return true;
-  } catch (error) {
-    console.error(error);
-    return false;
-  }
+  await updatePostSnapshot(post);
 }

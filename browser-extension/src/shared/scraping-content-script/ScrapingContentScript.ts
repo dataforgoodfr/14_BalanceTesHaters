@@ -14,6 +14,7 @@ import {
   scrapingFailed,
   ScrapingStatus,
 } from "./ScrapingStatus";
+import { ProgressManager } from "./ProgressManager";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -40,22 +41,22 @@ export class ScrapingContentScript {
     sendResponse: (response?: unknown) => void,
   ): true | undefined {
     if (isScsPageInfoMessage(message)) {
-      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.getPageInfo().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsScrapTabMessage(message)) {
-      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.scrapPost().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsGetScrapingStatusMessage(message)) {
-      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.getScrapingStatus().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsCancelScrapTabMessage(message)) {
-      console.info(`[SCS] - Received ${message.msgType} message from`, sender);
+      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.cancelScraping().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
@@ -85,10 +86,28 @@ export class ScrapingContentScript {
     try {
       this.scrapingStatus = {
         type: "running",
+        progress: 0,
       };
       const start = Date.now();
       const postSnapshot = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
+        new ProgressManager((progress) => {
+          if (this.scrapingStatus.type !== "running") {
+            // Not running anymore
+            // Probably canceling
+            return;
+          }
+          const roundedProgress = Math.round(progress);
+          const durationSec = Math.round((Date.now() - start) / 1000);
+
+          console.info(
+            `[SCS] - Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
+          );
+          this.scrapingStatus = {
+            type: "running",
+            progress: roundedProgress,
+          };
+        }),
       );
       console.info("[SCS] - Scraping completed");
 

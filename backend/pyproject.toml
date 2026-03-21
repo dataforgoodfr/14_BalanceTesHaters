@@ -23,6 +23,8 @@ dependencies = [
     "tqdm>=4.67.3",
     "transformers>=5.3.0",
     "uuid7>=0.1.0",
+    "scikit-learn>=1.8.0",
+    "polars>=1.39.0",
 ]
 
 [[tool.uv.index]]

@@ -5,65 +5,69 @@ import { submitClassificationRequestForPost } from "./classification/submitClass
 import { isSubmitClassificationRequestMessage } from "./classification/submitClassificationForPostMessage";
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
-import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
+import { scrapTabAndSubmitClassificationRequest } from "./scraping/scrapTab";
+import { startClassificationPolling } from "./classification/classificationPolling";
 
 export default defineBackground(() => {
-  console.log("Hello background!", { extensionId: browser.runtime.id });
+  console.info(
+    "Background - Initializing background. Extension id is: ",
+    browser.runtime.id,
+  );
 
-  function handleMessages(
-    message: unknown,
-    sender: Browser.runtime.MessageSender,
-    sendResponse: (response: unknown) => void,
-  ) {
-    console.debug("Background - Message received:", message, sender);
+  console.debug("Background - Registering message listener");
+  browser.runtime.onMessage.addListener(handleIncomingMessages);
 
-    if (isScrapTabMessage(message)) {
-      browser.tabs.get(message.tabId).then((tab) => {
-        scrapTab(tab);
-      });
-      return;
-    } else if (isScreenshotSenderTab(message)) {
-      screenshotSenderTab(sender).then((data) => {
-        sendResponse(data);
-      });
-      return true;
-    } else if (isSubmitClassificationRequestMessage(message)) {
-      console.debug("Background - Request classification  message");
-      submitClassificationRequestForPost(message.postSnapshotId).then(
-        (success: boolean) => {
-          sendResponse({ success: success });
-        },
-      );
-      return true;
-    } else if (isUpdatePostWithClassificationResultMessage(message)) {
-      console.debug("Background - Update classification status");
-      updatePostWithClassificationResult(message.postSnapshotId).then(
-        (success: boolean) => {
-          sendResponse({ success: success });
-        },
-      );
-      return true;
-    }
-  }
-
-  console.log("Background - registering listener");
-  browser.runtime.onMessage.addListener(handleMessages);
+  console.debug("Background - Register classification polling alarm");
+  startClassificationPolling();
 });
 
-async function scrapTab(tab: Browser.tabs.Tab) {
-  if (tab && tab.id) {
-    console.debug("Background - Scraping post from active tab ", {
-      tabId: tab.id,
-      url: tab.url,
+/**
+ * Handles incoming messages from content scripts, popup, and other extension parts.
+ * Dispatches messages to appropriate handlers based on message type.
+ *
+ * @param message - The message object received from the sender
+ * @param sender - Information about the script that sent the message
+ * @param sendResponse - Callback function to send response back to the sender
+ * @returns boolean|undefined - Returns true if an async response will be sent using sendResponse undefined if message not handled (see web-ext messaging doc for more details).
+ */
+function handleIncomingMessages(
+  message: unknown,
+  sender: Browser.runtime.MessageSender,
+  sendResponse: (response: unknown) => void,
+): boolean | undefined {
+  console.debug("Background - Message received:", message, sender);
+
+  if (isScrapTabMessage(message)) {
+    scrapTabAndSubmitClassificationRequest(message.tabId).then(() =>
+      sendResponse(undefined),
+    );
+    return true;
+  } else if (isScreenshotSenderTab(message)) {
+    screenshotSenderTab(sender).then((data) => {
+      sendResponse(data);
     });
-    const contentScriptClient = new ScrapingContentScriptClient(tab.id);
-    const result = await contentScriptClient.scrapPost();
-    if (result.type === "succeeded") {
-      await submitClassificationRequestForPost(result.postSnapshotId);
-    } else if (result.type === "failed") {
-      console.error("Scraping failed", result.errorMessage);
-    } else if (result.type === "canceled") {
-      console.error("Scraping canceled");
-    }
+    return true;
+  } else if (isSubmitClassificationRequestMessage(message)) {
+    submitClassificationRequestForPost(message.postSnapshotId).then(
+      () => {
+        sendResponse({ success: true });
+      },
+      (error) => {
+        console.error(error);
+        sendResponse({ success: false });
+      },
+    );
+    return true;
+  } else if (isUpdatePostWithClassificationResultMessage(message)) {
+    updatePostWithClassificationResult(message.postSnapshotId).then(
+      () => {
+        sendResponse({ success: true });
+      },
+      (error) => {
+        console.error(error);
+        sendResponse({ success: false });
+      },
+    );
+    return true;
   }
 }

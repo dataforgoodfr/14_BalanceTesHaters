@@ -5,51 +5,67 @@ import { ScrapingSupport } from "../../scraping/ScrapingSupport";
 import { buildFullImageFromFragments } from "./full-image";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import { withRetry } from "@/shared/utils/withRetry";
 
 const STORE_SCREENSHOT_FOR_DEBUG = false;
 
 const logPrefix = "[Screenshoting]";
 export async function captureFullPageScreenshot(
   scrapingSupport: ScrapingSupport,
-): Promise<Image> {
-  let remaining_attempts = 10;
-  for (;;) {
-    try {
-      console.debug(logPrefix, "Capturing fragments...");
-      const pageScreenshots =
-        await capturePageScreenshotFragments(scrapingSupport);
+  progressManager: ProgressManager,
+): Promise<FullPageScreenshotResult> {
+  console.debug(logPrefix, "Capturing fragments...");
+
+  return await withRetry<FullPageScreenshotResult>({
+    maxAttempts: 10,
+    retryOn: (e) =>
+      e instanceof WindowResizedException ||
+      e instanceof WindowScrolledException,
+    beforeRetry: async ({ latestError, remainingAttempts }) => {
+      const error = latestError as
+        | WindowResizedException
+        | WindowScrolledException;
+      console.warn(
+        logPrefix,
+        "Error: ",
+        error.message,
+        ". Retrying in 2s: " + remainingAttempts + " attempts remaining.",
+      );
+      await scrapingSupport.sleep(2000);
+    },
+    retry: async () => {
+      const { fragments: pageScreenshots, viewPortSize } =
+        await capturePageScreenshotFragments(
+          scrapingSupport,
+          // Consider that capturing screenshots amount for 90% of screenshoting work
+          progressManager.subTaskProgressManager({ from: 0, to: 90 }),
+        );
       console.debug(logPrefix, "Building full image from fragments...");
       scrapingSupport.throwIfAborted();
       const fullPageScreenshot = buildFullImageFromFragments(pageScreenshots);
-
       if (STORE_SCREENSHOT_FOR_DEBUG) {
         await storeForDebug(fullPageScreenshot);
       }
-      return fullPageScreenshot;
-    } catch (e) {
-      if (
-        e instanceof WindowResizedException ||
-        e instanceof WindowScrolledException
-      ) {
-        remaining_attempts--;
-        if (remaining_attempts > 0) {
-          console.warn(
-            logPrefix,
-            e.message +
-              ". Retrying in 2s: " +
-              remaining_attempts +
-              " attempts remaining.",
-          );
-          await scrapingSupport.sleep(2000);
-        } else {
-          throw e;
-        }
-      } else {
-        throw e;
-      }
-    }
-  }
+      progressManager.setProgress(100);
+      return { image: fullPageScreenshot, viewPortSize };
+    },
+  });
 }
+
+export type FullPageScreenshotResult = {
+  image: Image;
+  /**
+   * View port size at screenshot time.
+   * This allows caller to known if viewPort has been resied since capture
+   */
+  viewPortSize: ViewPortSize;
+};
+
+export type ViewPortSize = {
+  width: number;
+  height: number;
+};
 
 class WindowResizedException extends Error {
   constructor() {
@@ -71,7 +87,12 @@ class WindowScrolledException extends Error {
 
 async function capturePageScreenshotFragments(
   scrapingSupport: ScrapingSupport,
-): Promise<ScreenshotFragment[]> {
+  progressManager: ProgressManager,
+): Promise<{ fragments: ScreenshotFragment[]; viewPortSize: ViewPortSize }> {
+  const onStartViewPortSize = {
+    height: window.innerHeight,
+    width: window.innerWidth,
+  };
   const scrollable = scrapingSupport.selectOrThrow(
     document,
     "html",
@@ -85,18 +106,23 @@ async function capturePageScreenshotFragments(
   }
 
   const screenshots: ScreenshotFragment[] = [];
+  const expectedFragmentsCount = Math.ceil(
+    scrollable.scrollHeight / window.innerHeight,
+  );
+  const progressPerFragment = 100 / expectedFragmentsCount;
   for (;;) {
     scrapingSupport.throwIfAborted();
     const requestedTop = screenshots
       .map((s) => s.catpureArea.height)
       .reduce((sum, v) => sum + v, 0);
-    scrollable.scrollTop = requestedTop;
 
+    if (requestedTop >= scrollable.scrollHeight) {
+      return { fragments: screenshots, viewPortSize: onStartViewPortSize };
+    }
+
+    scrollable.scrollTop = requestedTop;
     // If we are at the end of page actualTop differs because we cannot scrol past the bottom of page
     const actualTop = scrollable.scrollTop;
-    const height = window.innerHeight;
-    const width = window.innerWidth;
-
     console.debug(
       logPrefix,
       "Capture Fragment - requestedTop",
@@ -104,36 +130,38 @@ async function capturePageScreenshotFragments(
       "actualTop",
       actualTop,
       "height",
-      height,
+      window.innerHeight,
       "width",
-      width,
+      window.innerHeight,
     );
 
     // This sleep seems required for screenshot to capture the right content.
     // This may be due to some js moving pieces on scroll on the youtube page?
     await scrapingSupport.sleep(200);
-    if (requestedTop >= scrollable.scrollHeight) {
-      return screenshots;
-    }
 
     const dataUrl: string = await captureTabScreenshotAsDataUrl();
     if (scrollable.scrollTop != actualTop) {
       throw new WindowScrolledException(actualTop, scrollable.scrollTop);
     }
-    if (window.innerHeight != height || window.innerWidth != width) {
+
+    if (
+      window.innerHeight != onStartViewPortSize.height ||
+      window.innerWidth != onStartViewPortSize.width
+    ) {
       throw new WindowResizedException();
     }
 
     const area = {
       x: 0,
       y: actualTop,
-      width: width,
-      height: height,
+      width: window.innerWidth,
+      height: window.innerHeight,
     };
     screenshots.push({
       catpureArea: area,
       screenshotDataUrl: dataUrl,
     });
+    progressManager.setProgress(screenshots.length * progressPerFragment);
   }
 }
 
