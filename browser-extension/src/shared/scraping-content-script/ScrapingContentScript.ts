@@ -37,26 +37,22 @@ export class ScrapingContentScript {
    */
   public handleMessage(
     message: unknown,
-    sender: Browser.runtime.MessageSender,
+    _: Browser.runtime.MessageSender,
     sendResponse: (response?: unknown) => void,
   ): true | undefined {
     if (isScsPageInfoMessage(message)) {
-      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.getPageInfo().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsScrapTabMessage(message)) {
-      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.scrapPost().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsGetScrapingStatusMessage(message)) {
-      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.getScrapingStatus().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsCancelScrapTabMessage(message)) {
-      console.debug(`[SCS] - Received ${message.msgType} message from`, sender);
       this.cancelScraping().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
