@@ -2,6 +2,16 @@ import { sleep } from "../utils/sleep";
 
 type Class<T> = new () => T;
 
+type WaitForSelectorResult<T> =
+  | {
+      status: "failure";
+      message: string;
+    }
+  | {
+      status: "success";
+      element: T;
+    };
+
 export class ScrapingSupport {
   constructor(private abortSignal: AbortSignal) {}
 
@@ -35,6 +45,36 @@ export class ScrapingSupport {
   }
 
   /**
+   * Wait for selector and throws if timeout is reached.
+   * Checks abortSignal.throwIfAborted
+   * @param parent
+   * @param selector
+   * @param targetClass
+   * @param options
+   * @returns
+   */
+  async waitForSelectorOrThrow<T extends Element>(
+    parent: ParentNode,
+    selector: string,
+    targetClass: Class<T>,
+    options?: {
+      predicate?: (e: T) => boolean;
+      timeout?: number;
+    },
+  ): Promise<T> {
+    const result = await this.waitForSelector(
+      parent,
+      selector,
+      targetClass,
+      options,
+    );
+    if (result.status === "failure") {
+      throw new Error(result.message);
+    }
+    return result.element;
+  }
+
+  /**
    * Wait for selector.
    * Checks abortSignal.throwIfAborted
    * @param parent
@@ -51,24 +91,29 @@ export class ScrapingSupport {
       predicate?: (e: T) => boolean;
       timeout?: number;
     },
-  ): Promise<T> {
+  ): Promise<WaitForSelectorResult<T>> {
     const timeout = options?.timeout || 30000;
 
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const element = this.select(parent, selector, targetClass);
       if (element && (!options?.predicate || options?.predicate(element))) {
-        return element;
+        return {
+          status: "success",
+          element: element,
+        };
       }
       await this.sleep(100);
     }
-    throw new Error(
-      "Failed to select element matching selector " +
+    return {
+      status: "failure",
+      message:
+        "Failed to select element matching selector " +
         selector +
         " and predicate " +
         options?.predicate +
         " before timeout",
-    );
+    };
   }
 
   selectOrThrow<T extends Element>(
