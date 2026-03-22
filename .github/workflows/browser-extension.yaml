@@ -120,8 +120,8 @@ jobs:
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: playwright-report
           path: browser-extension/playwright-report/
-          retention-days: 30
+          retention-days: 5

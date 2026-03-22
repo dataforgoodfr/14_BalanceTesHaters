@@ -6,7 +6,6 @@ export default defineConfig({
   workers: 1, // Single worker for extension tests
   reporter: "html",
   use: {
-    baseURL: "https://www.youtube.com",
     trace: "on-first-retry",
     video: "on-first-retry",
   },
