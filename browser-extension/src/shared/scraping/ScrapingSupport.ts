@@ -122,9 +122,9 @@ export class ScrapingSupport {
     options?: {
       extraPredicate?: (e: HTMLElement) => boolean;
       /**
-       * Scroll remaining elements into view to help trigger loading
+       * Callback function called after each wait increments.
        */
-      scrollRemainingElementsIntoView?: boolean;
+      onRemainingElements: (remainingElements: HTMLElement[]) => Promise<void>;
       timeout?: number;
     },
   ): Promise<void> {
@@ -143,11 +143,8 @@ export class ScrapingSupport {
       if (visibleElements.length === 0) {
         return;
       }
-      if (options?.scrollRemainingElementsIntoView) {
-        for (const e of visibleElements) {
-          e.scrollIntoView();
-          this.resumeHostPage();
-        }
+      if (options?.onRemainingElements) {
+        await options?.onRemainingElements(visibleElements);
       }
       if (Date.now() - start > timeout) {
         throw new Error(
