@@ -458,21 +458,7 @@ export class YoutubePostNativeScrapper {
       )
       .filter((e) => this.scrapingSupport.isVisible(e));
     this.debug("Expanding ", repliesButton.length, " replies button...");
-    for (const b of repliesButton) {
-      b.scrollIntoView();
-      b.click();
-    }
-
-    //  wait for replies skeletons to disappear
-    this.debug("Waiting for replies to load...");
-    await this.scrapingSupport.sleep(500);
-    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
-      document,
-      "#ghost-comment-section",
-      {
-        scrollRemainingElementsIntoView: true,
-      },
-    );
+    await this.expandReplies(repliesButton);
 
     // expand more replies button
     for (;;) {
@@ -495,22 +481,35 @@ export class YoutubePostNativeScrapper {
           moreRepliesButtons.length,
           " more replies buttons",
         );
-        for (const b of moreRepliesButtons) {
-          b.scrollIntoView();
-          b.click();
-        }
-        //  wait for replies skeletons to disappear
-        this.debug("Waiting for replies to load...");
-        await this.scrapingSupport.sleep(500);
-        await this.scrapingSupport.waitUntilNoVisibleElementMatches(
-          document,
-          "#ghost-comment-section",
-          {
-            scrollRemainingElementsIntoView: true,
-          },
-        );
+        await this.expandReplies(moreRepliesButtons);
       }
     }
+  }
+
+  private async expandReplies(repliesButton: HTMLElement[]) {
+    for (const b of repliesButton) {
+      b.scrollIntoView();
+      b.click();
+    }
+
+    //  wait for replies skeletons to disappear
+    this.debug("Waiting for replies to load...");
+    await this.scrapingSupport.sleep(500);
+    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+      document,
+      "#ghost-comment-section",
+      {
+        onRemainingElements: (visibleElements) => {
+          /**
+           * Scroll remaining elements into view to help trigger loading
+           */
+          for (const e of visibleElements) {
+            e.scrollIntoView();
+            this.scrapingSupport.resumeHostPage();
+          }
+        },
+      },
+    );
   }
 
   private async expandLongComments() {
