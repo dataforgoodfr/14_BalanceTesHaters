@@ -56,9 +56,13 @@ export class YoutubePostNativeScrapper {
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
     this.debug("Pause video...");
-    this.scrapingSupport
-      .selectOrThrow(document, "video", HTMLVideoElement)
-      .pause();
+    (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "video",
+        HTMLVideoElement,
+      )
+    ).pause();
 
     this.debug("Scraping title...");
     const title = await this.scrapPostTitle();
@@ -73,7 +77,7 @@ export class YoutubePostNativeScrapper {
     this.debug(`textContent: ${textConent.replaceAll("\n", "")}`);
 
     this.debug("Scraping publishedAt...");
-    const publishedAt = this.scrapPostPublishedAt();
+    const publishedAt = await this.scrapPostPublishedAt();
     this.debug(`publishedAt: ${publishedAt}`);
 
     // Init accounts for 1%
@@ -99,24 +103,28 @@ export class YoutubePostNativeScrapper {
     };
   }
 
-  private scrapPostTitle(): string {
-    return this.scrapingSupport.selectOrThrow(
-      document,
-      ".watch-active-metadata #title",
-      HTMLElement,
+  private async scrapPostTitle(): Promise<string> {
+    return (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        ".watch-active-metadata #title",
+        HTMLElement,
+      )
     ).innerText;
   }
 
-  private scrapPostTextContent() {
-    return this.scrapingSupport.selectOrThrow(
-      document,
-      "#description #snippet-text",
-      HTMLElement,
+  private async scrapPostTextContent(): Promise<string> {
+    return (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "#description #snippet-text",
+        HTMLElement,
+      )
     ).innerText;
   }
 
-  private scrapPostPublishedAt(): PublicationDate {
-    const infoElement = this.scrapingSupport.selectOrThrow(
+  private async scrapPostPublishedAt(): Promise<PublicationDate> {
+    const infoElement = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
       "#description #info",
       HTMLElement,
@@ -129,10 +137,12 @@ export class YoutubePostNativeScrapper {
         view: window,
       }),
     );
-    const tooltipText = this.scrapingSupport.selectOrThrow(
-      document,
-      "#description #tooltip",
-      HTMLElement,
+    const tooltipText = (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "#description #tooltip",
+        HTMLElement,
+      )
     ).innerText;
     return {
       type: "absolute",
@@ -141,9 +151,14 @@ export class YoutubePostNativeScrapper {
   }
 
   private async scrapPostAuthor(): Promise<Author> {
-    const channelNameEl = this.scrapingSupport.select(
+    const ownerElement = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
-      "#owner #channel-name",
+      "#owner",
+      HTMLElement,
+    );
+    const channelNameEl = this.scrapingSupport.select(
+      ownerElement,
+      "#channel-name",
       HTMLElement,
     );
 
@@ -162,8 +177,8 @@ export class YoutubePostNativeScrapper {
       };
     }
     const attributedChannelNameEl = this.scrapingSupport.select(
-      document,
-      "#owner #attributed-channel-name",
+      ownerElement,
+      "#attributed-channel-name",
       HTMLElement,
     );
     if (
