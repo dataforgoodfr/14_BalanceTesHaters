@@ -132,7 +132,7 @@ async function capturePageScreenshotFragments(
       "height",
       window.innerHeight,
       "width",
-      window.innerHeight,
+      window.innerWidth,
     );
 
     // This sleep seems required for screenshot to capture the right content.
