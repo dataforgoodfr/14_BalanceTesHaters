@@ -489,13 +489,14 @@ export class YoutubePostNativeScrapper {
       )
       .filter((e) => this.scrapingSupport.isVisible(e));
     this.debug("Expanding ", repliesButton.length, " replies button...");
-    this.expandReplies(repliesButton);
+    await this.expandReplies(repliesButton);
 
     // expand more replies button
+    const clickedMoreRepliesButtons = new Set<HTMLElement>();
     for (;;) {
       await this.scrapingSupport.resumeHostPage();
 
-      const moreRepliesButtons = this.scrapingSupport
+      const selectedMoreRepliesButtons = this.scrapingSupport
         .selectAll(
           document,
           'button[aria-label="Afficher plus de réponses"],' +
@@ -504,45 +505,57 @@ export class YoutubePostNativeScrapper {
         )
         .filter((e) => this.scrapingSupport.isVisible(e));
 
-      if (moreRepliesButtons.length === 0) {
+      const selectedButAlreadyClickedButSelected =
+        selectedMoreRepliesButtons.filter((b) =>
+          clickedMoreRepliesButtons.has(b),
+        );
+      if (selectedButAlreadyClickedButSelected.length > 0) {
+        this.warn(
+          "Found ",
+          selectedButAlreadyClickedButSelected.length,
+          " more replies button for which click didn't work!! Ignoring them to avoid infinite loop.",
+          selectedButAlreadyClickedButSelected,
+        );
+      }
+
+      const selectedAndNotYetClicked = selectedMoreRepliesButtons.filter(
+        (b) => !clickedMoreRepliesButtons.has(b),
+      );
+
+      if (selectedAndNotYetClicked.length === 0) {
+        this.debug("Found 0 more replies button - We're done loading replies.");
         return;
       } else {
         this.debug(
-          "clicking ",
-          moreRepliesButtons.length,
-          " more replies buttons",
+          "Found ",
+          selectedAndNotYetClicked.length,
+          " more replies buttons - Expanding them",
         );
-        this.expandReplies(moreRepliesButtons);
+        await this.expandReplies(selectedAndNotYetClicked);
+        selectedAndNotYetClicked.forEach((b) =>
+          clickedMoreRepliesButtons.add(b),
+        );
       }
     }
   }
 
   private async expandReplies(repliesButton: HTMLElement[]) {
+    this.debug("Loading ", repliesButton.length, " replies...");
     for (const button of repliesButton) {
       button.scrollIntoView();
       button.click();
     }
-    this.debug("Waiting for replies to load...");
-    await this.scrapingSupport.sleep(500);
-    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
-      document,
-      "#ghost-comment-section",
-      {
-        onRemainingElements: async (elements) => {
-          for (const el of elements) {
-            el.scrollIntoView();
-            await this.scrapingSupport.resumeHostPage();
-          }
-        },
-      },
-    );
+    // Give 5s per comment section to load
+    const timeout = repliesButton.length * 5000;
+    await this.waitForCommentGhostSectionsToDisappear(timeout);
+    this.debug("All ", repliesButton.length, "replies loaded");
   }
 
   private async expandLongComments() {
     const readMoreButton = this.scrapingSupport
       .selectAll(document, "#more", HTMLElement)
       .filter((e) => this.scrapingSupport.isVisible(e));
-    this.debug("Expanding ", readMoreButton.length, " read more button...");
+    this.debug("Expanding ", readMoreButton.length, " read more buttons...");
     for (const b of readMoreButton) {
       b.scrollIntoView();
       b.click();
@@ -666,6 +679,24 @@ export class YoutubePostNativeScrapper {
 
   private coverImageUrl(postId: string): string {
     return `https://i.ytimg.com/vi/${postId}/hq720.jpg`;
+  }
+
+  private async waitForCommentGhostSectionsToDisappear(timeout?: number) {
+    await this.scrapingSupport.sleep(300);
+    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+      document,
+      "#ghost-comment-section",
+      {
+        timeout: timeout,
+        onRemainingElements: async (elements) => {
+          this.debug(elements.length, " remaining ghost sections");
+          for (const el of elements) {
+            el.scrollIntoView();
+            await this.scrapingSupport.resumeHostPage();
+          }
+        },
+      },
+    );
   }
 }
 
