@@ -12,7 +12,8 @@ class NocoDBService:
     def create_record(self, table_id: str, data: dict[str, Any]) -> dict[str, Any]:
         url = f"{self.nocodb_url}/api/v3/data/{self.base_id}/{table_id}/records"
         headers = {"accept": "application/json", "xc-token": self.token}
-        response = requests.post(url, headers=headers, json=data)
+        payload = {"fields": data}
+        response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
 

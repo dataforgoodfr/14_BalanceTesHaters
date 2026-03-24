@@ -22,4 +22,5 @@ dependencies = [
     "uuid7>=0.1.0",
     "scikit-learn>=1.8.0",
     "polars>=1.39.0",
+    "pandas>=3.0.1",
 ]
