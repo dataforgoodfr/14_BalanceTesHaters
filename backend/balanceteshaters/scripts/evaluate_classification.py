@@ -105,6 +105,10 @@ if __name__ == "__main__":
         default="m0ww7qnx69u9r1a",
         help="NocoDB table ID for evaluations",
     )
+    parser.add_argument("--prompt", type=str, help="Prompt text used for predictions")
+    parser.add_argument(
+        "--prompt-file", type=Path, help="Path to prompt file used for predictions"
+    )
 
     args = parser.parse_args()
 
@@ -112,6 +116,14 @@ if __name__ == "__main__":
     model_name = args.model_name
     table_id = args.table_id
     table_name = args.table_name
+    prompt_text = args.prompt
+
+    if args.prompt_file and args.prompt_file.exists():
+        try:
+            prompt_text = args.prompt_file.read_text(encoding="utf-8").strip()
+            logging.info(f"Read prompt from {args.prompt_file}")
+        except Exception as e:
+            logging.error(f"Failed to read prompt file: {e}")
 
     # Inferred values from filename if missing
     # Pattern: predictions_{table_id}_{model_name}.csv
@@ -177,6 +189,7 @@ if __name__ == "__main__":
                 "total_samples": total,
                 "positive_samples": pos,
                 "negative_samples": neg,
+                "prompt": prompt_text,
             }
 
             nocodb.create_record(args.eval_table_id, data)
