@@ -1,0 +1,6 @@
+from enum import Enum
+
+
+class BinaryLabel(Enum):
+    HARCELEMENT = "HARCELEMENT"
+    ABSENCE_DE_CYBERHARCELEMENT = "ABSENCE_DE_CYBERHARCELEMENT"

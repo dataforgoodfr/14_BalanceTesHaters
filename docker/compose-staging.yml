@@ -1,8 +1,8 @@
+name: balanceteshaters
+
 services:
   db:
     image: postgres:latest
-    ports:
-      - 5432
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -13,18 +13,35 @@ services:
       test: 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
       timeout: 2s
   api:
-    build: 
+    build:
       context: ..
       dockerfile: docker/backend/Dockerfile
+    networks:
+      - default
+      - d4g-internal
     environment:
       - BTH_ENGINE_ECHO=${BTH_ENGINE_ECHO}
       - BTH_LOGGING_CONFIGURATION_FILE=${BTH_LOGGING_CONFIGURATION_FILE}
       - BTH_PG_DSN=${BTH_PG_DSN}
+      - BTH_API_TOKEN=${BTH_API_TOKEN}
+      - BTH_SLM_MODEL_PATH=${BTH_SLM_MODEL_PATH:-/models/Qwen3-1.7B-Q4_K_M.gguf}
+      - BTH_SLM_N_THREADS=${BTH_SLM_N_THREADS:-4}
+      - BTH_SLM_N_CTX=${BTH_SLM_N_CTX:-2048}
+      - BTH_SLM_MAX_RAM_MB=${BTH_SLM_MAX_RAM_MB:-2048}
+      - BTH_SLM_MAX_BATCH_SIZE=${BTH_SLM_MAX_BATCH_SIZE:-16}
+      - BTH_SLM_BATCH_TIMEOUT_S=${BTH_SLM_BATCH_TIMEOUT_S:-0.5}
     ports:
-      - "8000:8000"
+      - "${BTH_API_PORT:-8001}:8000"
+    volumes:
+      - ./models:/models:ro
     depends_on:
       db:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "${BTH_CPU_LIMIT:-4.0}"
+          memory: "${BTH_MEMORY_LIMIT:-3G}"
     labels:
       - traefik.enable=true
       - traefik.http.routers.balanceteshaters-app.rule=Host(`balanceteshaters-app.services.d4g.fr`)
@@ -32,3 +49,7 @@ services:
       - traefik.http.routers.balanceteshaters-app.tls=true
       - traefik.docker.network=d4g-internal
       - traefik.http.services.balanceteshaters-app.loadbalancer.server.port=8000
+
+networks:
+  d4g-internal:
+    external: true

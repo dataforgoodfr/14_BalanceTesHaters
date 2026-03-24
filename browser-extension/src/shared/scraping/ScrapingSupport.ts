@@ -2,6 +2,16 @@ import { sleep } from "../utils/sleep";
 
 type Class<T> = new () => T;
 
+type WaitForSelectorResult<T> =
+  | {
+      status: "failure";
+      message: string;
+    }
+  | {
+      status: "success";
+      element: T;
+    };
+
 export class ScrapingSupport {
   constructor(private abortSignal: AbortSignal) {}
 
@@ -35,6 +45,36 @@ export class ScrapingSupport {
   }
 
   /**
+   * Wait for selector and throws if timeout is reached.
+   * Checks abortSignal.throwIfAborted
+   * @param parent
+   * @param selector
+   * @param targetClass
+   * @param options
+   * @returns
+   */
+  async waitForSelectorOrThrow<T extends Element>(
+    parent: ParentNode,
+    selector: string,
+    targetClass: Class<T>,
+    options?: {
+      predicate?: (e: T) => boolean;
+      timeout?: number;
+    },
+  ): Promise<T> {
+    const result = await this.waitForSelector(
+      parent,
+      selector,
+      targetClass,
+      options,
+    );
+    if (result.status === "failure") {
+      throw new Error(result.message);
+    }
+    return result.element;
+  }
+
+  /**
    * Wait for selector.
    * Checks abortSignal.throwIfAborted
    * @param parent
@@ -51,24 +91,74 @@ export class ScrapingSupport {
       predicate?: (e: T) => boolean;
       timeout?: number;
     },
-  ): Promise<T> {
+  ): Promise<WaitForSelectorResult<T>> {
     const timeout = options?.timeout || 30000;
 
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const element = this.select(parent, selector, targetClass);
       if (element && (!options?.predicate || options?.predicate(element))) {
-        return element;
+        return {
+          status: "success",
+          element: element,
+        };
       }
       await this.sleep(100);
     }
-    throw new Error(
-      "Failed to select element matching selector " +
+    return {
+      status: "failure",
+      message:
+        "Failed to select element matching selector " +
         selector +
         " and predicate " +
         options?.predicate +
         " before timeout",
-    );
+    };
+  }
+
+  async waitUntilNoVisibleElementMatches(
+    parent: ParentNode,
+    selector: string,
+    options?: {
+      extraPredicate?: (e: HTMLElement) => boolean;
+      /**
+       * Callback function called after each wait increments.
+       */
+      onRemainingElements: (remainingElements: HTMLElement[]) => Promise<void>;
+      timeout?: number;
+    },
+  ): Promise<void> {
+    const timeout = options?.timeout || 30000;
+
+    const start = Date.now();
+    for (;;) {
+      let visibleElements = this.selectAll(
+        parent,
+        selector,
+        HTMLElement,
+      ).filter((e) => this.isVisible(e));
+      visibleElements = options?.extraPredicate
+        ? visibleElements.filter(options?.extraPredicate)
+        : visibleElements;
+      if (visibleElements.length === 0) {
+        return;
+      }
+      if (options?.onRemainingElements) {
+        await options?.onRemainingElements(visibleElements);
+      }
+      if (Date.now() - start > timeout) {
+        throw new Error(
+          "Still " +
+            visibleElements.length +
+            " elements selector " +
+            selector +
+            " and predicate " +
+            options?.extraPredicate +
+            " after timeout",
+        );
+      }
+      await this.sleep(200);
+    }
   }
 
   selectOrThrow<T extends Element>(
