@@ -143,19 +143,16 @@ export class ScrapingSupport {
       if (visibleElements.length === 0) {
         return;
       }
-      if (options?.onRemainingElements) {
-        await options?.onRemainingElements(visibleElements);
-      }
+
       if (Date.now() - start > timeout) {
         throw new Error(
-          "Still " +
-            visibleElements.length +
-            " elements selector " +
-            selector +
-            " and predicate " +
-            options?.extraPredicate +
-            " after timeout",
+          `Still ${visibleElements.length} elements matching selection at timeout.` +
+            ` Selector:${selector}, Predicate ${options?.extraPredicate}, Timeout :(${timeout}ms)`,
         );
+      }
+
+      if (options?.onRemainingElements) {
+        await options?.onRemainingElements(visibleElements);
       }
       await this.sleep(200);
     }
