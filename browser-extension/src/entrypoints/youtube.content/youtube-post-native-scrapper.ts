@@ -428,10 +428,20 @@ export class YoutubePostNativeScrapper {
       "#comments #sort-menu",
       HTMLElement,
     );
+    sortMenu.scrollIntoView();
+    await this.scrapingSupport.resumeHostPage();
+
+    // Wait for loading using previous sort method to finish
+    // Track spinner disappearing
+    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+      document,
+      "#comments #spinnerContainer.active",
+    );
+
+    // Do change the sort to by newest
     this.scrapingSupport
       .selectOrThrow(sortMenu, "#trigger", HTMLElement)
       .click();
-
     (
       await this.scrapingSupport.waitForSelectorOrThrow(
         sortMenu,
@@ -439,6 +449,12 @@ export class YoutubePostNativeScrapper {
         HTMLElement,
       )
     ).click();
+    await this.scrapingSupport.resumeHostPage();
+    // Wait for initial comments loading using new sort method
+    await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+      document,
+      "#comments #spinnerContainer.active",
+    );
   }
 
   /**
