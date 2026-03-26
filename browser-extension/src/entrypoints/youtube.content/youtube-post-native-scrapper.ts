@@ -1,4 +1,8 @@
-import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
+import {
+  PostSnapshot,
+  CommentSnapshot,
+  countAllComments,
+} from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { encodePng } from "image-js";
@@ -80,8 +84,6 @@ export class YoutubePostNativeScrapper {
       // Scraping comments accounts for 99% of progress
       progressManager.subTaskProgressManager({ from: 1, to: 100 }),
     );
-    this.debug(`${comments.length} comments`);
-
     return {
       id: crypto.randomUUID(),
       postId: pageInfo.postId,
@@ -197,6 +199,9 @@ export class YoutubePostNativeScrapper {
     this.debug("Sorting comments by newest...");
     await this.sortCommentsByNewest();
 
+    const expectedCommentCount = await this.extractExpectedCommentCount();
+    this.debug("Expecting ", expectedCommentCount, " comments");
+
     await this.loadAllComments(
       progressManager.subTaskProgressManager({ from: 0, to: 50 }),
     );
@@ -206,7 +211,32 @@ export class YoutubePostNativeScrapper {
       progressManager.subTaskProgressManager({ from: 50, to: 100 }),
     );
 
+    const scrapedCommentCount = countAllComments(comments);
+    if (expectedCommentCount !== scrapedCommentCount) {
+      this.warn(
+        "Total comments count mismatch: expected",
+        expectedCommentCount,
+        " scraped:",
+        scrapedCommentCount,
+      );
+    }
+
     return comments;
+  }
+
+  private async extractExpectedCommentCount() {
+    return Number.parseInt(
+      (
+        await this.scrapingSupport.waitForSelectorOrThrow(
+          document,
+          "#comments #count span:nth-of-type(1)",
+          HTMLElement,
+        )
+      ).innerText
+        // Remove thousand separators
+        .replaceAll("\u202F", "")
+        .replaceAll(",", ""),
+    );
   }
 
   private async scrapLoadedComments(
