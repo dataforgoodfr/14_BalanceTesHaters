@@ -88,3 +88,16 @@ export function flattenCommentsSnapshotReplies(
     ...flattenCommentsSnapshotReplies(c.replies),
   ]);
 }
+
+/**
+ * Count all comments including replies
+ * @param comments
+ * @returns
+ */
+export function countAllComments(comments: CommentSnapshot[]): number {
+  let total = comments.length;
+  for (const c of comments) {
+    total += countAllComments(c.replies);
+  }
+  return total;
+}

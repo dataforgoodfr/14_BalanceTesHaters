@@ -21,6 +21,7 @@ import {
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { RefreshCwIcon, TrashIcon } from "lucide-react";
+import { countAllComments } from "@/shared/model/PostSnapshot";
 
 function PostSnapshotListPage() {
   const queryClient = useQueryClient();
@@ -94,7 +95,7 @@ function PostSnapshotListPage() {
                 <TableHead>Auteur</TableHead>
                 <TableHead>Publication</TableHead>
                 <TableHead>Aperçu contenu/description</TableHead>
-                <TableHead>Nb commentaires</TableHead>
+                <TableHead>Nb commentaires (racines/tous)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,7 +148,9 @@ function PostSnapshotListPage() {
                   </TableCell>
                   <TableCell> {ellipsis(post.textContent || "")}</TableCell>
 
-                  <TableCell> {post.comments.length}</TableCell>
+                  <TableCell>
+                    {post.comments.length}/{countAllComments(post.comments)}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
