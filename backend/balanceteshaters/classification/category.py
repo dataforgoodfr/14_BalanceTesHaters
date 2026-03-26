@@ -11,6 +11,9 @@ class AnnotatedCategory(Enum):
     DOXXING = "Doxxing"
     INCITATION_A_LA_HAINE = "Incitation à la haine"
 
+
 class BinaryLabel(Enum):
-    HARCELEMENT = "HARCELEMENT"
-    ABSENCE_DE_CYBERHARCELEMENT = "ABSENCE_DE_CYBERHARCELEMENT"
+    # TEMPORARY
+    # to make it work with front end
+    CYBERHARCELEMENT_DEFINITION_GENERALE = "Cyberharcèlement (autre)"
+    ABSENCE_DE_CYBERHARCELEMENT = "Absence de cyberharcèlement"
