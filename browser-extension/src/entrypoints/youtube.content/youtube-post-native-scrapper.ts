@@ -282,6 +282,7 @@ export class YoutubePostNativeScrapper {
         const comments = this.scrapCommentThreads(
           threadContainers,
           fullPageScreenshot,
+          new Set<string>(),
         );
         progressManager.setProgress(100);
         this.debug("Comments metada:", comments);
@@ -309,11 +310,16 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
     fullPageScreenshot: FullPageScreenshotResult,
+    collectedPostIds: Set<string>,
   ): Promise<CommentSnapshot[]> {
     return (
       await Promise.all(
         threadContainers.map((threadContainer) =>
-          this.scrapCommentThread(threadContainer, fullPageScreenshot),
+          this.scrapCommentThread(
+            threadContainer,
+            fullPageScreenshot,
+            collectedPostIds,
+          ),
         ),
       )
     )
@@ -331,6 +337,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentThread(
     commentThreadContainer: HTMLElement,
     fullPageScreenshot: FullPageScreenshotResult,
+    collectedPostIds: Set<string>,
   ): Promise<CommentThread> {
     const commentContainer = this.scrapingSupport.selectOrThrow(
       commentThreadContainer,
@@ -353,6 +360,24 @@ export class YoutubePostNativeScrapper {
       fullPageScreenshot,
     );
 
+    // Youtube sometimes has duplicate
+    if (!comment.commentId) {
+      throw new Error("Unexpected undefined commentId");
+    }
+    if (collectedPostIds.has(comment.commentId)) {
+      this.warn(
+        "Ignoring duplicate comment from ",
+        comment.author.name,
+        " with id ",
+        comment.commentId,
+      );
+      return {
+        scrapingStatus: "failure",
+        message: "Duplicate comment " + comment.id,
+      };
+    }
+    collectedPostIds.add(comment.commentId);
+
     const repliesContainer = this.scrapingSupport.select(
       commentThreadContainer,
       "#replies",
@@ -363,6 +388,7 @@ export class YoutubePostNativeScrapper {
       comment.replies = await this.scrapCommentReplies(
         repliesContainer,
         fullPageScreenshot,
+        collectedPostIds,
       );
     }
 
@@ -375,6 +401,7 @@ export class YoutubePostNativeScrapper {
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
     fullPageScreenshot: FullPageScreenshotResult,
+    collectedPostIds: Set<string>,
   ): Promise<CommentSnapshot[]> {
     const expandedThreadsContainer = this.scrapingSupport.select(
       repliesContainer,
@@ -396,7 +423,11 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     );
 
-    return this.scrapCommentThreads(repliesThreads, fullPageScreenshot);
+    return this.scrapCommentThreads(
+      repliesThreads,
+      fullPageScreenshot,
+      collectedPostIds,
+    );
   }
 
   private async capturePageScreenshot(
