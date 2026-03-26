@@ -8,7 +8,7 @@ import {
 } from "./messages";
 import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { countAllComments } from "@/shared/model/PostSnapshot";
 import {
   isScrapingStartable,
   scrapingFailed,
@@ -112,10 +112,11 @@ export class ScrapingContentScript {
       await insertPostSnapshot(postSnapshot);
       const end = Date.now();
       const durationMs = end - start;
+      const topLevelCommentCounts = postSnapshot.comments.length;
       const allCommentsCount = countAllComments(postSnapshot.comments);
       const durationSec = Math.round(durationMs / 1000);
       console.info(
-        `[SCS] - Scraping took: ${durationSec} seconds for ${allCommentsCount} comments`,
+        `[SCS] - Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (${topLevelCommentCounts} top level)`,
       );
       this.scrapingStatus = {
         type: "succeeded",
@@ -160,12 +161,4 @@ export class ScrapingContentScript {
   public registerListener() {
     browser.runtime.onMessage.addListener(this.handleMessage.bind(this));
   }
-}
-
-function countAllComments(comments: CommentSnapshot[]): number {
-  let total = comments.length;
-  for (const c of comments) {
-    total += countAllComments(c.replies);
-  }
-  return total;
 }
