@@ -29,7 +29,7 @@ export type ClassificationResponse = z.infer<typeof ClassificationResponse>;
 export async function postClassificationRequest(
   classificationRequest: ClassificationRequest,
 ): Promise<ClassificationResponse> {
-  const response = await fetch(apiBaseUrl + "/classification", {
+  const response = await fetch(apiBaseUrl + "/classification/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
