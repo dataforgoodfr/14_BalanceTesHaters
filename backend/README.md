@@ -78,3 +78,12 @@ Il faut définir trois variables d'environnements (contactez nous sur Mattermost
 ```
 NOCODB_BASE_URL="<...>" NOCODB_ANNOTATION_TABLE_ID="<...>" NOCODB_TOKEN="<...>" uv run python compute_annotation_stats.py
 ```
+
+### Évaluation des modèles de classification
+
+Pour évaluer la performance d'un modèle LLM localement et enregistrer les résultats dans NocoDB :
+
+1.  Générer les prédictions : `uv run python balanceteshaters/scripts/experimentation_classification.py --model "nom_du_modèle"`
+2.  Calculer les métriques : `uv run python balanceteshaters/scripts/evaluate_classification.py <chemin_vers_csv>`
+
+Pour plus de détails, consultez la [procédure d'évaluation](../docs/backend/evaluation.md).
