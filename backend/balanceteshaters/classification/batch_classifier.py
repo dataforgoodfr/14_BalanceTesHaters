@@ -69,11 +69,15 @@ class BatchClassifier:
                     break
 
             logger.debug("Processing batch of %d items", len(batch))
-            for text, future in batch:
-                try:
-                    result = await loop.run_in_executor(
-                        None, self.classifier.classify, text
-                    )
+            texts = [text for text, _ in batch]
+            futures = [future for _, future in batch]
+            try:
+                results = await loop.run_in_executor(
+                    None, self.classifier.classify_batch, texts
+                )
+                for future, result in zip(futures, results):
                     future.set_result(result)
-                except Exception as exc:
-                    future.set_exception(exc)
+            except Exception as exc:
+                for future in futures:
+                    if not future.done():
+                        future.set_exception(exc)
