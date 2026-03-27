@@ -33,7 +33,7 @@ export async function postClassificationRequest(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": import.meta.env.VITE_BACKEND_API_TOKEN
+      "x-token": import.meta.env.VITE_BACKEND_API_TOKEN,
     },
     body: JSON.stringify(classificationRequest),
   });
