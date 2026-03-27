@@ -36,8 +36,7 @@ Voir dans [](../backend/README.md) pour comment démarrer le backend.
 # Configurer l'extension pour pointer vers le backend en staging
 
 Le serveur backend en staging à besoin d'un token pour contacter l'api.
-Copier `.env.example` vers `.env` et décommenter la ligne `VITE_BACKEND_API_TOKEN=...` puis remplacer par le token dont la valeur retrouvable sur Mattermost. 
-
+Copier `.env.example` vers `.env` et décommenter la ligne `VITE_BACKEND_API_TOKEN=...` puis remplacer par le token dont la valeur retrouvable sur Mattermost.
 
 # Ajouter des composants de la library UI shadcn
 
