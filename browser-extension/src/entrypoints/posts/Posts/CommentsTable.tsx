@@ -92,7 +92,8 @@ export default function CommentsTable({
   };
 
   const updateSelectedCommentList = (commentIdList: Set<string>) => {
-    form.state.values.commentIdList = [...commentIdList];
+    // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
+    form.setFieldValue("commentIdList", [...commentIdList])
     setSelectedComments(commentIdList);
   };
 
@@ -308,38 +309,60 @@ export default function CommentsTable({
           </Button>{" "}
         </div>
       </div>
-      <Table className="w-full table-fixed">
-        <TableHeader className="bg-gray-200">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  style={{ width: `${header.column.columnDef.size}%` }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <form.Field
+        name="commentIdList"
+        validators={{
+          onChange: ({ value }) =>
+            value.length < 1
+              ? "Sélectionner au moins un commentaire"
+              : undefined,
+        }}
+      >
+        {(field) => (
+          <>
+            {field.state.meta.errors.length > 0 && (
+              <div className="text-destructive text-sm mb-2">
+                {field.state.meta.errors.join(", ")}
+              </div>
+            )}
+            <Table className="w-full table-fixed">
+              <TableHeader className="bg-gray-200">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{ width: `${header.column.columnDef.size}%` }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </form.Field>
       <div className="flex items-center justify-between gap-4 p-6 mt-3 mb-6">
         <Field orientation="horizontal" className="w-fit">
           <FieldLabel htmlFor="select-rows-per-page">
