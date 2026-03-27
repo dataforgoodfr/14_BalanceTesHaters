@@ -131,10 +131,10 @@ function PostDetailPage() {
                 Sélectionner les commentaires pour créer un rapport
               </span>
               <CommentsTable
-                comments={hatefulComments}
-                defaultCommentIdList={[]}
+                commentList={hatefulComments}
+                selectedCommentIdList={[]}
                 formId=""
-                onSubmit={() => console.log("submitted")}
+                selectedCommentList={() => console.log("submitted")}
               />
             </div>
           </div>

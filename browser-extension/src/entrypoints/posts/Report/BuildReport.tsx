@@ -7,11 +7,13 @@ import { Check, MoveLeft, MoveRight } from "lucide-react";
 import Step1Plateforme from "./Step1Plateforme";
 import Step2Posts from "./Step2Posts";
 import Step3Comments from "./Step3Comments";
+import { PostComment } from "@/shared/model/post/Post";
+import { PostCommentWithId } from "../Posts/CommentsTable";
 
 export type ReportQueryData = {
   socialNetworkList: string[];
   postIdList: string[];
-  commentIdList: string[];
+  postCommentList: PostCommentWithId[];
 };
 
 export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
@@ -39,10 +41,10 @@ export function BuildReport() {
     React.useState<ReportQueryData>();
 
   const setSocialNetworkList = (socialNetworkList: string[]) => {
-    setReportQueryData((prev) => ({
+    setReportQueryData(() => ({
       socialNetworkList,
-      postIdList: prev?.postIdList ?? [],
-      commentIdList: prev?.commentIdList ?? [],
+      postIdList: [],
+      postCommentList: [],
     }));
   };
 
@@ -50,15 +52,15 @@ export function BuildReport() {
     setReportQueryData((prev) => ({
       socialNetworkList: prev?.socialNetworkList ?? [],
       postIdList,
-      commentIdList: prev?.commentIdList ?? [],
+      postCommentList: [],
     }));
   };
 
-  const setCommentIdList = (commentIdList: string[]) => {
+  const setCommentList = (postCommentList: PostComment[]) => {
     setReportQueryData((prev) => ({
       socialNetworkList: prev?.socialNetworkList ?? [],
       postIdList: prev?.postIdList ?? [],
-      commentIdList,
+      postCommentList: postCommentList,
     }));
   };
 
@@ -79,7 +81,8 @@ export function BuildReport() {
           <StepperBanner />
           <StepContent
             setSocialNetworkList={setSocialNetworkList}
-            setPostList={setPostIdList}
+            setPostIdList={setPostIdList}
+            setCommentList={setCommentList}
             reportQueryData={reportQueryData}
           />
           <StepperActions />
@@ -240,12 +243,13 @@ const StepperActions = () => {
 
 const StepContent = ({
   setSocialNetworkList,
-  setPostList: setPostIdList,
-  setCommentIdList: setCommentIdList,
+  setPostIdList,
+  setCommentList,
   reportQueryData,
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
-  setPostList: (postList: string[]) => void;
+  setPostIdList: (postList: string[]) => void;
+  setCommentList: (commentList: PostComment[]) => void;
   reportQueryData: ReportQueryData | undefined;
 }) => {
   const stepper = useStepper();
@@ -266,7 +270,7 @@ const StepContent = ({
       {stepper.flow.when("step-3", () => (
         <Step3Comments
           reportQueryData={reportQueryData}
-          setCommentIdList={setCommentIdList}
+          setCommentList={setCommentList}
         />
       ))}
       {stepper.flow.when("step-4", () => (

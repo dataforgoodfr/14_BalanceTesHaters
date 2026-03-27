@@ -1,17 +1,16 @@
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { ReportQueryData, useStepper, getFormId } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
-import CommentsTable from "../Posts/CommentsTable";
+import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
-import React from "react";
 
 function Step3Comments({
   reportQueryData,
-  setCommentIdList,
+  setCommentList,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
-  setCommentIdList: (commentIdList: string[]) => void;
+  setCommentList: (commentIdList: PostCommentWithId[]) => void;
 }>) {
   const queryKey = ["posts", reportQueryData?.socialNetworkList];
 
@@ -20,13 +19,20 @@ function Step3Comments({
     queryFn: () => getPostsByPostIdList(reportQueryData?.postIdList ?? []),
   });
 
-  const allComments = (data || [])
+  // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
+  const allComments: PostCommentWithId[] = (data || [])
     .flatMap((p) => p.comments)
-    .filter((c) => isCommentHateful(c));
+    .filter((c) => isCommentHateful(c))
+    .map((comment, i) => {
+      return { ...comment, id: i.toString() };
+    });
+
   const stepper = useStepper();
 
   const handleSubmit = (commentIdList: string[]) => {
-    setCommentIdList(commentIdList);
+    setCommentList(
+      allComments.filter((comment) => commentIdList.includes(comment.id)),
+    );
     stepper.navigation.next();
   };
 
@@ -41,8 +47,8 @@ function Step3Comments({
       )}
       {!isLoading && allComments.length > 0 && (
         <CommentsTable
-          comments={allComments}
-          defaultCommentIdList={reportQueryData?.commentIdList ?? []}
+          commentList={allComments}
+          selectedCommentIdList={reportQueryData?.postCommentList.map(comment => comment.id) ?? []}
           onSubmit={handleSubmit}
           formId={getFormId(stepper.state.current.data.id)}
         />
