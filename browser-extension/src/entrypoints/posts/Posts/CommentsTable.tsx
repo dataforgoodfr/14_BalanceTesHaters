@@ -321,7 +321,7 @@ export default function CommentsTable({
         {(field) => (
           <>
             {field.state.meta.errors.length > 0 && (
-              <div className="text-destructive text-sm mb-2">
+              <div className="text-destructive text-center text-sm mb-2">
                 {field.state.meta.errors.join(", ")}
               </div>
             )}
