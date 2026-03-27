@@ -132,7 +132,7 @@ function PostDetailPage() {
               </span>
               <CommentsTable
                 commentList={hatefulComments}
-                selectedCommentIdList={[]}
+                defaultSelectedCommentIdList={[]}
                 formId=""
                 selectedCommentList={() => console.log("submitted")}
               />

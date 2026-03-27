@@ -48,7 +48,7 @@ function Step3Comments({
       {!isLoading && allComments.length > 0 && (
         <CommentsTable
           commentList={allComments}
-          selectedCommentIdList={reportQueryData?.postCommentList.map(comment => comment.id) ?? []}
+          defaultSelectedCommentIdList={reportQueryData?.postCommentList.map(comment => comment.id) ?? []}
           onSubmit={handleSubmit}
           formId={getFormId(stepper.state.current.data.id)}
         />

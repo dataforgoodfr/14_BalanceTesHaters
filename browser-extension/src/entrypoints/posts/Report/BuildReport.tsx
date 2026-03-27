@@ -7,13 +7,21 @@ import { Check, MoveLeft, MoveRight } from "lucide-react";
 import Step1Plateforme from "./Step1Plateforme";
 import Step2Posts from "./Step2Posts";
 import Step3Comments from "./Step3Comments";
-import { PostComment } from "@/shared/model/post/Post";
 import { PostCommentWithId } from "../Posts/CommentsTable";
+import Step4Organization from "./Step4Organization";
+
+export enum ReportOrganizationType {
+  BY_PUBLICATION = "BY_PUBLICATION",
+  BY_AUTHOR = "BY_AUTHOR",
+}
+
+const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;
 
 export type ReportQueryData = {
   socialNetworkList: string[];
   postIdList: string[];
   postCommentList: PostCommentWithId[];
+  reportOrganizationType: ReportOrganizationType;
 };
 
 export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
@@ -45,6 +53,7 @@ export function BuildReport() {
       socialNetworkList,
       postIdList: [],
       postCommentList: [],
+      reportOrganizationType: DEFAULT_REPORT_ORGANIZATION_TYPE,
     }));
   };
 
@@ -53,14 +62,27 @@ export function BuildReport() {
       socialNetworkList: prev?.socialNetworkList ?? [],
       postIdList,
       postCommentList: [],
+      reportOrganizationType: DEFAULT_REPORT_ORGANIZATION_TYPE,
     }));
   };
 
-  const setCommentList = (postCommentList: PostComment[]) => {
+  const setCommentList = (postCommentList: PostCommentWithId[]) => {
     setReportQueryData((prev) => ({
       socialNetworkList: prev?.socialNetworkList ?? [],
       postIdList: prev?.postIdList ?? [],
       postCommentList: postCommentList,
+      reportOrganizationType: DEFAULT_REPORT_ORGANIZATION_TYPE,
+    }));
+  };
+
+  const setReportOrganizationType = (
+    reportOrganizationType: ReportOrganizationType,
+  ) => {
+    setReportQueryData((prev) => ({
+      socialNetworkList: prev?.socialNetworkList ?? [],
+      postIdList: prev?.postIdList ?? [],
+      postCommentList: prev?.postCommentList ?? [],
+      reportOrganizationType: reportOrganizationType,
     }));
   };
 
@@ -83,6 +105,7 @@ export function BuildReport() {
             setSocialNetworkList={setSocialNetworkList}
             setPostIdList={setPostIdList}
             setCommentList={setCommentList}
+            setReportOrganizationType={setReportOrganizationType}
             reportQueryData={reportQueryData}
           />
           <StepperActions />
@@ -210,20 +233,19 @@ const StepperActions = () => {
   return (
     <div className="sticky bottom-0 border-t pt-4">
       <Stepper.Actions className="flex justify-center gap-6">
-        {!stepper.state.isLast && (
-          <Stepper.Prev
-            render={(domProps) => (
-              <Button type="button" className="w-1/6" {...domProps}>
-                <MoveLeft className="h-4 w-4 mr-1" /> Précédent
-              </Button>
-            )}
-          />
-        )}
+        <Stepper.Prev
+          render={(domProps) => (
+            <Button type="button" className="w-1/6" {...domProps}>
+              <MoveLeft className="h-4 w-4 mr-1" /> Précédent
+            </Button>
+          )}
+        />
+
         {stepper.state.isLast ? (
           <Button
-            type="button"
+            type="submit"
+            form={getFormId(stepper.state.current.data.id)}
             className="w-1/6"
-            onClick={() => stepper.navigation.reset()}
           >
             Générer le rapport
           </Button>
@@ -245,11 +267,15 @@ const StepContent = ({
   setSocialNetworkList,
   setPostIdList,
   setCommentList,
+  setReportOrganizationType,
   reportQueryData,
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
   setPostIdList: (postList: string[]) => void;
-  setCommentList: (commentList: PostComment[]) => void;
+  setCommentList: (commentList: PostCommentWithId[]) => void;
+  setReportOrganizationType: (
+    reportOrgainzationType: ReportOrganizationType,
+  ) => void;
   reportQueryData: ReportQueryData | undefined;
 }) => {
   const stepper = useStepper();
@@ -274,7 +300,10 @@ const StepContent = ({
         />
       ))}
       {stepper.flow.when("step-4", () => (
-        <p></p>
+        <Step4Organization
+          reportQueryData={reportQueryData}
+          setReportOrganizationType={setReportOrganizationType}
+        />
       ))}
     </div>
   );

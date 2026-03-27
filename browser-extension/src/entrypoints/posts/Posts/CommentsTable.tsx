@@ -59,12 +59,12 @@ export type PostCommentWithId = PostComment & {
 
 export default function CommentsTable({
   commentList,
-  selectedCommentIdList,
+  defaultSelectedCommentIdList,
   onSubmit,
   formId,
 }: Readonly<{
   commentList: PostCommentWithId[];
-  selectedCommentIdList: string[];
+  defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
 }>) {
@@ -73,12 +73,12 @@ export default function CommentsTable({
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     new Set(),
   );
-  const [selectedComments, setSelectedComments] = React.useState<Set<string>>(
-    new Set(),
-  );
+  const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
+    Set<string>
+  >(new Set(defaultSelectedCommentIdList));
   const form = useForm({
     defaultValues: {
-      commentIdList: selectedCommentIdList,
+      commentIdList: defaultSelectedCommentIdList,
     },
     onSubmit: () => {
       onSubmit(form.state.values.commentIdList);
@@ -93,12 +93,12 @@ export default function CommentsTable({
 
   const updateSelectedCommentList = (commentIdList: Set<string>) => {
     // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
-    form.setFieldValue("commentIdList", [...commentIdList])
-    setSelectedComments(commentIdList);
+    form.setFieldValue("commentIdList", [...commentIdList]);
+    setSelectedCommentIdList(commentIdList);
   };
 
   const toggleCommentSelection = (id: string) => {
-    updateSelectedCommentList(AddOrRemoveValueToSet(selectedComments, id));
+    updateSelectedCommentList(AddOrRemoveValueToSet(selectedCommentIdList, id));
   };
 
   const filteredComments = React.useMemo(
@@ -130,14 +130,14 @@ export default function CommentsTable({
         header: () => (
           <Checkbox
             className="ms-3 me-5"
-            checked={selectedComments.size === filteredComments.length}
+            checked={selectedCommentIdList.size === filteredComments.length}
             onClick={() => setAllCommentsSelection()}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             onClick={() => toggleCommentSelection(row.id)}
-            checked={selectedComments.has(row.id)}
+            checked={selectedCommentIdList.has(row.id)}
             className="ms-3 me-5"
           />
         ),
@@ -237,7 +237,7 @@ export default function CommentsTable({
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
-    [visibleComments, filteredComments, selectedComments],
+    [visibleComments, filteredComments, selectedCommentIdList],
   );
 
   const table = useReactTable({
@@ -266,7 +266,7 @@ export default function CommentsTable({
   };
 
   const setAllCommentsSelection = () => {
-    if (selectedComments.size === filteredComments.length) {
+    if (selectedCommentIdList.size === filteredComments.length) {
       updateSelectedCommentList(new Set());
     } else {
       const allVisibleRowIds = new Set(
