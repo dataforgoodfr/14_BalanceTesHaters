@@ -37,6 +37,7 @@ export async function getClassificationResult(
     method: "GET",
     headers: {
       "Content-Type": "application/json",
+      "x-token": import.meta.env.VITE_BACKEND_API_TOKEN
     },
   });
 
