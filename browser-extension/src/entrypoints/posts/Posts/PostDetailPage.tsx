@@ -32,7 +32,12 @@ function PostDetailPage() {
   let numberOfHatefulAuthors = 0;
 
   const allComments = post?.comments || [];
-  const hatefulComments = allComments.filter((c) => isCommentHateful(c));
+  const hatefulComments = allComments
+    .filter((c) => isCommentHateful(c))
+    .map((comment, i) => {
+      return { ...comment, id: i.toString() };
+    });
+    
   if (allComments.length !== 0) {
     numberOfHatefulComments = hatefulComments.length;
     percentageOfHatefulComments = getPercentage(
