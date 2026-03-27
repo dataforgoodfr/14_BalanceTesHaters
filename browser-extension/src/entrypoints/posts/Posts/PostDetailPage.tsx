@@ -37,7 +37,7 @@ function PostDetailPage() {
     .map((comment, i) => {
       return { ...comment, id: i.toString() };
     });
-    
+
   if (allComments.length !== 0) {
     numberOfHatefulComments = hatefulComments.length;
     percentageOfHatefulComments = getPercentage(
@@ -139,7 +139,7 @@ function PostDetailPage() {
                 commentList={hatefulComments}
                 defaultSelectedCommentIdList={[]}
                 formId=""
-                selectedCommentList={() => console.log("submitted")}
+                onSubmit={() => console.log("submitted")}
               />
             </div>
           </div>
