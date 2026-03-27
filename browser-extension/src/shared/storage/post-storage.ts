@@ -24,9 +24,7 @@ export async function getPostsBySocialNetworkAndPeriod(
 export async function getPostsByPostIdList(
   postIdList: string[],
 ): Promise<Post[]> {
-  const snapshotsForFilter = await getPostSnapshotsByPostIdList(
-    postIdList,
-  );
+  const snapshotsForFilter = await getPostSnapshotsByPostIdList(postIdList);
   return buildPostsFromSnapshots(snapshotsForFilter);
 }
 
