@@ -268,13 +268,6 @@ export class YoutubePostNativeScrapper {
         );
       },
       retry: async () => {
-        // Wait for at least one to be present
-        this.scrapingSupport.waitForSelectorOrThrow(
-          commentsSectionHandle,
-          "#comment-container",
-          HTMLElement,
-        );
-
         this.info("Capturing full page screenshot");
         const fullPageScreenshot = await this.capturePageScreenshot(
           progressManager.subTaskProgressManager({ from: 0, to: 95 }),
@@ -448,48 +441,46 @@ export class YoutubePostNativeScrapper {
     ).click();
   }
 
+  /**
+   * Loads all top level comments of the post.
+   * To achieve this the method
+   * * scrolls into view the continuation element  to trigger infinite loading
+   * * Waits for the spinner to disappear indicating loading done
+   * * Repeats until no more comments are loaded for several seconds
+   * @returns
+   */
   private async loadAllTopLevelComments(): Promise<void> {
-    // In youtube a loader is already present at the end of the list of comment
-    // Comment actual loading is triggered when the loader is scrolled into view
-    // Spinner is disappearing briefly while new comments are rendered
-
-    let previousCommentsCount = undefined;
-    let previousSpinnersCount = undefined;
-    let lastChangeTime = Date.now();
+    let previousVisibleCommentsCount = 0;
+    let lastChange = Date.now();
     for (;;) {
-      const spinners = this.scrapingSupport
-        .selectAll(document, "#comments #spinner", HTMLElement)
-        .filter((e) => this.scrapingSupport.isVisible(e));
-      const comments = this.scrapingSupport
-        .selectAll(
-          document,
-          "#comments ytd-comment-thread-renderer",
-          HTMLElement,
-        )
-        .filter((e) => this.scrapingSupport.isVisible(e));
-      this.debug("comments:", comments.length, "spinners:", spinners.length);
-      if (spinners.length > 0) {
-        const lastSpinner = spinners[spinners.length - 1];
-        this.debug(
-          "Found spinners scroll to last of them to trigger comment loading",
-        );
-        lastSpinner.scrollIntoView();
-      } else if (Date.now() - lastChangeTime > 5000) {
-        this.debug(
-          "No more spinners found and no changes since more than 10s... consider all comments loaded.",
-        );
+      const continuationElement = this.scrapingSupport.selectOrThrow(
+        document,
+        "#comments #continuations",
+        HTMLElement,
+      );
+      continuationElement.scrollIntoView();
+      await this.scrapingSupport.resumeHostPage();
+      await this.scrapingSupport.waitUntilNoVisibleElementMatches(
+        document,
+        "#comments #spinnerContainer.active",
+      );
+      const visibleCommentsCount = this.scrapingSupport
+        .selectAll(document, "#comment-container", HTMLElement)
+        .filter((e) => this.scrapingSupport.isVisible(e)).length;
+      this.debug(
+        "loadAllTopLevelComments - ",
+        visibleCommentsCount,
+        " comments loaded",
+      );
+      const assumeDoneDelay = 5000;
+      if (visibleCommentsCount !== previousVisibleCommentsCount) {
+        previousVisibleCommentsCount = visibleCommentsCount;
+        lastChange = Date.now();
+      } else if (Date.now() - lastChange > assumeDoneDelay) {
+        // No new comments loaded in last few seconds
+        // Assume we are done
         return;
       }
-      if (
-        previousCommentsCount !== comments.length ||
-        previousSpinnersCount !== spinners.length
-      ) {
-        lastChangeTime = Date.now();
-        previousCommentsCount = comments.length;
-        previousSpinnersCount = spinners.length;
-      }
-      // Wait a bit to let page load stuff
-      await this.scrapingSupport.sleep(200);
     }
   }
 
