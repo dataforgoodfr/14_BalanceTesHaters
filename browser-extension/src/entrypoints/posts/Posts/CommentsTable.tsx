@@ -48,42 +48,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useForm } from "@tanstack/react-form";
+
+/**
+ * Merged view of Post Snapshot
+ */
+export type PostCommentWithId = PostComment & {
+  id: string;
+};
 
 export default function CommentsTable({
-  comments,
+  commentList,
+  defaultSelectedCommentIdList,
+  onSubmit,
+  formId,
 }: Readonly<{
-  comments: PostComment[];
+  commentList: PostCommentWithId[];
+  defaultSelectedCommentIdList: string[];
+  onSubmit: (commentIdList: string[]) => void;
+  formId: string;
 }>) {
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     new Set(),
   );
+  const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
+    Set<string>
+  >(new Set(defaultSelectedCommentIdList));
+  const form = useForm({
+    defaultValues: {
+      commentIdList: defaultSelectedCommentIdList,
+    },
+    onSubmit: () => {
+      onSubmit(form.state.values.commentIdList);
+    },
+  });
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
-  const toggleCommentVisibility = (rowId: string) => {
-    setVisibleComments((prev) => {
-      const next = new Set(prev);
-      if (next.has(rowId)) {
-        next.delete(rowId);
-      } else {
-        next.add(rowId);
-      }
-      return next;
-    });
+  const toggleCommentVisibility = (id: string) => {
+    setVisibleComments((prev) => addOrRemoveValueToSet(prev, id));
+  };
+
+  const updateSelectedCommentList = (commentIdList: Set<string>) => {
+    // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
+    form.setFieldValue("commentIdList", [...commentIdList]);
+    setSelectedCommentIdList(commentIdList);
+  };
+
+  const toggleCommentSelection = (id: string) => {
+    updateSelectedCommentList(addOrRemoveValueToSet(selectedCommentIdList, id));
   };
 
   const filteredComments = React.useMemo(
     () =>
-      comments.filter(
+      commentList.filter(
         (comment) =>
           comment.textContent
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
           comment.author.name.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
-    [comments, searchTerm],
+    [commentList, searchTerm],
   );
 
   // On utilise une valeur intermédiaire pour le champ de recherche afin de ne pas lancer le filtrage
@@ -95,17 +122,30 @@ export default function CommentsTable({
   }, [inputValue]);
 
   // La taille de chaque colonne est convertie ensuite en pourcentage. Attention, la somme doit faire 100%.
-  const columns = useMemo<ColumnDef<PostComment>[]>(
+  const columns = useMemo<ColumnDef<PostCommentWithId>[]>(
     () => [
       {
         id: "selection",
         size: 5,
-        cell: () => <Checkbox className="ms-3 me-5" />,
+        header: () => (
+          <Checkbox
+            className="ms-3 me-5"
+            checked={selectedCommentIdList.size === filteredComments.length}
+            onClick={() => setAllCommentsSelection()}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            onClick={() => toggleCommentSelection(row.id)}
+            checked={selectedCommentIdList.has(row.id)}
+            className="ms-3 me-5"
+          />
+        ),
       },
       {
         accessorKey: "author.name",
         header: "Auteur",
-        size: 15,
+        size: 21,
         cell: ({ row }) => (
           <div className="flex gap-2">
             <UserRound className="bg-gray-200 rounded-full" />
@@ -116,7 +156,7 @@ export default function CommentsTable({
       {
         accessorKey: "textContent",
         header: "Commentaire",
-        size: 35,
+        size: 42,
         cell: ({ row }) => (
           <div
             className={`${visibleComments.has(row.id) ? "text-wrap" : "blur-sm overflow-hidden"}`}
@@ -149,42 +189,43 @@ export default function CommentsTable({
           </Button>
         ),
       },
-      {
-        accessorKey: "classification",
-        header: "Catégorie",
-        size: 13,
-        cell: ({ row }) => (
-          <div className="">
-            {[...new Set(row.original.classification ?? [])].map(
-              (category: string) => {
-                return (
-                  <div
-                    key={category}
-                    className="bg-gray-200 rounded-full px-2 py-1 my-2 overflow-hidden text-ellipsis"
-                    title={category}
-                  >
-                    {category}
-                  </div>
-                );
-              },
-            )}
-          </div>
-        ),
-      },
-      {
-        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
-        id: "gravite",
-        header: "Gravité",
-        size: 7,
-        cell: () => "-",
-      },
-      {
-        // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
-        id: "propos",
-        header: "Propos",
-        size: 7,
-        cell: () => "-",
-      },
+      // TODO : A remplacer une fois qu'il n'y aura pas qu'une classification binaire
+      // {
+      //   accessorKey: "classification",
+      //   header: "Catégorie",
+      //   size: 13,
+      //   cell: ({ row }) => (
+      //     <div className="">
+      //       {[...new Set(row.original.classification ?? [])].map(
+      //         (category: string) => {
+      //           return (
+      //             <div
+      //               key={category}
+      //               className="bg-gray-200 rounded-full px-2 py-1 my-2 overflow-hidden text-ellipsis"
+      //               title={category}
+      //             >
+      //               {category}
+      //             </div>
+      //           );
+      //         },
+      //       )}
+      //     </div>
+      //   ),
+      // },
+      // {
+      // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
+      //   id: "gravite",
+      //   header: "Gravité",
+      //   size: 7,
+      //   cell: () => "-",
+      // },
+      // {
+      // TODO : A remplacer ou à supprimer en fonction de la disponibilité des données
+      //   id: "propos",
+      //   header: "Propos",
+      //   size: 7,
+      //   cell: () => "-",
+      // },
       {
         accessorKey: "publishedAt",
         header: "Date",
@@ -196,13 +237,14 @@ export default function CommentsTable({
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
-    [visibleComments],
+    [visibleComments, filteredComments, selectedCommentIdList],
   );
 
   const table = useReactTable({
     data: filteredComments,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    getRowId: (row) => row.id,
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
@@ -216,16 +258,34 @@ export default function CommentsTable({
     if (visibleComments.size === filteredComments.length) {
       setVisibleComments(new Set());
     } else {
-      // Génération des identifiants pour tous les rows
       const allVisibleRowIds = new Set(
-        filteredComments.map((_, i) => i.toString()),
+        filteredComments.map((comment) => comment.id),
       );
       setVisibleComments(allVisibleRowIds);
     }
   };
 
+  const setAllCommentsSelection = () => {
+    if (selectedCommentIdList.size === filteredComments.length) {
+      updateSelectedCommentList(new Set());
+    } else {
+      const allVisibleRowIds = new Set(
+        filteredComments.map((comment) => comment.id),
+      );
+      updateSelectedCommentList(allVisibleRowIds);
+    }
+  };
+
   return (
-    <div className="rounded-md border mt-2">
+    <form
+      id={formId}
+      className="rounded-md border mt-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        form.handleSubmit();
+      }}
+    >
       <div className="p-3 flex justify-between">
         <InputGroup className="mx-4 w-1/3">
           <InputGroupInput
@@ -249,38 +309,60 @@ export default function CommentsTable({
           </Button>{" "}
         </div>
       </div>
-      <Table className="w-full table-fixed">
-        <TableHeader className="bg-gray-200">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  style={{ width: `${header.column.columnDef.size}%` }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.map((row) => (
-            <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <form.Field
+        name="commentIdList"
+        validators={{
+          onChange: ({ value }) =>
+            value.length < 1
+              ? "Sélectionner au moins un commentaire"
+              : undefined,
+        }}
+      >
+        {(field) => (
+          <>
+            {field.state.meta.errors.length > 0 && (
+              <div className="text-destructive text-center text-sm mb-2">
+                {field.state.meta.errors.join(", ")}
+              </div>
+            )}
+            <Table className="w-full table-fixed">
+              <TableHeader className="bg-gray-200">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        style={{ width: `${header.column.columnDef.size}%` }}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </form.Field>
       <div className="flex items-center justify-between gap-4 p-6 mt-3 mb-6">
         <Field orientation="horizontal" className="w-fit">
           <FieldLabel htmlFor="select-rows-per-page">
@@ -320,6 +402,16 @@ export default function CommentsTable({
           </PaginationContent>
         </Pagination>
       </div>
-    </div>
+    </form>
   );
 }
+
+const addOrRemoveValueToSet = (currentSet: Set<string>, id: string) => {
+  const next = new Set(currentSet);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+  return next;
+};

@@ -3,6 +3,7 @@ import { buildPostsFromSnapshots } from "../model/post/buildPostsFromSnapshots";
 import { Post } from "../model/post/Post";
 import { SocialNetworkName } from "../model/SocialNetworkName";
 import {
+  getPostSnapshotsByPostIdList,
   getPostSnapshotsBySocialNetworkAndPeriod,
   getPostSnapshotsForPostId,
 } from "./post-snapshot-storage";
@@ -17,6 +18,13 @@ export async function getPostsBySocialNetworkAndPeriod(
     from,
     to,
   );
+  return buildPostsFromSnapshots(snapshotsForFilter);
+}
+
+export async function getPostsByPostIdList(
+  postIdList: string[],
+): Promise<Post[]> {
+  const snapshotsForFilter = await getPostSnapshotsByPostIdList(postIdList);
   return buildPostsFromSnapshots(snapshotsForFilter);
 }
 

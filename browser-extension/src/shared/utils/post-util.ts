@@ -2,7 +2,7 @@ import { PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 
 export function isCommentHateful(comment: PostComment): boolean {
-  return (comment.classification?.length ?? 0) > 0;
+  return comment.classification?.[0] === "Cyberharcèlement (autre)";
 }
 
 export function isPostPublishedAfter(post: PostSnapshot, date: Date): boolean {

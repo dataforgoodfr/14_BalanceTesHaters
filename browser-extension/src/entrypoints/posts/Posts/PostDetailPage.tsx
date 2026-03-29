@@ -1,6 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import {
+  SocialNetwork,
+  SocialNetworkName,
+} from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
 import { MoveLeft } from "lucide-react";
@@ -29,7 +32,12 @@ function PostDetailPage() {
   let numberOfHatefulAuthors = 0;
 
   const allComments = post?.comments || [];
-  const hatefulComments = allComments.filter((c) => isCommentHateful(c));
+  const hatefulComments = allComments
+    .filter((c) => isCommentHateful(c))
+    .map((comment, i) => {
+      return { ...comment, id: i.toString() };
+    });
+
   if (allComments.length !== 0) {
     numberOfHatefulComments = hatefulComments.length;
     percentageOfHatefulComments = getPercentage(
@@ -127,7 +135,12 @@ function PostDetailPage() {
               <span className="text-gray-500">
                 Sélectionner les commentaires pour créer un rapport
               </span>
-              <CommentsTable comments={hatefulComments} />
+              <CommentsTable
+                commentList={hatefulComments}
+                defaultSelectedCommentIdList={[]}
+                formId=""
+                onSubmit={() => console.log("submitted")}
+              />
             </div>
           </div>
         </>
@@ -154,9 +167,9 @@ function formatAnalysisDate(isoDateTime: string): string {
 
 function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
   switch (socialNetwork) {
-    case "YOUTUBE":
+    case SocialNetwork.YouTube:
       return "YouTube";
-    case "INSTAGRAM":
+    case SocialNetwork.Instagram:
       return "Instagram";
     default:
       return "";

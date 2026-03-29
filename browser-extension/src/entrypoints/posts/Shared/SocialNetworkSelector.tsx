@@ -1,4 +1,5 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 type SocialNetworkSelectorProps = Readonly<{
   value: string[];
@@ -27,13 +28,13 @@ function SocialNetworkSelector({
         aria-label="Réseau social"
       >
         <ToggleGroupItem
-          value="YOUTUBE"
+          value={SocialNetwork.YouTube}
           aria-label="Visualiser les résultats YouTube"
         >
           YouTube
         </ToggleGroupItem>
         <ToggleGroupItem
-          value="INSTAGRAM"
+          value={SocialNetwork.Instagram}
           aria-label="Visualiser les résultats Instagram"
         >
           Instagram
