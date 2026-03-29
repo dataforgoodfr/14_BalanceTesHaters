@@ -231,7 +231,7 @@ const StepperBanner = () => {
 const StepperActions = () => {
   const stepper = useStepper();
   return (
-    <div className="sticky bottom-0 border-t pt-4">
+    <div className="sticky bottom-0 border-t py-4 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">
         <Stepper.Prev
           render={(domProps) => (
