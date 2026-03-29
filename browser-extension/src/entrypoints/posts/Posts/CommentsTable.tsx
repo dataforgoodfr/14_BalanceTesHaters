@@ -88,7 +88,7 @@ export default function CommentsTable({
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
   const toggleCommentVisibility = (id: string) => {
-    setVisibleComments((prev) => AddOrRemoveValueToSet(prev, id));
+    setVisibleComments((prev) => addOrRemoveValueToSet(prev, id));
   };
 
   const updateSelectedCommentList = (commentIdList: Set<string>) => {
@@ -98,7 +98,7 @@ export default function CommentsTable({
   };
 
   const toggleCommentSelection = (id: string) => {
-    updateSelectedCommentList(AddOrRemoveValueToSet(selectedCommentIdList, id));
+    updateSelectedCommentList(addOrRemoveValueToSet(selectedCommentIdList, id));
   };
 
   const filteredComments = React.useMemo(
@@ -406,7 +406,7 @@ export default function CommentsTable({
   );
 }
 
-const AddOrRemoveValueToSet = (currentSet: Set<string>, id: string) => {
+const addOrRemoveValueToSet = (currentSet: Set<string>, id: string) => {
   const next = new Set(currentSet);
   if (next.has(id)) {
     next.delete(id);
