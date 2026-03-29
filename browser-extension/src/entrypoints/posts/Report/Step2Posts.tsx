@@ -16,7 +16,10 @@ function Step2Posts({
   reportQueryData: ReportQueryData | undefined;
   setPostList: (postList: string[]) => void;
 }>) {
-  const queryKey = ["posts", reportQueryData?.socialNetworkList];
+  const queryKey = React.useMemo(
+    () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
+    [reportQueryData?.socialNetworkList?.join(",")],
+  );
   const [searchTerm, setSearchTerm] = React.useState("");
 
   const { data, isLoading } = useQuery({
@@ -36,6 +39,8 @@ function Step2Posts({
       return title.includes(searchValue) || description.includes(searchValue);
     });
   }, [data, searchTerm]);
+
+  console.log("render Step2Posts : ", { data, filteredPosts, searchTerm });
 
   const stepper = useStepper();
 

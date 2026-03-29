@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
+import React from "react";
 
 function Step3Comments({
   reportQueryData,
@@ -12,7 +13,10 @@ function Step3Comments({
   reportQueryData: ReportQueryData | undefined;
   setCommentList: (commentIdList: PostCommentWithId[]) => void;
 }>) {
-  const queryKey = ["posts", reportQueryData?.socialNetworkList];
+  const queryKey = React.useMemo(
+    () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
+    [reportQueryData?.socialNetworkList?.join(",")],
+  );
 
   const { data, isLoading } = useQuery({
     queryKey,
@@ -20,12 +24,14 @@ function Step3Comments({
   });
 
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
-  const allComments: PostCommentWithId[] = (data || [])
-    .flatMap((p) => p.comments)
-    .filter((c) => isCommentHateful(c))
-    .map((comment, i) => {
-      return { ...comment, id: i.toString() };
-    });
+  const allComments: PostCommentWithId[] = React.useMemo(() => {
+    return (data || [])
+      .flatMap((p) => p.comments)
+      .filter((c) => isCommentHateful(c))
+      .map((comment, i) => {
+        return { ...comment, id: i.toString() };
+      });
+  }, [data]);
 
   const stepper = useStepper();
 
@@ -35,6 +41,8 @@ function Step3Comments({
     );
     stepper.navigation.next();
   };
+
+  console.log("render Step3Comments : ", { allComments, reportQueryData });
 
   return (
     <div className="flex flex-col gap-4 h-9/12 justify-center">
