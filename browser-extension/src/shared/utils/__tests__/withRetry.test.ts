@@ -162,12 +162,12 @@ describe("withRetry", () => {
 
       expect(beforeRetry).toHaveBeenCalledTimes(2);
       expect(beforeRetry).toHaveBeenNthCalledWith(1, {
-        latestError: expect.any(Error),
+        latestError: expect.any(Error) as Error,
         failedAttempts: 1,
         remainingAttempts: 2,
       });
       expect(beforeRetry).toHaveBeenNthCalledWith(2, {
-        latestError: expect.any(Error),
+        latestError: expect.any(Error) as Error,
         failedAttempts: 2,
         remainingAttempts: 1,
       });

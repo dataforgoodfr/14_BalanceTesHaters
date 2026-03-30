@@ -3,13 +3,13 @@ import { STORAGE_KEY_DEBUG_FP_SCREENSHOT_DATAURL } from "@/shared/native-screens
 
 function downloadLatestFullPageScreenshot() {
   console.log("Downloading latestFullPageScreenshot");
-  browser.storage.local
+  void browser.storage.local
     .get(STORAGE_KEY_DEBUG_FP_SCREENSHOT_DATAURL)
     .then((partial) => {
       const dataUrl = partial[
         STORAGE_KEY_DEBUG_FP_SCREENSHOT_DATAURL
       ] as string;
-      browser.downloads.download({
+      return browser.downloads.download({
         url: dataUrl,
         filename: "screenshot.png",
       });

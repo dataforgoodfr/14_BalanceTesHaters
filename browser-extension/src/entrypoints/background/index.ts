@@ -38,17 +38,17 @@ function handleIncomingMessages(
   console.debug("Background - Message received:", message, sender);
 
   if (isScrapTabMessage(message)) {
-    scrapTabAndSubmitClassificationRequest(message.tabId).then(() =>
+    void scrapTabAndSubmitClassificationRequest(message.tabId).then(() =>
       sendResponse(undefined),
     );
     return true;
   } else if (isScreenshotSenderTab(message)) {
-    screenshotSenderTab(sender).then((result) => {
+    void screenshotSenderTab(sender).then((result) => {
       sendResponse(result);
     });
     return true;
   } else if (isSubmitClassificationRequestMessage(message)) {
-    submitClassificationRequestForPost(message.postSnapshotId).then(
+    void submitClassificationRequestForPost(message.postSnapshotId).then(
       () => {
         sendResponse({ success: true });
       },

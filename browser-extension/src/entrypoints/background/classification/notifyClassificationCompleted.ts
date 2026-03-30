@@ -34,12 +34,12 @@ export function notifyClassificationCompleted(
       {
         title: openResultsButtonTitle,
         onClick: () => {
-          browser.tabs.create({ url: resultsUrl, active: true });
+          void browser.tabs.create({ url: resultsUrl, active: true });
         },
       },
     ],
     onClick: () => {
-      browser.tabs.create({ url: resultsUrl, active: true });
+      void browser.tabs.create({ url: resultsUrl, active: true });
     },
   });
 }
@@ -92,7 +92,8 @@ function createNotification({
   const buttonsWithoutExtraOnClick = buttons.map(
     ({ onClick: _, ...withoutOnClick }) => withoutOnClick,
   );
-  browser.notifications.create(id, {
+  //Create notification and don't wait for the result
+  void browser.notifications.create(id, {
     type: "basic",
     title,
     message,

@@ -73,10 +73,9 @@ export class ScrapingContentScriptClient {
    * Cancel the currently running scraping operation for this tab
    */
   async cancelScraping(): Promise<void> {
-    const response = await this.safeSendMessage<
-      ScsCancelScrapTabMessage,
-      ScrapingResult
-    >(SCS_CANCEL_SCRAP_TAB_MESSAGE);
+    const response = await this.safeSendMessage<ScsCancelScrapTabMessage, null>(
+      SCS_CANCEL_SCRAP_TAB_MESSAGE,
+    );
     if (response === NO_CONTENT_SCRIPT) {
       throw new Error("No Scraping Content script registered for this url");
     }

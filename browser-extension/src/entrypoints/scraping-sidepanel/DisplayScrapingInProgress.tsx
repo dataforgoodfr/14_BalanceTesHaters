@@ -37,7 +37,7 @@ export function DisplayScrapingInProgress({
           className="w-full"
           variant="destructive"
           onClick={() =>
-            new ScrapingContentScriptClient(tabInfo.tabId).cancelScraping()
+            void new ScrapingContentScriptClient(tabInfo.tabId).cancelScraping()
           }
         >
           Arrêter l&apos;analyse

@@ -18,7 +18,14 @@ export default defineConfig([
   configPrettier,
   eslint.configs.recommended,
   markdown.configs.processor,
-  tseslint.configs.recommended,
+  tseslint.configs.recommendedTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+      },
+    },
+  },
   {
     rules: {
       "@typescript-eslint/no-unused-vars": [

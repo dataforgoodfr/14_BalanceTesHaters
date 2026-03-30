@@ -7,8 +7,8 @@ import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 export class YoutubeScraper implements SocialNetworkScraper {
-  async getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
-    return youtubePageInfo(document.URL);
+  getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
+    return Promise.resolve(youtubePageInfo(document.URL));
   }
 
   async scrapPagePost(

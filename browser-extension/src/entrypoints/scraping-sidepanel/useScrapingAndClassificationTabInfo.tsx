@@ -56,7 +56,7 @@ export function useScrapingAndClassificationTabInfo(
     ) => {
       if (changedTabId === tabId && changeInfo.url) {
         // Trigger query on tab url change to keep side panel content
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: scrapingAndClassificationTabInfoQueryKey(tabId),
         });
       }

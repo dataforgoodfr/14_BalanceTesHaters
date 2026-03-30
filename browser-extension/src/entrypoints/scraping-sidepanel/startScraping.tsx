@@ -5,5 +5,5 @@ export function startScraping(tabId: number) {
     msgType: "scrap-tab",
     tabId: tabId,
   };
-  browser.runtime.sendMessage(message);
+  void browser.runtime.sendMessage(message);
 }

@@ -20,11 +20,11 @@ function Step1Plateforme({
     },
     onSubmit: () => {
       setSocialNetworkList(form.state.values.socialNetworkList);
-      stepper.navigation.next();
+      void stepper.navigation.next();
     },
   });
 
-  const options = [
+  const options: { id: string; label: string }[] = [
     { id: SocialNetwork.Instagram, label: "Instagram" },
     { id: SocialNetwork.YouTube, label: "YouTube" },
   ];
@@ -40,7 +40,7 @@ function Step1Plateforme({
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          form.handleSubmit();
+          void form.handleSubmit();
         }}
         className="space-y-6 p-4 flex justify-center"
       >
