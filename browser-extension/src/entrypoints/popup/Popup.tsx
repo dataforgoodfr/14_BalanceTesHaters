@@ -1,13 +1,5 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import {
   ScrapingAndClassificationTabInfoType,
@@ -16,9 +8,20 @@ import {
 import { startScraping } from "../scraping-sidepanel/startScraping";
 import { ViewPreviousAnalysesButton } from "../scraping-sidepanel/ViewPreviousAnalysesButton";
 import { openSidePanel } from "./openSidePanel";
+import { Logo } from "./Logo";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircleIcon, InfoIcon } from "lucide-react";
 
-const title = "Balance Tes Haters";
 export function Popup() {
+  return (
+    <div className="flex flex-col p-10 gap-8">
+      <Logo className="mx-auto" />
+      <PopupContent />
+    </div>
+  );
+}
+
+function PopupContent() {
   const [tabId, setTabId] = useState<number | undefined>(undefined);
   useEffect(() => {
     const parsedUrl = URL.parse(document.URL);
@@ -35,10 +38,13 @@ export function Popup() {
 
   if (queryError) {
     return (
-      <span>
-        Oops! Impossible de récupéréer les infos du tab courant!!
-        <pre>{queryError.message}</pre>
-      </span>
+      <Alert variant="destructive" className="max-w-md">
+        <AlertCircleIcon />
+        <AlertTitle>
+          Impossible de récupéréer les infos du tab courant.
+        </AlertTitle>
+        <AlertDescription>{queryError.message}</AlertDescription>
+      </Alert>
     );
   }
 
@@ -50,18 +56,16 @@ export function Popup() {
   }
   if (tabInfo.type === ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>
-            Navigue vers une publication d&apos;un réseau social supporté
-            (youtube, instagram...) pour pouvoir lancer l&apos;analyse.
-          </CardDescription>
-        </CardHeader>
-        <CardFooter className="flex-col gap-2">
-          <ViewPreviousAnalysesButton />
-        </CardFooter>
-      </Card>
+      <div className="flex flex-col gap-2 px-2">
+        <Alert className="max-w-md">
+          <InfoIcon />
+          <AlertDescription>
+            Navigue vers une publication youtube ou instagram pour lancer une
+            analyse.
+          </AlertDescription>
+        </Alert>
+        <ViewPreviousAnalysesButton />
+      </div>
     );
   }
 
@@ -69,46 +73,25 @@ export function Popup() {
     tabInfo.type === ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED
   ) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            Vous êtes sur une publication {tabInfo.pageInfo.socialNetwork}{" "}
-            analysable.
-          </p>
-        </CardContent>
-        <CardFooter className="flex-col gap-2">
-          <StartScrapingButton tabId={tabInfo.tabId} />
-          <ViewPreviousAnalysesButton />
-        </CardFooter>
-      </Card>
+      <div className="flex flex-col gap-2 px-2">
+        <StartScrapingButton tabId={tabInfo.tabId} />
+        <ViewPreviousAnalysesButton />
+      </div>
     );
   }
   // Scraping has already been started, completed... use SidePanel to display it
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>Analyse démarrée.</p>
-      </CardContent>
-      <CardFooter className="flex-col gap-2">
-        <Button
-          data-testid="start-scraping-button"
-          className="w-full"
-          onClick={() => {
-            openSidePanel(tabInfo.tabId);
-            window.close();
-          }}
-        >
-          Ouvrir le side panel
-        </Button>
-        <ViewPreviousAnalysesButton />
-      </CardFooter>
-    </Card>
+    <Button
+      data-testid="start-scraping-button"
+      className="w-full"
+      onClick={() => {
+        void openSidePanel(tabInfo.tabId).then(() => {
+          window.close();
+        });
+      }}
+    >
+      Ouvrir le side panel
+    </Button>
   );
 }
 
