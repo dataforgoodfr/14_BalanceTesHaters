@@ -35,14 +35,14 @@ if __name__ == "__main__":
             "You need to set the env variable BTH_BACKEND_URL with the URL of the BalanceTesHaters backend instance you want to connect to"
         )
 
-    if "BTH_API_TOKEN" not in os.environ:
+    if "BTH_PRIVATE_API_TOKEN" not in os.environ:
         raise ValueError(
-            "You need to set the env variable BTH_API_TOKEN with the API token to authenticate to the BalanceTesHaters backend instance"
+            "You need to set the env variable BTH_PRIVATE_API_TOKEN with the API token to authenticate to the BalanceTesHaters backend instance"
         )
 
     nocodb_base_url: str = os.environ["NOCODB_BASE_URL"]
     nocodb_token: str = os.environ["NOCODB_TOKEN"]
-    bth_backend_url: str = os.environ["BTH_BACKEND_URL"]
+    bth_backend_url: str = os.environ["BTH_PRIVATE_BACKEND_URL"]
     bth_token_api: str = os.environ["BTH_API_TOKEN"]
 
     nocodb = NocoDBService(

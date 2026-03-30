@@ -8,7 +8,8 @@ class Settings(BaseSettings):
     pg_dsn: PostgresDsn
     engine_echo: bool = False
     logging_configuration_file: pathlib.Path
-    api_token: str
+    private_api_token: str
+    public_api_token: str
 
     slm_model_path: str = "/models/Qwen3-1.7B-Q4_K_M.gguf"
     slm_n_threads: int = 4

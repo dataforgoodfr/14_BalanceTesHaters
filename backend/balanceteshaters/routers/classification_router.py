@@ -34,7 +34,7 @@ async def post_classification_job(
     settings: Annotated[Settings, Depends(Provide[Container.settings])],
     x_token: Annotated[str | None, Header()] = None,
 ):
-    if not x_token or x_token != settings.api_token:
+    if not x_token or x_token != settings.public_api_token:
         raise HTTPException(401, {"error": "Unauthorized"})
     async with db.get_session() as session, session.begin():
         classification_job = classification_job_repository.create_job(
@@ -51,6 +51,29 @@ async def post_classification_job(
         return {"job_id": str(classification_job.id)}
 
 
+@router.get("/{job_id}")
+@inject
+async def get_classification_job(
+    job_id: str,
+    db: Annotated[Database, Depends(Provide[Container.database])],
+    settings: Annotated[Settings, Depends(Provide[Container.settings])],
+    x_token: Annotated[str | None, Header()] = None,
+):
+    if not x_token or x_token != settings.public_api_token:
+        raise HTTPException(401, {"error": "Unauthorized"})
+    async with db.get_session() as session, session.begin():
+        classification_job = await classification_job_repository.find_by_id(
+            session, UUID(job_id)
+        )
+        if not classification_job:
+            raise HTTPException(404, {"error": "Classification job not found"})
+        return {
+            "id": str(classification_job.id),
+            "comments": classification_job.result,
+            "status": classification_job.status.value,
+        }
+
+
 @router.get("/")
 @inject
 async def list_classification_jobs(
@@ -58,7 +81,7 @@ async def list_classification_jobs(
     settings: Annotated[Settings, Depends(Provide[Container.settings])],
     x_token: Annotated[str | None, Header()] = None,
 ):
-    if not x_token or x_token != settings.api_token:
+    if not x_token or x_token != settings.private_api_token:
         raise HTTPException(401, {"error": "Unauthorized"})
     async with db.get_session() as session, session.begin():
         classification_jobs = await classification_job_repository.list_jobs(session)
@@ -75,25 +98,6 @@ async def list_classification_jobs(
         ]
 
 
-@router.get("/{job_id}")
-@inject
-async def get_classification_job(
-    job_id: str,
-    db: Annotated[Database, Depends(Provide[Container.database])],
-):
-    async with db.get_session() as session, session.begin():
-        classification_job = await classification_job_repository.find_by_id(
-            session, UUID(job_id)
-        )
-        if not classification_job:
-            raise HTTPException(404, {"error": "Classification job not found"})
-        return {
-            "id": str(classification_job.id),
-            "comments": classification_job.result,
-            "status": classification_job.status.value,
-        }
-
-
 @router.get("/{job_id}/comments")
 @inject
 async def get_classification_job_comments(
@@ -102,7 +106,7 @@ async def get_classification_job_comments(
     settings: Annotated[Settings, Depends(Provide[Container.settings])],
     x_token: Annotated[str | None, Header()] = None,
 ):
-    if not x_token or x_token != settings.api_token:
+    if not x_token or x_token != settings.private_api_token:
         raise HTTPException(401, {"error": "Unauthorized"})
     async with db.get_session() as session, session.begin():
         classification_job = await classification_job_repository.find_by_id(
