@@ -25,7 +25,12 @@ RUN uv sync --frozen
 
 FROM python:3.13-slim-trixie
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 && rm -rf /var/lib/apt/lists/*
+    libgomp1 wget && rm -rf /var/lib/apt/lists/*
+
+# Download the model to /models/Qwen3-1.7B-Q4_K_M.gguf
+RUN mkdir -p /models && \
+    wget -O /models/Qwen3-1.7B-Q4_K_M.gguf https://huggingface.co/unsloth/Qwen3-1.7B-GGUF/resolve/main/Qwen3-1.7B-Q4_K_M.gguf
+
 COPY --from=builder /app /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ADD /docker/backend/run.sh /app
