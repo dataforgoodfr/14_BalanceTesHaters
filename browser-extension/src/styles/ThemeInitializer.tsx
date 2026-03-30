@@ -11,11 +11,18 @@ function useInitializeTheme() {
 
     root.classList.remove("light", "dark");
 
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-      .matches
+    root.classList.add(selectTheme());
+  }, []);
+}
+
+// Dark theme is not yet specified in mockups
+const forceLightTheme = true;
+function selectTheme(): "dark" | "light" {
+  if (forceLightTheme) {
+    return "light";
+  } else {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
       : "light";
-
-    root.classList.add(systemTheme);
-  }, []);
+  }
 }
