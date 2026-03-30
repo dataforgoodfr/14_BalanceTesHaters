@@ -27,7 +27,7 @@ function PopupContent() {
     const parsedUrl = URL.parse(document.URL);
     const tabUrl = parsedUrl?.hash?.substring(1);
     const tabPromise = tabUrl ? queryTabWithUrl(tabUrl) : queryActiveTab();
-    tabPromise.then((tab) => setTabId(tab?.id));
+    void tabPromise.then((tab) => setTabId(tab?.id));
   });
 
   const {
@@ -100,7 +100,7 @@ function StartScrapingButton({ tabId }: { tabId: number }) {
     <Button
       data-testid="start-scraping-button"
       className="w-full"
-      onClick={() => handleStartScrapingClick(tabId)}
+      onClick={() => void handleStartScrapingClick(tabId)}
     >
       Analyser cette publication
     </Button>

@@ -35,13 +35,13 @@ type CommentThread =
 export class YoutubePostNativeScrapper {
   public constructor(private scrapingSupport: ScrapingSupport) {}
 
-  private debug(...data: typeof console.debug.arguments) {
+  private debug(...data: unknown[]) {
     console.debug(LOG_PREFIX, ...data);
   }
-  private info(...data: typeof console.debug.arguments) {
+  private info(...data: unknown[]) {
     console.info(LOG_PREFIX, ...data);
   }
-  private warn(...data: typeof console.debug.arguments) {
+  private warn(...data: unknown[]) {
     console.warn(LOG_PREFIX, ...data);
   }
 
@@ -78,7 +78,7 @@ export class YoutubePostNativeScrapper {
 
     this.debug("Scraping publishedAt...");
     const publishedAt = await this.scrapPostPublishedAt();
-    this.debug(`publishedAt: ${publishedAt}`);
+    this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
 
     // Init accounts for 1%
     progressManager.setProgress(1);
@@ -355,7 +355,7 @@ export class YoutubePostNativeScrapper {
       };
     }
 
-    const comment = await this.scrapCommentWithoutReplies(
+    const comment = this.scrapCommentWithoutReplies(
       commentContainer,
       fullPageScreenshot,
     );
@@ -616,13 +616,13 @@ export class YoutubePostNativeScrapper {
     }
   }
 
-  private async scrapCommentWithoutReplies(
+  private scrapCommentWithoutReplies(
     commentContainer: HTMLElement,
     fullPageScreenshot: FullPageScreenshotResult,
-  ): Promise<CommentSnapshot> {
+  ): CommentSnapshot {
     const scrapDate = currentIsoDate();
 
-    const author: Author = await this.scrapCommentAuthor(commentContainer);
+    const author: Author = this.scrapCommentAuthor(commentContainer);
     const publishedTimeElement = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "#published-time-text",
@@ -630,7 +630,7 @@ export class YoutubePostNativeScrapper {
     );
     const publishedAtText = publishedTimeElement.innerText;
     const publishedAt = new PublicationDateTextParsing(publishedAtText).parse();
-    this.debug(`publishedAtInfo: ${publishedAt}`);
+    this.debug(`publishedAtInfo: ${JSON.stringify(publishedAt)}`);
 
     const commentHref = this.scrapingSupport.selectOrThrow(
       publishedTimeElement,
@@ -684,9 +684,7 @@ export class YoutubePostNativeScrapper {
     };
   }
 
-  private async scrapCommentAuthor(
-    commentContainer: HTMLElement,
-  ): Promise<Author> {
+  scrapCommentAuthor(commentContainer: HTMLElement): Author {
     const authorTextHandle = this.scrapingSupport.selectOrThrow(
       commentContainer,
       "a#author-text",

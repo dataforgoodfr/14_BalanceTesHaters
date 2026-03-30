@@ -111,7 +111,7 @@ export class ScrapingSupport {
         "Failed to select element matching selector " +
         selector +
         " and predicate " +
-        options?.predicate +
+        String(options?.predicate) +
         " before timeout",
     };
   }
@@ -147,7 +147,7 @@ export class ScrapingSupport {
       if (Date.now() - start > timeout) {
         throw new Error(
           `Still ${visibleElements.length} elements matching selection at timeout.` +
-            ` Selector:${selector}, Predicate ${options?.extraPredicate}, Timeout :(${timeout}ms)`,
+            ` Selector:${selector}, Predicate ${String(options?.extraPredicate)}, Timeout :(${timeout}ms)`,
         );
       }
 

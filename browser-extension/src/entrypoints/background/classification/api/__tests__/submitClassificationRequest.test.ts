@@ -70,7 +70,7 @@ describe("postClassificationRequest", () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-token": expect.any(String),
+          "x-token": expect.any(String) as string,
         },
         body: JSON.stringify(mockRequest),
       }),

@@ -7,7 +7,7 @@ export async function findTabIdForUrl(
 ): Promise<number | undefined> {
   return await evaluateInBackgroundWorker<number | undefined>(
     context,
-    async (tabUrl) => {
+    async (tabUrl: string) => {
       console.log("finding tab id with url:" + tabUrl);
       const queryOptions = { url: tabUrl };
       const [tab] = await browser.tabs.query(queryOptions);

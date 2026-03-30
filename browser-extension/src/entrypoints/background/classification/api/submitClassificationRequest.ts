@@ -40,7 +40,7 @@ export async function postClassificationRequest(
   });
 
   if (response.ok) {
-    const data = await response.json();
+    const data = (await response.json()) as unknown;
     return ClassificationResponse.parse(data);
   } else {
     throw new ClassificationApiError(response.status, await response.text());

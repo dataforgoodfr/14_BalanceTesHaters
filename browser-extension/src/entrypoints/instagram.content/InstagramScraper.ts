@@ -7,8 +7,8 @@ import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 export class InstagramScraper implements SocialNetworkScraper {
-  async getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
-    return instagramPageInfo(document.URL);
+  getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
+    return Promise.resolve(instagramPageInfo(document.URL));
   }
 
   async scrapPagePost(

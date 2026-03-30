@@ -16,7 +16,7 @@ export async function openAndPrepareYoutubeVideoPage(
 }
 
 async function closeCookieDialogIfPresent(youtubePage: Page) {
-  const closeCookieDialog = await youtubePage
+  const closeCookieDialog = youtubePage
     .getByRole("button")
     .filter({ hasText: /Reject all|Tout refuser/ });
   if (await closeCookieDialog.isVisible()) {

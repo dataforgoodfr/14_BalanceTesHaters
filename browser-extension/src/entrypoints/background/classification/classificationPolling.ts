@@ -13,10 +13,10 @@ export function startClassificationPolling(
 ): void {
   browser.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === CLASSIFICATION_POLLING_ALARM_NAME) {
-      onClassificationPollingAlarm();
+      void onClassificationPollingAlarm();
     }
   });
-  browser.alarms.create(CLASSIFICATION_POLLING_ALARM_NAME, {
+  void browser.alarms.create(CLASSIFICATION_POLLING_ALARM_NAME, {
     delayInMinutes: 1, // First run after 1 minute
     periodInMinutes: pollingIntervalMinutes, // Then every CLASSIFICATION_POLLING_INTERVAL_MINUTES minutes
   });

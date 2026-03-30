@@ -41,21 +41,21 @@ export class ScrapingContentScript {
     sendResponse: (response?: unknown) => void,
   ): true | undefined {
     if (isScsPageInfoMessage(message)) {
-      this.getPageInfo().then(sendResponse);
+      void this.getPageInfo().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsScrapTabMessage(message)) {
-      this.scrapPost().then(sendResponse);
+      void this.scrapPost().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsGetScrapingStatusMessage(message)) {
-      this.getScrapingStatus().then(sendResponse);
+      void this.getScrapingStatus().then(sendResponse);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsCancelScrapTabMessage(message)) {
-      this.cancelScraping().then(sendResponse);
-      // Return true to indicate async response to web-ext-messaging
-      return true;
+      this.cancelScraping();
+      sendResponse();
+      return;
     }
   }
 
@@ -149,7 +149,7 @@ export class ScrapingContentScript {
     }
   }
 
-  private async cancelScraping(): Promise<void> {
+  private cancelScraping(): void {
     if (this.scrapingStatus.type !== "running" || !this.scrapAbortController) {
       console.info("[SCS] - No scraping in progress to cancel");
       return;

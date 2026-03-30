@@ -39,7 +39,7 @@ function Step3Comments({
     setCommentList(
       allComments.filter((comment) => commentIdList.includes(comment.id)),
     );
-    stepper.navigation.next();
+    void stepper.navigation.next();
   };
 
   console.log("render Step3Comments : ", { allComments, reportQueryData });

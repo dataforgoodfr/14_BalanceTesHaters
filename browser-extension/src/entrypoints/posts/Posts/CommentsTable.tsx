@@ -283,7 +283,7 @@ export default function CommentsTable({
       onSubmit={(e) => {
         e.preventDefault();
         e.stopPropagation();
-        form.handleSubmit();
+        void form.handleSubmit();
       }}
     >
       <div className="p-3 flex justify-between">

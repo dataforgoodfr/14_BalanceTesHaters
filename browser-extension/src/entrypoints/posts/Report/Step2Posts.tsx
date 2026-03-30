@@ -50,7 +50,7 @@ function Step2Posts({
     },
     onSubmit: () => {
       setPostList(form.state.values.postList);
-      stepper.navigation.next();
+      void stepper.navigation.next();
     },
   });
 
@@ -75,7 +75,7 @@ function Step2Posts({
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          form.handleSubmit();
+          void form.handleSubmit();
         }}
         className="space-y-6 p-4 flex justify-center"
       >
