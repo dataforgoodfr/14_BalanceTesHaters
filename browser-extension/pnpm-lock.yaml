@@ -14,6 +14,12 @@ importers:
       '@base-ui/react':
         specifier: ^1.1.0
         version: 1.1.0(@types/react@19.2.8)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@fontsource-variable/red-hat-display':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@fontsource-variable/red-hat-text':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@stepperize/react':
         specifier: ^6.1.0
         version: 6.1.0(react@19.2.3)(typescript@5.9.3)
@@ -519,6 +525,12 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@fontsource-variable/red-hat-display@5.2.8':
+    resolution: {integrity: sha512-OslUyiQ5y9MqU5G020NbJALqY2obalyCoxy+0f9mU2tXmhw35uFTnNQvncuOooxXApKnGCadKh6sdhpSnOAV8Q==}
+
+  '@fontsource-variable/red-hat-text@5.2.8':
+    resolution: {integrity: sha512-v0MGnXpADm1gTffdFJiFbEqddl0oCBbQaSviF9srUDvj01WVBljHjyC38EeyFsWSciY00vkye8et7MS+4QphEQ==}
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -4135,6 +4147,10 @@ snapshots:
       react-dom: 19.2.3(react@19.2.3)
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@fontsource-variable/red-hat-display@5.2.8': {}
+
+  '@fontsource-variable/red-hat-text@5.2.8': {}
 
   '@humanfs/core@0.19.1': {}
 

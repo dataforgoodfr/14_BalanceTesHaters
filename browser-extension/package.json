@@ -26,6 +26,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
+    "@fontsource-variable/red-hat-display": "^5.2.8",
+    "@fontsource-variable/red-hat-text": "^5.2.8",
     "@stepperize/react": "^6.1.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-form": "^1.28.5",

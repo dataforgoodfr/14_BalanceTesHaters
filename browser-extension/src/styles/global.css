@@ -1,23 +1,33 @@
+@import "@fontsource-variable/red-hat-display/wght.css";
+@import "@fontsource-variable/red-hat-text/wght.css";
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+body {
+  font-family: "Red Hat Text Variable", ui-sans-serif, sans-serif, system-ui;
+}
 /* Typography */
 h1 {
-  @apply scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance;
+  @apply scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance;
+  font-family: "Red Hat Display Variable";
 }
 
 h2 {
   @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0;
+  font-family: "Red Hat Display Variable";
 }
 
 h3 {
-  @apply scroll-m-20 text-2xl font-semibold tracking-tight;
+  @apply scroll-m-20 text-2xl font-medium tracking-tight;
+  font-family: "Red Hat Display Variable";
 }
 
 h4 {
   @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  font-family: "Red Hat Display Variable";
 }
 
 p {
@@ -34,6 +44,7 @@ a {
 
 /* Shadcn theme*/
 :root {
+  --font-sans: "Red Hat Text Variable", ui-sans-serif, sans-serif, system-ui;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
