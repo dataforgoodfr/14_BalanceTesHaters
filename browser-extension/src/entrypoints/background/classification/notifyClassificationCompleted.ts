@@ -1,5 +1,5 @@
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
-
+import iconUrl from "~/assets/notification-icon.png";
 export function notifyClassificationCompleted(
   snapshotsWithCompletedClassifications: PostSnapshot[],
 ) {
@@ -96,7 +96,7 @@ function createNotification({
     type: "basic",
     title,
     message,
-    iconUrl: browser.runtime.getURL("/icon/128.png"),
+    iconUrl: iconUrl,
     buttons: buttonsWithoutExtraOnClick,
   });
 }
