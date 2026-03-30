@@ -124,15 +124,12 @@ export class InstagramPostNativeScraper {
     }
 
     private scrapPostTextContent(element: HTMLElement): string {
-        return tryOrElse(
-            () =>
-                this.scrapingSupport.selectOrThrow(
-                    element,
-                    ":scope span>div>span",
-                    HTMLElement,
-                ).textContent,
-            "",
+        const textContentElement = this.scrapingSupport.selectOrThrow(
+            element,
+            ":scope span>div>span",
+            HTMLElement,
         );
+        return textContentElement.textContent;
     }
 
     private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
@@ -150,18 +147,10 @@ export class InstagramPostNativeScraper {
     private async scrapPostComments(
         element: HTMLElement,
     ): Promise<CommentSnapshot[]> {
-        const commentsContainer = tryOrElse(
-            () =>
-                this.scrapingSupport.selectOrThrow(
-                    element,
-                    ":scope>div>div:nth-of-type(3)",
-                    HTMLElement,
-                ),
-            this.scrapingSupport.selectOrThrow(
-                element,
-                ":scope>div>div:nth-of-type(2)",
-                HTMLElement,
-            ),
+        const commentsContainer = this.scrapingSupport.selectOrThrow(
+            element,
+            ":scope>div>div:nth-of-type(3)",
+            HTMLElement,
         );
         commentsContainer.scrollIntoView();
 
