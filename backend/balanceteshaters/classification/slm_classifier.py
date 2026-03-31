@@ -18,6 +18,7 @@ Exemple de réponse pour 3 commentaires : 0, 1, 0"""
 
 class SLMClassifier:
     def __init__(self, model_path: str, n_threads: int, n_ctx: int):
+        self.n_ctx = n_ctx
         logger.info(
             "Loading GGUF model: %s (threads=%d, ctx=%d)", model_path, n_threads, n_ctx
         )
@@ -32,6 +33,22 @@ class SLMClassifier:
 
     def classify(self, text: str) -> list[str]:
         return self.classify_batch([text])[0]
+
+    def count_tokens(self, text: str) -> int:
+        """Count the number of tokens in a string."""
+        if not text:
+            return 0
+        return len(self.llm.tokenize(text.encode("utf-8"), add_bos=False))
+
+    def truncate(self, text: str, max_tokens: int) -> str:
+        """Truncate text to fit within a specific token budget."""
+        if not text:
+            return ""
+        tokens = self.llm.tokenize(text.encode("utf-8"), add_bos=False)
+        if len(tokens) <= max_tokens:
+            return text
+        truncated_tokens = tokens[:max_tokens]
+        return self.llm.detokenize(truncated_tokens).decode("utf-8", errors="ignore")
 
     def classify_batch(self, texts: list[str]) -> list[list[str]]:
         if not texts:
