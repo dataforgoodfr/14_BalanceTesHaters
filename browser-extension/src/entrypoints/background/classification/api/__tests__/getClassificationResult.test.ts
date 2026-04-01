@@ -44,6 +44,7 @@ describe("getClassificationResult", () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "x-token": expect.any(String),
         },
       }),
     );
@@ -75,6 +76,7 @@ describe("getClassificationResult", () => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "x-token": expect.any(String),
         },
       },
     );

@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import logging
 from uuid import UUID
@@ -36,24 +37,40 @@ class ClassificationTask:
             await self.update_job_status(job_id, JobStatus.FAILED)
 
     async def classify_comments(self, comments: list[dict]):
-        classifications = dict()
-        for comment in comments:
+        if not comments:
+            return {}
+
+        async def _classify_single(comment: dict):
             comment_id = comment["id"]
-            self.logger.debug("Classifying comment with id %s", comment_id)
-
             text = comment.get("text_content", "")
+            
+            # This call now happens concurrently for all comments in the list
             categories = await self.classifier.classify(text)
-
-            classifications[comment_id] = {
-                "classification": categories,
-                "classified_at": datetime.datetime.now(datetime.timezone.utc)
-                .isoformat()
-                .replace("+00:00", "Z"),
+            
+            # Recurse for replies concurrently as well
+            replies_results = await self.classify_comments(comment.get("replies", []))
+            
+            result = {
+                comment_id: {
+                    "classification": categories,
+                    "classified_at": datetime.datetime.now(datetime.timezone.utc)
+                    .isoformat()
+                    .replace("+00:00", "Z"),
+                }
             }
-            classifications.update(
-                await self.classify_comments(comment.get("replies", []))
-            )
-        return classifications
+            result.update(replies_results)
+            return result
+
+        # Run all classifications in parallel
+        tasks = [_classify_single(c) for c in comments]
+        all_results = await asyncio.gather(*tasks)
+
+        # Merge results
+        final_classifications = {}
+        for res in all_results:
+            final_classifications.update(res)
+            
+        return final_classifications
 
     async def get_job(self, job_id: UUID):
         async with self.db.get_session() as session, session.begin():

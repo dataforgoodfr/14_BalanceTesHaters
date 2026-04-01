@@ -1,6 +1,7 @@
 import z from "zod";
 import { apiBaseUrl } from "./baseUrl";
 import { ClassificationApiError } from "./ClassificationApiError";
+import { apiToken } from "./apiToken";
 
 export type ClassificationRequest = {
   title?: string;
@@ -29,11 +30,11 @@ export type ClassificationResponse = z.infer<typeof ClassificationResponse>;
 export async function postClassificationRequest(
   classificationRequest: ClassificationRequest,
 ): Promise<ClassificationResponse> {
-  const response = await fetch(apiBaseUrl + "/classification", {
+  const response = await fetch(apiBaseUrl + "/classification/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-token": import.meta.env.VITE_BACKEND_API_TOKEN,
+      "x-token": apiToken,
     },
     body: JSON.stringify(classificationRequest),
   });

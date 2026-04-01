@@ -65,11 +65,12 @@ describe("postClassificationRequest", () => {
     await postClassificationRequest(mockRequest);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      "http://localhost:8000/classification",
+      "http://localhost:8000/classification/",
       expect.objectContaining({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-token": expect.any(String),
         },
         body: JSON.stringify(mockRequest),
       }),
