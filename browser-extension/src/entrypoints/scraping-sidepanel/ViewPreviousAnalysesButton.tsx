@@ -1,19 +1,20 @@
 import { Button } from "@/components/ui/button";
+import { getPostsListUrl } from "@/shared/extension-urls";
 
 export function ViewPreviousAnalysesButton({
   disabled = false,
 }: {
   disabled?: boolean;
 }) {
-  const postsListUrl = browser.runtime.getURL("/posts.html#/posts");
   return (
     <Button
+      size="lg"
       data-testid="view-analyses-button"
       className="w-full"
       variant="outline"
       disabled={disabled}
       render={
-        <a href={postsListUrl} target="bth-posts">
+        <a href={getPostsListUrl()} target="bth-posts">
           Publications analysées
         </a>
       }

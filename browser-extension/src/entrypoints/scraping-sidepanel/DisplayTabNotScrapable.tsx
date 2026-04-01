@@ -1,18 +1,25 @@
-import WorkInProgress from "../posts/WorkInProgress";
+import { CircleXIcon } from "lucide-react";
+import { PageNotScrapableAlert } from "../popup/PageNotScrapableAlert";
+import {
+  SidePanelActions,
+  SidePanelHeader,
+  SidePanelLayout,
+  SidePanelTitle,
+} from "./SidePanelLayout";
 import { ViewPreviousAnalysesButton } from "./ViewPreviousAnalysesButton";
 
 export function DisplayTabNotScrapable() {
   return (
-    <>
-      <WorkInProgress />
-      <div className="flex flex-col gap-2">
-        <h2>Page non capturable</h2>
-        <p>
-          Navigue vers une publication d&apos;un réseau social supporté
-          (youtube, instagram...) pour pouvoir lancer l&apos;analyse.
-        </p>
+    <SidePanelLayout>
+      <SidePanelHeader>
+        <SidePanelTitle>
+          <CircleXIcon /> Page non compatible
+        </SidePanelTitle>
+      </SidePanelHeader>
+      <PageNotScrapableAlert />
+      <SidePanelActions>
         <ViewPreviousAnalysesButton />
-      </div>
-    </>
+      </SidePanelActions>
+    </SidePanelLayout>
   );
 }
