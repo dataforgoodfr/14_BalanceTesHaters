@@ -1,6 +1,7 @@
 import z from "zod";
 import { apiBaseUrl } from "./baseUrl";
 import { ClassificationApiError } from "./ClassificationApiError";
+import { apiToken } from "./apiToken";
 
 export const ClassificationResultStatus = z.enum([
   "SUBMITTED",
@@ -37,7 +38,7 @@ export async function getClassificationResult(
     method: "GET",
     headers: {
       "Content-Type": "application/json",
-      "x-token": import.meta.env.VITE_BACKEND_API_TOKEN,
+      "x-token": apiToken,
     },
   });
 
