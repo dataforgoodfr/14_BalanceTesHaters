@@ -1,5 +1,8 @@
 import "@/styles/global.css";
 import type { Preview } from "@storybook/react-vite";
+import { sb } from "storybook/test";
+
+sb.mock(import("../src/shared/extension-urls.ts"));
 
 const preview: Preview = {
   parameters: {
