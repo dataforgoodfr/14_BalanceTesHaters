@@ -2,8 +2,7 @@ import argparse
 import os
 from dotenv import load_dotenv
 
-from balanceteshaters.classification.category import AnnotatedCategory
-from balanceteshaters.services.annotation import AnnotationService
+from balanceteshaters.services.annotation import AnnotatedCategory, AnnotationService
 from balanceteshaters.services.nocodb import NocoDBService
 
 load_dotenv()
