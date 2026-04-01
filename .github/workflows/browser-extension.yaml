@@ -54,6 +54,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Build extension zip
+        env:
+          # Inject the VITE_BACKEND_API_TOKEN.
+         VITE_BACKEND_API_TOKEN: ${{ secrets.VITE_BACKEND_API_TOKEN }}
         run: pnpm zip
 
       - name: Upload build artifacts
