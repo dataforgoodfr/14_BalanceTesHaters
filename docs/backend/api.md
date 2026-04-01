@@ -1,3 +1,13 @@
+# Authentification
+
+L'API nécessite un API tokentransmis en header : 
+`x-token: <token value`
+
+*Note :*
+Ce jeton n'est pas strictement un secret car il est intégré dans les artefacts de l'extension, mais c'est un moyen simple de réduire l'utilisation d'API en dehors de l'extension aux personnes ayant connaissance de l'extension...
+Nous pourrons faire évoluer cela à l'avenir si on met en place une authentification des utilisateurs de l'extension.
+Voir https://mattermost.services.dataforgood.fr/data-for-good/pl/4mc7gjz4opyybqahrm3nr4cyny pour plus de contexte.
+
 # `POST /classification`
 
 Soumet au backend un Job de classification d'un post et de ses commentaires
@@ -131,3 +141,4 @@ Exemple:
     }
 }
 ```
+
