@@ -35,13 +35,17 @@ export function extractIsoDateFromPostInfoTooltipText(
 }
 
 function parseDateFragment(dateFragment: string): Date {
+  const cleanedFragment = dateFragment
+    .replace(/^\s*(Premiered|Sortie le)\s*/i, "")
+    .trim();
+
   const parseConfigs = [
     { locale: enUS, format: "MMM dd, yyyy" },
     { locale: fr, format: "dd MMMM yyyy" },
   ];
   for (const parseConfig of parseConfigs) {
     const referenceDate = new Date();
-    const date = parse(dateFragment.trim(), parseConfig.format, referenceDate, {
+    const date = parse(cleanedFragment, parseConfig.format, referenceDate, {
       locale: parseConfig.locale,
     });
     if (!isNaN(date.getTime())) {
