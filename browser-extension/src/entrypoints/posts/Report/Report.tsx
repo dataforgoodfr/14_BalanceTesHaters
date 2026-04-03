@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { MoveLeft, TriangleAlert } from "lucide-react";
+import { MoveLeft, TriangleAlert, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatAnalysisDate,
@@ -16,16 +16,37 @@ import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard copy";
-import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
+import { PostCommentWithId } from "../Posts/CommentsTable";
 import PostSummary from "../Shared/PostSummary";
-import { Post } from "@/shared/model/post/Post";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
+import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function Report({
   reportQueryData,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
 }>) {
+  const [screenshotDialogOpen, setScreenshotDialogOpen] = useState(false);
+
+  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(
+    null,
+  );
+
   const queryKey = React.useMemo(
     () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
     [reportQueryData?.socialNetworkList?.join(",")],
@@ -38,6 +59,11 @@ function Report({
 
   const numberOfHatefulComments = reportQueryData?.postCommentList?.length ?? 0;
   const numberOfComments = data?.flatMap((p) => p.comments).length ?? 0;
+
+  const openScreenshotDialog = (screenshot: string) => {
+    setSelectedScreenshot(screenshot);
+    setScreenshotDialogOpen(true);
+  };
 
   const groupedCommentsByPost = React.useMemo(() => {
     const comments = reportQueryData?.postCommentList;
@@ -152,16 +178,72 @@ function Report({
               <Card className="p-5">
                 <PostSummary post={post} />
               </Card>
-              {/* <CommentsTable
-        commentList={commentList}
-        defaultSelectedCommentIdList={commentList.map((comment) => comment.id)}
-        onSubmit={() => {}}
-      /> */}
-              <span className="self-start">{index + 1}/{reportQueryData?.postIdList.length} publications</span>
+
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader className="bg-gray-200">
+                    <TableRow>
+                      <TableHead>Auteur</TableHead>
+                      <TableHead>Capture du commentaire</TableHead>
+                      <TableHead>Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {commentList?.map((comment) => (
+                      <TableRow key={comment.id}>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <UserRound className="bg-gray-200 rounded-full" />
+                            {comment.author.name}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <img
+                            src={buildDataUrl(
+                              comment.screenshotData,
+                              PNG_MIME_TYPE,
+                            )}
+                            alt="Screenshot"
+                            className="cursor-pointer h-full max-h-full!"
+                            onClick={() =>
+                              openScreenshotDialog(comment.screenshotData)
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <DisplayPublicationDate date={comment.publishedAt} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <span className="self-start">
+                {index + 1}/{reportQueryData?.postIdList.length} publications
+              </span>
             </div>
           );
         })}
       </div>
+
+      {/* Screenshot Dialog */}
+      <Dialog
+        open={screenshotDialogOpen}
+        onOpenChange={setScreenshotDialogOpen}
+      >
+        <DialogContent className="max-w-fit!">
+          <DialogHeader>
+            <DialogTitle>Screenshot</DialogTitle>
+          </DialogHeader>
+          {selectedScreenshot && (
+            <img
+              src={buildDataUrl(selectedScreenshot, PNG_MIME_TYPE)}
+              alt="Screenshot"
+              className="max-w-fit max-h-fit"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

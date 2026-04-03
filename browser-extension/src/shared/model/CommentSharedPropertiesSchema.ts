@@ -15,6 +15,8 @@ export const CommentSharedPropertiesSchema = z.object({
   classification: z.string().array().optional(),
   /** ISO date time of classification */
   classifiedAt: z.iso.datetime().optional(),
+
+  screenshotData: z.base64(),
 });
 
 export type CommentSharedProperties = z.infer<
