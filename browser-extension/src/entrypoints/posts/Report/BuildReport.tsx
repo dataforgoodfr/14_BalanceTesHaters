@@ -7,6 +7,7 @@ import Step3Comments from "./Step3Comments";
 import { PostCommentWithId } from "../Posts/CommentsTable";
 import Step4Organization from "./Step4Organization";
 import { StepperActions, StepperBanner } from "./StepperComponents";
+import Report from "./Report";
 
 export enum ReportOrganizationType {
   BY_PUBLICATION = "BY_PUBLICATION",
@@ -46,6 +47,35 @@ export function BuildReport() {
   const [reportQueryData, setReportQueryData] =
     React.useState<ReportQueryData>();
 
+  const [displayReport, setDisplayReport] = React.useState<boolean>(false);
+
+  return (
+    <div className="p-4 flex flex-col gap-6 w-full mx-auto">
+      {!displayReport && (
+        <BthStepper
+          reportQueryData={reportQueryData}
+          setReportQueryData={setReportQueryData}
+          setDisplayReport={setDisplayReport}
+        />
+      )}
+      {displayReport && (
+        <Report reportQueryData={reportQueryData} />
+      )}
+    </div>
+  );
+}
+
+const BthStepper = ({
+  setReportQueryData,
+  reportQueryData,
+  setDisplayReport,
+}: {
+  setReportQueryData: React.Dispatch<
+    React.SetStateAction<ReportQueryData | undefined>
+  >;
+  reportQueryData: ReportQueryData | undefined;
+  setDisplayReport: (displayReport: boolean) => void;
+}) => {
   const setSocialNetworkList = (socialNetworkList: string[]) => {
     setReportQueryData(() => ({
       socialNetworkList,
@@ -85,9 +115,7 @@ export function BuildReport() {
   };
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-full mx-auto">
-      {/* Header */}
-      <div className="sticky top-0"></div>
+    <>
       <p>
         Suivez les 4 étapes pour constituer un rapport et exportez-le dans un
         format souhaité.
@@ -104,21 +132,22 @@ export function BuildReport() {
             setPostIdList={setPostIdList}
             setCommentList={setCommentList}
             setReportOrganizationType={setReportOrganizationType}
+            setDisplayReport={setDisplayReport}
             reportQueryData={reportQueryData}
           />
           <StepperActions />
         </Stepper.Root>
       </Scoped>
-    </div>
+    </>
   );
-}
-
+};
 
 const StepContent = ({
   setSocialNetworkList,
   setPostIdList,
   setCommentList,
   setReportOrganizationType,
+  setDisplayReport,
   reportQueryData,
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
@@ -127,6 +156,7 @@ const StepContent = ({
   setReportOrganizationType: (
     reportOrgainzationType: ReportOrganizationType,
   ) => void;
+  setDisplayReport: (displayReport: boolean) => void;
   reportQueryData: ReportQueryData | undefined;
 }) => {
   const stepper = useStepper();
@@ -154,9 +184,9 @@ const StepContent = ({
         <Step4Organization
           reportQueryData={reportQueryData}
           setReportOrganizationType={setReportOrganizationType}
+          setDisplayReport={setDisplayReport}
         />
       ))}
     </div>
   );
 };
-

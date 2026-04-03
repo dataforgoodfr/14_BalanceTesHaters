@@ -11,11 +11,13 @@ import { getFormId } from "./StepperComponents";
 
 function Step4Organization({
   setReportOrganizationType,
+  setDisplayReport
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
   setReportOrganizationType: (
     reportOrganizationType: ReportOrganizationType,
   ) => void;
+  setDisplayReport: (displayReport: boolean) => void;
 }>) {
   const stepper = useStepper();
 
@@ -47,7 +49,7 @@ function Step4Organization({
           setReportOrganizationType(
             form.state.values.reportOrganizationType as ReportOrganizationType,
           );
-          alert("Génération du rapport - En cours de développement");
+          setDisplayReport(true);
         }}
         className="space-y-6 p-4 flex justify-center"
       >

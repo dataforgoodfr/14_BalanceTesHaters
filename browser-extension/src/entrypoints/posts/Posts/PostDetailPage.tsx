@@ -1,20 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  SocialNetwork,
-  SocialNetworkName,
-} from "@/shared/model/SocialNetworkName";
+import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
 import { MoveLeft } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import KpiCard from "../Shared/KpiCard";
-import { isCommentHateful } from "@/shared/utils/post-util";
-import { getPercentage } from "@/shared/utils/maths";
+import KpiCard from "../Shared/KpiCards/KpiCard";
+import {
+  formatAnalysisDate,
+  getSocialNetworkName,
+  isCommentHateful,
+} from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
-import CommentsTable from "./CommentsTable";
+import CommentsTable, { PostCommentWithId } from "./CommentsTable";
+import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
+import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard copy";
+import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 
 function PostDetailPage() {
   const params = useParams();
@@ -27,25 +30,21 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  let percentageOfHatefulComments = 0;
   let numberOfHatefulComments = 0;
-  let numberOfHatefulAuthors = 0;
 
   const allComments = post?.comments || [];
   const hatefulComments = allComments
     .filter((c) => isCommentHateful(c))
     .map((comment, i) => {
-      return { ...comment, id: i.toString() };
+      return {
+        ...comment,
+        id: i.toString(),
+        postKey: `${post?.postId}-${post?.socialNetwork}`,
+      } as PostCommentWithId;
     });
 
   if (allComments.length !== 0) {
     numberOfHatefulComments = hatefulComments.length;
-    percentageOfHatefulComments = getPercentage(
-      numberOfHatefulComments,
-      allComments.length,
-    );
-    numberOfHatefulAuthors = new Set(hatefulComments.map((c) => c.author.name))
-      .size;
   }
 
   return (
@@ -96,24 +95,20 @@ function PostDetailPage() {
             <div className="flex flex-col gap-3">
               <div className="flex">
                 <div className="flex gap-4 justify-between">
-                  <KpiCard
-                    title="Nombre de commentaires haineux"
-                    value={`${numberOfHatefulComments.toString()}/${allComments.length.toString()}`}
-                    isWorkInProgress={false}
+                  <NumberHatefulCommentsKpiCard
+                    numberOfHatefulComments={numberOfHatefulComments}
+                    numberOfComments={allComments.length}
                     isLoading={isLoading}
-                  ></KpiCard>
-                  <KpiCard
-                    title="Part des commentaires haineux"
-                    value={percentageOfHatefulComments.toFixed(2) + "%"}
-                    isWorkInProgress={false}
+                  />
+                  <PercentageHatefulCommentsKpiCard
+                    numberOfHatefulComments={numberOfHatefulComments}
+                    numberOfComments={allComments.length}
                     isLoading={isLoading}
-                  ></KpiCard>
-                  <KpiCard
-                    title="Nombre d'auteurs des commentaires haineux"
-                    value={numberOfHatefulAuthors.toString()}
-                    isWorkInProgress={false}
+                  />
+                  <NumberHatefulAuhorsKpiCard
+                    hatefulCommentList={hatefulComments}
                     isLoading={isLoading}
-                  ></KpiCard>
+                  />
                   <KpiCard
                     title="Gravité"
                     value="Modérée"
@@ -150,28 +145,3 @@ function PostDetailPage() {
 }
 
 export default PostDetailPage;
-
-function formatAnalysisDate(isoDateTime: string): string {
-  const date: string = new Date(isoDateTime).toLocaleDateString(undefined, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const time: string = new Date(isoDateTime).toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-  return `${date} à ${time}`;
-}
-
-function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
-  switch (socialNetwork) {
-    case SocialNetwork.YouTube:
-      return "YouTube";
-    case SocialNetwork.Instagram:
-      return "Instagram";
-    default:
-      return "";
-  }
-}

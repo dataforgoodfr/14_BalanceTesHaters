@@ -62,6 +62,7 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
  */
 export type PostCommentWithId = PostComment & {
   id: string;
+  postKey: string;
 };
 
 export default function CommentsTable({
