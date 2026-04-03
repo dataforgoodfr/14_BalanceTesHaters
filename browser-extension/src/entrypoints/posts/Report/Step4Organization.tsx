@@ -11,7 +11,7 @@ import { getFormId } from "./StepperComponents";
 
 function Step4Organization({
   setReportOrganizationType,
-  setDisplayReport
+  setDisplayReport,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
   setReportOrganizationType: (
@@ -33,7 +33,10 @@ function Step4Organization({
       id: ReportOrganizationType.BY_PUBLICATION.toString(),
       label: "Par publication (par défaut)",
     },
-    { id: ReportOrganizationType.BY_AUTHOR.toString(), label: "Par auteur (en cours de développement)" },
+    {
+      id: ReportOrganizationType.BY_AUTHOR.toString(),
+      label: "Par auteur (en cours de développement)",
+    },
   ];
 
   return (

@@ -12,12 +12,11 @@ export default function PercentageHatefulCommentsKpiCard({
   numberOfComments,
   isLoading,
 }: Readonly<PercentageHatefulCommentsKpiCardProperties>) {
-
   const percentageOfHatefulComments = getPercentage(
-        numberOfHatefulComments,
-        numberOfComments,
-      );
-      
+    numberOfHatefulComments,
+    numberOfComments,
+  );
+
   return (
     <KpiCard
       title="Part des commentaires haineux"
