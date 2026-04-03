@@ -1,6 +1,6 @@
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
-import { getFormId, ReportQueryData, useStepper } from "./BuildReport";
+import { ReportQueryData, useStepper } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { Spinner } from "@/components/ui/spinner";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import PostSummary from "../Shared/PostSummary";
 import { useForm } from "@tanstack/react-form";
+import { getFormId } from "./StepperComponents";
 
 function Step2Posts({
   reportQueryData,
