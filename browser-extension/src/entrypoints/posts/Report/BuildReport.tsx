@@ -58,9 +58,7 @@ export function BuildReport() {
           setDisplayReport={setDisplayReport}
         />
       )}
-      {displayReport && (
-        <Report reportQueryData={reportQueryData} />
-      )}
+      {displayReport && <Report reportQueryData={reportQueryData} />}
     </div>
   );
 }
