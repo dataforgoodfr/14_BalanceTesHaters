@@ -33,7 +33,7 @@ function Step4Organization({
       id: ReportOrganizationType.BY_PUBLICATION.toString(),
       label: "Par publication (par défaut)",
     },
-    { id: ReportOrganizationType.BY_AUTHOR.toString(), label: "Par auteur" },
+    { id: ReportOrganizationType.BY_AUTHOR.toString(), label: "Par auteur (en cours de développement)" },
   ];
 
   return (
