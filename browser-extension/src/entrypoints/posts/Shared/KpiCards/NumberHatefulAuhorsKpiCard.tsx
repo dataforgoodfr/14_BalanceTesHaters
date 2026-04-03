@@ -16,7 +16,7 @@ export default function NumberHatefulAuhorsKpiCard({
 
   return (
     <KpiCard
-      title="Nombre d'auteurs des commentaires haineux"
+      title="Auteurs de commentaires malveillants"
       value={numberOfHatefulAuthors.toString()}
       isWorkInProgress={false}
       isLoading={isLoading}
