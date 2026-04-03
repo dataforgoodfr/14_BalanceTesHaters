@@ -1,9 +1,10 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
-import { useStepper, getFormId, ReportQueryData } from "./BuildReport"; // or wherever the export is
+import { useStepper, ReportQueryData } from "./BuildReport"; // or wherever the export is
 import { useForm } from "@tanstack/react-form";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { getFormId } from "./StepperComponents";
 
 function Step1Plateforme({
   reportQueryData,
