@@ -13,7 +13,6 @@ import {
   captureFullPageScreenshot,
   FullPageScreenshotResult,
 } from "../../shared/native-screenshoting/cs/page-screenshot";
-import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
@@ -22,6 +21,7 @@ import { ProgressManager } from "@/shared/scraping-content-script/ProgressManage
 
 import { withRetry } from "../../shared/utils/withRetry";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { parseCommentPublishedTime } from "./parseCommentPublishedTime";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 
 /**
@@ -628,8 +628,8 @@ export class YoutubePostNativeScrapper {
       "#published-time-text",
       HTMLElement,
     );
-    const publishedAtText = publishedTimeElement.innerText;
-    const publishedAt = new PublicationDateTextParsing(publishedAtText).parse();
+    const publishedTimeText = publishedTimeElement.innerText;
+    const publishedAt = parseCommentPublishedTime(publishedTimeText);
     this.debug(`publishedAtInfo: ${JSON.stringify(publishedAt)}`);
 
     const commentHref = this.scrapingSupport.selectOrThrow(
