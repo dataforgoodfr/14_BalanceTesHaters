@@ -13,7 +13,7 @@ export default function NumberHatefulCommentsKpiCard({
 }: Readonly<NumberHatefulCommentsKpiCardProperties>) {
   return (
     <KpiCard
-      title="Nombre de commentaires haineux"
+      title="Nombre de commentaires malveillants"
       value={`${numberOfHatefulComments.toString()}/${numberOfComments.toString()}`}
       isWorkInProgress={false}
       isLoading={isLoading}

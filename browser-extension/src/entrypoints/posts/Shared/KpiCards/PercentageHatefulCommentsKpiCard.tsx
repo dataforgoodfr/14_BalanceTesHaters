@@ -19,7 +19,7 @@ export default function PercentageHatefulCommentsKpiCard({
 
   return (
     <KpiCard
-      title="Part des commentaires haineux"
+      title="Part des commentaires malveillants"
       value={`${percentageOfHatefulComments.toFixed(2)}%`}
       isWorkInProgress={false}
       isLoading={isLoading}
