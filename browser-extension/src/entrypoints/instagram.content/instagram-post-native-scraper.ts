@@ -9,8 +9,8 @@ import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
 type InstagramPostElements = {
-    channelHeader: HTMLElement;
-    scrollableArea: HTMLElement;
+  channelHeader: HTMLElement;
+  scrollableArea: HTMLElement;
 };
 
 /**
@@ -18,349 +18,348 @@ type InstagramPostElements = {
  * In that case there is nothing to scrap => failure.
  */
 type CommentThread =
-    | { scrapingStatus: "success"; comment: CommentSnapshot }
-    | { scrapingStatus: "failure"; message: string };
+  | { scrapingStatus: "success"; comment: CommentSnapshot }
+  | { scrapingStatus: "failure"; message: string };
 
 export class InstagramPostNativeScraper {
-    public constructor(private scrapingSupport: ScrapingSupport) { }
+  public constructor(private scrapingSupport: ScrapingSupport) {}
 
-    private debug(...data: unknown[]) {
-        console.debug(LOG_PREFIX, ...data);
+  private debug(...data: unknown[]) {
+    console.debug(LOG_PREFIX, ...data);
+  }
+
+  async scrapPost(): Promise<PostSnapshot> {
+    this.debug("Start Scraping... ", document.URL);
+
+    const url = document.URL;
+    const pageInfo = instagramPageInfo(url);
+    if (!pageInfo.isScrapablePost) {
+      throw new Error("Not on a scrapable page");
     }
 
-    async scrapPost(): Promise<PostSnapshot> {
-        this.debug("Start Scraping... ", document.URL);
+    const scrapedAt = currentIsoDate();
+    const postElements = this.selectPostElements();
 
-        const url = document.URL;
-        const pageInfo = instagramPageInfo(url);
-        if (!pageInfo.isScrapablePost) {
-            throw new Error("Not on a scrapable page");
-        }
+    this.debug("Scraping author...");
+    const author = this.scrapPostAuthor(postElements.channelHeader);
+    this.debug(`author.name: ${author.name}`);
 
-        const scrapedAt = currentIsoDate();
-        const postElements = this.selectPostElements();
+    this.debug("Scraping textContent...");
+    const textContent = this.scrapPostTextContent(postElements.scrollableArea);
+    this.debug(`textContent: ${textContent.replaceAll("\n", "")}`);
 
-        this.debug("Scraping author...");
-        const author = this.scrapPostAuthor(postElements.channelHeader);
-        this.debug(`author.name: ${author.name}`);
+    this.debug("Scraping publishedAt...");
+    const publishedAt = this.scrapPostPublishedAt(postElements.scrollableArea);
+    this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
 
-        this.debug("Scraping textContent...");
-        const textContent = this.scrapPostTextContent(postElements.scrollableArea);
-        this.debug(`textContent: ${textContent.replaceAll("\n", "")}`);
+    this.debug("Scraping comments...");
+    const comments: CommentSnapshot[] = await this.scrapPostComments(
+      postElements.scrollableArea,
+    );
+    this.debug(`${comments.length} comments`);
 
-        this.debug("Scraping publishedAt...");
-        const publishedAt = this.scrapPostPublishedAt(postElements.scrollableArea);
-        this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
+    return {
+      id: crypto.randomUUID(),
+      url,
+      publishedAt,
+      scrapedAt,
+      author,
+      comments,
+      postId: pageInfo.postId,
+      socialNetwork: SocialNetwork.Instagram,
+      textContent,
+    };
+  }
 
-        this.debug("Scraping comments...");
-        const comments: CommentSnapshot[] = await this.scrapPostComments(
-            postElements.scrollableArea,
-        );
-        this.debug(`${comments.length} comments`);
+  private selectPostElements(): InstagramPostElements {
+    const mainContainer = this.scrapingSupport.selectOrThrow(
+      document,
+      "main>div>div>div",
+      HTMLElement,
+    );
 
-        return {
-            id: crypto.randomUUID(),
-            url,
-            publishedAt,
-            scrapedAt,
-            author,
-            comments,
-            postId: pageInfo.postId,
-            socialNetwork: SocialNetwork.Instagram,
-            textContent,
-        };
+    const socialContainer = this.scrapingSupport.selectOrThrow(
+      mainContainer,
+      ":scope>div:nth-of-type(2)>div",
+      HTMLElement,
+    );
+
+    const channelHeader = this.scrapingSupport.selectOrThrow(
+      socialContainer,
+      ":scope>div:nth-of-type(1)",
+      HTMLElement,
+    );
+
+    const scrollableArea = this.scrapingSupport.selectOrThrow(
+      socialContainer,
+      ":scope>div:nth-of-type(2)",
+      HTMLElement,
+    );
+
+    return {
+      channelHeader,
+      scrollableArea,
+    };
+  }
+
+  private scrapPostAuthor(channelHeader: HTMLElement): Author {
+    const channelElement = this.scrapingSupport.selectOrThrow(
+      channelHeader,
+      ":scope a",
+      HTMLElement,
+    );
+    const channelElementHref = channelElement.getAttribute("href")!;
+    const channelName = this.scrapingSupport.selectOrThrow(
+      channelElement,
+      ":scope span",
+      HTMLElement,
+    ).textContent;
+    const channelUrl = new URL(channelElementHref, INSTAGRAM_URL).toString();
+
+    return {
+      name: channelName,
+      accountHref: channelUrl,
+    };
+  }
+
+  private scrapPostTextContent(element: HTMLElement): string {
+    const textContentElement = this.scrapingSupport.selectOrThrow(
+      element,
+      ":scope span>div>span",
+      HTMLElement,
+    );
+    return textContentElement.textContent;
+  }
+
+  private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
+    const timeElement = this.scrapingSupport.selectOrThrow(
+      element,
+      ":scope time",
+      HTMLElement,
+    );
+    return {
+      type: "absolute",
+      date: timeElement.getAttribute("datetime")!,
+    };
+  }
+
+  private async scrapPostComments(
+    element: HTMLElement,
+  ): Promise<CommentSnapshot[]> {
+    const commentsContainer = this.scrapingSupport.selectOrThrow(
+      element,
+      ":scope>div>div:nth-of-type(3)",
+      HTMLElement,
+    );
+    commentsContainer.scrollIntoView();
+
+    this.debug("Loading all comment threads...");
+    await this.loadAllTopLevelComments(commentsContainer);
+
+    this.debug("Expanding all replies...");
+    await this.loadAllReplies(commentsContainer);
+
+    const comments = this.scrapCommentThreads(commentsContainer);
+    this.debug("Comments metadata:", comments);
+
+    return comments;
+  }
+
+  private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
+    let spinner = this.selectSpinner(commentsContainer);
+    // TODO Improve this function.
+    // Make sure this doesn't result in an infinite loop because an error. Define a timeout.
+    // Make sure every comment is scraped.
+    // I think it should not be that different from the processing of the youtube scraper.
+    while (spinner) {
+      await this.scrapingSupport.resumeHostPage(); // throws if aborted
+
+      spinner.scrollIntoView();
+      // Wait a bit to let page load stuff
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      spinner = this.selectSpinner(commentsContainer);
+    }
+  }
+
+  private async loadAllReplies(commentsContainer: HTMLElement) {
+    const repliesThreadElements = this.scrapingSupport.selectAll(
+      commentsContainer,
+      ":scope>div>div:nth-of-type(2)",
+      HTMLElement,
+    );
+
+    for (const replyThreadElement of repliesThreadElements) {
+      const expandRepliesElement = this.scrapingSupport.selectOrThrow(
+        replyThreadElement,
+        ":scope>div>div>span",
+        HTMLElement,
+      );
+      expandRepliesElement.scrollIntoView();
+      expandRepliesElement.click();
     }
 
-    private selectPostElements(): InstagramPostElements {
-        const mainContainer = this.scrapingSupport.selectOrThrow(
-            document,
-            "main>div>div>div",
-            HTMLElement,
-        );
+    await Promise.all(
+      repliesThreadElements.map((replyThreadElement) =>
+        this.loadMoreReplies(replyThreadElement),
+      ),
+    );
+  }
 
-        const socialContainer = this.scrapingSupport.selectOrThrow(
-            mainContainer,
-            ":scope>div:nth-of-type(2)>div",
-            HTMLElement,
-        );
+  private async loadMoreReplies(replyThreadElement: HTMLElement) {
+    for (;;) {
+      const waitForSelectorResult = await this.scrapingSupport.waitForSelector(
+        replyThreadElement,
+        ":scope>div:nth-of-type(2)>div>span",
+        HTMLElement,
+        {
+          timeout: 2000,
+        },
+      );
+      if (waitForSelectorResult.status === "failure") {
+        return;
+      }
+      const nextLoadMoreMessageElement = waitForSelectorResult.element;
+      nextLoadMoreMessageElement.scrollIntoView();
+      nextLoadMoreMessageElement.click();
+    }
+  }
 
-        const channelHeader = this.scrapingSupport.selectOrThrow(
-            socialContainer,
-            ":scope>div:nth-of-type(1)",
-            HTMLElement,
-        );
+  private selectSpinner(
+    commentsContainer: HTMLElement,
+  ): HTMLElement | undefined {
+    return this.scrapingSupport.select(
+      commentsContainer,
+      ":scope [role=progressbar]",
+      HTMLElement,
+    );
+  }
 
-        const scrollableArea = this.scrapingSupport.selectOrThrow(
-            socialContainer,
-            ":scope>div:nth-of-type(2)",
-            HTMLElement,
-        );
+  private scrapCommentThreads(
+    commentsContainer: HTMLElement,
+  ): CommentSnapshot[] {
+    const commentThreads: CommentThread[] = [];
+    const commentThreadContainers = this.scrapingSupport.selectAll(
+      commentsContainer,
+      ":scope>div",
+      HTMLElement,
+    );
 
-        return {
-            channelHeader,
-            scrollableArea,
-        };
+    for (const commentThread of commentThreadContainers) {
+      commentThreads.push(this.scrapCommentThread(commentThread));
     }
 
-    private scrapPostAuthor(channelHeader: HTMLElement): Author {
-        const channelElement = this.scrapingSupport.selectOrThrow(
-            channelHeader,
-            ":scope a",
-            HTMLElement,
-        );
-        const channelElementHref = channelElement.getAttribute("href")!;
-        const channelName = this.scrapingSupport.selectOrThrow(
-            channelElement,
-            ":scope span",
-            HTMLElement,
-        ).textContent;
-        const channelUrl = new URL(channelElementHref, INSTAGRAM_URL).toString();
+    return commentThreads
+      .filter((thread) => thread.scrapingStatus === "success")
+      .map((thread) => thread.comment);
+  }
 
-        return {
-            name: channelName,
-            accountHref: channelUrl,
-        };
+  private scrapCommentThread(commentElement: HTMLElement): CommentThread {
+    const commentThreadContentElement = this.scrapingSupport.selectOrThrow(
+      commentElement,
+      ":scope>div",
+      HTMLElement,
+    );
+
+    const commentThread = this.scrapCommentThreadContent(
+      commentThreadContentElement,
+    );
+
+    if (commentThread.scrapingStatus === "failure") {
+      return commentThread;
     }
 
-    private scrapPostTextContent(element: HTMLElement): string {
-        const textContentElement = this.scrapingSupport.selectOrThrow(
-            element,
-            ":scope span>div>span",
-            HTMLElement,
-        );
-        return textContentElement.textContent;
+    const repliesContainer = this.scrapingSupport.select(
+      commentElement,
+      ":scope>div:nth-of-type(2)>ul",
+      HTMLElement,
+    );
+
+    if (repliesContainer) {
+      commentThread.comment.replies =
+        this.scrapCommentReplies(repliesContainer);
     }
 
-    private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
-        const timeElement = this.scrapingSupport.selectOrThrow(
-            element,
-            ":scope time",
-            HTMLElement,
-        );
-        return {
-            type: "absolute",
-            date: timeElement.getAttribute("datetime")!,
-        };
+    return commentThread;
+  }
+
+  private scrapCommentReplies(
+    repliesContainer: HTMLElement,
+  ): CommentSnapshot[] {
+    const replies: CommentThread[] = [];
+    const repliesElements = this.scrapingSupport.selectAll(
+      repliesContainer,
+      ":scope>div",
+      HTMLElement,
+    );
+
+    for (const reply of repliesElements) {
+      replies.push(this.scrapCommentThreadContent(reply));
     }
 
-    private async scrapPostComments(
-        element: HTMLElement,
-    ): Promise<CommentSnapshot[]> {
-        const commentsContainer = this.scrapingSupport.selectOrThrow(
-            element,
-            ":scope>div>div:nth-of-type(3)",
-            HTMLElement,
-        );
-        commentsContainer.scrollIntoView();
+    return replies
+      .filter((thread) => thread.scrapingStatus === "success")
+      .map((thread) => thread.comment);
+  }
 
-        this.debug("Loading all comment threads...");
-        await this.loadAllTopLevelComments(commentsContainer);
+  private scrapCommentThreadContent(
+    commentThreadContentElement: HTMLElement,
+  ): CommentThread {
+    const baseElement = this.scrapingSupport.select(
+      commentThreadContentElement,
+      ":scope>div>div:nth-of-type(2)>div>div",
+      HTMLElement,
+    );
 
-        this.debug("Expanding all replies...");
-        await this.loadAllReplies(commentsContainer);
-
-        const comments = this.scrapCommentThreads(commentsContainer);
-        this.debug("Comments metadata:", comments);
-
-        return comments;
+    if (!baseElement) {
+      return {
+        scrapingStatus: "failure",
+        message: "Could not scrap element " + baseElement,
+      };
     }
 
-    private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
-        let spinner = this.selectSpinner(commentsContainer);
-        // TODO Improve this function.
-        // Make sure this doesn't result in an infinite loop because an error. Define a timeout.
-        // Make sure every comment is scraped.
-        // I think it should not be that different from the processing of the youtube scraper.
-        while (spinner) {
-            await this.scrapingSupport.resumeHostPage(); // throws if aborted
+    // TODO Scrap media such as images. For now, skip comments that uses media.
+    const image = this.scrapingSupport.select(
+      baseElement,
+      ":scope img",
+      HTMLElement,
+    );
 
-            spinner.scrollIntoView();
-            // Wait a bit to let page load stuff
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            spinner = this.selectSpinner(commentsContainer);
-        }
+    if (image) {
+      return {
+        scrapingStatus: "failure",
+        message: "Scraping images comments is not supported yet",
+      };
     }
 
-    private async loadAllReplies(commentsContainer: HTMLElement) {
-        const repliesThreadElements = this.scrapingSupport.selectAll(
-            commentsContainer,
-            ":scope>div>div:nth-of-type(2)",
-            HTMLElement,
-        );
+    const postContent = this.scrapingSupport.select(
+      baseElement,
+      ":scope>div>div:nth-of-type(2)>span",
+      HTMLElement,
+    );
 
-        for (const replyThreadElement of repliesThreadElements) {
-            const expandRepliesElement = this.scrapingSupport.selectOrThrow(
-                replyThreadElement,
-                ":scope>div>div>span",
-                HTMLElement,
-            );
-            expandRepliesElement.scrollIntoView();
-            expandRepliesElement.click();
-        }
+    const channelHeader = this.scrapingSupport.selectOrThrow(
+      baseElement,
+      ":scope>div>div",
+      HTMLElement,
+    );
 
-        await Promise.all(
-            repliesThreadElements.map((replyThreadElement) =>
-                this.loadMoreReplies(replyThreadElement),
-            ),
-        );
-    }
+    const author = this.scrapPostAuthor(channelHeader);
+    const scrapedAt = currentIsoDate();
+    const publishedAt = this.scrapPostPublishedAt(channelHeader);
 
-    private async loadMoreReplies(replyThreadElement: HTMLElement) {
-        for (; ;) {
-            const waitForSelectorResult = await this.scrapingSupport.waitForSelector(
-                replyThreadElement,
-                ":scope>div:nth-of-type(2)>div>span",
-                HTMLElement,
-                {
-                    timeout: 2000,
-                },
-            );
-            if (waitForSelectorResult.status === "failure") {
-                return;
-            }
-            const nextLoadMoreMessageElement = waitForSelectorResult.element;
-            nextLoadMoreMessageElement.scrollIntoView();
-            nextLoadMoreMessageElement.click();
-        }
-    }
-
-    private selectSpinner(
-        commentsContainer: HTMLElement,
-    ): HTMLElement | undefined {
-        return this.scrapingSupport.select(
-            commentsContainer,
-            ":scope [role=progressbar]",
-            HTMLElement,
-        );
-    }
-
-    private scrapCommentThreads(
-        commentsContainer: HTMLElement,
-    ): CommentSnapshot[] {
-        const commentThreads: CommentThread[] = [];
-        const commentThreadContainers = this.scrapingSupport.selectAll(
-            commentsContainer,
-            ":scope>div",
-            HTMLElement,
-        );
-
-        for (const commentThread of commentThreadContainers) {
-            commentThreads.push(this.scrapCommentThread(commentThread));
-        }
-
-        return commentThreads
-            .filter((thread) => thread.scrapingStatus === "success")
-            .map((thread) => thread.comment);
-    }
-
-    private scrapCommentThread(commentElement: HTMLElement): CommentThread {
-        const commentThreadContentElement = this.scrapingSupport.selectOrThrow(
-            commentElement,
-            ":scope>div",
-            HTMLElement,
-        );
-
-        const commentThread = this.scrapCommentThreadContent(
-            commentThreadContentElement,
-        );
-
-        if (commentThread.scrapingStatus === "failure") {
-            return commentThread;
-        }
-
-        const repliesContainer = this.scrapingSupport.select(
-            commentElement,
-            ":scope>div:nth-of-type(2)>ul",
-            HTMLElement,
-        );
-
-        if (repliesContainer) {
-            commentThread.comment.replies =
-                this.scrapCommentReplies(repliesContainer);
-        }
-
-        return commentThread;
-    }
-
-    private scrapCommentReplies(
-        repliesContainer: HTMLElement,
-    ): CommentSnapshot[] {
-        const replies: CommentThread[] = [];
-        const repliesElements = this.scrapingSupport.selectAll(
-            repliesContainer,
-            ":scope>div",
-            HTMLElement,
-        );
-
-        for (const reply of repliesElements) {
-            replies.push(this.scrapCommentThreadContent(reply));
-        }
-
-        return replies
-            .filter((thread) => thread.scrapingStatus === "success")
-            .map((thread) => thread.comment);
-    }
-
-    private scrapCommentThreadContent(
-        commentThreadContentElement: HTMLElement,
-    ): CommentThread {
-        const baseElement = this.scrapingSupport.select(
-            commentThreadContentElement,
-            ":scope>div>div:nth-of-type(2)>div>div",
-            HTMLElement,
-        );
-
-        if (!baseElement) {
-            return {
-                scrapingStatus: "failure",
-                message: "Could not scrap element " + baseElement,
-            };
-        }
-
-        // TODO Scrap media such as images. For now, skip comments that uses media.
-        const image = this.scrapingSupport.select(
-            baseElement,
-            ":scope img",
-            HTMLElement,
-        );
-
-        if (image) {
-            return {
-                scrapingStatus: "failure",
-                message: "Scraping images comments is not supported yet",
-            };
-        }
-
-        const postContent = this.scrapingSupport.select(
-            baseElement,
-            ":scope>div>div:nth-of-type(2)>span",
-            HTMLElement,
-        );
-
-        const channelHeader = this.scrapingSupport.selectOrThrow(
-            baseElement,
-            ":scope>div>div",
-            HTMLElement,
-        );
-
-        const author = this.scrapPostAuthor(channelHeader);
-        const scrapedAt = currentIsoDate();
-        const publishedAt = this.scrapPostPublishedAt(channelHeader);
-
-        return {
-            scrapingStatus: "success",
-            comment: {
-                id: crypto.randomUUID(),
-                author,
-                textContent: postContent?.textContent ?? "",
-                publishedAt: publishedAt,
-                // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
-                screenshotData: "",
-                scrapedAt,
-                replies: [],
-                nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
-            },
-        };
-    }
-
+    return {
+      scrapingStatus: "success",
+      comment: {
+        id: crypto.randomUUID(),
+        author,
+        textContent: postContent?.textContent ?? "",
+        publishedAt: publishedAt,
+        // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
+        screenshotData: "",
+        scrapedAt,
+        replies: [],
+        nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
+      },
+    };
+  }
 }
