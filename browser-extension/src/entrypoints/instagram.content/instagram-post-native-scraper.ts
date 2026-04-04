@@ -364,22 +364,4 @@ export class InstagramPostNativeScraper {
         };
     }
 
-    private scrapCommentReplies(
-        repliesContainer: HTMLElement,
-    ): CommentSnapshot[] {
-        const replies: CommentThread[] = [];
-        const repliesElements = this.scrapingSupport.selectAll(
-            repliesContainer,
-            ":scope>div",
-            HTMLElement,
-        );
-
-        for (const reply of repliesElements) {
-            replies.push(this.scrapCommentThreadContent(reply));
-        }
-
-        return replies
-            .filter((thread) => thread.scrapingStatus === "success")
-            .map((thread) => thread.comment);
-    }
 }
