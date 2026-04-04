@@ -4,7 +4,6 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
-import { tryOrElse } from "@/lib/utils";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
@@ -25,7 +24,7 @@ type CommentThread =
 export class InstagramPostNativeScraper {
     public constructor(private scrapingSupport: ScrapingSupport) { }
 
-    private debug(...data: typeof console.debug.arguments) {
+    private debug(...data: unknown[]) {
         console.debug(LOG_PREFIX, ...data);
     }
 
@@ -51,7 +50,7 @@ export class InstagramPostNativeScraper {
 
         this.debug("Scraping publishedAt...");
         const publishedAt = this.scrapPostPublishedAt(postElements.scrollableArea);
-        this.debug(`publishedAt: ${publishedAt}`);
+        this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
 
         this.debug("Scraping comments...");
         const comments: CommentSnapshot[] = await this.scrapPostComments(
@@ -173,7 +172,7 @@ export class InstagramPostNativeScraper {
         // Make sure every comment is scraped.
         // I think it should not be that different from the processing of the youtube scraper.
         while (spinner) {
-            this.scrapingSupport.resumeHostPage(); // throws if aborted
+            await this.scrapingSupport.resumeHostPage(); // throws if aborted
 
             spinner.scrollIntoView();
             // Wait a bit to let page load stuff
