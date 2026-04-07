@@ -282,6 +282,25 @@ export class InstagramPostNativeScraper {
     return commentThread;
   }
 
+  private scrapCommentReplies(
+    repliesContainer: HTMLElement,
+  ): CommentSnapshot[] {
+    const replies: CommentThread[] = [];
+    const repliesElements = this.scrapingSupport.selectAll(
+      repliesContainer,
+      ":scope>div",
+      HTMLElement,
+    );
+
+    for (const reply of repliesElements) {
+      replies.push(this.scrapCommentThreadContent(reply));
+    }
+
+    return replies
+      .filter((thread) => thread.scrapingStatus === "success")
+      .map((thread) => thread.comment);
+  }
+
   private scrapCommentThreadContent(
     commentThreadContentElement: HTMLElement,
   ): CommentThread {
@@ -312,35 +331,7 @@ export class InstagramPostNativeScraper {
       };
     }
 
-    const comment = this.scrapComment(baseElement);
-
-    return {
-      scrapingStatus: "success",
-      comment,
-    };
-  }
-
-  private scrapCommentReplies(
-    repliesContainer: HTMLElement,
-  ): CommentSnapshot[] {
-    const replies: CommentThread[] = [];
-    const repliesElements = this.scrapingSupport.selectAll(
-      repliesContainer,
-      ":scope>div",
-      HTMLElement,
-    );
-
-    for (const reply of repliesElements) {
-      replies.push(this.scrapCommentThreadContent(reply));
-    }
-
-    return replies
-      .filter((thread) => thread.scrapingStatus === "success")
-      .map((thread) => thread.comment);
-  }
-
-  private scrapComment(baseElement: HTMLElement): CommentSnapshot {
-    const postContent = this.scrapingSupport.selectOrThrow(
+    const postContent = this.scrapingSupport.select(
       baseElement,
       ":scope>div>div:nth-of-type(2)>span",
       HTMLElement,
@@ -357,15 +348,18 @@ export class InstagramPostNativeScraper {
     const publishedAt = this.scrapPostPublishedAt(channelHeader);
 
     return {
-      id: crypto.randomUUID(),
-      author,
-      textContent: postContent.textContent,
-      publishedAt: publishedAt,
-      // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
-      screenshotData: "",
-      scrapedAt,
-      replies: [],
-      nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
+      scrapingStatus: "success",
+      comment: {
+        id: crypto.randomUUID(),
+        author,
+        textContent: postContent?.textContent ?? "",
+        publishedAt: publishedAt,
+        // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
+        screenshotData: "",
+        scrapedAt,
+        replies: [],
+        nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
+      },
     };
   }
 }
