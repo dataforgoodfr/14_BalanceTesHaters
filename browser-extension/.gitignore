@@ -34,3 +34,6 @@ coverage
 # exclude playwright outputs report
 playwright-report
 test-results
+*storybook.log
+storybook-static
+tsconfig.tsbuildinfo
