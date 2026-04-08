@@ -5,9 +5,26 @@ import {
 import { mapPostToClassificationRequest } from "./mapping/mapPostToClassificationRequest";
 import { postClassificationRequest } from "./api/submitClassificationRequest";
 
+const postIdsBeingSubmitted = new Map<string, Promise<void>>();
 export async function submitClassificationRequestForPost(
   postSnapshotId: string,
 ): Promise<void> {
+  if (postIdsBeingSubmitted.has(postSnapshotId)) {
+    // Already being submitted
+    // await existing promise
+    await postIdsBeingSubmitted.get(postSnapshotId);
+  } else {
+    try {
+      const promise = doSubmitClassificationRequestForPost(postSnapshotId);
+      postIdsBeingSubmitted.set(postSnapshotId, promise);
+      await promise;
+    } finally {
+      postIdsBeingSubmitted.delete(postSnapshotId);
+    }
+  }
+}
+
+async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
   console.debug(
     "submitClassificationRequestForPost - postSnapshotId:",
     postSnapshotId,

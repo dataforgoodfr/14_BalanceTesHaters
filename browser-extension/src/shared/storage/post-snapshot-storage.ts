@@ -126,27 +126,36 @@ export async function getPostSnapshotsByPostId(
 }
 
 /**
- * Get all post snapshots that have a classificationJobId but whose classification
- * is not yet completed or failed. This is used to periodically poll for classification results.
- * @returns PostSnapshots that need their classification results updated
+ * Get all post snapshots that have not been submitted for classification yet
+ * (no classification job id).
+ * @returns PostSnapshots pending submission
  */
-export async function getPostSnapshotsPendingClassification(): Promise<
+export async function getPostSnapshotsPendingSubmission(): Promise<
+  PostSnapshot[]
+> {
+  const posts = await getPostSnapshots();
+  return posts.filter((p) => !p.classificationJobId);
+}
+
+/**
+ * Get all post snapshots that have a classificationJobId but whose classification
+ * is not yet completed or failed.
+ * @returns PostSnapshots pending results
+ */
+export async function getPostSnapshotsPendingResults(): Promise<
   PostSnapshot[]
 > {
   const posts = await getPostSnapshots();
   return posts.filter((p) => {
-    // Must have a classification job ID
     if (!p.classificationJobId) {
       return false;
     }
-    // Must NOT be completed or failed - use the helper function
     if (
       p.classificationStatus &&
       !isRunningClassificationStatus(p.classificationStatus)
     ) {
       return false;
     }
-    // Include posts with no status, or SUBMITTED/IN_PROGRESS status
     return true;
   });
 }
