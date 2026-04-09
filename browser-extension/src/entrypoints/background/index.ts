@@ -1,11 +1,9 @@
-import { isScrapTabMessage } from "./scraping/scrap-tab-message";
 import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
 import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
 import { submitClassificationRequestForPost } from "./classification/submitClassificationForPost";
 import { isSubmitClassificationRequestMessage } from "./classification/submitClassificationForPostMessage";
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
-import { scrapTabAndSubmitClassificationRequest } from "./scraping/scrapTab";
 import { startClassificationPolling } from "./classification/classificationPolling";
 
 export default defineBackground(() => {
@@ -37,12 +35,7 @@ function handleIncomingMessages(
 ): boolean | undefined {
   console.debug("Background - Message received:", message, sender);
 
-  if (isScrapTabMessage(message)) {
-    void scrapTabAndSubmitClassificationRequest(message.tabId).then(() =>
-      sendResponse(undefined),
-    );
-    return true;
-  } else if (isScreenshotSenderTab(message)) {
+  if (isScreenshotSenderTab(message)) {
     void screenshotSenderTab(sender).then((result) => {
       sendResponse(result);
     });
