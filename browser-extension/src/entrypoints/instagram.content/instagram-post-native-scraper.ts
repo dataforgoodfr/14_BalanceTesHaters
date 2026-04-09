@@ -113,6 +113,7 @@ export class InstagramPostNativeScraper {
       postId: pageInfo.postId,
       socialNetwork: SocialNetwork.Instagram,
       textContent,
+      coverImageUrl: this.coverImageUrl(),
     };
   }
 
@@ -741,5 +742,14 @@ export class InstagramPostNativeScraper {
     }
 
     return segments;
+  }
+
+  private coverImageUrl() {
+    const element = this.scrapingSupport.select(
+      document,
+      "meta[property='og:image']",
+      HTMLElement,
+    );
+    return element?.getAttribute("content") ?? undefined;
   }
 }
