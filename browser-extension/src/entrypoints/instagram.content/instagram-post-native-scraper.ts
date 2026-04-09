@@ -46,7 +46,7 @@ export class InstagramPostNativeScraper {
 
     this.debug("Scraping textContent...");
     const textContent = this.scrapPostTextContent(postElements.scrollableArea);
-    this.debug(`textContent: ${textContent.replaceAll("\n", "")}`);
+    this.debug(`textContent: ${(textContent ?? "").replaceAll("\n", "")}`);
 
     this.debug("Scraping publishedAt...");
     const publishedAt = this.scrapPostPublishedAt(postElements.scrollableArea);
@@ -122,13 +122,36 @@ export class InstagramPostNativeScraper {
     };
   }
 
-  private scrapPostTextContent(element: HTMLElement): string {
-    const textContentElement = this.scrapingSupport.selectOrThrow(
-      element,
+  private scrapPostTextContent(element: HTMLElement): string | undefined {
+    const selectors = [
       ":scope span>div>span",
-      HTMLElement,
-    );
-    return textContentElement.textContent;
+      ":scope ul li h1",
+    ];
+
+    for (const selector of selectors) {
+      const textContentElement = this.scrapingSupport.select(
+        element,
+        selector,
+        HTMLElement,
+      );
+      const text = this.normalizeText(textContentElement?.textContent);
+      if (text) {
+        return text;
+      }
+    }
+
+    // Post text is optional in the model: if we cannot find it, do not fail
+    // the whole scraping job.
+    this.debug("Post text content not found with known selectors");
+    return undefined;
+  }
+
+  private normalizeText(text: string | null | undefined): string | undefined {
+    const normalized = text?.trim();
+    if (!normalized) {
+      return undefined;
+    }
+    return normalized;
   }
 
   private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
@@ -146,11 +169,7 @@ export class InstagramPostNativeScraper {
   private async scrapPostComments(
     element: HTMLElement,
   ): Promise<CommentSnapshot[]> {
-    const commentsContainer = this.scrapingSupport.selectOrThrow(
-      element,
-      ":scope>div>div:nth-of-type(3)",
-      HTMLElement,
-    );
+    const commentsContainer = this.selectCommentsContainer(element);
     commentsContainer.scrollIntoView();
 
     this.debug("Loading all comment threads...");
@@ -163,6 +182,47 @@ export class InstagramPostNativeScraper {
     this.debug("Comments metadata:", comments);
 
     return comments;
+  }
+
+  private selectCommentsContainer(element: HTMLElement): HTMLElement {
+    const selectors = [
+      ":scope>div>div:nth-of-type(3)",
+      ":scope>div>div:nth-of-type(2)",
+    ];
+
+    for (const selector of selectors) {
+      const commentsContainer = this.scrapingSupport.select(
+        element,
+        selector,
+        HTMLElement,
+      );
+      if (commentsContainer && this.looksLikeCommentsContainer(commentsContainer)) {
+        return commentsContainer;
+      }
+    }
+
+    throw new Error(
+      "Failed to resolve selector: " + selectors.join(" or "),
+    );
+  }
+
+  private looksLikeCommentsContainer(element: HTMLElement): boolean {
+    const hasCommentThread = this.scrapingSupport.select(
+      element,
+      ":scope>div>div",
+      HTMLElement,
+    );
+    if (hasCommentThread) {
+      return true;
+    }
+
+    // On small posts or just after load, container can be present with spinner only.
+    const hasProgressBar = this.scrapingSupport.select(
+      element,
+      ':scope [role="progressbar"]',
+      HTMLElement,
+    );
+    return Boolean(hasProgressBar);
   }
 
   private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
