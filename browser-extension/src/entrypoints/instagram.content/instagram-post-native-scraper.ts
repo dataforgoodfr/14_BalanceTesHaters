@@ -72,17 +72,7 @@ export class InstagramPostNativeScraper {
   }
 
   private selectPostElements(): InstagramPostElements {
-    const mainContainer = this.scrapingSupport.selectOrThrow(
-      document,
-      "main>div>div>div",
-      HTMLElement,
-    );
-
-    const socialContainer = this.scrapingSupport.selectOrThrow(
-      mainContainer,
-      ":scope>div:nth-of-type(2)>div",
-      HTMLElement,
-    );
+    const socialContainer = this.selectSocialContainer();
 
     const channelHeader = this.scrapingSupport.selectOrThrow(
       socialContainer,
@@ -100,6 +90,75 @@ export class InstagramPostNativeScraper {
       channelHeader,
       scrollableArea,
     };
+  }
+
+  private selectSocialContainer(): HTMLElement {
+    const selectors = [
+      // Standard post page layout.
+      "main>div>div>div>div:nth-of-type(2)>div",
+      // Alternate page layout variant.
+      "main>div>div>div>div:nth-of-type(1)>div",
+      // Modal post layouts opened from profile/feed.
+      '[role="dialog"] article>div>div:nth-of-type(2)',
+      '[role="dialog"] article>div>div>div:nth-of-type(2)',
+    ];
+
+    const candidates = new Set<HTMLElement>();
+    for (const selector of selectors) {
+      for (const candidate of this.scrapingSupport.selectAll(
+        document,
+        selector,
+        HTMLElement,
+      )) {
+        candidates.add(candidate);
+      }
+    }
+
+    for (const candidate of candidates) {
+      if (this.looksLikeSocialContainer(candidate)) {
+        return candidate;
+      }
+    }
+
+    throw new Error(
+      "Failed to resolve selector: social container for instagram post",
+    );
+  }
+
+  private looksLikeSocialContainer(element: HTMLElement): boolean {
+    const channelHeader = this.scrapingSupport.select(
+      element,
+      ":scope>div:nth-of-type(1)",
+      HTMLElement,
+    );
+    if (!channelHeader) {
+      return false;
+    }
+
+    const scrollableArea = this.scrapingSupport.select(
+      element,
+      ":scope>div:nth-of-type(2)",
+      HTMLElement,
+    );
+    if (!scrollableArea) {
+      return false;
+    }
+
+    const hasAuthor = this.scrapingSupport.select(
+      channelHeader,
+      ":scope a span",
+      HTMLElement,
+    );
+    if (!hasAuthor) {
+      return false;
+    }
+
+    const hasTime = this.scrapingSupport.select(
+      scrollableArea,
+      ":scope time",
+      HTMLElement,
+    );
+    return Boolean(hasTime);
   }
 
   private scrapPostAuthor(channelHeader: HTMLElement): Author {
@@ -146,11 +205,7 @@ export class InstagramPostNativeScraper {
   private async scrapPostComments(
     element: HTMLElement,
   ): Promise<CommentSnapshot[]> {
-    const commentsContainer = this.scrapingSupport.selectOrThrow(
-      element,
-      ":scope>div>div:nth-of-type(3)",
-      HTMLElement,
-    );
+    const commentsContainer = this.selectCommentsContainer(element);
     commentsContainer.scrollIntoView();
 
     this.debug("Loading all comment threads...");
@@ -163,6 +218,79 @@ export class InstagramPostNativeScraper {
     this.debug("Comments metadata:", comments);
 
     return comments;
+  }
+
+  private selectCommentsContainer(element: HTMLElement): HTMLElement {
+    const selectors = [
+      ":scope>div>div:nth-of-type(3)",
+      ":scope>div>div:nth-of-type(2)",
+      ":scope>div:nth-of-type(3)",
+      ":scope>div:nth-of-type(2)",
+      ":scope>div>ul",
+      ":scope>ul",
+    ];
+
+    let selected: HTMLElement | undefined;
+    let selectedScore = -1;
+
+    for (const selector of selectors) {
+      const candidate = this.scrapingSupport.select(
+        element,
+        selector,
+        HTMLElement,
+      );
+      if (!candidate) {
+        continue;
+      }
+
+      const score = this.scoreCommentsContainer(candidate);
+      if (score > selectedScore) {
+        selected = candidate;
+        selectedScore = score;
+      }
+    }
+
+    const elementScore = this.scoreCommentsContainer(element);
+    if (elementScore > selectedScore) {
+      selected = element;
+      selectedScore = elementScore;
+    }
+
+    if (selected && selectedScore > 0) {
+      return selected;
+    }
+
+    throw new Error("Failed to resolve selector: " + selectors.join(" or "));
+  }
+
+  private scoreCommentsContainer(element: HTMLElement): number {
+    const hasSpinner = this.scrapingSupport.select(
+      element,
+      ':scope [role="progressbar"]',
+      HTMLElement,
+    )
+      ? 1
+      : 0;
+    const directThreadCount = this.scrapingSupport.selectAll(
+      element,
+      ":scope>div>div",
+      HTMLElement,
+    ).length;
+    const listItemCount = this.scrapingSupport.selectAll(
+      element,
+      ":scope li",
+      HTMLElement,
+    ).length;
+    const timedCommentCount = this.scrapingSupport.selectAll(
+      element,
+      ":scope time[datetime]",
+      HTMLElement,
+    ).length;
+
+    // Prioritize containers that look like actual comments blocks.
+    return (
+      timedCommentCount * 4 + listItemCount * 2 + directThreadCount + hasSpinner
+    );
   }
 
   private async loadAllTopLevelComments(commentsContainer: HTMLElement) {
@@ -189,11 +317,14 @@ export class InstagramPostNativeScraper {
     );
 
     for (const replyThreadElement of repliesThreadElements) {
-      const expandRepliesElement = this.scrapingSupport.selectOrThrow(
+      const expandRepliesElement = this.scrapingSupport.select(
         replyThreadElement,
         ":scope>div>div>span",
         HTMLElement,
       );
+      if (!expandRepliesElement) {
+        continue;
+      }
       expandRepliesElement.scrollIntoView();
       expandRepliesElement.click();
     }
@@ -238,11 +369,18 @@ export class InstagramPostNativeScraper {
     commentsContainer: HTMLElement,
   ): CommentSnapshot[] {
     const commentThreads: CommentThread[] = [];
-    const commentThreadContainers = this.scrapingSupport.selectAll(
+    let commentThreadContainers = this.scrapingSupport.selectAll(
       commentsContainer,
       ":scope>div",
       HTMLElement,
     );
+    if (commentThreadContainers.length === 0) {
+      commentThreadContainers = this.scrapingSupport.selectAll(
+        commentsContainer,
+        ":scope>ul>li",
+        HTMLElement,
+      );
+    }
 
     for (const commentThread of commentThreadContainers) {
       commentThreads.push(this.scrapCommentThread(commentThread));
@@ -254,11 +392,18 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapCommentThread(commentElement: HTMLElement): CommentThread {
-    const commentThreadContentElement = this.scrapingSupport.selectOrThrow(
+    const commentThreadContentElement = this.scrapingSupport.select(
       commentElement,
       ":scope>div",
       HTMLElement,
     );
+    if (!commentThreadContentElement) {
+      return {
+        scrapingStatus: "failure",
+        message:
+          "Could not scrap comment thread: missing :scope>div in thread container",
+      };
+    }
 
     const commentThread = this.scrapCommentThreadContent(
       commentThreadContentElement,
