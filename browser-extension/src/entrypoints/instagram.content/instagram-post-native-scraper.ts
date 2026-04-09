@@ -74,6 +74,7 @@ export class InstagramPostNativeScraper {
       postId: pageInfo.postId,
       socialNetwork: SocialNetwork.Instagram,
       textContent,
+      coverImageUrl: this.coverImageUrl(url),
     };
   }
 
@@ -445,5 +446,14 @@ export class InstagramPostNativeScraper {
       replies: [],
       nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
     };
+  }
+
+  private coverImageUrl(postUrl: string) {
+    const element = this.scrapingSupport.select(
+      document,
+      "meta[property='og:image']",
+      HTMLElement,
+    );
+    return element?.getAttribute("content") ?? undefined;
   }
 }
