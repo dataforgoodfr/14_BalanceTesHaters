@@ -370,7 +370,20 @@ export class InstagramPostNativeScraper {
       };
     }
 
-    const comment = this.scrapComment(baseElement);
+    const postContent = this.scrapingSupport.select(
+      baseElement,
+      ":scope>div>div:nth-of-type(2)>span",
+      HTMLElement,
+    );
+    const postContentText = this.normalizeText(postContent?.textContent);
+    if (!postContentText) {
+      return {
+        scrapingStatus: "failure",
+        message: "Scraping comments without text is not supported yet",
+      };
+    }
+
+    const comment = this.scrapComment(baseElement, postContentText);
 
     return {
       scrapingStatus: "success",
@@ -397,13 +410,10 @@ export class InstagramPostNativeScraper {
       .map((thread) => thread.comment);
   }
 
-  private scrapComment(baseElement: HTMLElement): CommentSnapshot {
-    const postContent = this.scrapingSupport.selectOrThrow(
-      baseElement,
-      ":scope>div>div:nth-of-type(2)>span",
-      HTMLElement,
-    );
-
+  private scrapComment(
+    baseElement: HTMLElement,
+    postContentText: string,
+  ): CommentSnapshot {
     const channelHeader = this.scrapingSupport.selectOrThrow(
       baseElement,
       ":scope>div>div",
@@ -417,7 +427,7 @@ export class InstagramPostNativeScraper {
     return {
       id: crypto.randomUUID(),
       author,
-      textContent: postContent.textContent,
+      textContent: postContentText,
       publishedAt: publishedAt,
       // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
       screenshotData: "",
