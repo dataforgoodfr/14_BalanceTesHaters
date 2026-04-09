@@ -13,12 +13,14 @@ export class InstagramScraper implements SocialNetworkScraper {
 
   async scrapPagePost(
     abortSignal: AbortSignal,
-    _: ProgressManager,
+    progressManager: ProgressManager,
   ): Promise<PostSnapshot> {
     // Note by @sarod:
     // Code delegates to InstagramPostNativeScraper rather than merge them in a single class
     // to minimize merge conflicts but these could be merged later
     const scrapingSupport = new ScrapingSupport(abortSignal);
-    return new InstagramPostNativeScraper(scrapingSupport).scrapPost();
+    return new InstagramPostNativeScraper(scrapingSupport).scrapPost(
+      progressManager,
+    );
   }
 }

@@ -6,12 +6,25 @@ import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { InstagramPostModalScraper } from "./instagram-post-modal-scraper";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import { captureInstagramCommentScreenshots } from "./instagram-comment-screenshot-capture";
+import {
+  isLikelyInstagramAccountPath,
+  normalizeInstagramText,
+  sanitizeInstagramCommentText,
+} from "./instagram-comment-text-utils";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
 type InstagramPostElements = {
   channelHeader: HTMLElement;
   scrollableArea: HTMLElement;
+};
+
+type ScrapedComments = {
+  comments: CommentSnapshot[];
+  commentElementsById: Map<string, HTMLElement>;
+  usedDatetimeFallback: boolean;
 };
 
 /**
@@ -29,12 +42,14 @@ export class InstagramPostNativeScraper {
     console.debug(LOG_PREFIX, ...data);
   }
 
-  async scrapPost(): Promise<PostSnapshot> {
+  async scrapPost(progressManager: ProgressManager): Promise<PostSnapshot> {
     this.debug("Start Scraping... ", document.URL);
 
     if (this.isModalContext()) {
       this.debug("Modal context detected, routing to modal scraper");
-      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost();
+      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
+        progressManager,
+      );
     }
 
     const url = document.URL;
@@ -59,9 +74,33 @@ export class InstagramPostNativeScraper {
     this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
 
     this.debug("Scraping comments...");
-    const comments: CommentSnapshot[] = await this.scrapPostComments(
+    const {
+      comments: rawComments,
+      commentElementsById,
+      usedDatetimeFallback,
+    } = await this.scrapPostComments(
       postElements.scrollableArea,
+      progressManager.subTaskProgressManager({ from: 0, to: 70 }),
     );
+
+    const comments = usedDatetimeFallback
+      ? rawComments.filter(
+          (comment) => !this.isPostMetadataEntry(comment, author, publishedAt),
+        )
+      : rawComments;
+
+    this.debug("Capturing comment screenshots...");
+    await captureInstagramCommentScreenshots({
+      comments,
+      commentElementsById,
+      scrapingSupport: this.scrapingSupport,
+      progressManager: progressManager.subTaskProgressManager({
+        from: 70,
+        to: 100,
+      }),
+      debug: this.debug.bind(this),
+    });
+
     this.debug(`${comments.length} comments`);
 
     return {
@@ -75,6 +114,23 @@ export class InstagramPostNativeScraper {
       socialNetwork: SocialNetwork.Instagram,
       textContent,
     };
+  }
+
+  private isPostMetadataEntry(
+    comment: CommentSnapshot,
+    postAuthor: Author,
+    postPublishedAt: PublicationDate,
+  ): boolean {
+    if (
+      postPublishedAt.type !== "absolute" ||
+      comment.publishedAt.type !== "absolute"
+    ) {
+      return false;
+    }
+    return (
+      comment.author.accountHref === postAuthor.accountHref &&
+      comment.publishedAt.date === postPublishedAt.date
+    );
   }
 
   private isModalContext(): boolean {
@@ -141,7 +197,7 @@ export class InstagramPostNativeScraper {
         selector,
         HTMLElement,
       );
-      const text = this.normalizeText(textContentElement?.textContent);
+      const text = normalizeInstagramText(textContentElement?.textContent);
       if (text) {
         return text;
       }
@@ -151,14 +207,6 @@ export class InstagramPostNativeScraper {
     // the whole scraping job.
     this.debug("Post text content not found with known selectors");
     return undefined;
-  }
-
-  private normalizeText(text: string | null | undefined): string | undefined {
-    const normalized = text?.trim();
-    if (!normalized) {
-      return undefined;
-    }
-    return normalized;
   }
 
   private scrapPostPublishedAt(element: HTMLElement): PublicationDate {
@@ -175,20 +223,40 @@ export class InstagramPostNativeScraper {
 
   private async scrapPostComments(
     element: HTMLElement,
-  ): Promise<CommentSnapshot[]> {
+    progressManager: ProgressManager,
+  ): Promise<ScrapedComments> {
     const commentsContainer = this.selectCommentsContainer(element);
     commentsContainer.scrollIntoView();
+    progressManager.setProgress(5);
 
     this.debug("Loading all comment threads...");
     await this.loadAllTopLevelComments(commentsContainer);
+    progressManager.setProgress(50);
 
     this.debug("Expanding all replies...");
     await this.loadAllReplies(commentsContainer);
+    progressManager.setProgress(75);
 
-    const comments = this.scrapCommentThreads(commentsContainer);
+    const commentElementsById = new Map<string, HTMLElement>();
+    let comments = this.scrapCommentThreads(
+      commentsContainer,
+      commentElementsById,
+    );
+    let usedDatetimeFallback = false;
+    if (comments.length === 0) {
+      this.debug(
+        "No comments parsed with native thread selectors, retrying with datetime-marker fallback",
+      );
+      comments = this.scrapCommentsFromDatetimeMarkers(
+        element,
+        commentElementsById,
+      );
+      usedDatetimeFallback = true;
+    }
     this.debug("Comments metadata:", comments);
+    progressManager.setProgress(100);
 
-    return comments;
+    return { comments, commentElementsById, usedDatetimeFallback };
   }
 
   private selectCommentsContainer(element: HTMLElement): HTMLElement {
@@ -304,6 +372,7 @@ export class InstagramPostNativeScraper {
 
   private scrapCommentThreads(
     commentsContainer: HTMLElement,
+    commentElementsById: Map<string, HTMLElement>,
   ): CommentSnapshot[] {
     const commentThreads: CommentThread[] = [];
     const commentThreadContainers = this.scrapingSupport.selectAll(
@@ -313,7 +382,9 @@ export class InstagramPostNativeScraper {
     );
 
     for (const commentThread of commentThreadContainers) {
-      commentThreads.push(this.scrapCommentThread(commentThread));
+      commentThreads.push(
+        this.scrapCommentThread(commentThread, commentElementsById),
+      );
     }
 
     return commentThreads
@@ -321,7 +392,10 @@ export class InstagramPostNativeScraper {
       .map((thread) => thread.comment);
   }
 
-  private scrapCommentThread(commentElement: HTMLElement): CommentThread {
+  private scrapCommentThread(
+    commentElement: HTMLElement,
+    commentElementsById: Map<string, HTMLElement>,
+  ): CommentThread {
     const commentThreadContentElement = this.scrapingSupport.selectOrThrow(
       commentElement,
       ":scope>div",
@@ -330,6 +404,7 @@ export class InstagramPostNativeScraper {
 
     const commentThread = this.scrapCommentThreadContent(
       commentThreadContentElement,
+      commentElementsById,
     );
 
     if (commentThread.scrapingStatus === "failure") {
@@ -343,8 +418,10 @@ export class InstagramPostNativeScraper {
     );
 
     if (repliesContainer) {
-      commentThread.comment.replies =
-        this.scrapCommentReplies(repliesContainer);
+      commentThread.comment.replies = this.scrapCommentReplies(
+        repliesContainer,
+        commentElementsById,
+      );
     }
 
     return commentThread;
@@ -352,6 +429,7 @@ export class InstagramPostNativeScraper {
 
   private scrapCommentReplies(
     repliesContainer: HTMLElement,
+    commentElementsById: Map<string, HTMLElement>,
   ): CommentSnapshot[] {
     const replies: CommentThread[] = [];
     const repliesElements = this.scrapingSupport.selectAll(
@@ -361,7 +439,7 @@ export class InstagramPostNativeScraper {
     );
 
     for (const reply of repliesElements) {
-      replies.push(this.scrapCommentThreadContent(reply));
+      replies.push(this.scrapCommentThreadContent(reply, commentElementsById));
     }
 
     return replies
@@ -371,6 +449,7 @@ export class InstagramPostNativeScraper {
 
   private scrapCommentThreadContent(
     commentThreadContentElement: HTMLElement,
+    commentElementsById: Map<string, HTMLElement>,
   ): CommentThread {
     const baseElement = this.scrapingSupport.select(
       commentThreadContentElement,
@@ -399,20 +478,34 @@ export class InstagramPostNativeScraper {
       };
     }
 
-    const postContent = this.scrapingSupport.select(
-      baseElement,
-      ":scope>div>div:nth-of-type(2)>span",
-      HTMLElement,
-    );
-    const postContentText = this.normalizeText(postContent?.textContent);
-    if (!postContentText) {
+    const author = this.scrapCommentAuthor(baseElement);
+    if (!author) {
+      return {
+        scrapingStatus: "failure",
+        message: "Missing comment author",
+      };
+    }
+
+    const publishedAt = this.scrapCommentPublishedAt(baseElement);
+    if (!publishedAt) {
+      return {
+        scrapingStatus: "failure",
+        message: "Missing comment date",
+      };
+    }
+
+    const extractedText = this.extractCommentText(baseElement, author.name);
+    if (!extractedText.text) {
       return {
         scrapingStatus: "failure",
         message: "Scraping comments without text is not supported yet",
       };
     }
 
-    const comment = this.scrapComment(baseElement, postContentText);
+    const comment = this.buildComment(author, publishedAt, extractedText.text);
+    const screenshotTarget =
+      extractedText.sourceElement?.parentElement ?? extractedText.sourceElement;
+    commentElementsById.set(comment.id, screenshotTarget ?? baseElement);
 
     return {
       scrapingStatus: "success",
@@ -420,30 +513,233 @@ export class InstagramPostNativeScraper {
     };
   }
 
-  private scrapComment(
-    baseElement: HTMLElement,
-    postContentText: string,
-  ): CommentSnapshot {
-    const channelHeader = this.scrapingSupport.selectOrThrow(
-      baseElement,
-      ":scope>div>div",
+  private scrapCommentsFromDatetimeMarkers(
+    root: HTMLElement,
+    commentElementsById: Map<string, HTMLElement>,
+  ): CommentSnapshot[] {
+    const comments: CommentSnapshot[] = [];
+    const seenNode = new Set<HTMLElement>();
+    const seenSignature = new Set<string>();
+    const timeElements = this.scrapingSupport.selectAll(
+      root,
+      "time[datetime]",
       HTMLElement,
     );
 
-    const author = this.scrapPostAuthor(channelHeader);
-    const scrapedAt = currentIsoDate();
-    const publishedAt = this.scrapPostPublishedAt(channelHeader);
+    for (const timeElement of timeElements) {
+      const closestListItem = timeElement.closest("li");
+      const commentElement =
+        (closestListItem instanceof HTMLElement
+          ? closestListItem
+          : undefined) ??
+        this.findCommentElementFromTime(timeElement) ??
+        timeElement.parentElement;
+      if (!commentElement || seenNode.has(commentElement)) {
+        continue;
+      }
 
+      const author = this.scrapCommentAuthor(commentElement);
+      const publishedAt = this.scrapCommentPublishedAt(commentElement);
+      const extractedText = this.extractCommentText(
+        commentElement,
+        author?.name,
+      );
+      if (
+        !author ||
+        !publishedAt ||
+        publishedAt.type !== "absolute" ||
+        !extractedText.text
+      ) {
+        continue;
+      }
+
+      const signature = [
+        author.accountHref,
+        publishedAt.date,
+        extractedText.text,
+      ].join("|");
+      if (seenSignature.has(signature)) {
+        continue;
+      }
+      seenNode.add(commentElement);
+      seenSignature.add(signature);
+
+      const comment = this.buildComment(
+        author,
+        publishedAt,
+        extractedText.text,
+      );
+      const closestScreenshotContainer =
+        extractedText.sourceElement?.closest("li, article, div") ?? undefined;
+      const screenshotTarget =
+        (closestScreenshotContainer instanceof HTMLElement
+          ? closestScreenshotContainer
+          : undefined) ??
+        extractedText.sourceElement ??
+        commentElement;
+      commentElementsById.set(comment.id, screenshotTarget);
+      comments.push(comment);
+    }
+
+    return comments;
+  }
+
+  private findCommentElementFromTime(
+    timeElement: HTMLElement,
+  ): HTMLElement | undefined {
+    let current: HTMLElement | null = timeElement;
+
+    for (let depth = 0; depth < 8 && current; depth += 1) {
+      if (this.isLikelyCommentElement(current)) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+    return undefined;
+  }
+
+  private isLikelyCommentElement(element: HTMLElement): boolean {
+    const author = this.scrapCommentAuthor(element);
+    const publishedAt = this.scrapCommentPublishedAt(element);
+    const text = this.extractCommentText(element, author?.name).text;
+    if (!author || !publishedAt || publishedAt.type !== "absolute" || !text) {
+      return false;
+    }
+
+    const timeCount = this.scrapingSupport.selectAll(
+      element,
+      "time[datetime]",
+      HTMLElement,
+    ).length;
+    return timeCount <= 4;
+  }
+
+  private buildComment(
+    author: Author,
+    publishedAt: PublicationDate,
+    textContent: string,
+  ): CommentSnapshot {
     return {
       id: crypto.randomUUID(),
       author,
-      textContent: postContentText,
-      publishedAt: publishedAt,
-      // TODO Crop a screenshot of the whole page. HTMLElement doesn't have a screenshot method such as Puppeteer.
+      textContent,
+      publishedAt,
+      // Filled later during screenshot capture phase.
       screenshotData: "",
-      scrapedAt,
+      scrapedAt: currentIsoDate(),
       replies: [],
       nbLikes: 0, // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/4
     };
+  }
+
+  private scrapCommentAuthor(baseElement: HTMLElement): Author | undefined {
+    const linkCandidates = this.scrapingSupport.selectAll(
+      baseElement,
+      "a[href^='/']",
+      HTMLAnchorElement,
+    );
+
+    for (const candidate of linkCandidates) {
+      const href = candidate.getAttribute("href");
+      const name = normalizeInstagramText(candidate.textContent);
+      if (!href || !name) {
+        continue;
+      }
+
+      const accountUrl = new URL(href, INSTAGRAM_URL);
+      const pathParts = accountUrl.pathname.split("/").filter(Boolean);
+      if (
+        pathParts.length === 1 &&
+        isLikelyInstagramAccountPath(pathParts[0])
+      ) {
+        return {
+          name,
+          accountHref: accountUrl.toString(),
+        };
+      }
+    }
+
+    return undefined;
+  }
+
+  private scrapCommentPublishedAt(
+    baseElement: HTMLElement,
+  ): PublicationDate | undefined {
+    const timeElement = this.scrapingSupport.select(
+      baseElement,
+      "time[datetime], time",
+      HTMLElement,
+    );
+    const date = timeElement?.getAttribute("datetime");
+    if (!date) {
+      return undefined;
+    }
+    return {
+      type: "absolute",
+      date,
+    };
+  }
+
+  private extractCommentText(
+    baseElement: HTMLElement,
+    authorName?: string,
+  ): { text?: string; sourceElement?: HTMLElement } {
+    const textCandidates = this.scrapingSupport.selectAll(
+      baseElement,
+      ":scope>div>div:nth-of-type(2)>span, :scope span[dir='auto'], :scope div[dir='auto'] span",
+      HTMLElement,
+    );
+    let bestText: string | undefined;
+    let bestSource: HTMLElement | undefined;
+
+    for (const candidate of textCandidates) {
+      for (const textSegment of this.extractReadableTextSegments(candidate)) {
+        if (authorName && textSegment.text === authorName) {
+          continue;
+        }
+        if (!bestText || textSegment.text.length > bestText.length) {
+          bestText = textSegment.text;
+          bestSource = textSegment.sourceElement;
+        }
+      }
+    }
+
+    return {
+      text: bestText,
+      sourceElement: bestSource,
+    };
+  }
+
+  private extractReadableTextSegments(
+    element: HTMLElement,
+  ): Array<{ text: string; sourceElement: HTMLElement }> {
+    const segments: Array<{ text: string; sourceElement: HTMLElement }> = [];
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parentElement = node.parentElement;
+      if (!parentElement) {
+        continue;
+      }
+      if (
+        parentElement.closest(
+          "a, button, time, title, svg, [role='button'], [aria-label]",
+        )
+      ) {
+        continue;
+      }
+
+      const text = sanitizeInstagramCommentText(node.textContent);
+      if (!text) {
+        continue;
+      }
+
+      segments.push({
+        text,
+        sourceElement: parentElement,
+      });
+    }
+
+    return segments;
   }
 }

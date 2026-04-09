@@ -117,11 +117,27 @@ function buildPostCommentForGroupOfSameText(
     textContent: groupOldestComment.commentSnapshot.textContent,
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
     author: groupOldestComment.commentSnapshot.author,
+    screenshotData: selectScreenshotData(sortedByScrapedAt),
     classification: groupOldestComment.commentSnapshot.classification,
     classifiedAt: groupOldestComment.commentSnapshot.classifiedAt,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
   };
+}
+
+function selectScreenshotData(
+  sortedByScrapedAt: CommentSnapshotWithPostInfo[],
+): string {
+  const latest = sortedByScrapedAt[sortedByScrapedAt.length - 1];
+  if (latest.commentSnapshot.screenshotData) {
+    return latest.commentSnapshot.screenshotData;
+  }
+
+  const latestNonEmpty = [...sortedByScrapedAt]
+    .reverse()
+    .find((item) => item.commentSnapshot.screenshotData);
+
+  return latestNonEmpty?.commentSnapshot.screenshotData ?? "";
 }
 
 function commentId(comment: CommentSnapshot): string {

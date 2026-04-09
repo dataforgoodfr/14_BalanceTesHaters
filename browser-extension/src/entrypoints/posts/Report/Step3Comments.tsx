@@ -61,6 +61,7 @@ function Step3Comments({
           }
           onSubmit={handleSubmit}
           formId={getFormId(stepper.state.current.data.id)}
+          showScreenshotColumn={true}
         />
       )}
     </div>
