@@ -123,10 +123,7 @@ export class InstagramPostNativeScraper {
   }
 
   private scrapPostTextContent(element: HTMLElement): string | undefined {
-    const selectors = [
-      ":scope span>div>span",
-      ":scope ul li h1",
-    ];
+    const selectors = [":scope span>div>span", ":scope ul li h1"];
 
     for (const selector of selectors) {
       const textContentElement = this.scrapingSupport.select(
@@ -196,14 +193,15 @@ export class InstagramPostNativeScraper {
         selector,
         HTMLElement,
       );
-      if (commentsContainer && this.looksLikeCommentsContainer(commentsContainer)) {
+      if (
+        commentsContainer &&
+        this.looksLikeCommentsContainer(commentsContainer)
+      ) {
         return commentsContainer;
       }
     }
 
-    throw new Error(
-      "Failed to resolve selector: " + selectors.join(" or "),
-    );
+    throw new Error("Failed to resolve selector: " + selectors.join(" or "));
   }
 
   private looksLikeCommentsContainer(element: HTMLElement): boolean {
