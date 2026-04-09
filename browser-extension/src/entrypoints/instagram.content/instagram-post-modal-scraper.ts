@@ -315,9 +315,7 @@ export class InstagramPostModalScraper {
     for (let i = 0; i < 80; i += 1) {
       await this.scrapingSupport.resumeHostPage();
 
-      const clicked =
-        this.clickLoadMoreCommentsControls(interactionContainers) ||
-        this.clickLoadMoreCommentsControls([document.body]);
+      const clicked = this.clickLoadMoreCommentsControls(interactionContainers);
       const scrolled = interactionContainers
         .map((container) => this.scrollToBottom(container))
         .some(Boolean);
