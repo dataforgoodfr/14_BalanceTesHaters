@@ -5,6 +5,7 @@ import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { Author } from "@/shared/model/Author";
 import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { InstagramPostModalScraper } from "./instagram-post-modal-scraper";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 
@@ -30,6 +31,11 @@ export class InstagramPostNativeScraper {
 
   async scrapPost(): Promise<PostSnapshot> {
     this.debug("Start Scraping... ", document.URL);
+
+    if (this.isModalContext()) {
+      this.debug("Modal context detected, routing to modal scraper");
+      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost();
+    }
 
     const url = document.URL;
     const pageInfo = instagramPageInfo(url);
@@ -69,6 +75,10 @@ export class InstagramPostNativeScraper {
       socialNetwork: SocialNetwork.Instagram,
       textContent,
     };
+  }
+
+  private isModalContext(): boolean {
+    return Boolean(document.querySelector('[role="dialog"] article'));
   }
 
   private selectPostElements(): InstagramPostElements {
