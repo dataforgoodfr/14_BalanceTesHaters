@@ -9,7 +9,14 @@ const postIdsBeingSubmitted = new Map<string, Promise<void>>();
 export async function submitClassificationRequestForPost(
   postSnapshotId: string,
 ): Promise<void> {
+  console.debug(
+    "submitClassificationRequestForPost - postSnapshotId:",
+    postSnapshotId,
+  );
   if (postIdsBeingSubmitted.has(postSnapshotId)) {
+    console.debug(
+      "submitClassificationRequestForPost - already submitted - waiting for existing promise",
+    );
     // Already being submitted
     // await existing promise
     await postIdsBeingSubmitted.get(postSnapshotId);
@@ -25,11 +32,6 @@ export async function submitClassificationRequestForPost(
 }
 
 async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
-  console.debug(
-    "submitClassificationRequestForPost - postSnapshotId:",
-    postSnapshotId,
-  );
-
   const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
     throw new Error(
@@ -49,6 +51,11 @@ async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
 
   post.classificationJobId = response.job_id;
   post.classificationStatus = "SUBMITTED";
+
+  console.debug(
+    "submitClassificationRequestForPost - Updating post with classificationJobId and status SUBMITTED",
+    response.job_id,
+  );
 
   await updatePostSnapshot(post);
 }
