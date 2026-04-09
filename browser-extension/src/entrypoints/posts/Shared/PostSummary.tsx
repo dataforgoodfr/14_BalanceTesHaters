@@ -1,7 +1,6 @@
 "use server";
 import { Post } from "@/shared/model/post/Post";
 import DisplayPublishedDate from "../Posts/DisplayPublishedDate";
-import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 function PostSummary({ post }: Readonly<{ post: Post }>) {
   return (
