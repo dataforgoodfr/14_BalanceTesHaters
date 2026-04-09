@@ -74,7 +74,7 @@ export class InstagramPostNativeScraper {
       postId: pageInfo.postId,
       socialNetwork: SocialNetwork.Instagram,
       textContent,
-      coverImageUrl: this.coverImageUrl(url),
+      coverImageUrl: this.coverImageUrl(),
     };
   }
 
@@ -448,7 +448,7 @@ export class InstagramPostNativeScraper {
     };
   }
 
-  private coverImageUrl(postUrl: string) {
+  private coverImageUrl() {
     const element = this.scrapingSupport.select(
       document,
       "meta[property='og:image']",
