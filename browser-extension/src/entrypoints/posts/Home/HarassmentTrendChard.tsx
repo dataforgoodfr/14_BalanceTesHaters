@@ -3,12 +3,14 @@ import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
 import { PostComment } from "@/shared/model/post/Post";
 import { getFirstDayOfWeek } from "@/shared/utils/date-util";
 import { isCommentHateful } from "@/shared/utils/post-util";
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 const MAX_DATA_POINTS = 60; // Maximum number of data points to display in the chart
 const NB_DAY_IN_WEEK = 7; // Number of days in a week
@@ -112,7 +114,7 @@ function HarassmentTrendChart({
 }: Readonly<HarassmentTrendChartProps>) {
   const chartConfig = {
     nombre: {
-      label: "Nombre de commentaires malveillants",
+      label: "Commentaires malveillants",
     },
   } satisfies ChartConfig;
 
@@ -174,7 +176,7 @@ function HarassmentTrendChart({
             <YAxis />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="nombre" fill="var(--primary)" radius={4} />
-            <Tooltip />
+            <ChartTooltip content={<ChartTooltipContent indicator="line" className="max-w-1/12 text-left " />} />
           </BarChart>
         </ChartContainer>
       </CardContent>
