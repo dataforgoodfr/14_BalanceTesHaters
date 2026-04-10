@@ -15,6 +15,26 @@ import {
 } from "./instagram-comment-text-utils";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
+const REEL_COMMENT_CONTROL_SELECTOR =
+  "button, a, div[role='button'], [aria-label], [title], span, svg, title";
+const REEL_COMMENT_CONTROL_LABELS = [
+  "commenter",
+  "commentaire",
+  "commentaires",
+  "comment",
+  "comments",
+];
+const NON_REEL_COMMENT_CONTROL_LABELS = [
+  "options de commentaire",
+  "comment options",
+  "j'aime",
+  "like",
+  "likes",
+  "partager",
+  "share",
+  "envoyer",
+  "send",
+];
 
 type InstagramPostElements = {
   channelHeader: HTMLElement;
@@ -45,17 +65,29 @@ export class InstagramPostNativeScraper {
   async scrapPost(progressManager: ProgressManager): Promise<PostSnapshot> {
     this.debug("Start Scraping... ", document.URL);
 
-    if (this.isModalContext()) {
-      this.debug("Modal context detected, routing to modal scraper");
+    const url = document.URL;
+    const pageInfo = instagramPageInfo(url);
+    if (!pageInfo.isScrapablePost) {
+      throw new Error("Not on a scrapable page");
+    }
+
+    if (this.isReelUrl(url)) {
+      this.debug("Reel URL detected, trying to open comments panel");
+      const commentsPanelOpened = await this.openReelCommentsPanelIfNeeded();
+      if (!commentsPanelOpened) {
+        throw new Error("Could not open reel comments panel");
+      }
+      this.debug("Routing reel scraping to modal scraper");
       return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
         progressManager,
       );
     }
 
-    const url = document.URL;
-    const pageInfo = instagramPageInfo(url);
-    if (!pageInfo.isScrapablePost) {
-      throw new Error("Not on a scrapable page");
+    if (this.isModalContext()) {
+      this.debug("Modal context detected, routing to modal scraper");
+      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
+        progressManager,
+      );
     }
 
     const scrapedAt = currentIsoDate();
@@ -117,6 +149,195 @@ export class InstagramPostNativeScraper {
     };
   }
 
+  private isReelUrl(url: string): boolean {
+    const parsedUrl = URL.parse(url);
+    if (!parsedUrl || parsedUrl.hostname !== INSTAGRAM_URL.hostname) {
+      return false;
+    }
+
+    return /\/(?:[^/]+\/)?reels?\//.test(parsedUrl.pathname);
+  }
+
+  private async openReelCommentsPanelIfNeeded(): Promise<boolean> {
+    if (this.isModalContext()) {
+      return true;
+    }
+
+    const baselineCommentTimeCount = this.countLikelyCommentTimeMarkers();
+    const commentControls = this.selectReelCommentControls();
+    if (commentControls.length === 0) {
+      this.debug("Could not find reel comment control");
+      return false;
+    }
+
+    this.debug(
+      `Found ${commentControls.length} reel comment control candidate(s)`,
+    );
+    for (const control of commentControls.slice(0, 4)) {
+      const label = this.extractControlSearchText(control);
+      this.debug("Trying reel comment control", label ?? "<no-label>");
+      this.activateControl(control);
+      await this.scrapingSupport.sleep(250);
+
+      const waitResult = await this.scrapingSupport.waitForSelector(
+        document,
+        '[role="dialog"]',
+        HTMLElement,
+        {
+          timeout: 2000,
+        },
+      );
+
+      if (waitResult.status === "success") {
+        this.debug("Reel comments panel opened in dialog");
+        return true;
+      }
+
+      const currentCommentTimeCount = this.countLikelyCommentTimeMarkers();
+      if (currentCommentTimeCount > baselineCommentTimeCount) {
+        this.debug(
+          "Reel comments panel likely opened in inline layout",
+          `time markers ${baselineCommentTimeCount} -> ${currentCommentTimeCount}`,
+        );
+        return true;
+      }
+    }
+
+    this.debug(
+      "Reel comments panel not detected after trying all controls",
+      `baseline time markers: ${baselineCommentTimeCount}`,
+    );
+    return false;
+  }
+
+  private selectReelCommentControls(): HTMLElement[] {
+    const elements = Array.from(
+      document.querySelectorAll(REEL_COMMENT_CONTROL_SELECTOR),
+    );
+    const controls = new Set<HTMLElement>();
+
+    for (const element of elements) {
+      const text = this.extractControlSearchText(element);
+      if (!text) {
+        continue;
+      }
+      if (
+        NON_REEL_COMMENT_CONTROL_LABELS.some((label) => text.includes(label)) ||
+        !REEL_COMMENT_CONTROL_LABELS.some((label) => text.includes(label))
+      ) {
+        continue;
+      }
+      const target = this.resolveClickableControl(element);
+      if (target) {
+        controls.add(target);
+      }
+    }
+
+    return Array.from(controls);
+  }
+
+  private countLikelyCommentTimeMarkers(): number {
+    return this.scrapingSupport.selectAll(
+      document,
+      "main li time[datetime], [role='dialog'] time[datetime]",
+      HTMLElement,
+    ).length;
+  }
+
+  private activateControl(control: HTMLElement): void {
+    control.scrollIntoView({ block: "center", inline: "nearest" });
+    control.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.dispatchEvent(
+      new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.click();
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    control.dispatchEvent(
+      new KeyboardEvent("keyup", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  }
+
+  private resolveClickableControl(element: Element): HTMLElement | undefined {
+    const clickableAncestor = element.closest("button, a, div[role='button']");
+    if (clickableAncestor instanceof HTMLElement) {
+      return clickableAncestor;
+    }
+
+    if (
+      element instanceof HTMLButtonElement ||
+      element instanceof HTMLAnchorElement ||
+      (element instanceof HTMLElement &&
+        element.getAttribute("role") === "button")
+    ) {
+      return element;
+    }
+
+    return undefined;
+  }
+
+  private extractControlSearchText(element: Element): string | undefined {
+    const values: Array<string | null | undefined> = [
+      element.textContent,
+      element.getAttribute("aria-label"),
+      element.getAttribute("title"),
+    ];
+
+    for (const labelledElement of Array.from(
+      element.querySelectorAll("[aria-label], [title], title"),
+    )) {
+      values.push(
+        labelledElement.textContent,
+        labelledElement.getAttribute("aria-label"),
+        labelledElement.getAttribute("title"),
+      );
+    }
+
+    const combinedText = values
+      .map((value) => this.normalizeSearchText(value))
+      .filter((value): value is string => Boolean(value))
+      .join(" ");
+
+    return combinedText || undefined;
+  }
+
+  private normalizeSearchText(
+    text: string | null | undefined,
+  ): string | undefined {
+    const normalized = text
+      ?.normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+
+    if (!normalized) {
+      return undefined;
+    }
+
+    return normalized;
+  }
+
   private isPostMetadataEntry(
     comment: CommentSnapshot,
     postAuthor: Author,
@@ -135,7 +356,22 @@ export class InstagramPostNativeScraper {
   }
 
   private isModalContext(): boolean {
-    return Boolean(document.querySelector('[role="dialog"] article'));
+    for (const dialogElement of Array.from(
+      document.querySelectorAll('[role="dialog"]'),
+    )) {
+      if (
+        dialogElement instanceof HTMLElement &&
+        this.scrapingSupport.select(
+          dialogElement,
+          "time[datetime]",
+          HTMLElement,
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private selectPostElements(): InstagramPostElements {
