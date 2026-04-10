@@ -34,17 +34,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Post } from "@/shared/model/post/Post";
+
+const REPORT_CSV_HEADERS = [
+  "generated_at",
+  "report_organization",
+  "social_network",
+  "post_id",
+  "post_url",
+  "post_title",
+  "post_author",
+  "post_published_at_type",
+  "post_published_at",
+  "comment_id",
+  "comment_author",
+  "comment_text",
+  "comment_published_at_type",
+  "comment_published_at",
+  "comment_classification",
+  "comment_is_new",
+  "comment_is_deleted",
+  "comment_screenshot_available",
+] as const;
+
+type ReportCsvRow = Record<(typeof REPORT_CSV_HEADERS)[number], string>;
 
 function Report({
   reportQueryData,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
 }>) {
-  const [screenshotDialogOpen, setScreenshotDialogOpen] = useState(false);
+  const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
 
-  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(
-    null,
-  );
+  const [selectedScreenshot, setSelectedScreenshot] = React.useState<
+    string | null
+  >(null);
 
   const queryKey = React.useMemo(
     () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
@@ -72,11 +96,31 @@ function Report({
     );
   }, [reportQueryData?.postCommentList]);
 
+  const canExportCsv =
+    !isLoading && (reportQueryData?.postCommentList.length ?? 0) > 0;
+
+  const exportCsv = () => {
+    if (!reportQueryData) {
+      return;
+    }
+    const csvContent = buildReportCsv(reportQueryData, data ?? []);
+    const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
+
+    void browser.downloads.download({
+      url:
+        "data:text/csv;charset=utf-8," +
+        encodeURIComponent("\uFEFF" + csvContent),
+      filename: `rapport-bth-${generatedAt}.csv`,
+      saveAs: true,
+    });
+  };
+
   return (
     <>
       <div className="flex justify-between">
         <Button
           variant="link"
+          nativeButton={false}
           render={
             <Link to="/">
               <MoveLeft /> Revenir à la vue d&apos;ensemble
@@ -84,7 +128,11 @@ function Report({
           }
         />
         <div className="flex gap-2">
-          <Button variant="outline" disabled>
+          <Button
+            variant="outline"
+            disabled={!canExportCsv}
+            onClick={exportCsv}
+          >
             Exporter les données en CSV
           </Button>
           <Button variant="outline" disabled>
@@ -237,6 +285,69 @@ function Report({
       </Dialog>
     </>
   );
+}
+
+function buildReportCsv(
+  reportQueryData: ReportQueryData,
+  posts: Post[],
+): string {
+  const rows = buildReportCsvRows(reportQueryData, posts);
+  const dataRows = rows.map((row) =>
+    REPORT_CSV_HEADERS.map((header) => escapeCsvCell(row[header])).join(";"),
+  );
+  return [REPORT_CSV_HEADERS.join(";"), ...dataRows].join("\n");
+}
+
+function buildReportCsvRows(
+  reportQueryData: ReportQueryData,
+  posts: Post[],
+): ReportCsvRow[] {
+  const postsByKey = new Map<string, Post>(
+    posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
+  );
+  const generatedAt = new Date().toISOString();
+
+  return reportQueryData.postCommentList.map((comment) => {
+    const post = postsByKey.get(comment.postKey);
+    return {
+      generated_at: generatedAt,
+      report_organization: reportQueryData.reportOrganizationType,
+      social_network: post?.socialNetwork ?? "",
+      post_id: post?.postId ?? "",
+      post_url: post?.url ?? "",
+      post_title: post?.title ?? "",
+      post_author: post?.author.name ?? "",
+      post_published_at_type: post?.publishedAt.type ?? "",
+      post_published_at: post ? publicationDateToText(post.publishedAt) : "",
+      comment_id: comment.id,
+      comment_author: comment.author.name,
+      comment_text: comment.textContent,
+      comment_published_at_type: comment.publishedAt.type,
+      comment_published_at: publicationDateToText(comment.publishedAt),
+      comment_classification: (comment.classification ?? []).join("|"),
+      comment_is_new: String(comment.isNew),
+      comment_is_deleted: String(comment.isDeleted),
+      comment_screenshot_available: String(Boolean(comment.screenshotData)),
+    };
+  });
+}
+
+function publicationDateToText(date: Post["publishedAt"]): string {
+  switch (date.type) {
+    case "absolute":
+      return date.date;
+    case "relative":
+      return `${date.dateText} (${date.resolvedDateRange.start} -> ${date.resolvedDateRange.end})`;
+    case "unknown date":
+      return date.dateText;
+  }
+}
+
+function escapeCsvCell(value: string): string {
+  if (/[;"\n\r]/.test(value)) {
+    return `"${value.replaceAll('"', '""')}"`;
+  }
+  return value;
 }
 
 export default Report;
