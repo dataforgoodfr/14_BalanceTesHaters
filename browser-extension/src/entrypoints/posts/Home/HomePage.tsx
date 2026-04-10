@@ -7,19 +7,16 @@ import DateRangePicker from "./DateRangePicker";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
-import { addMonths } from "date-fns";
 import { type DateRange } from "react-day-picker";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { getEarliestPostDate } from "@/shared/utils/post-util";
 
 function HomePage() {
   // selection state controlled by the page
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
   >([SocialNetwork.YouTube]);
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: addMonths(new Date(), -3),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
   const queryKey = [
     "posts",
@@ -48,7 +45,7 @@ function HomePage() {
           value={socialNetworkFilter}
           onChange={setSocialNetworkFilter}
         />
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
+        <DateRangePicker startDate={getEarliestPostDate(data)}  onChange={setDateRange} />
       </div>
 
       <KpiCards posts={data} isLoading={isLoading} />

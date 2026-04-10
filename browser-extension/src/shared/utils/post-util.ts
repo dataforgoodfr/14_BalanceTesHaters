@@ -1,4 +1,4 @@
-import { PostComment } from "../model/post/Post";
+import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
 
@@ -26,6 +26,31 @@ export function isPostPublishedBefore(post: PostSnapshot, date: Date): boolean {
     case "unknown date":
       return true; // if we don't know the date, we always consider the comment as published after the given date (to avoid excluding it from analyses)
   }
+}
+
+export function getEarliestPostDate(postList: Post[] | undefined): Date {
+  if (!postList || postList.length === 0) {
+    return new Date();
+  }
+
+  return postList
+    .map((post) => {
+      switch (post.publishedAt.type) {
+        case "absolute":
+          return new Date(post.publishedAt.date);
+        case "relative":
+          return new Date(post.publishedAt.resolvedDateRange.start);
+        case "unknown date":
+          return undefined;
+      }
+    })
+    .filter((date): date is Date => date !== undefined)
+    .reduce((acc: Date, date) => {
+      if (date < acc) {
+        return date;
+      }
+      return acc;
+    }, new Date());
 }
 
 export function formatAnalysisDate(isoDateTime: string): string {

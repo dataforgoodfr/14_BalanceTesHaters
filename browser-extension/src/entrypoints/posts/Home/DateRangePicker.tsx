@@ -1,5 +1,5 @@
 import { Calendar } from "@/components/ui/calendar";
-import { addMonths, format } from "date-fns";
+import { format } from "date-fns";
 import { type DateRange } from "react-day-picker";
 import React from "react";
 import {
@@ -12,21 +12,22 @@ import { CalendarIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 type DateRangePickerProps = Readonly<{
-  value?: DateRange;
+  // value?: DateRange;
+  startDate: Date;
   onChange?: (range: DateRange | undefined) => void;
 }>;
 
-function DateRangePicker({ value, onChange }: DateRangePickerProps) {
+function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
   const today = new Date();
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
-    value ?? { from: addMonths(today, -3), to: today },
-  );
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: startDate,
+    to: today,
+  });
 
+  // Update dateRange whenever startDate changes
   React.useEffect(() => {
-    if (value !== undefined) {
-      setDateRange(value);
-    }
-  }, [value]);
+    setDateRange({ from: startDate, to: today });
+  }, [startDate]);
 
   const handleSelect = (range: DateRange | undefined) => {
     setDateRange(range);
