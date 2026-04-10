@@ -36,11 +36,23 @@ const LOAD_MORE_COMMENTS_LABELS = [
   "afficher plus de commentaires",
   "afficher tous les commentaires",
   "charger d'autres commentaires",
+  "voir les commentaires masques",
+  "voir le commentaire masque",
+  "afficher les commentaires masques",
+  "afficher le commentaire masque",
+  "voir ce commentaire",
+  "voir ce message",
   "show more comments",
   "show all comments",
   "load more comments",
   "view more comments",
   "view all comments",
+  "view hidden comments",
+  "see hidden comments",
+  "show hidden comments",
+  "show hidden comment",
+  "show this comment",
+  "see this comment",
   "more comments",
   "plus de commentaires",
 ];
@@ -152,63 +164,109 @@ export class InstagramPostModalScraper {
 
   private selectPostElements(): InstagramPostElements {
     const modalRoot = this.selectModalRoot();
-    const authorLink = this.scrapingSupport.select(
-      modalRoot,
-      "header a[href^='/'], a[href^='/']",
-      HTMLAnchorElement,
-    );
-
-    const channelHeader =
-      authorLink?.closest("header") ?? authorLink?.parentElement ?? modalRoot;
 
     return {
-      channelHeader,
+      channelHeader: modalRoot,
       // In modal layouts comments and metadata are usually inside the same article.
       scrollableArea: modalRoot,
     };
   }
 
   private selectModalRoot(): HTMLElement {
-    const candidates = this.scrapingSupport.selectAll(
-      document,
-      '[role="dialog"] article, main article',
-      HTMLElement,
-    );
-    for (const candidate of candidates) {
-      if (
-        this.scrapingSupport.select(
-          candidate,
-          "a[href^='/'], time[datetime]",
-          HTMLElement,
-        )
-      ) {
-        return candidate;
+    const selectors = [
+      '[role="dialog"] article',
+      '[role="dialog"]',
+      "main article",
+    ];
+    const candidates: HTMLElement[] = [];
+    for (const selector of selectors) {
+      for (const candidate of this.scrapingSupport.selectAll(
+        document,
+        selector,
+        HTMLElement,
+      )) {
+        candidates.push(candidate);
       }
     }
 
+    let firstWithDateTime: HTMLElement | undefined;
+    for (const candidate of candidates) {
+      const hasAuthorLink = this.scrapingSupport.select(
+        candidate,
+        "a[href^='/']",
+        HTMLAnchorElement,
+      );
+      const hasDateTime = this.scrapingSupport.select(
+        candidate,
+        "time[datetime]",
+        HTMLElement,
+      );
+      if (hasAuthorLink && hasDateTime) {
+        return candidate;
+      }
+
+      if (!firstWithDateTime && hasDateTime) {
+        firstWithDateTime = candidate;
+      }
+    }
+
+    if (firstWithDateTime) {
+      return firstWithDateTime;
+    }
     throw new Error("Failed to resolve selector: instagram modal root");
   }
 
   private scrapPostAuthor(channelHeader: HTMLElement): Author {
-    const channelElement = this.scrapingSupport.select(
+    const links = this.scrapingSupport.selectAll(
       channelHeader,
-      ":scope a[href^='/']",
+      "a[href^='/']",
       HTMLAnchorElement,
     );
-    const channelElementHref = channelElement?.getAttribute("href");
-    if (!channelElement || !channelElementHref) {
+
+    let selectedLink: HTMLAnchorElement | undefined;
+    let selectedAccountPath: string | undefined;
+    for (const link of links) {
+      const href = link.getAttribute("href");
+      if (!href) {
+        continue;
+      }
+      const accountPath = this.extractInstagramAccountPathFromHref(href);
+      if (accountPath) {
+        selectedLink = link;
+        selectedAccountPath = accountPath;
+        break;
+      }
+    }
+
+    if (!selectedLink || !selectedAccountPath) {
       throw new Error("Missing channel href");
     }
 
-    const channelName = normalizeInstagramText(channelElement.textContent);
+    const channelName =
+      normalizeInstagramText(selectedLink.textContent) ?? selectedAccountPath;
     if (!channelName) {
       throw new Error("Missing channel name");
     }
 
     return {
       name: channelName,
-      accountHref: new URL(channelElementHref, INSTAGRAM_URL).toString(),
+      accountHref: new URL(`/${selectedAccountPath}/`, INSTAGRAM_URL).toString(),
     };
+  }
+
+  private extractInstagramAccountPathFromHref(
+    href: string,
+  ): string | undefined {
+    const accountUrl = new URL(href, INSTAGRAM_URL);
+    const pathParts = accountUrl.pathname.split("/").filter(Boolean);
+    if (pathParts.length !== 1) {
+      return undefined;
+    }
+    const [path] = pathParts;
+    if (!isLikelyInstagramAccountPath(path)) {
+      return undefined;
+    }
+    return path;
   }
 
   private scrapPostTextContent(element: HTMLElement): string {
@@ -321,12 +379,17 @@ export class InstagramPostModalScraper {
     scrollableArea: HTMLElement,
   ): Promise<void> {
     const dialogRoot = scrollableArea.closest("[role='dialog']");
-    const interactionContainers: HTMLElement[] = [
+    const interactionContainers = new Set<HTMLElement>([
       commentsContainer,
       scrollableArea,
-    ];
+    ]);
+    const scrollableCommentsContainer =
+      this.selectScrollableCommentsContainer(commentsContainer);
+    if (scrollableCommentsContainer) {
+      interactionContainers.add(scrollableCommentsContainer);
+    }
     if (dialogRoot instanceof HTMLElement) {
-      interactionContainers.push(dialogRoot);
+      interactionContainers.add(dialogRoot);
     }
 
     let previousMarkerCount = -1;
@@ -335,8 +398,9 @@ export class InstagramPostModalScraper {
     for (let i = 0; i < 80; i += 1) {
       await this.scrapingSupport.resumeHostPage();
 
-      const clicked = this.clickLoadMoreCommentsControls(interactionContainers);
-      const scrolled = interactionContainers
+      const containers = Array.from(interactionContainers);
+      const clicked = this.clickLoadMoreCommentsControls(containers);
+      const scrolled = containers
         .map((container) => this.scrollToBottom(container))
         .some(Boolean);
       const hasSpinner = Boolean(this.selectSpinner(commentsContainer));
@@ -359,6 +423,28 @@ export class InstagramPostModalScraper {
 
       await this.scrapingSupport.sleep(350);
     }
+  }
+
+  private selectScrollableCommentsContainer(
+    commentsContainer: HTMLElement,
+  ): HTMLElement | undefined {
+    const candidates = [
+      commentsContainer,
+      ...this.scrapingSupport.selectAll(
+        commentsContainer,
+        "div, ul, section",
+        HTMLElement,
+      ),
+    ];
+
+    const scrollables = candidates.filter(
+      (element) => element.scrollHeight > element.clientHeight + 20,
+    );
+    if (scrollables.length === 0) {
+      return undefined;
+    }
+
+    return scrollables.sort((a, b) => b.clientHeight - a.clientHeight)[0];
   }
 
   private selectLoadMoreCommentsButtons(container: HTMLElement): HTMLElement[] {
@@ -387,11 +473,16 @@ export class InstagramPostModalScraper {
       return clickableAncestor;
     }
 
-    if (element instanceof HTMLElement) {
+    if (
+      element instanceof HTMLButtonElement ||
+      element instanceof HTMLAnchorElement ||
+      (element instanceof HTMLElement &&
+        element.getAttribute("role") === "button")
+    ) {
       return element;
     }
 
-    return element.parentElement ?? undefined;
+    return undefined;
   }
 
   private extractControlSearchText(element: Element): string | undefined {
@@ -449,13 +540,45 @@ export class InstagramPostModalScraper {
           continue;
         }
         seen.add(control);
-        control.scrollIntoView();
-        control.click();
+        this.activateControl(control);
         clicked = true;
       }
     }
 
     return clicked;
+  }
+
+  private activateControl(control: HTMLElement): void {
+    control.scrollIntoView({ block: "center", inline: "nearest" });
+    control.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.dispatchEvent(
+      new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.click();
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    control.dispatchEvent(
+      new KeyboardEvent("keyup", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
   }
 
   private scrollToBottom(element: HTMLElement): boolean {
