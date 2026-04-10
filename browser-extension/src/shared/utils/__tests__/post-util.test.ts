@@ -19,7 +19,7 @@ function createDummyPostWithDate(publishedAt: PublicationDate): Post {
       name: "Dummy Author",
       accountHref: "https://youtube.com/@dummyauthor",
     },
-    lastAnalysisDate: new Date().toISOString(),
+    lastAnalysisDate: new Date().toLocaleDateString(),
     comments: [],
   };
 }
@@ -30,14 +30,14 @@ describe("post utilities", () => {
       const postList = undefined;
 
       const result = getEarliestPostDate(postList);
-      expect(result.getDate()).toBe(new Date().getDate());
+      expect(result.toLocaleDateString()).toBe(new Date().toLocaleDateString());
     });
 
     it("No posts provided, should get current date", () => {
       const postList: Post[] = [];
 
       const result = getEarliestPostDate(postList);
-      expect(result.getDate()).toBe(new Date().getDate());
+      expect(result.toLocaleDateString()).toBe(new Date().toLocaleDateString());
     });
 
     it("unknown date should get current date", () => {
@@ -47,17 +47,17 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([post]);
-      expect(result.getDate()).toBe(new Date().getDate());
+      expect(result.toLocaleDateString()).toBe(new Date().toLocaleDateString());
     });
 
     it("absolute date should get absolute date", () => {
       const post = createDummyPostWithDate({
         type: "absolute",
-        date: new Date("2024-01-01").toISOString(),
+        date: new Date("2024-01-01").toLocaleDateString(),
       });
 
       const result = getEarliestPostDate([post]);
-      expect(result.getDate()).toBe(new Date("2024-01-01").getDate());
+      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
     });
 
     it("relative date should get start date", () => {
@@ -65,19 +65,19 @@ describe("post utilities", () => {
         type: "relative",
         dateText: "xx days ago",
         resolvedDateRange: {
-          start: new Date("2024-01-01").toISOString(),
-          end: new Date("2024-01-10").toISOString(),
+          start: new Date("2024-01-01").toLocaleDateString(),
+          end: new Date("2024-01-10").toLocaleDateString(),
         },
       });
 
       const result = getEarliestPostDate([post]);
-      expect(result.getDate()).toBe(new Date("2024-01-01").getDate());
+      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
     });
 
     it("unknown + absolute date should get absolute date", () => {
       const absolutePost = createDummyPostWithDate({
         type: "absolute",
-        date: new Date("2024-01-01").toISOString(),
+        date: new Date("2024-01-01").toLocaleDateString(),
       });
       const unknownPost = createDummyPostWithDate({
         type: "unknown date",
@@ -85,7 +85,7 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([absolutePost, unknownPost]);
-      expect(result.getDate()).toBe(new Date("2024-01-01").getDate());
+      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
     });
 
     it("absolute + relative date should get earliest date", () => {
@@ -93,17 +93,17 @@ describe("post utilities", () => {
         type: "relative",
         dateText: "xx days ago",
         resolvedDateRange: {
-          start: new Date("2024-01-01").toISOString(),
-          end: new Date("2024-01-10").toISOString(),
+          start: new Date("2024-01-01").toLocaleDateString(),
+          end: new Date("2024-01-10").toLocaleDateString(),
         },
       });
       const absolutePost = createDummyPostWithDate({
         type: "absolute",
-        date: new Date("2024-01-05").toISOString(),
+        date: new Date("2024-01-05").toLocaleDateString(),
       });
 
       const result = getEarliestPostDate([relativePost, absolutePost]);
-      expect(result.getDate()).toBe(new Date("2024-01-01").getDate());
+      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
     });
   });
 });
