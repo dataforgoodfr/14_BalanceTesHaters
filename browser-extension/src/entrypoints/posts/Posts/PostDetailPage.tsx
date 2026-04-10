@@ -16,7 +16,7 @@ import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
 import CommentsTable, { PostCommentWithId } from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
-import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard copy";
+import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 
 function PostDetailPage() {
@@ -30,7 +30,6 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  let numberOfHatefulComments = 0;
 
   const allComments = post?.comments || [];
   const hatefulComments = allComments
@@ -43,9 +42,7 @@ function PostDetailPage() {
       } as PostCommentWithId;
     });
 
-  if (allComments.length !== 0) {
-    numberOfHatefulComments = hatefulComments.length;
-  }
+   const numberOfHatefulComments = hatefulComments.length;
 
   return (
     <div className="p-4 flex flex-col gap-6 w-5/6">
