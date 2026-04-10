@@ -163,47 +163,58 @@ export class InstagramPostNativeScraper {
       return true;
     }
 
-    const commentControl = this.selectReelCommentControl();
-    if (!commentControl) {
+    const baselineCommentTimeCount = this.countLikelyCommentTimeMarkers();
+    const commentControls = this.selectReelCommentControls();
+    if (commentControls.length === 0) {
       this.debug("Could not find reel comment control");
       return false;
     }
 
-    this.activateControl(commentControl);
-    await this.scrapingSupport.sleep(300);
-
-    const waitResult = await this.scrapingSupport.waitForSelector(
-      document,
-      '[role="dialog"]',
-      HTMLElement,
-      {
-        timeout: 2500,
-        predicate: (dialogElement) =>
-          Boolean(
-            this.scrapingSupport.select(
-              dialogElement,
-              "time[datetime]",
-              HTMLElement,
-            ),
-          ),
-      },
+    this.debug(
+      `Found ${commentControls.length} reel comment control candidate(s)`,
     );
+    for (const control of commentControls.slice(0, 4)) {
+      const label = this.extractControlSearchText(control);
+      this.debug("Trying reel comment control", label ?? "<no-label>");
+      this.activateControl(control);
+      await this.scrapingSupport.sleep(250);
 
-    if (waitResult.status === "failure") {
-      this.debug(
-        "Reel dialog not detected after comment click; trying inline reel layout",
+      const waitResult = await this.scrapingSupport.waitForSelector(
+        document,
+        '[role="dialog"]',
+        HTMLElement,
+        {
+          timeout: 2000,
+        },
       );
-      return false;
+
+      if (waitResult.status === "success") {
+        this.debug("Reel comments panel opened in dialog");
+        return true;
+      }
+
+      const currentCommentTimeCount = this.countLikelyCommentTimeMarkers();
+      if (currentCommentTimeCount > baselineCommentTimeCount) {
+        this.debug(
+          "Reel comments panel likely opened in inline layout",
+          `time markers ${baselineCommentTimeCount} -> ${currentCommentTimeCount}`,
+        );
+        return true;
+      }
     }
 
-    this.debug("Reel comments panel opened");
-    return true;
+    this.debug(
+      "Reel comments panel not detected after trying all controls",
+      `baseline time markers: ${baselineCommentTimeCount}`,
+    );
+    return false;
   }
 
-  private selectReelCommentControl(): HTMLElement | undefined {
+  private selectReelCommentControls(): HTMLElement[] {
     const elements = Array.from(
       document.querySelectorAll(REEL_COMMENT_CONTROL_SELECTOR),
     );
+    const controls = new Set<HTMLElement>();
 
     for (const element of elements) {
       const text = this.extractControlSearchText(element);
@@ -218,11 +229,19 @@ export class InstagramPostNativeScraper {
       }
       const target = this.resolveClickableControl(element);
       if (target) {
-        return target;
+        controls.add(target);
       }
     }
 
-    return undefined;
+    return Array.from(controls);
+  }
+
+  private countLikelyCommentTimeMarkers(): number {
+    return this.scrapingSupport.selectAll(
+      document,
+      "main li time[datetime], [role='dialog'] time[datetime]",
+      HTMLElement,
+    ).length;
   }
 
   private activateControl(control: HTMLElement): void {
