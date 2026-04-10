@@ -49,6 +49,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useForm } from "@tanstack/react-form";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 
 /**
  * Merged view of Post Snapshot
@@ -62,11 +69,13 @@ export default function CommentsTable({
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
+  showScreenshotColumn = false,
 }: Readonly<{
   commentList: PostCommentWithId[];
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
+  showScreenshotColumn?: boolean;
 }>) {
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -76,6 +85,10 @@ export default function CommentsTable({
   const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
     Set<string>
   >(new Set(defaultSelectedCommentIdList));
+  const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
+  const [selectedScreenshot, setSelectedScreenshot] = React.useState<
+    string | null
+  >(null);
   const form = useForm({
     defaultValues: {
       commentIdList: defaultSelectedCommentIdList,
@@ -99,6 +112,11 @@ export default function CommentsTable({
 
   const toggleCommentSelection = (id: string) => {
     updateSelectedCommentList(addOrRemoveValueToSet(selectedCommentIdList, id));
+  };
+
+  const openScreenshotDialog = (screenshotData: string) => {
+    setSelectedScreenshot(screenshotData);
+    setScreenshotDialogOpen(true);
   };
 
   const filteredComments = React.useMemo(
@@ -164,6 +182,25 @@ export default function CommentsTable({
             {row.original.textContent}
           </div>
         ),
+      },
+      {
+        id: "screenshot",
+        header: "Capture",
+        size: 14,
+        cell: ({ row }) => {
+          if (!row.original.screenshotData) {
+            return <span className="text-muted-foreground">N/A</span>;
+          }
+
+          return (
+            <img
+              src={buildDataUrl(row.original.screenshotData, PNG_MIME_TYPE)}
+              alt="Capture du commentaire"
+              className="max-h-16 cursor-pointer border rounded"
+              onClick={() => openScreenshotDialog(row.original.screenshotData)}
+            />
+          );
+        },
       },
       {
         id: "vue",
@@ -237,12 +274,19 @@ export default function CommentsTable({
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
-    [visibleComments, filteredComments, selectedCommentIdList],
+    [
+      filteredComments,
+      openScreenshotDialog,
+      selectedCommentIdList,
+      visibleComments,
+    ],
   );
 
   const table = useReactTable({
     data: filteredComments,
-    columns,
+    columns: columns.filter(
+      (column) => showScreenshotColumn || column.id !== "screenshot",
+    ),
     getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
     getPaginationRowModel: getPaginationRowModel(),
@@ -277,132 +321,151 @@ export default function CommentsTable({
   };
 
   return (
-    <form
-      id={formId}
-      className="rounded-md border mt-2"
-      onSubmit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        void form.handleSubmit();
-      }}
-    >
-      <div className="p-3 flex justify-between">
-        <InputGroup className="mx-4 w-1/3">
-          <InputGroupInput
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            placeholder="Rechercher"
-          />
-          <InputGroupAddon>
-            <SearchIcon />
-          </InputGroupAddon>
-        </InputGroup>
-        <div className="flex gap-4">
-          <Button variant="outline" disabled>
-            Tout sélectionner
-          </Button>
-          <Button variant="outline" disabled>
-            Filtrer <Funnel />
-          </Button>
-          <Button variant="outline" disabled>
-            Trier <ArrowDownUp />
-          </Button>{" "}
-        </div>
-      </div>
-      <form.Field
-        name="commentIdList"
-        validators={{
-          onChange: ({ value }) =>
-            value.length < 1
-              ? "Sélectionner au moins un commentaire"
-              : undefined,
+    <>
+      <form
+        id={formId}
+        className="rounded-md border mt-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          void form.handleSubmit();
         }}
       >
-        {(field) => (
-          <>
-            {field.state.meta.errors.length > 0 && (
-              <div className="text-destructive text-center text-sm mb-2">
-                {field.state.meta.errors.join(", ")}
-              </div>
-            )}
-            <Table className="w-full table-fixed">
-              <TableHeader className="bg-gray-200">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        style={{ width: `${header.column.columnDef.size}%` }}
-                      >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </>
-        )}
-      </form.Field>
-      <div className="flex items-center justify-between gap-4 p-6 mt-3 mb-6">
-        <Field orientation="horizontal" className="w-fit">
-          <FieldLabel htmlFor="select-rows-per-page">
-            Nombre de commentaires par page
-          </FieldLabel>
-          <Select
-            defaultValue={table.getState().pagination.pageSize}
-            onValueChange={(e) => {
-              table.setPageSize(Number(e));
-            }}
-          >
-            <SelectTrigger className="w-20" id="select-rows-per-page">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="start">
-              <SelectGroup>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Pagination className="mx-0 w-auto">
-          <PaginationContent>
-            {table.getCanPreviousPage() && (
-              <PaginationItem>
-                <PaginationPrevious onClick={() => table.previousPage()} />
-              </PaginationItem>
-            )}
-            {table.getCanNextPage() && (
-              <PaginationItem>
-                <PaginationNext onClick={() => table.nextPage()} />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      </div>
-    </form>
+        <div className="p-3 flex justify-between">
+          <InputGroup className="mx-4 w-1/3">
+            <InputGroupInput
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="Rechercher"
+            />
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+          </InputGroup>
+          <div className="flex gap-4">
+            <Button variant="outline" disabled>
+              Tout sélectionner
+            </Button>
+            <Button variant="outline" disabled>
+              Filtrer <Funnel />
+            </Button>
+            <Button variant="outline" disabled>
+              Trier <ArrowDownUp />
+            </Button>{" "}
+          </div>
+        </div>
+        <form.Field
+          name="commentIdList"
+          validators={{
+            onChange: ({ value }) =>
+              value.length < 1
+                ? "Sélectionner au moins un commentaire"
+                : undefined,
+          }}
+        >
+          {(field) => (
+            <>
+              {field.state.meta.errors.length > 0 && (
+                <div className="text-destructive text-center text-sm mb-2">
+                  {field.state.meta.errors.join(", ")}
+                </div>
+              )}
+              <Table className="w-full table-fixed">
+                <TableHeader className="bg-gray-200">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          style={{ width: `${header.column.columnDef.size}%` }}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </form.Field>
+        <div className="flex items-center justify-between gap-4 p-6 mt-3 mb-6">
+          <Field orientation="horizontal" className="w-fit">
+            <FieldLabel htmlFor="select-rows-per-page">
+              Nombre de commentaires par page
+            </FieldLabel>
+            <Select
+              defaultValue={table.getState().pagination.pageSize}
+              onValueChange={(e) => {
+                table.setPageSize(Number(e));
+              }}
+            >
+              <SelectTrigger className="w-20" id="select-rows-per-page">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start">
+                <SelectGroup>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Pagination className="mx-0 w-auto">
+            <PaginationContent>
+              {table.getCanPreviousPage() && (
+                <PaginationItem>
+                  <PaginationPrevious onClick={() => table.previousPage()} />
+                </PaginationItem>
+              )}
+              {table.getCanNextPage() && (
+                <PaginationItem>
+                  <PaginationNext onClick={() => table.nextPage()} />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </form>
+      <Dialog
+        open={screenshotDialogOpen}
+        onOpenChange={setScreenshotDialogOpen}
+      >
+        <DialogContent className="max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Capture du commentaire</DialogTitle>
+          </DialogHeader>
+          {selectedScreenshot ? (
+            <img
+              src={buildDataUrl(selectedScreenshot, PNG_MIME_TYPE)}
+              alt="Capture du commentaire"
+              className="max-h-[75vh]"
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 

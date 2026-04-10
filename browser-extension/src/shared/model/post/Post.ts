@@ -19,6 +19,11 @@ export type Post = PostSharedProperties & {
 
 export type PostComment = CommentSharedProperties & {
   /**
+   * Base64 encoded PNG screenshot captured at scrape time.
+   */
+  screenshotData: string;
+
+  /**
    * True if comment was added in latest snapshot of post and more than one snapshot existed
    */
   isNew: boolean;

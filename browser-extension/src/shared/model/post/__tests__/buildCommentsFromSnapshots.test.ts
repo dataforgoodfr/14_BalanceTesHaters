@@ -416,6 +416,54 @@ describe("buildCommentsFromSnapshots", () => {
       expect(result[1].isDeleted).toBe(false);
     });
   });
+
+  describe("screenshot selection", () => {
+    it("should keep the latest screenshot when latest snapshot has one", () => {
+      const commentV1 = createCommentSnapshot({
+        commentId: "screenshot-latest",
+        textContent: "Same text",
+        screenshotData: "b2xkLXNjcmVlbnNob3Q=", // old-screenshot
+        scrapedAt: "2024-01-01T00:01:00.000Z",
+      });
+      const commentV2 = createCommentSnapshot({
+        commentId: "screenshot-latest",
+        textContent: "Same text",
+        screenshotData: "bmV3LXNjcmVlbnNob3Q=", // new-screenshot
+        scrapedAt: "2024-01-01T00:02:00.000Z",
+      });
+
+      const result = buildCommentsFromSnapshots([
+        createMinimalPostSnapshot([commentV1]),
+        createMinimalPostSnapshot([commentV2]),
+      ]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].screenshotData).toBe("bmV3LXNjcmVlbnNob3Q=");
+    });
+
+    it("should fallback to latest non-empty screenshot when latest is empty", () => {
+      const commentV1 = createCommentSnapshot({
+        commentId: "screenshot-fallback",
+        textContent: "Same text",
+        screenshotData: "dmFsaWQtc2NyZWVuc2hvdA==", // valid-screenshot
+        scrapedAt: "2024-01-01T00:01:00.000Z",
+      });
+      const commentV2 = createCommentSnapshot({
+        commentId: "screenshot-fallback",
+        textContent: "Same text",
+        screenshotData: "",
+        scrapedAt: "2024-01-01T00:02:00.000Z",
+      });
+
+      const result = buildCommentsFromSnapshots([
+        createMinimalPostSnapshot([commentV1]),
+        createMinimalPostSnapshot([commentV2]),
+      ]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].screenshotData).toBe("dmFsaWQtc2NyZWVuc2hvdA==");
+    });
+  });
 });
 
 function createMinimalPostSnapshot(comments: CommentSnapshot[]): PostSnapshot {
