@@ -3,7 +3,7 @@ import { isCommentHateful } from "@/shared/utils/post-util";
 import { Post } from "@/shared/model/post/Post";
 import KpiCard from "../Shared/KpiCards/KpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
-import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard copy";
+import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 
 type KpiCardsProps = {

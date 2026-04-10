@@ -15,8 +15,7 @@ import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKp
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
-import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard copy";
-import { PostCommentWithId } from "../Posts/CommentsTable";
+import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PostSummary from "../Shared/PostSummary";
 import { Card } from "@/components/ui/card";
 import {
@@ -66,19 +65,11 @@ function Report({
   };
 
   const groupedCommentsByPost = React.useMemo(() => {
-    const comments = reportQueryData?.postCommentList;
-    if (!comments || comments.length === 0)
-      return [] as [string, PostCommentWithId[]][];
-    if (typeof Object.groupBy === "function") {
-      return Object.entries(
-        Object.groupBy(comments, (comment) => comment.postKey),
-      );
-    }
-    const groups: Record<string, PostCommentWithId[]> = {};
-    for (const comment of comments) {
-      (groups[comment.postKey] ??= []).push(comment);
-    }
-    return Object.entries(groups);
+    const comments = reportQueryData?.postCommentList || [];
+
+    return Object.entries(
+      Object.groupBy(comments, (comment) => comment.postKey),
+    );
   }, [reportQueryData?.postCommentList]);
 
   return (
@@ -203,7 +194,7 @@ function Report({
                               comment.screenshotData,
                               PNG_MIME_TYPE,
                             )}
-                            alt="Screenshot"
+                            alt="Capture d'écran du commentaire"
                             className="cursor-pointer h-full max-h-full!"
                             onClick={() =>
                               openScreenshotDialog(comment.screenshotData)
@@ -238,7 +229,7 @@ function Report({
           {selectedScreenshot && (
             <img
               src={buildDataUrl(selectedScreenshot, PNG_MIME_TYPE)}
-              alt="Screenshot"
+              alt="Capture d'écran du commentaire"
               className="max-w-fit max-h-fit"
             />
           )}
