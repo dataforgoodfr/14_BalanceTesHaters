@@ -512,10 +512,13 @@ function getPublicationDateRawRange(date: Post["publishedAt"]): {
 }
 
 function escapeCsvCell(value: string): string {
-  if (/[;"\n\r]/.test(value)) {
-    return `"${value.replaceAll('"', '""')}"`;
+  const startsWithFormulaTrigger = /^[=+\-@]/.test(value);
+  const sanitizedValue = startsWithFormulaTrigger ? `'${value}` : value;
+
+  if (/[;"\n\r]/.test(sanitizedValue)) {
+    return `"${sanitizedValue.replaceAll('"', '""')}"`;
   }
-  return value;
+  return sanitizedValue;
 }
 
 export default Report;
