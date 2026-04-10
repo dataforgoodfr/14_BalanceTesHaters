@@ -36,11 +36,23 @@ const LOAD_MORE_COMMENTS_LABELS = [
   "afficher plus de commentaires",
   "afficher tous les commentaires",
   "charger d'autres commentaires",
+  "voir les commentaires masques",
+  "voir le commentaire masque",
+  "afficher les commentaires masques",
+  "afficher le commentaire masque",
+  "voir ce commentaire",
+  "voir ce message",
   "show more comments",
   "show all comments",
   "load more comments",
   "view more comments",
   "view all comments",
+  "view hidden comments",
+  "see hidden comments",
+  "show hidden comments",
+  "show hidden comment",
+  "show this comment",
+  "see this comment",
   "more comments",
   "plus de commentaires",
 ];
@@ -387,11 +399,16 @@ export class InstagramPostModalScraper {
       return clickableAncestor;
     }
 
-    if (element instanceof HTMLElement) {
+    if (
+      element instanceof HTMLButtonElement ||
+      element instanceof HTMLAnchorElement ||
+      (element instanceof HTMLElement &&
+        element.getAttribute("role") === "button")
+    ) {
       return element;
     }
 
-    return element.parentElement ?? undefined;
+    return undefined;
   }
 
   private extractControlSearchText(element: Element): string | undefined {
@@ -449,13 +466,45 @@ export class InstagramPostModalScraper {
           continue;
         }
         seen.add(control);
-        control.scrollIntoView();
-        control.click();
+        this.activateControl(control);
         clicked = true;
       }
     }
 
     return clicked;
+  }
+
+  private activateControl(control: HTMLElement): void {
+    control.scrollIntoView({ block: "center", inline: "nearest" });
+    control.dispatchEvent(
+      new MouseEvent("mousedown", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.dispatchEvent(
+      new MouseEvent("mouseup", {
+        bubbles: true,
+        cancelable: true,
+        view: window,
+      }),
+    );
+    control.click();
+    control.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    control.dispatchEvent(
+      new KeyboardEvent("keyup", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
   }
 
   private scrollToBottom(element: HTMLElement): boolean {
