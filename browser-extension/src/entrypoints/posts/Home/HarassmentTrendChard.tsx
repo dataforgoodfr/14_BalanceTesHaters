@@ -176,7 +176,14 @@ function HarassmentTrendChart({
             <YAxis />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="nombre" fill="var(--primary)" radius={4} />
-            <ChartTooltip content={<ChartTooltipContent indicator="line" className="max-w-1/12 text-left " />} />
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  indicator="line"
+                  className="max-w-1/12 text-left "
+                />
+              }
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

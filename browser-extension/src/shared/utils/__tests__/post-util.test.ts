@@ -57,7 +57,9 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([post]);
-      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
+      expect(result.toLocaleDateString()).toBe(
+        new Date("2024-01-01").toLocaleDateString(),
+      );
     });
 
     it("relative date should get start date", () => {
@@ -71,7 +73,9 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([post]);
-      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
+      expect(result.toLocaleDateString()).toBe(
+        new Date("2024-01-01").toLocaleDateString(),
+      );
     });
 
     it("unknown + absolute date should get absolute date", () => {
@@ -85,7 +89,9 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([absolutePost, unknownPost]);
-      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
+      expect(result.toLocaleDateString()).toBe(
+        new Date("2024-01-01").toLocaleDateString(),
+      );
     });
 
     it("absolute + relative date should get earliest date", () => {
@@ -103,7 +109,9 @@ describe("post utilities", () => {
       });
 
       const result = getEarliestPostDate([relativePost, absolutePost]);
-      expect(result.toLocaleDateString()).toBe(new Date("2024-01-01").toLocaleDateString());
+      expect(result.toLocaleDateString()).toBe(
+        new Date("2024-01-01").toLocaleDateString(),
+      );
     });
   });
 });
