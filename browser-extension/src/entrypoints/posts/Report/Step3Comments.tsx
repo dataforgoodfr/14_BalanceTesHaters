@@ -1,10 +1,11 @@
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
-import { ReportQueryData, useStepper, getFormId } from "./BuildReport";
+import { ReportQueryData, useStepper } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
 import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
+import { getFormId } from "./StepperComponents";
 
 function Step3Comments({
   reportQueryData,
@@ -24,9 +25,18 @@ function Step3Comments({
   });
 
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
+  //  et une clé postKey pour différencier les commentaires issus de différents posts
   const allComments: PostCommentWithId[] = React.useMemo(() => {
     return (data || [])
-      .flatMap((p) => p.comments)
+      .flatMap((p) => {
+        return p.comments.map(
+          (comment) =>
+            ({
+              ...comment,
+              postKey: `${p.postId}-${p.socialNetwork}`,
+            }) as PostCommentWithId,
+        );
+      })
       .filter((c) => isCommentHateful(c))
       .map((comment, i) => {
         return { ...comment, id: i.toString() };

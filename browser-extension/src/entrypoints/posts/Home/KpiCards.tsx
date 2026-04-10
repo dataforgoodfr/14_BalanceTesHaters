@@ -1,8 +1,10 @@
 import { Spinner } from "@/components/ui/spinner";
 import { isCommentHateful } from "@/shared/utils/post-util";
-import { getPercentage } from "@/shared/utils/maths";
 import { Post } from "@/shared/model/post/Post";
-import KpiCard from "../Shared/KpiCard";
+import KpiCard from "../Shared/KpiCards/KpiCard";
+import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
+import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
+import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 
 type KpiCardsProps = {
   posts: Post[] | undefined;
@@ -10,20 +12,12 @@ type KpiCardsProps = {
 };
 
 function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
-  let percentageOfHatefulComments = 0;
   let numberOfHatefulComments = 0;
-  let numberOfHatefulAuthors = 0;
 
   const allComments = (posts || []).flatMap((p) => p.comments);
+  const hatefulComments = allComments.filter((c) => isCommentHateful(c));
   if (allComments.length !== 0) {
-    const hatefulComments = allComments.filter((c) => isCommentHateful(c));
     numberOfHatefulComments = hatefulComments.length;
-    percentageOfHatefulComments = getPercentage(
-      numberOfHatefulComments,
-      allComments.length,
-    );
-    numberOfHatefulAuthors = new Set(hatefulComments.map((c) => c.author.name))
-      .size;
   }
 
   return (
@@ -33,30 +27,26 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
         <p>Aucun post collecté pour la période sélectionnée.</p>
       )}
       <div className="flex gap-4 justify-between">
-        <KpiCard
-          title="Part des commentaires haineux"
-          value={percentageOfHatefulComments.toFixed(2) + "%"}
-          isWorkInProgress={false}
+        <PercentageHatefulCommentsKpiCard
+          numberOfHatefulComments={numberOfHatefulComments}
+          numberOfComments={allComments.length}
           isLoading={isLoading}
-        ></KpiCard>
-        <KpiCard
-          title="Nombre de commentaires haineux"
-          value={`${numberOfHatefulComments.toString()}/${allComments.length.toString()}`}
-          isWorkInProgress={false}
+        />
+        <NumberHatefulCommentsKpiCard
+          numberOfHatefulComments={numberOfHatefulComments}
+          numberOfComments={allComments.length}
           isLoading={isLoading}
-        ></KpiCard>
+        />
         <KpiCard
           title="Gravité"
           value="Modérée"
           isWorkInProgress={true}
           isLoading={isLoading}
         ></KpiCard>
-        <KpiCard
-          title="Nombre d'auteurs des commentaires haineux"
-          value={numberOfHatefulAuthors.toString()}
-          isWorkInProgress={false}
+        <NumberHatefulAuhorsKpiCard
+          hatefulCommentList={hatefulComments}
           isLoading={isLoading}
-        ></KpiCard>
+        />
       </div>
     </>
   );
