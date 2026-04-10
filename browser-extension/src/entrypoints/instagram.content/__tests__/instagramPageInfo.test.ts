@@ -3,12 +3,12 @@ import { instagramPageInfo } from "../instagramPageInfo";
 
 describe("instagramPageInfo", () => {
   it("returns scrapable info for /p/<id>", () => {
-    expect(instagramPageInfo("https://www.instagram.com/p/ABC123/")).toMatchObject(
-      {
-        isScrapablePost: true,
-        postId: "ABC123",
-      },
-    );
+    expect(
+      instagramPageInfo("https://www.instagram.com/p/ABC123/"),
+    ).toMatchObject({
+      isScrapablePost: true,
+      postId: "ABC123",
+    });
   });
 
   it("returns scrapable info for /reel/<id>", () => {

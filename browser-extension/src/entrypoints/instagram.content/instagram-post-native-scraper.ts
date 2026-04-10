@@ -342,7 +342,11 @@ export class InstagramPostNativeScraper {
     )) {
       if (
         dialogElement instanceof HTMLElement &&
-        this.scrapingSupport.select(dialogElement, "time[datetime]", HTMLElement)
+        this.scrapingSupport.select(
+          dialogElement,
+          "time[datetime]",
+          HTMLElement,
+        )
       ) {
         return true;
       }

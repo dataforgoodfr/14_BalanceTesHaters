@@ -250,7 +250,10 @@ export class InstagramPostModalScraper {
 
     return {
       name: channelName,
-      accountHref: new URL(`/${selectedAccountPath}/`, INSTAGRAM_URL).toString(),
+      accountHref: new URL(
+        `/${selectedAccountPath}/`,
+        INSTAGRAM_URL,
+      ).toString(),
     };
   }
 
