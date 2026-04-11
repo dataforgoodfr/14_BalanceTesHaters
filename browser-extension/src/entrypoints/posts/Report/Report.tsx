@@ -39,6 +39,7 @@ import {
   BorderStyle,
   Document as DocxDocument,
   HeadingLevel,
+  ImageRun,
   Packer,
   Paragraph,
   Table as DocxTable,
@@ -431,7 +432,7 @@ function buildReportDocx(
       ],
     }),
     createKeyValueTable([
-      ["Date de génération", formatDateTimeForCsv(generatedAt)],
+      ["Date de génération", formatDateTimeForDocx(generatedAt)],
       ["Date de génération (UTC brut)", generatedAt],
       [
         "Organisation du rapport",
@@ -452,7 +453,7 @@ function buildReportDocx(
       spacing: { before: 240, after: 240 },
       children: [
         new TextRun({
-          text: "Note: les dates affichées dans le rapport sont normalisées en UTC lorsqu'une date absolue est disponible.",
+          text: "Note: les dates affichées dans ce document sont formatées en français avec fuseau horaire explicite.",
         }),
       ],
     }),
@@ -480,14 +481,14 @@ function buildReportDocx(
           ["Plateforme", getSocialNetworkName(post.socialNetwork)],
           ["Identifiant publication", post.postId],
           ["URL", post.url],
-          ["Date de publication", publicationDateToText(post.publishedAt)],
+          ["Date de publication", publicationDateToDocxText(post.publishedAt)],
           [
             "Date source plateforme",
             publicationDateSourceText(post.publishedAt),
           ],
           ["Date brute début (UTC)", postRawRange.start || "-"],
           ["Date brute fin (UTC)", postRawRange.end || "-"],
-          ["Dernière collecte", formatDateTimeForCsv(post.lastAnalysisDate)],
+          ["Dernière collecte", formatDateTimeForDocx(post.lastAnalysisDate)],
           ["Dernière collecte (UTC brut)", post.lastAnalysisDate],
         ]),
       );
@@ -527,7 +528,7 @@ function buildReportDocx(
         createKeyValueTable([
           ["ID", comment.id],
           ["Auteur", comment.author.name],
-          ["Date", publicationDateToText(comment.publishedAt)],
+          ["Date", publicationDateToDocxText(comment.publishedAt)],
           [
             "Date source plateforme",
             publicationDateSourceText(comment.publishedAt),
@@ -542,7 +543,7 @@ function buildReportDocx(
           [
             "Date de classification",
             comment.classifiedAt
-              ? formatDateTimeForCsv(comment.classifiedAt)
+              ? formatDateTimeForDocx(comment.classifiedAt)
               : "-",
           ],
           ["Date de classification (UTC brut)", comment.classifiedAt ?? "-"],
@@ -554,26 +555,22 @@ function buildReportDocx(
           ["Commentaire nouveau", booleanToFrenchText(comment.isNew)],
         ]),
         new Paragraph({
-          children: [new TextRun({ text: "Texte du commentaire", bold: true })],
+          children: [
+            new TextRun({
+              text: "Capture d'écran du commentaire",
+              bold: true,
+            }),
+          ],
           spacing: { before: 120, after: 80 },
         }),
       );
 
-      const textLines = splitCommentLines(comment.textContent);
-      textLines.forEach((line) => {
-        children.push(
-          new Paragraph({
-            text: line,
-          }),
-        );
+      const screenshotParagraphs = createCommentScreenshotParagraphs(
+        comment.screenshotData,
+      );
+      screenshotParagraphs.forEach((paragraph) => {
+        children.push(paragraph);
       });
-      if (textLines.length === 0) {
-        children.push(
-          new Paragraph({
-            text: "(commentaire vide)",
-          }),
-        );
-      }
 
       children.push(
         new Paragraph({
@@ -626,14 +623,104 @@ function createKeyValueTable(rows: Array<[string, string]>): DocxTable {
   });
 }
 
-function splitCommentLines(text: string): string[] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trimEnd())
-    .filter(
-      (line, index, arr) =>
-        line.length > 0 || (index > 0 && index < arr.length - 1),
-    );
+function createCommentScreenshotParagraphs(
+  screenshotData: string,
+): Paragraph[] {
+  if (!screenshotData) {
+    return [
+      new Paragraph({
+        text: "Capture non disponible.",
+      }),
+    ];
+  }
+
+  try {
+    const bytes = base64ToUint8Array(screenshotData);
+    const dimensions = getPngDimensions(bytes);
+    const transformation = computeImageTransformation(dimensions);
+
+    return [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [
+          new ImageRun({
+            data: bytes,
+            type: "png",
+            transformation,
+          }),
+        ],
+      }),
+    ];
+  } catch {
+    return [
+      new Paragraph({
+        text: "Capture non disponible (format invalide).",
+      }),
+    ];
+  }
+}
+
+function base64ToUint8Array(base64: string): Uint8Array {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return bytes;
+}
+
+function getPngDimensions(bytes: Uint8Array): {
+  width: number;
+  height: number;
+} | null {
+  if (bytes.length < 24) {
+    return null;
+  }
+
+  const pngSignatureMatches =
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47;
+  if (!pngSignatureMatches) {
+    return null;
+  }
+
+  const width =
+    (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+  const height =
+    (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+  if (width <= 0 || height <= 0) {
+    return null;
+  }
+
+  return { width, height };
+}
+
+function computeImageTransformation(
+  dimensions: {
+    width: number;
+    height: number;
+  } | null,
+): {
+  width: number;
+  height: number;
+} {
+  const maxWidth = 500;
+  const maxHeight = 320;
+
+  if (!dimensions) {
+    return { width: maxWidth, height: 280 };
+  }
+
+  const widthScale = maxWidth / dimensions.width;
+  const heightScale = maxHeight / dimensions.height;
+  const scale = Math.min(widthScale, heightScale, 1);
+
+  return {
+    width: Math.max(1, Math.round(dimensions.width * scale)),
+    height: Math.max(1, Math.round(dimensions.height * scale)),
+  };
 }
 
 function buildReportCsvRows(
@@ -740,6 +827,17 @@ function publicationDateToText(date: Post["publishedAt"]): string {
   }
 }
 
+function publicationDateToDocxText(date: Post["publishedAt"]): string {
+  switch (date.type) {
+    case "absolute":
+      return formatDateTimeForDocx(date.date);
+    case "relative":
+      return `${date.dateText} (estimé entre ${formatDateTimeForDocx(date.resolvedDateRange.start)} et ${formatDateTimeForDocx(date.resolvedDateRange.end)})`;
+    case "unknown date":
+      return date.dateText;
+  }
+}
+
 function publicationDateSourceText(date: Post["publishedAt"]): string {
   switch (date.type) {
     case "absolute":
@@ -770,6 +868,25 @@ function formatDateTimeForCsv(
   }
 
   return `UTC ${date.toISOString().slice(0, 19).replace("T", " ")}`;
+}
+
+function formatDateTimeForDocx(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  // Use explicit fields for better browser compatibility than dateStyle/timeStyle
+  // mixed with timeZoneName.
+  return `${new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+    hour12: false,
+  }).format(date)} UTC`;
 }
 
 function getPublicationDateRawRange(date: Post["publishedAt"]): {
