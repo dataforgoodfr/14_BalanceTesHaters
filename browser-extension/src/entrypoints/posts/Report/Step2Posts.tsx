@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PostSummary from "../Shared/PostSummary";
 import { useForm } from "@tanstack/react-form";
 import { getFormId } from "./StepperComponents";
+import { formatAnalysisDate } from "@/shared/utils/post-util";
 
 function Step2Posts({
   reportQueryData,
@@ -40,8 +41,6 @@ function Step2Posts({
       return title.includes(searchValue) || description.includes(searchValue);
     });
   }, [data, searchTerm]);
-
-  console.log("render Step2Posts : ", { data, filteredPosts, searchTerm });
 
   const stepper = useStepper();
 
@@ -119,14 +118,7 @@ function Step2Posts({
                         <PostSummary post={post} />
                         <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                           <div className="font-semibold">
-                            Analyse du{" "}
-                            {new Date(post.lastAnalysisDate).toLocaleDateString(
-                              undefined,
-                              {
-                                day: "numeric",
-                                month: "short",
-                              },
-                            )}
+                            Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
                           </div>
                         </Card>
                       </div>
