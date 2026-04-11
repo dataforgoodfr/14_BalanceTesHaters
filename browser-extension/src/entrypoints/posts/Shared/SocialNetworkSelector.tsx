@@ -16,7 +16,9 @@ function SocialNetworkSelector({
   onChange,
 }: SocialNetworkSelectorProps) {
   const selectedNetworks = value.filter((network) =>
-    SOCIAL_NETWORK_OPTIONS.includes(network as (typeof SOCIAL_NETWORK_OPTIONS)[number]),
+    SOCIAL_NETWORK_OPTIONS.includes(
+      network as (typeof SOCIAL_NETWORK_OPTIONS)[number],
+    ),
   );
 
   const toggleNetwork = (network: string) => {
@@ -44,7 +46,11 @@ function SocialNetworkSelector({
       >
         <Button
           type="button"
-          variant={selectedNetworks.includes(SocialNetwork.YouTube) ? "secondary" : "ghost"}
+          variant={
+            selectedNetworks.includes(SocialNetwork.YouTube)
+              ? "secondary"
+              : "ghost"
+          }
           size="sm"
           aria-pressed={selectedNetworks.includes(SocialNetwork.YouTube)}
           aria-label="Visualiser les résultats YouTube"

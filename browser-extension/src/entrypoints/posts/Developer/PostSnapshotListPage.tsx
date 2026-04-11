@@ -197,7 +197,8 @@ function PostSnapshotListPage() {
                     <TableCell className="whitespace-normal break-all">
                       {post.classificationStatus ? (
                         <>
-                          {post.classificationStatus} ({post.classificationJobId})
+                          {post.classificationStatus} (
+                          {post.classificationJobId})
                         </>
                       ) : (
                         <>Non démarrée</>

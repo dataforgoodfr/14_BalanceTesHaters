@@ -118,7 +118,8 @@ function Step2Posts({
                         <PostSummary post={post} />
                         <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                           <div className="font-semibold">
-                            Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
+                            Analyse du{" "}
+                            {formatAnalysisDate(post.lastAnalysisDate)}
                           </div>
                         </Card>
                       </div>

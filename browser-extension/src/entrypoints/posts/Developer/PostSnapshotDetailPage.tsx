@@ -89,7 +89,9 @@ function PostSnapshotDetailPage() {
               <div>
                 Capturée le: {new Date(post.scrapedAt).toLocaleDateString()}
               </div>
-              <div>Type: {getPublicationTypeLabel(post.url, post.socialNetwork)}</div>
+              <div>
+                Type: {getPublicationTypeLabel(post.url, post.socialNetwork)}
+              </div>
               <div className="break-all">
                 URL:{" "}
                 <a href={post.url} target="_blank" rel="noopener noreferrer">
