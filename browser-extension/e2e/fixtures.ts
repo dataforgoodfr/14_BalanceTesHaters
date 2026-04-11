@@ -24,6 +24,7 @@ export const test = base.extend<ExtensionFixtures>({
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
+        "--mute-audio",
       ],
     });
     await use(context);
