@@ -6,12 +6,13 @@ export async function openAndPrepareYoutubeVideoPage(
 ): Promise<Page> {
   const youtubePage = await context.newPage();
   await youtubePage.goto(youtubeVideoUrl);
-  // Wait for page to load  video element
-  await youtubePage.waitForSelector("video");
-
-  await youtubePage.waitForTimeout(1000);
-
   await closeCookieDialogIfPresent(youtubePage);
+  // Wait for page to load video element.
+  // YouTube can first display a consent page before loading the player.
+  await youtubePage.waitForTimeout(1000);
+  await closeCookieDialogIfPresent(youtubePage);
+  await youtubePage.waitForSelector("video", { timeout: 60_000 });
+  await youtubePage.waitForTimeout(1000);
   return youtubePage;
 }
 
