@@ -35,10 +35,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  AlignmentType,
+  BorderStyle,
   Document as DocxDocument,
   HeadingLevel,
   Packer,
   Paragraph,
+  Table as DocxTable,
+  TableCell as DocxTableCell,
+  TableRow as DocxTableRow,
+  TextRun,
+  WidthType,
 } from "docx";
 import { Post } from "@/shared/model/post/Post";
 import { ReportOrganizationType } from "./BuildReport";
@@ -216,6 +223,9 @@ function Report({
             onClick={exportCsv}
           >
             Exporter les données en CSV
+          </Button>
+          <Button variant="outline" disabled>
+            Télécharger le PDF
           </Button>
           <Button
             variant="outline"
@@ -404,31 +414,48 @@ function buildReportDocx(
     ),
   );
 
-  const children: Paragraph[] = [
+  const children: Array<Paragraph | DocxTable> = [
     new Paragraph({
       text: "Rapport des commentaires malveillants",
       heading: HeadingLevel.TITLE,
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 240 },
     }),
     new Paragraph({
-      text: `Généré le : ${formatDateTimeForCsv(generatedAt)}`,
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 240 },
+      children: [
+        new TextRun({
+          text: "Document généré automatiquement par l'extension Balance tes haters.",
+        }),
+      ],
     }),
+    createKeyValueTable([
+      ["Date de génération", formatDateTimeForCsv(generatedAt)],
+      ["Date de génération (UTC brut)", generatedAt],
+      [
+        "Organisation du rapport",
+        reportOrganizationTypeToText(reportQueryData.reportOrganizationType),
+      ],
+      [
+        "Plateformes",
+        reportQueryData.socialNetworkList
+          .map((socialNetworkName) =>
+            getSocialNetworkName(socialNetworkName as SocialNetworkName),
+          )
+          .join(", "),
+      ],
+      ["Publications analysées", String(reportQueryData.postIdList.length)],
+      ["Commentaires retenus", String(reportQueryData.postCommentList.length)],
+    ]),
     new Paragraph({
-      text: `Organisation : ${reportOrganizationTypeToText(reportQueryData.reportOrganizationType)}`,
+      spacing: { before: 240, after: 240 },
+      children: [
+        new TextRun({
+          text: "Note: les dates affichées dans le rapport sont normalisées en UTC lorsqu'une date absolue est disponible.",
+        }),
+      ],
     }),
-    new Paragraph({
-      text: `Plateformes : ${reportQueryData.socialNetworkList
-        .map((socialNetworkName) =>
-          getSocialNetworkName(socialNetworkName as SocialNetworkName),
-        )
-        .join(", ")}`,
-    }),
-    new Paragraph({
-      text: `Publications analysées : ${reportQueryData.postIdList.length}`,
-    }),
-    new Paragraph({
-      text: `Commentaires retenus : ${reportQueryData.postCommentList.length}`,
-    }),
-    new Paragraph({ text: "" }),
   ];
 
   groupedCommentsByPost.forEach(([postKey, commentList], postIndex) => {
@@ -439,20 +466,30 @@ function buildReportDocx(
       new Paragraph({
         text: `Publication ${postIndex + 1}`,
         heading: HeadingLevel.HEADING_1,
+        pageBreakBefore: postIndex > 0,
+        spacing: { before: 240, after: 120 },
       }),
     );
 
     if (post) {
+      const postRawRange = getPublicationDateRawRange(post.publishedAt);
       children.push(
-        new Paragraph({ text: `Titre : ${post.title ?? "-"}` }),
-        new Paragraph({ text: `Auteur : ${post.author.name}` }),
-        new Paragraph({
-          text: `Plateforme : ${getSocialNetworkName(post.socialNetwork)}`,
-        }),
-        new Paragraph({ text: `URL : ${post.url}` }),
-        new Paragraph({
-          text: `Date de publication : ${publicationDateToText(post.publishedAt)}`,
-        }),
+        createKeyValueTable([
+          ["Titre", post.title ?? "-"],
+          ["Auteur", post.author.name],
+          ["Plateforme", getSocialNetworkName(post.socialNetwork)],
+          ["Identifiant publication", post.postId],
+          ["URL", post.url],
+          ["Date de publication", publicationDateToText(post.publishedAt)],
+          [
+            "Date source plateforme",
+            publicationDateSourceText(post.publishedAt),
+          ],
+          ["Date brute début (UTC)", postRawRange.start || "-"],
+          ["Date brute fin (UTC)", postRawRange.end || "-"],
+          ["Dernière collecte", formatDateTimeForCsv(post.lastAnalysisDate)],
+          ["Dernière collecte (UTC brut)", post.lastAnalysisDate],
+        ]),
       );
     } else {
       children.push(
@@ -465,32 +502,84 @@ function buildReportDocx(
     children.push(
       new Paragraph({
         text: `Nombre de commentaires retenus : ${comments.length}`,
+        spacing: { before: 180, after: 180 },
       }),
-      new Paragraph({ text: "" }),
     );
 
+    if (comments.length === 0) {
+      children.push(
+        new Paragraph({
+          text: "Aucun commentaire retenu pour cette publication.",
+          spacing: { after: 180 },
+        }),
+      );
+      return;
+    }
+
     comments.forEach((comment, commentIndex) => {
+      const commentRawRange = getPublicationDateRawRange(comment.publishedAt);
       children.push(
         new Paragraph({
           text: `Commentaire ${commentIndex + 1}`,
           heading: HeadingLevel.HEADING_2,
+          spacing: { before: 180, after: 120 },
         }),
-        new Paragraph({ text: `ID : ${comment.id}` }),
-        new Paragraph({ text: `Auteur : ${comment.author.name}` }),
+        createKeyValueTable([
+          ["ID", comment.id],
+          ["Auteur", comment.author.name],
+          ["Date", publicationDateToText(comment.publishedAt)],
+          [
+            "Date source plateforme",
+            publicationDateSourceText(comment.publishedAt),
+          ],
+          ["Date brute début (UTC)", commentRawRange.start || "-"],
+          ["Date brute fin (UTC)", commentRawRange.end || "-"],
+          ["Classification", (comment.classification ?? []).join(", ") || "-"],
+          [
+            "Classification (brut)",
+            JSON.stringify(comment.classification ?? []),
+          ],
+          [
+            "Date de classification",
+            comment.classifiedAt
+              ? formatDateTimeForCsv(comment.classifiedAt)
+              : "-",
+          ],
+          ["Date de classification (UTC brut)", comment.classifiedAt ?? "-"],
+          [
+            "Capture d'écran disponible",
+            booleanToFrenchText(Boolean(comment.screenshotData)),
+          ],
+          ["Commentaire supprimé", booleanToFrenchText(comment.isDeleted)],
+          ["Commentaire nouveau", booleanToFrenchText(comment.isNew)],
+        ]),
         new Paragraph({
-          text: `Date : ${publicationDateToText(comment.publishedAt)}`,
+          children: [new TextRun({ text: "Texte du commentaire", bold: true })],
+          spacing: { before: 120, after: 80 },
         }),
+      );
+
+      const textLines = splitCommentLines(comment.textContent);
+      textLines.forEach((line) => {
+        children.push(
+          new Paragraph({
+            text: line,
+          }),
+        );
+      });
+      if (textLines.length === 0) {
+        children.push(
+          new Paragraph({
+            text: "(commentaire vide)",
+          }),
+        );
+      }
+
+      children.push(
         new Paragraph({
-          text: `Classification : ${(comment.classification ?? []).join(", ") || "-"}`,
+          thematicBreak: true,
+          spacing: { before: 120, after: 120 },
         }),
-        new Paragraph({
-          text: `Capture disponible : ${booleanToFrenchText(Boolean(comment.screenshotData))}`,
-        }),
-        new Paragraph({ text: "Texte :" }),
-        new Paragraph({
-          text: comment.textContent || "(commentaire vide)",
-        }),
-        new Paragraph({ text: "" }),
       );
     });
   });
@@ -502,6 +591,49 @@ function buildReportDocx(
       },
     ],
   });
+}
+
+function createKeyValueTable(rows: Array<[string, string]>): DocxTable {
+  return new DocxTable({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: rows.map(
+      ([label, value]) =>
+        new DocxTableRow({
+          children: [
+            new DocxTableCell({
+              width: { size: 35, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  children: [new TextRun({ text: label, bold: true })],
+                }),
+              ],
+            }),
+            new DocxTableCell({
+              width: { size: 65, type: WidthType.PERCENTAGE },
+              children: [new Paragraph({ text: value || "-" })],
+            }),
+          ],
+        }),
+    ),
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
+      left: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
+      right: { style: BorderStyle.SINGLE, size: 1, color: "D1D5DB" },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: "E5E7EB" },
+    },
+  });
+}
+
+function splitCommentLines(text: string): string[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trimEnd())
+    .filter(
+      (line, index, arr) =>
+        line.length > 0 || (index > 0 && index < arr.length - 1),
+    );
 }
 
 function buildReportCsvRows(
