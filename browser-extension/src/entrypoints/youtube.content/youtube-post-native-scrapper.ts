@@ -1052,14 +1052,20 @@ export class YoutubePostNativeScrapper {
         segments.push(segment);
 
         const currentScrollTop = scrollableAncestor.scrollTop;
-        const overlapHeight = Math.max(48, Math.floor(segment.image.height * 0.22));
+        const overlapHeight = Math.max(
+          48,
+          Math.floor(segment.image.height * 0.22),
+        );
         const nextOffsetTop = Math.max(
           0,
           segment.offsetTop + segment.image.height - overlapHeight,
         );
         const nextScrollTop = Math.max(
           0,
-          Math.min(maxScrollTop, Math.floor(commentTopInContainer + nextOffsetTop)),
+          Math.min(
+            maxScrollTop,
+            Math.floor(commentTopInContainer + nextOffsetTop),
+          ),
         );
         if (nextScrollTop <= currentScrollTop + 1) {
           break;
@@ -1437,8 +1443,8 @@ export class YoutubePostNativeScrapper {
     ).filter(
       (element): element is HTMLElement => element instanceof HTMLElement,
     );
-    const candidates = [commentsContainer, ...nestedElements].filter((element) =>
-      this.isScrollableElementCandidate(element),
+    const candidates = [commentsContainer, ...nestedElements].filter(
+      (element) => this.isScrollableElementCandidate(element),
     );
     if (candidates.length === 0) {
       return commentsContainer;
@@ -1483,9 +1489,7 @@ export class YoutubePostNativeScrapper {
     const computedStyle = window.getComputedStyle(element);
     const overflowY = computedStyle.overflowY.toLowerCase();
     return (
-      overflowY === "auto" ||
-      overflowY === "scroll" ||
-      overflowY === "overlay"
+      overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay"
     );
   }
 
