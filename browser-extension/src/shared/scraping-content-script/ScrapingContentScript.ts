@@ -15,6 +15,7 @@ import {
   ScrapingStatus,
 } from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
+import { ScrapingInteractionGuard } from "./ScrapingInteractionGuard";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -79,12 +80,23 @@ export class ScrapingContentScript {
     }
     console.info("[SCS] - Start scraping");
     this.scrapAbortController = new AbortController();
+    const interactionGuard = new ScrapingInteractionGuard();
+    const startUrl = window.location.href;
+    const throwIfNavigationDetected = () => {
+      if (window.location.href !== startUrl) {
+        throw new Error(
+          `Navigation detected during scraping: ${startUrl} -> ${window.location.href}`,
+        );
+      }
+    };
     try {
       this.scrapingStatus = {
         type: "running",
         progress: 0,
       };
+      interactionGuard.activate();
       const start = Date.now();
+      throwIfNavigationDetected();
       const postSnapshot = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
         new ProgressManager((progress) => {
@@ -93,6 +105,7 @@ export class ScrapingContentScript {
             // Probably canceling
             return;
           }
+          throwIfNavigationDetected();
           const roundedProgress = Math.round(progress);
           const durationSec = Math.round((Date.now() - start) / 1000);
 
@@ -105,6 +118,7 @@ export class ScrapingContentScript {
           };
         }),
       );
+      throwIfNavigationDetected();
       console.info("[SCS] - Scraping completed");
 
       // Store post snapshot
@@ -146,6 +160,8 @@ export class ScrapingContentScript {
         this.scrapingStatus = scrapingFailed(errorMessage);
         return this.scrapingStatus;
       }
+    } finally {
+      interactionGuard.deactivate();
     }
   }
 
