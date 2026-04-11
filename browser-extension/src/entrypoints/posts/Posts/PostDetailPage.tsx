@@ -9,6 +9,7 @@ import PostSummary from "../Shared/PostSummary";
 import KpiCard from "../Shared/KpiCards/KpiCard";
 import {
   formatAnalysisDate,
+  getPublicationTypeLabel,
   getSocialNetworkName,
   isCommentHateful,
 } from "@/shared/utils/post-util";
@@ -81,11 +82,15 @@ function PostDetailPage() {
             </div>
             <h2 className="text-left">Publication analysée</h2>
             <Card>
-              <CardContent className="flex gap-3">
+              <CardContent className="flex gap-3 justify-between">
                 <PostSummary post={post} />
-                <span className="">
-                  {getSocialNetworkName(post.socialNetwork)}
-                </span>
+                <div className="text-right text-muted-foreground whitespace-nowrap">
+                  <div>{getSocialNetworkName(post.socialNetwork)}</div>
+                  <div>
+                    Type:{" "}
+                    {getPublicationTypeLabel(post.url, post.socialNetwork)}
+                  </div>
+                </div>
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
