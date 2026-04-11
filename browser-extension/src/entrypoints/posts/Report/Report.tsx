@@ -34,6 +34,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Document as DocxDocument,
+  HeadingLevel,
+  Packer,
+  Paragraph,
+} from "docx";
 import { Post } from "@/shared/model/post/Post";
 import { ReportOrganizationType } from "./BuildReport";
 
@@ -153,6 +159,7 @@ function Report({
 
   const canExportCsv =
     !isLoading && (reportQueryData?.postCommentList.length ?? 0) > 0;
+  const canExportDocx = canExportCsv;
 
   const exportCsv = () => {
     if (!reportQueryData) {
@@ -168,6 +175,26 @@ function Report({
       filename: `rapport-bth-${generatedAt}.csv`,
       saveAs: true,
     });
+  };
+
+  const exportDocx = async () => {
+    if (!reportQueryData) {
+      return;
+    }
+    const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
+    const docxDocument = buildReportDocx(reportQueryData, data ?? []);
+    const blob = await Packer.toBlob(docxDocument);
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+      await browser.downloads.download({
+        url: objectUrl,
+        filename: `rapport-bth-${generatedAt}.docx`,
+        saveAs: true,
+      });
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    }
   };
 
   return (
@@ -190,8 +217,12 @@ function Report({
           >
             Exporter les données en CSV
           </Button>
-          <Button variant="outline" disabled>
-            Télécharger le PDF
+          <Button
+            variant="outline"
+            disabled={!canExportDocx}
+            onClick={() => void exportDocx()}
+          >
+            Télécharger le DOCX
           </Button>
         </div>
       </div>
@@ -199,8 +230,8 @@ function Report({
         <TriangleAlert className="me-2" />
         <span>
           Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez
-          à télécharger le rapport en PDF ou exporter les données su rapport en
-          CSV
+          à télécharger le rapport en DOCX ou exporter les données du rapport en
+          CSV.
         </span>
       </div>
       <div className="flex flex-col items-end">
@@ -356,6 +387,121 @@ function buildReportCsv(
     REPORT_CSV_COLUMNS.map((column) => column.label).join(";"),
     ...dataRows,
   ].join("\n");
+}
+
+function buildReportDocx(
+  reportQueryData: ReportQueryData,
+  posts: Post[],
+): DocxDocument {
+  const postsByKey = new Map<string, Post>(
+    posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
+  );
+  const generatedAt = new Date().toISOString();
+  const groupedCommentsByPost = Object.entries(
+    Object.groupBy(
+      reportQueryData.postCommentList,
+      (comment) => comment.postKey,
+    ),
+  );
+
+  const children: Paragraph[] = [
+    new Paragraph({
+      text: "Rapport des commentaires malveillants",
+      heading: HeadingLevel.TITLE,
+    }),
+    new Paragraph({
+      text: `Généré le : ${formatDateTimeForCsv(generatedAt)}`,
+    }),
+    new Paragraph({
+      text: `Organisation : ${reportOrganizationTypeToText(reportQueryData.reportOrganizationType)}`,
+    }),
+    new Paragraph({
+      text: `Plateformes : ${reportQueryData.socialNetworkList
+        .map((socialNetworkName) =>
+          getSocialNetworkName(socialNetworkName as SocialNetworkName),
+        )
+        .join(", ")}`,
+    }),
+    new Paragraph({
+      text: `Publications analysées : ${reportQueryData.postIdList.length}`,
+    }),
+    new Paragraph({
+      text: `Commentaires retenus : ${reportQueryData.postCommentList.length}`,
+    }),
+    new Paragraph({ text: "" }),
+  ];
+
+  groupedCommentsByPost.forEach(([postKey, commentList], postIndex) => {
+    const post = postsByKey.get(postKey);
+    const comments = commentList ?? [];
+
+    children.push(
+      new Paragraph({
+        text: `Publication ${postIndex + 1}`,
+        heading: HeadingLevel.HEADING_1,
+      }),
+    );
+
+    if (post) {
+      children.push(
+        new Paragraph({ text: `Titre : ${post.title ?? "-"}` }),
+        new Paragraph({ text: `Auteur : ${post.author.name}` }),
+        new Paragraph({
+          text: `Plateforme : ${getSocialNetworkName(post.socialNetwork)}`,
+        }),
+        new Paragraph({ text: `URL : ${post.url}` }),
+        new Paragraph({
+          text: `Date de publication : ${publicationDateToText(post.publishedAt)}`,
+        }),
+      );
+    } else {
+      children.push(
+        new Paragraph({
+          text: `Publication introuvable pour la clé : ${postKey}`,
+        }),
+      );
+    }
+
+    children.push(
+      new Paragraph({
+        text: `Nombre de commentaires retenus : ${comments.length}`,
+      }),
+      new Paragraph({ text: "" }),
+    );
+
+    comments.forEach((comment, commentIndex) => {
+      children.push(
+        new Paragraph({
+          text: `Commentaire ${commentIndex + 1}`,
+          heading: HeadingLevel.HEADING_2,
+        }),
+        new Paragraph({ text: `ID : ${comment.id}` }),
+        new Paragraph({ text: `Auteur : ${comment.author.name}` }),
+        new Paragraph({
+          text: `Date : ${publicationDateToText(comment.publishedAt)}`,
+        }),
+        new Paragraph({
+          text: `Classification : ${(comment.classification ?? []).join(", ") || "-"}`,
+        }),
+        new Paragraph({
+          text: `Capture disponible : ${booleanToFrenchText(Boolean(comment.screenshotData))}`,
+        }),
+        new Paragraph({ text: "Texte :" }),
+        new Paragraph({
+          text: comment.textContent || "(commentaire vide)",
+        }),
+        new Paragraph({ text: "" }),
+      );
+    });
+  });
+
+  return new DocxDocument({
+    sections: [
+      {
+        children,
+      },
+    ],
+  });
 }
 
 function buildReportCsvRows(
