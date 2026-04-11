@@ -30,13 +30,20 @@ export async function triggerYoutubeScrapingForUrl(
 ): Promise<TriggerScrapingResult> {
   // Navigate to a YouTube video
   const youtubePage = await openAndPrepareYoutubeVideoPage(context, postUrl);
+  const resolvedPostUrl = youtubePage.url();
 
-  const tabId = await findTabIdForUrl(context, postUrl);
+  const tabId =
+    (await findTabIdForUrl(context, resolvedPostUrl)) ??
+    (await findTabIdForUrl(context, postUrl));
   if (!tabId) {
     throw new Error("Couldn't find tab for url");
   }
 
-  const popupPage = await PopupPageObject.open(extensionId, context, postUrl);
+  const popupPage = await PopupPageObject.open(
+    extensionId,
+    context,
+    resolvedPostUrl,
+  );
   await popupPage.page.bringToFront();
 
   const scrapingStartedPromise = youtubePage
@@ -48,6 +55,7 @@ export async function triggerYoutubeScrapingForUrl(
     .catch(() => false);
 
   const startScrapingButton = popupPage.startScrapingButton();
+  await startScrapingButton.waitFor({ state: "visible", timeout: 15_000 });
   if (!(await startScrapingButton.isEnabled())) {
     throw new Error("Start scraping button is disabled for url: " + postUrl);
   }
