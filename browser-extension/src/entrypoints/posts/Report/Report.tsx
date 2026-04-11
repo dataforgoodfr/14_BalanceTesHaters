@@ -473,7 +473,6 @@ function buildReportDocx(
     );
 
     if (post) {
-      const postRawRange = getPublicationDateRawRange(post.publishedAt);
       children.push(
         createKeyValueTable([
           ["Titre", post.title ?? "-"],
@@ -486,8 +485,6 @@ function buildReportDocx(
             "Date source plateforme",
             publicationDateSourceText(post.publishedAt),
           ],
-          ["Date brute début (UTC)", postRawRange.start || "-"],
-          ["Date brute fin (UTC)", postRawRange.end || "-"],
           ["Dernière collecte", formatDateTimeForDocx(post.lastAnalysisDate)],
           ["Dernière collecte (UTC brut)", post.lastAnalysisDate],
         ]),
@@ -518,7 +515,6 @@ function buildReportDocx(
     }
 
     comments.forEach((comment, commentIndex) => {
-      const commentRawRange = getPublicationDateRawRange(comment.publishedAt);
       children.push(
         new Paragraph({
           text: `Commentaire ${commentIndex + 1}`,
@@ -533,20 +529,13 @@ function buildReportDocx(
             "Date source plateforme",
             publicationDateSourceText(comment.publishedAt),
           ],
-          ["Date brute début (UTC)", commentRawRange.start || "-"],
-          ["Date brute fin (UTC)", commentRawRange.end || "-"],
           ["Classification", (comment.classification ?? []).join(", ") || "-"],
-          [
-            "Classification (brut)",
-            JSON.stringify(comment.classification ?? []),
-          ],
           [
             "Date de classification",
             comment.classifiedAt
               ? formatDateTimeForDocx(comment.classifiedAt)
               : "-",
           ],
-          ["Date de classification (UTC brut)", comment.classifiedAt ?? "-"],
           [
             "Capture d'écran disponible",
             booleanToFrenchText(Boolean(comment.screenshotData)),
@@ -706,11 +695,12 @@ function computeImageTransformation(
   width: number;
   height: number;
 } {
-  const maxWidth = 500;
-  const maxHeight = 320;
+  // Match table/text visual footprint in DOCX to keep screenshots readable.
+  const maxWidth = 600;
+  const maxHeight = 900;
 
   if (!dimensions) {
-    return { width: maxWidth, height: 280 };
+    return { width: maxWidth, height: 380 };
   }
 
   const widthScale = maxWidth / dimensions.width;
