@@ -83,7 +83,7 @@ export class InstagramPostNativeScraper {
       );
     }
 
-    if (this.isModalContext()) {
+    if (this.isModalContext(pageInfo.postId)) {
       this.debug("Modal context detected, routing to modal scraper");
       return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
         progressManager,
@@ -355,18 +355,44 @@ export class InstagramPostNativeScraper {
     );
   }
 
-  private isModalContext(): boolean {
+  private isModalContext(postId?: string): boolean {
     for (const dialogElement of Array.from(
       document.querySelectorAll('[role="dialog"]'),
     )) {
-      if (
-        dialogElement instanceof HTMLElement &&
-        this.scrapingSupport.select(
-          dialogElement,
-          "time[datetime]",
-          HTMLElement,
-        )
-      ) {
+      if (!(dialogElement instanceof HTMLElement)) {
+        continue;
+      }
+
+      const hasTime = this.scrapingSupport.select(
+        dialogElement,
+        "time[datetime], time",
+        HTMLElement,
+      );
+      const hasListItem = this.scrapingSupport.select(
+        dialogElement,
+        "li",
+        HTMLElement,
+      );
+      const hasAccountLink = this.scrapingSupport
+        .selectAll(dialogElement, "a[href^='/']", HTMLAnchorElement)
+        .some((link) => {
+          const href = link.getAttribute("href");
+          if (!href) {
+            return false;
+          }
+          const accountUrl = new URL(href, INSTAGRAM_URL);
+          const pathParts = accountUrl.pathname.split("/").filter(Boolean);
+          return (
+            pathParts.length === 1 && isLikelyInstagramAccountPath(pathParts[0])
+          );
+        });
+      const hasPostLink =
+        Boolean(postId) &&
+        this.scrapingSupport
+          .selectAll(dialogElement, "a[href]", HTMLAnchorElement)
+          .some((link) => link.getAttribute("href")?.includes(`/${postId}`));
+
+      if ((hasPostLink && (hasAccountLink || hasListItem)) || hasTime) {
         return true;
       }
     }
