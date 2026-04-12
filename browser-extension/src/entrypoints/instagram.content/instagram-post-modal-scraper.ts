@@ -87,6 +87,20 @@ const RELATIVE_DATE_TEXT_REGEXES = [
   /^(?:now|maintenant|just now)$/i,
 ];
 const UNKNOWN_COMMENT_DATE_TEXT = "date inconnue";
+const COMMENT_TEXT_NOISE_TERMS = [
+  "like",
+  "likes",
+  "reply",
+  "replies",
+  "j'aime",
+  "j’aime",
+  "repondre",
+  "répondre",
+  "verified",
+  "modifie",
+  "modifié",
+  "edited",
+];
 type InstagramPostElements = {
   channelHeader: HTMLElement;
   scrollableArea: HTMLElement;
@@ -138,6 +152,7 @@ export class InstagramPostModalScraper {
       await this.scrapPostComments(
         postElements.scrollableArea,
         progressManager.subTaskProgressManager({ from: 0, to: 70 }),
+        pageInfo.postId,
       );
 
     this.debug("Capturing comment screenshots...");
@@ -316,10 +331,10 @@ export class InstagramPostModalScraper {
   }
 
   private countCommentKeywordMatches(candidate: HTMLElement): number {
-    const controls = this.scrapingSupport.selectAll(
-      candidate,
-      LOAD_MORE_CONTROLS_SELECTOR,
-      HTMLElement,
+    const controls = Array.from(
+      candidate.querySelectorAll(LOAD_MORE_CONTROLS_SELECTOR),
+    ).filter(
+      (element): element is HTMLElement => element instanceof HTMLElement,
     );
     let matches = 0;
     for (const control of controls) {
@@ -337,7 +352,7 @@ export class InstagramPostModalScraper {
   private scrapPostAuthor(channelHeader: HTMLElement): Author {
     const links = this.scrapingSupport.selectAll(
       channelHeader,
-      "a[href^='/']",
+      "a[href]",
       HTMLAnchorElement,
     );
 
@@ -356,23 +371,48 @@ export class InstagramPostModalScraper {
       }
     }
 
-    if (!selectedLink || !selectedAccountPath) {
+    const channelName = normalizeInstagramText(selectedLink?.textContent);
+    if (!selectedLink || !selectedAccountPath || !channelName) {
+      const fallbackName = this.scrapPostAuthorNameFallback(channelHeader);
+      if (fallbackName) {
+        return {
+          name: fallbackName,
+          accountHref: document.URL,
+        };
+      }
       throw new Error("Missing channel href");
     }
 
-    const channelName =
-      normalizeInstagramText(selectedLink.textContent) ?? selectedAccountPath;
-    if (!channelName) {
+    const resolvedChannelName = channelName ?? selectedAccountPath;
+    if (!resolvedChannelName) {
       throw new Error("Missing channel name");
     }
 
     return {
-      name: channelName,
+      name: resolvedChannelName,
       accountHref: new URL(
         `/${selectedAccountPath}/`,
         INSTAGRAM_URL,
       ).toString(),
     };
+  }
+
+  private scrapPostAuthorNameFallback(
+    channelHeader: HTMLElement,
+  ): string | undefined {
+    const fallbackSelectors = ["header a[href]", "h1", "h2", "a[role='link']"];
+    for (const selector of fallbackSelectors) {
+      const element = this.scrapingSupport.select(
+        channelHeader,
+        selector,
+        HTMLElement,
+      );
+      const text = normalizeInstagramText(element?.textContent);
+      if (text) {
+        return text;
+      }
+    }
+    return undefined;
   }
 
   private extractInstagramAccountPathFromHref(
@@ -413,19 +453,25 @@ export class InstagramPostModalScraper {
       HTMLElement,
     );
     const date = timeElement?.getAttribute("datetime");
-    if (!date) {
-      throw new Error("Missing publication datetime in modal");
+    if (date) {
+      return {
+        type: "absolute",
+        date,
+      };
     }
 
     return {
-      type: "absolute",
-      date,
+      type: "unknown date",
+      dateText:
+        normalizeInstagramText(timeElement?.textContent) ??
+        UNKNOWN_COMMENT_DATE_TEXT,
     };
   }
 
   private async scrapPostComments(
     scrollableArea: HTMLElement,
     progressManager: ProgressManager,
+    postId: string,
   ): Promise<ScrapedComments> {
     const commentsContainer = this.selectCommentsContainer(scrollableArea);
     commentsContainer.scrollIntoView();
@@ -488,6 +534,19 @@ export class InstagramPostModalScraper {
         this.countAllComments(extraction.comments)
       ) {
         extraction = broaderAnchorExtraction;
+      }
+    }
+
+    if (this.countAllComments(extraction.comments) <= 1) {
+      const permalinkExtraction = this.scrapCommentHierarchyFromPermalinkAnchors(
+        document.body,
+        postId,
+      );
+      if (
+        this.countAllComments(permalinkExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = permalinkExtraction;
       }
     }
 
@@ -1086,6 +1145,194 @@ export class InstagramPostModalScraper {
     };
   }
 
+  private scrapCommentHierarchyFromPermalinkAnchors(
+    root: HTMLElement,
+    postId: string,
+  ): ScrapedComments {
+    const records: Array<{
+      node: HTMLElement;
+      parentNode?: HTMLElement;
+      comment: CommentSnapshot;
+      screenshotElement: HTMLElement;
+    }> = [];
+    const seenNodes = new Set<HTMLElement>();
+    const seenSignatures = new Set<string>();
+    const permalinkAnchors = this.scrapingSupport
+      .selectAll(root, "a[href*='/p/'][href*='/c/']", HTMLAnchorElement)
+      .filter((anchor) =>
+        Boolean(
+          this.extractCommentIdFromPermalink(anchor.getAttribute("href"), postId),
+        ),
+      );
+
+    for (const permalinkAnchor of permalinkAnchors) {
+      const commentId = this.extractCommentIdFromPermalink(
+        permalinkAnchor.getAttribute("href"),
+        postId,
+      );
+      if (!commentId) {
+        continue;
+      }
+
+      const commentContainer =
+        this.findCommentContainerFromPermalinkAnchor(permalinkAnchor);
+      const commentNode = commentContainer.closest("li") ?? commentContainer;
+      if (seenNodes.has(commentNode)) {
+        continue;
+      }
+
+      const scraped = this.scrapLooseCommentFromElement(commentContainer);
+      const comment = scraped?.comment;
+      const screenshotElement = scraped?.screenshotElement ?? commentContainer;
+      if (!comment) {
+        continue;
+      }
+
+      comment.commentId ??= commentId;
+
+      const signature = [
+        comment.commentId ?? "",
+        comment.author.accountHref,
+        comment.publishedAt.type,
+        comment.publishedAt.type === "absolute"
+          ? comment.publishedAt.date
+          : comment.publishedAt.type === "unknown date"
+            ? comment.publishedAt.dateText
+            : "",
+        comment.textContent,
+      ].join("|");
+      if (seenSignatures.has(signature)) {
+        continue;
+      }
+
+      seenNodes.add(commentNode);
+      seenSignatures.add(signature);
+      records.push({
+        node: commentNode,
+        parentNode: commentNode.parentElement?.closest("li") ?? undefined,
+        comment,
+        screenshotElement,
+      });
+    }
+
+    records.sort((a, b) => {
+      if (a.node === b.node) {
+        return 0;
+      }
+      const relation = a.node.compareDocumentPosition(b.node);
+      if (relation & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+      return -1;
+    });
+
+    const topLevelComments: CommentSnapshot[] = [];
+    const commentsByNode = new Map<HTMLElement, CommentSnapshot>();
+    const commentElementsById = new Map<string, HTMLElement>();
+
+    for (const record of records) {
+      commentsByNode.set(record.node, record.comment);
+      commentElementsById.set(record.comment.id, record.screenshotElement);
+      if (record.parentNode) {
+        const parentComment = commentsByNode.get(record.parentNode);
+        if (parentComment) {
+          parentComment.replies.push(record.comment);
+          continue;
+        }
+      }
+      topLevelComments.push(record.comment);
+    }
+
+    return {
+      comments: topLevelComments,
+      commentElementsById,
+    };
+  }
+
+  private extractCommentIdFromPermalink(
+    href: string | null,
+    postId: string,
+  ): string | undefined {
+    if (!href) {
+      return undefined;
+    }
+
+    const parsedUrl = new URL(href, INSTAGRAM_URL);
+    const match = parsedUrl.pathname.match(/^\/p\/([^/]+)\/c\/([^/]+)\/?$/);
+    if (!match) {
+      return undefined;
+    }
+
+    const [, shortcode, commentId] = match;
+    if (shortcode !== postId || !commentId) {
+      return undefined;
+    }
+    return commentId;
+  }
+
+  private findCommentContainerFromPermalinkAnchor(
+    permalinkAnchor: HTMLAnchorElement,
+  ): HTMLElement {
+    let current: HTMLElement | null = permalinkAnchor;
+    let bestCandidate: HTMLElement = permalinkAnchor;
+    let bestScore = Number.NEGATIVE_INFINITY;
+
+    for (let depth = 0; depth < 10 && current; depth += 1) {
+      const score = this.scorePermalinkCommentContainerCandidate(current);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = current;
+      }
+      current = current.parentElement;
+    }
+
+    return bestCandidate;
+  }
+
+  private scorePermalinkCommentContainerCandidate(
+    candidate: HTMLElement,
+  ): number {
+    const normalizedText = normalizeInstagramText(candidate.textContent) ?? "";
+    const author = this.scrapAuthorFromContainer(candidate);
+    const extractedText = this.extractCommentText(candidate, author?.name).text;
+    const fallbackText = author
+      ? this.extractFallbackCommentText(candidate, author.name)
+      : undefined;
+    const timeCount = this.scrapingSupport.selectAll(
+      candidate,
+      "time[datetime], time",
+      HTMLElement,
+    ).length;
+
+    let score = 0;
+    if (author) {
+      score += 80;
+    }
+    if (extractedText) {
+      score += 160;
+    }
+    if (fallbackText) {
+      score += 70;
+    }
+    if (timeCount > 0) {
+      score += 40;
+    }
+    if (
+      /\b(?:like|likes|reply|replies|j['’]aime|repondre|répondre)\b/i.test(
+        normalizedText,
+      )
+    ) {
+      score += 30;
+    }
+    if (normalizedText.length > 900) {
+      score -= 80;
+    }
+    if (this.scrapingSupport.select(candidate, "header, nav", HTMLElement)) {
+      score -= 80;
+    }
+    return score;
+  }
+
   private collectAnchorContainers(anchor: HTMLElement): HTMLElement[] {
     const containers: HTMLElement[] = [];
     let current: HTMLElement | null = anchor;
@@ -1143,7 +1390,11 @@ export class InstagramPostModalScraper {
       dateText: UNKNOWN_COMMENT_DATE_TEXT,
     };
     const extractedText = this.extractCommentText(commentElement, author?.name);
-    const text = extractedText.text;
+    const text =
+      extractedText.text ??
+      (author
+        ? this.extractFallbackCommentText(commentElement, author.name)
+        : undefined);
 
     if (!author || !publishedAt || !text) {
       return undefined;
@@ -1171,6 +1422,45 @@ export class InstagramPostModalScraper {
         extractedText.sourceElement,
       ),
     };
+  }
+
+  private extractFallbackCommentText(
+    commentElement: HTMLElement,
+    authorName: string,
+  ): string | undefined {
+    const normalizedText = normalizeInstagramText(commentElement.textContent);
+    if (!normalizedText) {
+      return undefined;
+    }
+
+    let candidate = normalizedText;
+    const escapedAuthorName = this.escapeRegex(authorName);
+    candidate = candidate.replace(
+      new RegExp(`^${escapedAuthorName}\\b\\s*`, "i"),
+      "",
+    );
+
+    for (const noiseTerm of COMMENT_TEXT_NOISE_TERMS) {
+      candidate = candidate.replace(
+        new RegExp(`\\b${this.escapeRegex(noiseTerm)}\\b`, "gi"),
+        " ",
+      );
+    }
+    candidate = candidate.replace(/\b\d+\s*(?:likes?|j['’]aime)\b/gi, " ");
+    candidate = candidate.replace(/\s+/g, " ").trim();
+
+    const sanitized = sanitizeInstagramCommentText(candidate);
+    if (!sanitized || looksLikeInstagramUiLabel(sanitized)) {
+      return undefined;
+    }
+    if (sanitized.length <= 1) {
+      return undefined;
+    }
+    return sanitized;
+  }
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   private extractCommentText(

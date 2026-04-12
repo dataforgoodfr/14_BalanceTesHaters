@@ -1,4 +1,8 @@
-import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
+import {
+  PostSnapshot,
+  CommentSnapshot,
+  countAllComments,
+} from "@/shared/model/PostSnapshot";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
@@ -91,7 +95,18 @@ export class InstagramPostNativeScraper {
     }
 
     const scrapedAt = currentIsoDate();
-    const postElements = this.selectPostElements();
+    let postElements: InstagramPostElements;
+    try {
+      postElements = this.selectPostElements();
+    } catch (error) {
+      this.debug(
+        "Failed to resolve native selectors, routing to modal scraper fallback",
+        error,
+      );
+      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
+        progressManager,
+      );
+    }
 
     this.debug("Scraping author...");
     const author = this.scrapPostAuthor(postElements.channelHeader);
@@ -120,6 +135,15 @@ export class InstagramPostNativeScraper {
           (comment) => !this.isPostMetadataEntry(comment, author, publishedAt),
         )
       : rawComments;
+
+    if (countAllComments(comments) <= 1) {
+      this.debug(
+        "Native extraction returned too few comments, routing to modal scraper fallback",
+      );
+      return new InstagramPostModalScraper(this.scrapingSupport).scrapPost(
+        progressManager,
+      );
+    }
 
     this.debug("Capturing comment screenshots...");
     await captureInstagramCommentScreenshots({
