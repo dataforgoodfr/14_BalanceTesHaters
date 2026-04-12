@@ -538,10 +538,8 @@ export class InstagramPostModalScraper {
     }
 
     if (this.countAllComments(extraction.comments) <= 1) {
-      const permalinkExtraction = this.scrapCommentHierarchyFromPermalinkAnchors(
-        document.body,
-        postId,
-      );
+      const permalinkExtraction =
+        this.scrapCommentHierarchyFromPermalinkAnchors(document.body, postId);
       if (
         this.countAllComments(permalinkExtraction.comments) >
         this.countAllComments(extraction.comments)
@@ -1161,7 +1159,10 @@ export class InstagramPostModalScraper {
       .selectAll(root, "a[href*='/p/'][href*='/c/']", HTMLAnchorElement)
       .filter((anchor) =>
         Boolean(
-          this.extractCommentIdFromPermalink(anchor.getAttribute("href"), postId),
+          this.extractCommentIdFromPermalink(
+            anchor.getAttribute("href"),
+            postId,
+          ),
         ),
       );
 

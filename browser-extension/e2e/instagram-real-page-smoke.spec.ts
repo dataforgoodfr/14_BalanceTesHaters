@@ -22,11 +22,7 @@ test.describe("Instagram real page smoke", () => {
 
     await withRetry({
       maxAttempts,
-      beforeRetry: ({
-        latestError,
-        failedAttempts,
-        remainingAttempts,
-      }) => {
+      beforeRetry: ({ latestError, failedAttempts, remainingAttempts }) => {
         console.warn(
           `[E2E][Instagram real smoke] Attempt ${failedAttempts} failed. Remaining: ${remainingAttempts}`,
           latestError,
