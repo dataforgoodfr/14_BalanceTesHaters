@@ -45,7 +45,7 @@ export const getAuthorStatsList = (
       (a, b) =>
         getPercentage(b.numberOfHatefulComments, b.numberOfComments) -
         getPercentage(a.numberOfHatefulComments, a.numberOfComments),
-      )
+    )
     .slice(0, ACTIVE_AUTHORS_LIMIT); // Récupérer les 6 auteurs les plus actifs parmi ceux ayant posté au moins un commentaire haineux (en attendant une éventuelle pagination)
 
   return authorStatsList;
