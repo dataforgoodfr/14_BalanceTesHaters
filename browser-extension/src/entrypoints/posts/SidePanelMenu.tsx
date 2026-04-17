@@ -63,7 +63,7 @@ function SidePanelMenuItem({
       className={({ isActive }) =>
         cn(
           isActive ? "bg-navigation-accent font-semibold" : "",
-          "flex rounded-sm justify-start hover:bg-navigation-accent p-2 items-center ",
+          "flex rounded-sm justify-start hover:bg-navigation-accent p-2 items-center",
           className,
         )
       }

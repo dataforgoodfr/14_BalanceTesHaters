@@ -12,7 +12,7 @@ import HelpPage from "./Help/HelpPage";
 export default function App() {
   return (
     <HashRouter>
-      <div className="flex flex-1  bg-gray-100 dark:bg-gray-800">
+      <div className="flex flex-1  bg-gray-100 dark:bg-gray-800 h-screen">
         <SidePanelMenu />
         <Routes>
           <Route index path="/" element={<HomePage />} />

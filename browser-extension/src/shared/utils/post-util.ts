@@ -1,3 +1,4 @@
+import { PostFilters } from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
@@ -110,4 +111,34 @@ export function getPublicationTypeLabel(
   }
 
   return "Publication";
+}
+
+export function filterPosts(
+  posts: Post[],
+  searchTerm: string,
+  filters: PostFilters,
+): Post[] {
+  let filteredPosts = posts;
+  if (filters.date) {
+    filteredPosts = filteredPosts.filter((post) =>
+      filters.date.includes(post.publishedAt.type),
+    );
+  }
+
+  // Lastly, apply search term filtering
+  const searchValue = searchTerm.trim().toLowerCase();
+  return filteredPosts.filter((post) => {
+    const title = post.title?.toLowerCase() ?? "";
+    const description = post.textContent?.toLowerCase() ?? "";
+    const url = post.url?.toLowerCase() ?? "";
+    const commentsContent = post.comments
+      .map((c) => c.textContent.toLowerCase())
+      .join(" ");
+    return (
+      title.includes(searchValue) ||
+      description.includes(searchValue) ||
+      url.includes(searchValue) ||
+      commentsContent.includes(searchValue)
+    );
+  });
 }
