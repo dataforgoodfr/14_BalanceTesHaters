@@ -41,7 +41,7 @@ function PostSnapshotDetailPage() {
   });
 
   return (
-    <div className="p-4">
+    <main className="p-4">
       {isLoading && <div>Loading...</div>}
       {post && (
         <>
@@ -136,7 +136,7 @@ function PostSnapshotDetailPage() {
           <CommentTreeTable comments={post.comments} />
         </>
       )}
-    </div>
+    </main>
   );
 }
 

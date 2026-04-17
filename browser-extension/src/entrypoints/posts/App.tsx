@@ -11,7 +11,7 @@ import { BuildReport } from "./Report/BuildReport";
 export default function App() {
   return (
     <HashRouter>
-      <div className="flex h-screen">
+      <div className="flex flex-1  bg-gray-100 dark:bg-gray-800">
         <SidePanelMenu />
         <Routes>
           <Route index path="/" element={<HomePage />} />
