@@ -10,12 +10,14 @@ import {
 import { PostComment } from "@/shared/model/post/Post";
 import { getFirstDayOfWeek } from "@/shared/utils/date-util";
 import { isCommentHateful } from "@/shared/utils/post-util";
+import { DateRange } from "react-day-picker";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 const MAX_DATA_POINTS = 60; // Maximum number of data points to display in the chart
 const NB_DAY_IN_WEEK = 7; // Number of days in a week
 
 type HarassmentTrendChartProps = {
+  dateRange: DateRange | undefined;
   commentList: PostComment[];
   isLoading: boolean;
 };
@@ -45,28 +47,41 @@ function formatChartDate(date: Date) {
   });
 }
 
-function getAllDatesInCommentsRange(commentList: PostComment[]): Date[] {
-  // Find the earliest and latest dates in the comment list
-  const dates = commentList
-    .filter((comment) => comment.publishedAt.type !== "unknown date")
-    .map(getCommentChartDate);
+function getAllDates(
+  dateRange: DateRange | undefined,
+  commentList: PostComment[],
+): Date[] {
+  let startDate: Date;
+  let endDate: Date;
 
-  if (dates.length === 0) {
-    return [];
+  if (dateRange?.from && dateRange?.to) {
+    startDate = new Date(dateRange.from);
+    endDate = new Date(dateRange.to);
+  } else {
+    // Find the earliest and latest dates in the comment list
+    const dates = commentList
+      .filter((comment) => comment.publishedAt.type !== "unknown date")
+      .map(getCommentChartDate);
+
+    if (dates.length === 0) {
+      return [];
+    }
+
+    startDate = new Date(
+      Math.min(...dates.map((d) => d.getTime())),
+    );
+    startDate.setHours(0, 0, 0, 0);
+
+    endDate = new Date(
+      Math.max(...dates.map((d) => d.getTime())),
+    );
+    endDate.setHours(0, 0, 0, 0);
   }
 
-  const earliestDate: Date = new Date(
-    Math.min(...dates.map((d) => d.getTime())),
-  );
-  earliestDate.setHours(0, 0, 0, 0);
-
-  const latestDate: Date = new Date(Math.max(...dates.map((d) => d.getTime())));
-  latestDate.setHours(0, 0, 0, 0);
-
   const result: Date[] = [];
-  const current = new Date(earliestDate);
+  const current = new Date(startDate);
 
-  while (current <= latestDate) {
+  while (current <= endDate) {
     result.push(new Date(current));
     current.setDate(current.getDate() + 1);
   }
@@ -110,6 +125,7 @@ function aggregateByWeek(
 }
 
 function HarassmentTrendChart({
+  dateRange,
   commentList,
 }: Readonly<HarassmentTrendChartProps>) {
   const chartConfig = {
@@ -121,9 +137,10 @@ function HarassmentTrendChart({
   const hatefulCommentList = commentList.filter((comment) =>
     isCommentHateful(comment),
   );
+  console.log("Hateful comment list for chart:", hatefulCommentList);
 
   const commentByDateAggregation: { date: Date; nombre: number }[] =
-    getAllDatesInCommentsRange(hatefulCommentList).map((date) => ({
+    getAllDates(dateRange, hatefulCommentList).map((date) => ({
       date,
       nombre: 0,
     }));
@@ -147,11 +164,9 @@ function HarassmentTrendChart({
   if (commentByDateAggregation.length / NB_DAY_IN_WEEK > MAX_DATA_POINTS) {
     // By month
     chartData.push(...aggregateByMonth(commentByDateAggregation));
-    console.log("chartData after month aggregation", chartData);
   } else if (commentByDateAggregation.length > MAX_DATA_POINTS) {
     // By week
     chartData.push(...aggregateByWeek(commentByDateAggregation));
-    console.log("chartData after week aggregation", chartData);
   } else {
     // By day
     chartData.push(
