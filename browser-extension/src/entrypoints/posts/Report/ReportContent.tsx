@@ -23,6 +23,7 @@ import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { Post } from "@/shared/model/post/Post";
 import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
+import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 interface ReportContentProps {
   reportQueryData?: ReportQueryData;
@@ -78,6 +79,7 @@ export const ReportContent = ({
             isWorkInProgress={true}
             isLoading={isLoadingPosts}
           />
+          <SecurityAlert isLoading={isLoadingPosts}></SecurityAlert>
         </div>
       </div>
       <div className="flex gap-6">

@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import KpiCard from "../Shared/KpiCards/KpiCard";
 import {
   formatAnalysisDate,
   getPublicationTypeLabel,
@@ -20,6 +19,7 @@ import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKp
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
+import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 function PostDetailPage() {
   const params = useParams();
@@ -119,12 +119,7 @@ function PostDetailPage() {
                     hatefulCommentList={hatefulComments}
                     isLoading={isLoading}
                   />
-                  <KpiCard
-                    title="Gravité"
-                    value="Modérée"
-                    isWorkInProgress={true}
-                    isLoading={isLoading}
-                  ></KpiCard>
+                  <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 </div>
               </div>
               <div className="flex gap-4">
