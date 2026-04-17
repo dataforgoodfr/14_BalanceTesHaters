@@ -7,7 +7,6 @@ type SecurityAlertProperties = {
 export default function SecurityAlert({
   isLoading,
 }: Readonly<SecurityAlertProperties>) {
-
   return (
     <KpiCard
       title="Alerte sécurité"

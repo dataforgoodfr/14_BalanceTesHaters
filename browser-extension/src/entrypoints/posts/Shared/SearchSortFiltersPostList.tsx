@@ -98,7 +98,7 @@ const categories = [
   {
     id: "containsAuthor",
     label: "Contient : Pseudo auteur",
-    isDisabled: false,
+    isDisabled: true,
   },
 ] as const;
 
