@@ -1,7 +1,11 @@
+import { Separator } from "@base-ui/react";
 
 function PageHeader({ title }: Readonly<{ title: string }>) {
   return (
-      <h4 className="text-left border-b -mx-4 px-4 pb-4">{title}</h4>
+    <div>
+      <h4 className="text-left w-full mb-3">{title}</h4>
+      <Separator className="w-screen -ms-8 border" />
+    </div>
   );
 }
 

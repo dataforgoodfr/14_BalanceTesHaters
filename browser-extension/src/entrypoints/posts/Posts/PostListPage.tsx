@@ -14,6 +14,7 @@ import { formatAnalysisDate } from "@/shared/utils/post-util";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
 import { RotateCwIcon } from "lucide-react";
 import PageHeader from "../Shared/PageHeader";
+import NoPost from "../Shared/NoPost";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -35,34 +36,36 @@ function PostListPage() {
     return data.filter((post) => {
       const title = post.title?.toLowerCase() ?? "";
       const description = post.textContent?.toLowerCase() ?? "";
-      return title.includes(searchValue) || description.includes(searchValue);
+      const url = post.url?.toLowerCase() ?? "";
+      const commentsContent = post.comments
+        .map((c) => c.textContent.toLowerCase())
+        .join(" ");
+      return (
+        title.includes(searchValue) ||
+        description.includes(searchValue) ||
+        url.includes(searchValue) ||
+        commentsContent.includes(searchValue)
+      );
     });
   }, [data, searchTerm]);
 
   return (
-    <main className="p-4 flex flex-col gap-6 w-5/6">
+    <main className="p-4 flex flex-col gap-6 w-5/6 items-start">
       <PageHeader title="Publications analysées" />
       <SocialNetworkSelector
         value={socialNetworkFilter}
         onChange={setSocialNetworkFilter}
       />
-
-      {filteredPosts && filteredPosts.length > 0 && (
-        <span className="text-gray-500 text-left text-lg ms-2 mt-0">
-          {filteredPosts.length} publication
-          {filteredPosts.length > 1 ? "s" : ""} analysée
-          {filteredPosts.length > 1 ? "s" : ""}
-        </span>
+      {data && data.length > 0 && (
+        <SearchSortFiltersPostList
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+        />
       )}
-
-      <SearchSortFiltersPostList
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
 
       {isLoading && <Spinner className="size-8" />}
       {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
-        <p className="text-center">Aucune publication</p>
+        <NoPost />
       )}
 
       <div className="flex flex-col gap-4">

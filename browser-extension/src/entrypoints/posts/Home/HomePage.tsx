@@ -10,8 +10,8 @@ import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage"
 import { type DateRange } from "react-day-picker";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getEarliestPostDate } from "@/shared/utils/post-util";
-import { FolderCode } from "lucide-react";
 import PageHeader from "../Shared/PageHeader";
+import NoPost from "../Shared/NoPost";
 
 function HomePage() {
   // selection state controlled by the page
@@ -53,18 +53,7 @@ function HomePage() {
         />
       </div>
 
-      {allComments.length === 0 && !isLoading && (
-        <div className="flex flex-col items-center max-w-xs mx-auto gap-1 ">
-          <FolderCode className="bg-secondary p-2 w-8 h-8 rounded-md" />
-          <div className="text-primary font-semibold">
-            Aucune publication analysée
-          </div>
-          <div className="text-muted-foreground">
-            Modifie la période ou lance une nouvelle analyse sur une publication
-            YouTube/Instagram.
-          </div>
-        </div>
-      )}
+      {allComments.length === 0 && !isLoading && <NoPost />}
 
       {allComments.length > 0 && (
         <>
