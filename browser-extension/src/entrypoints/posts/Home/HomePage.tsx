@@ -11,6 +11,7 @@ import { type DateRange } from "react-day-picker";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getEarliestPostDate } from "@/shared/utils/post-util";
 import { FolderCode } from "lucide-react";
+import PageHeader from "../Shared/PageHeader";
 
 function HomePage() {
   // selection state controlled by the page
@@ -40,7 +41,7 @@ function HomePage() {
 
   return (
     <main className="p-4 flex flex-col gap-6 w-full ">
-      <h1 className="mt-2">Vue d&apos;ensemble</h1>
+      <PageHeader title="Vue d&apos;ensemble" />
       <div className="flex justify-between ">
         <SocialNetworkSelector
           value={socialNetworkFilter}
