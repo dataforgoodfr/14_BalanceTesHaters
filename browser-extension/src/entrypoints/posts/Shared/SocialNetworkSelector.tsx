@@ -23,24 +23,22 @@ function SocialNetworkSelector({
   );
 
   return (
-    <div className="p-3">
-      <div
-        aria-label="Réseau social"
-        className="bg-accent inline-flex rounded-md border border-input p-1 gap-1"
-      >
-        <SocialNetworkOption
-          label="YouTube"
-          socialNetwork={SocialNetwork.YouTube}
-          selectedNetworks={selectedNetworks}
-          onChange={onChange}
-        />
-        <SocialNetworkOption
-          label="Instagram"
-          socialNetwork={SocialNetwork.Instagram}
-          selectedNetworks={selectedNetworks}
-          onChange={onChange}
-        />
-      </div>
+    <div
+      aria-label="Réseau social"
+      className="bg-accent inline-flex rounded-md border border-input p-1 gap-1"
+    >
+      <SocialNetworkOption
+        label="YouTube"
+        socialNetwork={SocialNetwork.YouTube}
+        selectedNetworks={selectedNetworks}
+        onChange={onChange}
+      />
+      <SocialNetworkOption
+        label="Instagram"
+        socialNetwork={SocialNetwork.Instagram}
+        selectedNetworks={selectedNetworks}
+        onChange={onChange}
+      />
     </div>
   );
 }
