@@ -1,8 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { getEarliestPostDate } from "../post-util";
+import { getEarliestPostDate, filterPosts } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
-import { Post } from "@/shared/model/post/Post";
+import { Post, PostComment } from "@/shared/model/post/Post";
+import {
+  PostFilters,
+  NbHatefulCommentsOptions,
+  emptyFilters,
+} from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 
 /**
  * Helper function to create a dummy Post list with a specific publication date
@@ -21,6 +26,51 @@ function createDummyPostWithDate(publishedAt: PublicationDate): Post {
     },
     lastAnalysisDate: new Date().toLocaleDateString(),
     comments: [],
+  };
+}
+
+/**
+ * Helper function to create a dummy Post with custom properties
+ */
+function createDummyPost(overrides: Partial<Post> = {}): Post {
+  return {
+    postId: "dummy-post-1",
+    socialNetwork: SocialNetwork.YouTube,
+    url: "https://www.youtube.com/watch?v=dummy",
+    title: "Test Post Title",
+    textContent: "Test content",
+    publishedAt: {
+      type: "absolute",
+      date: new Date().toLocaleDateString(),
+    },
+    author: {
+      name: "Dummy Author",
+      accountHref: "https://youtube.com/@dummyauthor",
+    },
+    lastAnalysisDate: new Date().toLocaleDateString(),
+    comments: [],
+    ...overrides,
+  };
+}
+
+/**
+ * Helper function to create a hateful comment
+ */
+function createHatefulComment(
+  textContent: string = "hateful comment",
+): PostComment {
+  return {
+    author: { name: "Author", accountHref: "https://example.com" },
+    textContent,
+    publishedAt: {
+      type: "absolute",
+      date: new Date().toISOString(),
+    },
+    classification: ["Cyberharcèlement (autre)"],
+    screenshotData:
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    isNew: false,
+    isDeleted: false,
   };
 }
 
@@ -112,6 +162,397 @@ describe("post utilities", () => {
       expect(result.toLocaleDateString()).toBe(
         new Date("2024-01-01").toLocaleDateString(),
       );
+    });
+  });
+
+  describe("filterPosts", () => {
+    describe("search term filtering", () => {
+      it("should filter posts by title", () => {
+        const posts = [
+          createDummyPost({ title: "JavaScript Tutorial" }),
+          createDummyPost({ title: "Python Guide" }),
+          createDummyPost({ title: "JavaScript Advanced" }),
+        ];
+
+        const result = filterPosts(posts, "JavaScript", emptyFilters);
+
+        expect(result).toHaveLength(2);
+        expect(result.every((p) => p.title?.includes("JavaScript"))).toBe(true);
+      });
+
+      it("should filter posts by textContent (description)", () => {
+        const posts = [
+          createDummyPost({ textContent: "This is a great tutorial" }),
+          createDummyPost({ textContent: "Complete guide for beginners" }),
+          createDummyPost({ textContent: "Another tutorial here" }),
+        ];
+
+        const result = filterPosts(posts, "tutorial", emptyFilters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should filter posts by url", () => {
+        const posts = [
+          createDummyPost({ url: "https://youtube.com/watch?v=abc123" }),
+          createDummyPost({ url: "https://youtube.com/watch?v=xyz789" }),
+          createDummyPost({
+            url: "https://instagram.com/p/abc123",
+          }),
+        ];
+
+        const result = filterPosts(posts, "abc123", emptyFilters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should filter posts by comments content", () => {
+        const posts = [
+          createDummyPost({
+            comments: [
+              {
+                author: { name: "User", accountHref: "" },
+                textContent: "This is spam content",
+                publishedAt: {
+                  type: "absolute",
+                  date: new Date().toISOString(),
+                },
+                screenshotData:
+                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                isNew: false,
+                isDeleted: false,
+              },
+            ],
+          }),
+          createDummyPost({
+            comments: [
+              {
+                author: { name: "User", accountHref: "" },
+                textContent: "Great video!",
+                publishedAt: {
+                  type: "absolute",
+                  date: new Date().toISOString(),
+                },
+                screenshotData:
+                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                isNew: false,
+                isDeleted: false,
+              },
+            ],
+          }),
+        ];
+
+        const result = filterPosts(posts, "spam", emptyFilters);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].comments[0].textContent).toContain("spam");
+      });
+
+      it("should be case-insensitive", () => {
+        const posts = [
+          createDummyPost({ title: "JavaScript Tutorial" }),
+          createDummyPost({ title: "Python Guide" }),
+        ];
+
+        const resultLower = filterPosts(posts, "javascript", emptyFilters);
+        const resultUpper = filterPosts(posts, "JAVASCRIPT", emptyFilters);
+        const resultMixed = filterPosts(posts, "JaVaScRiPt", emptyFilters);
+
+        expect(resultLower).toHaveLength(1);
+        expect(resultUpper).toHaveLength(1);
+        expect(resultMixed).toHaveLength(1);
+      });
+
+      it("should handle empty search term", () => {
+        const posts = [
+          createDummyPost({ title: "Post 1" }),
+          createDummyPost({ title: "Post 2" }),
+        ];
+
+        const result = filterPosts(posts, "", emptyFilters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should handle whitespace-only search term", () => {
+        const posts = [
+          createDummyPost({ title: "Post 1" }),
+          createDummyPost({ title: "Post 2" }),
+        ];
+
+        const result = filterPosts(posts, "   ", emptyFilters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should not match partial words", () => {
+        const posts = [
+          createDummyPost({ title: "JavaScript" }),
+          createDummyPost({ title: "Python" }),
+        ];
+
+        const result = filterPosts(posts, "script", emptyFilters);
+
+        expect(result).toHaveLength(1);
+      });
+    });
+
+    describe("hateful comments filtering", () => {
+      it("should filter posts with 0-10 hateful comments", () => {
+        const posts = [
+          createDummyPost({
+            comments: [
+              createHatefulComment("hateful 1"),
+              createHatefulComment("hateful 2"),
+            ],
+          }),
+          createDummyPost({
+            comments: [
+              createHatefulComment("hateful 1"),
+              createHatefulComment("hateful 2"),
+              createHatefulComment("hateful 3"),
+              createHatefulComment("hateful 4"),
+              createHatefulComment("hateful 5"),
+              createHatefulComment("hateful 6"),
+              createHatefulComment("hateful 7"),
+              createHatefulComment("hateful 8"),
+              createHatefulComment("hateful 9"),
+              createHatefulComment("hateful 10"),
+              createHatefulComment("hateful 11"),
+            ],
+          }),
+          createDummyPost({ comments: [] }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].comments).toHaveLength(2);
+      });
+
+      it("should filter posts with 10-50 hateful comments", () => {
+        const comments = Array.from({ length: 25 }, (_, i) =>
+          createHatefulComment(`hateful ${i + 1}`),
+        );
+        const posts = [
+          createDummyPost({
+            comments: Array.from({ length: 5 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({ comments }),
+          createDummyPost({
+            comments: Array.from({ length: 60 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.TEN_FIFTY],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].comments).toHaveLength(25);
+      });
+
+      it("should filter posts with 50+ hateful comments", () => {
+        const posts = [
+          createDummyPost({
+            comments: Array.from({ length: 30 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            comments: Array.from({ length: 50 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            comments: Array.from({ length: 100 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.FIFTY_PLUS],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should handle multiple hateful comment ranges", () => {
+        const posts = [
+          createDummyPost({
+            comments: Array.from({ length: 5 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            comments: Array.from({ length: 25 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            comments: Array.from({ length: 75 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [
+            NbHatefulCommentsOptions.ZERO_TEN,
+            NbHatefulCommentsOptions.FIFTY_PLUS,
+          ],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(2);
+      });
+
+      it("should return all posts when no hateful comment filter is applied", () => {
+        const posts = [
+          createDummyPost({
+            comments: Array.from({ length: 5 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            comments: Array.from({ length: 25 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(2);
+      });
+    });
+
+    describe("combined filtering", () => {
+      it("should apply search term and hateful comments filters together", () => {
+        const posts = [
+          createDummyPost({
+            title: "JavaScript Tutorial",
+            comments: Array.from({ length: 5 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            title: "Python Guide",
+            comments: Array.from({ length: 25 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+          createDummyPost({
+            title: "JavaScript Advanced",
+            comments: [],
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
+        };
+
+        const result = filterPosts(posts, "JavaScript", filters);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].title).toBe("JavaScript Tutorial");
+      });
+
+      it("should return empty array when no posts match both filters", () => {
+        const posts = [
+          createDummyPost({
+            title: "Python Guide",
+            comments: Array.from({ length: 5 }, (_, i) =>
+              createHatefulComment(`hateful ${i + 1}`),
+            ),
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.FIFTY_PLUS],
+        };
+
+        const result = filterPosts(posts, "JavaScript", filters);
+
+        expect(result).toHaveLength(0);
+      });
+    });
+
+    describe("edge cases", () => {
+      it("should handle empty posts array", () => {
+        const result = filterPosts([], "search", emptyFilters);
+        expect(result).toHaveLength(0);
+      });
+
+      it("should handle posts with empty comments array", () => {
+        const posts = [createDummyPost({ comments: [] })];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(0);
+      });
+
+      it("should only count hateful comments, not regular comments", () => {
+        const posts = [
+          createDummyPost({
+            comments: [
+              createHatefulComment("hateful comment"),
+              {
+                author: { name: "User", accountHref: "" },
+                textContent: "Nice video!",
+                publishedAt: {
+                  type: "absolute",
+                  date: new Date().toISOString(),
+                },
+                classification: ["Positive"],
+                screenshotData:
+                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+                isNew: false,
+                isDeleted: false,
+              },
+            ],
+          }),
+        ];
+
+        const filters: PostFilters = {
+          ...emptyFilters,
+          nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
+        };
+
+        const result = filterPosts(posts, "", filters);
+
+        expect(result).toHaveLength(1);
+      });
     });
   });
 });
