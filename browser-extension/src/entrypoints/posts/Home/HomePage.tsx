@@ -41,14 +41,14 @@ function HomePage() {
 
   return (
     <main className="p-4 flex flex-col gap-6 w-full ">
-      <PageHeader title="Vue d&apos;ensemble" />
+      <PageHeader title="Vue d'ensemble" />
       <div className="flex justify-between ">
         <SocialNetworkSelector
           value={socialNetworkFilter}
           onChange={setSocialNetworkFilter}
         />
         <DateRangePicker
-          startDate={getEarliestPostDate(data)}
+          startDate={dateRange?.from || getEarliestPostDate(data)}
           onChange={setDateRange}
         />
       </div>
@@ -69,8 +69,8 @@ function HomePage() {
       {allComments.length > 0 && (
         <>
           <KpiCards posts={data} isLoading={isLoading} />
-
           <HarassmentTrendChart
+            dateRange={dateRange}
             commentList={allComments}
             isLoading={isLoading}
           />
