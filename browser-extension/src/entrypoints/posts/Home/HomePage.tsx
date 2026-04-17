@@ -39,7 +39,7 @@ function HomePage() {
   const allComments = (data || []).flatMap((p) => p.comments);
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-full">
+    <main className="p-4 flex flex-col gap-6 w-full ">
       <h1 className="mt-2">Vue d&apos;ensemble</h1>
       <div className="flex justify-between ">
         <SocialNetworkSelector
@@ -79,7 +79,7 @@ function HomePage() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }
 

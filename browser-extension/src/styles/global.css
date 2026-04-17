@@ -42,6 +42,10 @@ a {
   @apply hover:underline;
 }
 
+main{
+  @apply bg-background m-2 rounded-md;
+}
+
 /* Shadcn theme*/
 :root {
   --font-sans: "Red Hat Text Variable", ui-sans-serif, sans-serif, system-ui;

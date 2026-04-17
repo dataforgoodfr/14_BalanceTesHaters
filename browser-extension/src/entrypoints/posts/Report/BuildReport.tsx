@@ -50,7 +50,7 @@ export function BuildReport() {
   const [displayReport, setDisplayReport] = React.useState<boolean>(false);
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-full mx-auto">
+    <main className="p-4 flex flex-col gap-6 w-full mx-auto">
       {!displayReport && (
         <BthStepper
           reportQueryData={reportQueryData}
@@ -59,7 +59,7 @@ export function BuildReport() {
         />
       )}
       {displayReport && <Report reportQueryData={reportQueryData} />}
-    </div>
+    </main>
   );
 }
 
