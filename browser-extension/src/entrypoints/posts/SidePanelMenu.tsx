@@ -1,30 +1,77 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Link } from "react-router";
+import {
+  ChartColumn,
+  File,
+  MessageCircleQuestionMark,
+  Plus,
+  TrafficCone,
+} from "lucide-react";
+import { Link, NavLink } from "react-router";
+import { Logo } from "../popup/Logo";
+import React from "react";
+import { cn } from "@/lib/utils";
 
 function SidePanelMenu() {
   return (
-    <div className="flex flex-col p-3 w-1/5">
-      <div className="text-lg font-bold my-4">Balance tes haters</div>
+    <div className="flex flex-col p-3">
+      <Logo className="mx-auto mt-4 mb-8" />
       <Button className="text-xs mb-6">
         <Plus />
         <Link to="/build-report">Créer un rapport</Link>
       </Button>
-      <div className="text-left">
-        <Button variant="ghost">
-          <Link to="/">Vue d&apos;ensemble</Link>
-        </Button>
-        <Button variant="ghost">
-          <Link to="/posts">Publications analysées</Link>
-        </Button>
-        <Button variant="ghost">
-          <Link to="/">Aide et ressources</Link>
-        </Button>
-        <Button variant="ghost">
-          <Link to="/post-snapshots">[Dev] Données brutes</Link>
-        </Button>
+      <div className="flex flex-col gap-1">
+        <SidePanelMenuItem
+          label="Vue d'ensemble"
+          to="/"
+          icon={<ChartColumn />}
+        />
+        <SidePanelMenuItem
+          label="Publications analysées"
+          to="/posts"
+          icon={<File />}
+        />
+        <SidePanelMenuItem
+          label="Aide et ressources"
+          to="/help"
+          icon={<MessageCircleQuestionMark />}
+        />
+        <SidePanelMenuItem label="[Dev] Données brutes" to="/post-snapshots" />
       </div>
+      <SidePanelMenuItem
+        label="Signaler un problème technique"
+        to="/contact-support"
+        className="my-auto"
+        icon={<TrafficCone />}
+      />
     </div>
+  );
+}
+
+function SidePanelMenuItem({
+  label,
+  to,
+  className,
+  icon,
+}: {
+  label: string;
+  to: string;
+  className?: string;
+  icon?: React.ReactNode;
+}) {
+  return (
+    <NavLink
+      className={({ isActive }) =>
+        cn(
+          isActive ? "bg-navigation-accent font-semibold" : "",
+          "flex rounded-sm justify-start hover:bg-navigation-accent p-2 items-center ",
+          className,
+        )
+      }
+      to={to}
+    >
+      {icon && <span className="mr-2">{icon}</span>}
+      {label}
+    </NavLink>
   );
 }
 
