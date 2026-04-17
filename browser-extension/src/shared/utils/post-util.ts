@@ -123,7 +123,6 @@ export function filterPosts(
 ): Post[] {
   let filteredPosts = posts;
   if (filters.nbHatefulComments) {
-    console.log(filters);
     filteredPosts = filteredPosts.filter((post) => {
       const nbHatefulComment = post.comments.filter(isCommentHateful).length;
       return (
