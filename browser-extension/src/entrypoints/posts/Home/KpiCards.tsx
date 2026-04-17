@@ -38,8 +38,8 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
           isLoading={isLoading}
         />
         <KpiCard
-          title="Gravité"
-          value="Modérée"
+          title="Alerte sécurité"
+          value="N/A"
           isWorkInProgress={true}
           isLoading={isLoading}
         ></KpiCard>
