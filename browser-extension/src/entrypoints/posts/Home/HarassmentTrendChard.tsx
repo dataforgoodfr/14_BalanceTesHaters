@@ -67,14 +67,10 @@ function getAllDates(
       return [];
     }
 
-    startDate = new Date(
-      Math.min(...dates.map((d) => d.getTime())),
-    );
+    startDate = new Date(Math.min(...dates.map((d) => d.getTime())));
     startDate.setHours(0, 0, 0, 0);
 
-    endDate = new Date(
-      Math.max(...dates.map((d) => d.getTime())),
-    );
+    endDate = new Date(Math.max(...dates.map((d) => d.getTime())));
     endDate.setHours(0, 0, 0, 0);
   }
 
