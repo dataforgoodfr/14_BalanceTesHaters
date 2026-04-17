@@ -22,7 +22,7 @@ type FilterCategory =
   | "containsCategory"
   | "containsAuthor";
 
-export  type PostFilters = {
+export type PostFilters = {
   date: string[];
   score: string[];
   alert: string[];
@@ -42,7 +42,7 @@ export const emptyFilters: PostFilters = {
   containsAuthor: [],
 };
 
-export enum DateFilterOptions{
+export enum DateFilterOptions {
   SEVEN_DAYS = "7days",
   THIRTY_DAYS = "30days",
   TWELVE_MONTHS = "12months",
@@ -135,6 +135,11 @@ function SearchSortFiltersPostList({
     });
   };
 
+  const nbSelectedFilters = Object.values(postFilters).reduce(
+    (acc, filters) => acc + filters.length,
+    0,
+  );
+
   return (
     <div className="flex gap-3 w-full">
       <Input
@@ -147,7 +152,7 @@ function SearchSortFiltersPostList({
       <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
         <PopoverTrigger>
           <Button variant="outline" onClick={() => setFiltersOpen(true)}>
-            Filtrer <Funnel />
+            <Funnel /> Filtrer {nbSelectedFilters > 0 && `(${nbSelectedFilters})`}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
@@ -226,7 +231,8 @@ function SearchSortFiltersPostList({
       </Popover>
 
       <Button variant="outline" disabled>
-        Trier <ArrowDownUp />
+        <ArrowDownUp />
+        Trier
       </Button>
     </div>
   );
