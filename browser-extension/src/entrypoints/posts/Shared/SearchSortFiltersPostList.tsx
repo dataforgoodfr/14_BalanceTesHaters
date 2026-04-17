@@ -32,6 +32,76 @@ export type PostFilters = {
   containsAuthor: string[];
 };
 
+export enum DateFilterOptions {
+  SEVEN_DAYS = "7days",
+  THIRTY_DAYS = "30days",
+  TWELVE_MONTHS = "12months",
+}
+
+export enum NbHatefulCommentsOptions {
+  ZERO_TEN = "0_10",
+  TEN_FIFTY = "10_50",
+  FIFTY_PLUS = "50+",
+}
+
+const filterOptions = {
+  date: [
+    { label: "7 derniers jours", value: DateFilterOptions.SEVEN_DAYS },
+    { label: "30 derniers jours", value: DateFilterOptions.THIRTY_DAYS },
+    { label: "12 derniers mois", value: DateFilterOptions.TWELVE_MONTHS },
+  ],
+  score: [
+    { label: "1/5", value: "1" },
+    { label: "2/5", value: "2" },
+    { label: "3/5", value: "3" },
+    { label: "4/5", value: "4" },
+    { label: "5/5", value: "5" },
+  ],
+  alert: [
+    { label: "Détectée", value: "detected" },
+    { label: "Non détectée", value: "not_detected" },
+  ],
+
+  nbHatefulComments: [
+    { label: "0-10", value: NbHatefulCommentsOptions.ZERO_TEN },
+    { label: "10-50", value: NbHatefulCommentsOptions.TEN_FIFTY },
+    { label: "50+", value: NbHatefulCommentsOptions.FIFTY_PLUS },
+  ],
+
+  status: [
+    { label: "Terminée", value: "done" },
+    { label: "Non terminée", value: "in_progress" },
+  ],
+
+  containsCategory: Object.values(HatefulCategory).map((category) => ({
+    label: HatefulCategoryLabels[category],
+    value: category,
+  })),
+
+  containsAuthor: [
+    { label: "Détectée", value: "detected" },
+    { label: "Non détectée", value: "not_detected" },
+  ],
+};
+
+const categories = [
+  { id: "date", label: "Date publication", isDisabled: false },
+  { id: "score", label: "Score juridique", isDisabled: true },
+  { id: "alert", label: "Alerte sécurité", isDisabled: true },
+  {
+    id: "nbHatefulComments",
+    label: "Nb commentaires malveillants",
+    isDisabled: false,
+  },
+  { id: "status", label: "Statut", isDisabled: true },
+  { id: "containsCategory", label: "Contient : Catégorie", isDisabled: true },
+  {
+    id: "containsAuthor",
+    label: "Contient : Pseudo auteur",
+    isDisabled: false,
+  },
+] as const;
+
 export const emptyFilters: PostFilters = {
   date: [],
   score: [],
@@ -41,12 +111,6 @@ export const emptyFilters: PostFilters = {
   containsCategory: [],
   containsAuthor: [],
 };
-
-export enum DateFilterOptions {
-  SEVEN_DAYS = "7days",
-  THIRTY_DAYS = "30days",
-  TWELVE_MONTHS = "12months",
-}
 
 function SearchSortFiltersPostList({
   searchTerm,
@@ -64,64 +128,6 @@ function SearchSortFiltersPostList({
     useState<FilterCategory>("date");
   const [selectedFilters, setSelectedFilters] =
     useState<PostFilters>(postFilters);
-
-  const filterOptions = {
-    date: [
-      { label: "7 derniers jours", value: DateFilterOptions.SEVEN_DAYS },
-      { label: "30 derniers jours", value: DateFilterOptions.THIRTY_DAYS },
-      { label: "12 derniers mois", value: DateFilterOptions.TWELVE_MONTHS },
-    ],
-    score: [
-      { label: "1/5", value: "1" },
-      { label: "2/5", value: "2" },
-      { label: "3/5", value: "3" },
-      { label: "4/5", value: "4" },
-      { label: "5/5", value: "5" },
-    ],
-    alert: [
-      { label: "Détectée", value: "detected" },
-      { label: "Non détectée", value: "not_detected" },
-    ],
-
-    nbHatefulComments: [
-      { label: "0-10", value: "0_10" },
-      { label: "10-50", value: "10_50" },
-      { label: "50+", value: "50_plus" },
-    ],
-
-    status: [
-      { label: "Terminée", value: "done" },
-      { label: "Non terminée", value: "in_progress" },
-    ],
-
-    containsCategory: Object.values(HatefulCategory).map((category) => ({
-      label: HatefulCategoryLabels[category],
-      value: category,
-    })),
-
-    containsAuthor: [
-      { label: "Détectée", value: "detected" },
-      { label: "Non détectée", value: "not_detected" },
-    ],
-  };
-
-  const categories = [
-    { id: "date", label: "Date publication", isDisabled: false },
-    { id: "score", label: "Score juridique", isDisabled: true },
-    { id: "alert", label: "Alerte sécurité", isDisabled: true },
-    {
-      id: "nbHatefulComments",
-      label: "Nb commentaires malveillants",
-      isDisabled: false,
-    },
-    { id: "status", label: "Statut", isDisabled: true },
-    { id: "containsCategory", label: "Contient : Catégorie", isDisabled: true },
-    {
-      id: "containsAuthor",
-      label: "Contient : Pseudo auteur",
-      isDisabled: false,
-    },
-  ] as const;
 
   const toggleFilter = (value: string) => {
     setSelectedFilters((prev) => {
@@ -152,7 +158,8 @@ function SearchSortFiltersPostList({
       <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
         <PopoverTrigger>
           <Button variant="outline" onClick={() => setFiltersOpen(true)}>
-            <Funnel /> Filtrer {nbSelectedFilters > 0 && `(${nbSelectedFilters})`}
+            <Funnel /> Filtrer{" "}
+            {nbSelectedFilters > 0 && `(${nbSelectedFilters})`}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
