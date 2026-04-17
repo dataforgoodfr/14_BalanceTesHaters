@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
+import SearchSortFiltersPostList, {
+  DateFilterOptions,
+  emptyFilters,
+  PostFilters,
+} from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
@@ -16,16 +20,52 @@ import { RotateCwIcon } from "lucide-react";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 
+function getStartPeriodFromFilters(filters: PostFilters): Date | undefined {
+  if (filters.date.length === 0) {
+    return undefined;
+  }
+
+  // We take the longest chosen range
+  const startDate = new Date();
+  if (filters.date.includes(DateFilterOptions.TWELVE_MONTHS)) {
+    startDate.setMonth(startDate.getMonth() - 12);
+  } else if (filters.date.includes(DateFilterOptions.THIRTY_DAYS)) {
+    startDate.setDate(startDate.getDate() - 30);
+  } else if (filters.date.includes(DateFilterOptions.SEVEN_DAYS)) {
+    startDate.setDate(startDate.getDate() - 7);
+  } else {
+    return undefined;
+  }
+  startDate.setHours(0, 0, 0, 0);
+  return startDate;
+}
+
+function getEndPeriodFromFilters(filters: PostFilters): Date | undefined {
+  if (filters.date.length === 0) {
+    return undefined;
+  } else {
+    const endDate = new Date();
+    endDate.setHours(0, 0, 0, 0);
+    return endDate;
+  }
+}
+
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
   >([SocialNetwork.YouTube]);
   const [searchTerm, setSearchTerm] = React.useState("");
-  const queryKey = ["posts", socialNetworkFilter];
+  const [postFilters, setPostFilters] = React.useState(emptyFilters);
+  const queryKey = ["posts", socialNetworkFilter, postFilters.date.join(",")];
 
   const { data, isLoading } = useQuery({
     queryKey,
-    queryFn: () => getPostsBySocialNetworkAndPeriod(socialNetworkFilter),
+    queryFn: () =>
+      getPostsBySocialNetworkAndPeriod(
+        socialNetworkFilter,
+        getStartPeriodFromFilters(postFilters),
+        getEndPeriodFromFilters(postFilters),
+      ),
   });
 
   const filteredPosts = React.useMemo(() => {
@@ -47,7 +87,7 @@ function PostListPage() {
         commentsContent.includes(searchValue)
       );
     });
-  }, [data, searchTerm]);
+  }, [data, searchTerm, postFilters]);
 
   return (
     <main className="p-4 flex flex-col gap-6 w-5/6 items-start">
@@ -56,12 +96,12 @@ function PostListPage() {
         value={socialNetworkFilter}
         onChange={setSocialNetworkFilter}
       />
-      {data && data.length > 0 && (
-        <SearchSortFiltersPostList
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-        />
-      )}
+      <SearchSortFiltersPostList
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        postFilters={postFilters}
+        setPostFilters={setPostFilters}
+      />
 
       {isLoading && <Spinner className="size-8" />}
       {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
