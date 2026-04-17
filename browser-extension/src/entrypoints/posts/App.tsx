@@ -7,6 +7,7 @@ import SidePanelMenu from "./SidePanelMenu";
 import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
 import { BuildReport } from "./Report/BuildReport";
+import HelpPage from "./Help/HelpPage";
 
 export default function App() {
   return (
@@ -21,6 +22,8 @@ export default function App() {
             path="/posts/:socialNetworkName/:postId"
             element={<PostDetailPage />}
           />
+          <Route index path="/help" element={<HelpPage />} />
+
           <Route path="/debug" element={<DebugPage />} />
           <Route
             index
