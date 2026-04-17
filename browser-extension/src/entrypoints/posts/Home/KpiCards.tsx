@@ -1,10 +1,10 @@
 import { Spinner } from "@/components/ui/spinner";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import { Post } from "@/shared/model/post/Post";
-import KpiCard from "../Shared/KpiCards/KpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
+import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 type KpiCardsProps = {
   posts: Post[] | undefined;
@@ -37,12 +37,7 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
           numberOfComments={allComments.length}
           isLoading={isLoading}
         />
-        <KpiCard
-          title="Alerte sécurité"
-          value="N/A"
-          isWorkInProgress={true}
-          isLoading={isLoading}
-        ></KpiCard>
+        <SecurityAlert isLoading={isLoading}></SecurityAlert>
         <NumberHatefulAuhorsKpiCard
           hatefulCommentList={hatefulComments}
           isLoading={isLoading}
