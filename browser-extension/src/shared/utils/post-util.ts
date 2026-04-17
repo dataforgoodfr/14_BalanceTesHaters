@@ -1,4 +1,7 @@
-import { PostFilters } from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
+import {
+  NbHatefulCommentsOptions,
+  PostFilters,
+} from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
@@ -119,10 +122,28 @@ export function filterPosts(
   filters: PostFilters,
 ): Post[] {
   let filteredPosts = posts;
-  if (filters.date) {
-    filteredPosts = filteredPosts.filter((post) =>
-      filters.date.includes(post.publishedAt.type),
-    );
+  if (filters.nbHatefulComments) {
+    console.log(filters);
+    filteredPosts = filteredPosts.filter((post) => {
+      const nbHatefulComment = post.comments.filter(isCommentHateful).length;
+      return (
+        filters.nbHatefulComments.length == 0 ||
+        (filters.nbHatefulComments.includes(
+          NbHatefulCommentsOptions.ZERO_TEN,
+        ) &&
+          nbHatefulComment > 0 &&
+          nbHatefulComment <= 10) ||
+        (filters.nbHatefulComments.includes(
+          NbHatefulCommentsOptions.TEN_FIFTY,
+        ) &&
+          nbHatefulComment >= 10 &&
+          nbHatefulComment <= 50) ||
+        (filters.nbHatefulComments.includes(
+          NbHatefulCommentsOptions.FIFTY_PLUS,
+        ) &&
+          nbHatefulComment >= 50)
+      );
+    });
   }
 
   // Lastly, apply search term filtering

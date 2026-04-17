@@ -14,9 +14,9 @@ import SearchSortFiltersPostList, {
   PostFilters,
 } from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
-import { formatAnalysisDate } from "@/shared/utils/post-util";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
 import { RotateCwIcon } from "lucide-react";
+import { filterPosts, formatAnalysisDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 
@@ -69,24 +69,11 @@ function PostListPage() {
   });
 
   const filteredPosts = React.useMemo(() => {
-    if (!data || data.length === 0 || !searchTerm.trim()) {
+    if (!data || data.length === 0) {
       return data || [];
     }
-    const searchValue = searchTerm.trim().toLowerCase();
-    return data.filter((post) => {
-      const title = post.title?.toLowerCase() ?? "";
-      const description = post.textContent?.toLowerCase() ?? "";
-      const url = post.url?.toLowerCase() ?? "";
-      const commentsContent = post.comments
-        .map((c) => c.textContent.toLowerCase())
-        .join(" ");
-      return (
-        title.includes(searchValue) ||
-        description.includes(searchValue) ||
-        url.includes(searchValue) ||
-        commentsContent.includes(searchValue)
-      );
-    });
+
+    return filterPosts(data, searchTerm, postFilters);
   }, [data, searchTerm, postFilters]);
 
   return (
