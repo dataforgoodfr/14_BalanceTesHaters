@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 type SocialNetworkSelectorProps = Readonly<{
@@ -21,6 +22,40 @@ function SocialNetworkSelector({
     ),
   );
 
+  return (
+    <div className="p-3">
+      <div
+        aria-label="Réseau social"
+        className="bg-accent inline-flex rounded-md border border-input p-1 gap-1"
+      >
+        <SocialNetworkOption
+          label="YouTube"
+          socialNetwork={SocialNetwork.YouTube}
+          selectedNetworks={selectedNetworks}
+          onChange={onChange}
+        />
+        <SocialNetworkOption
+          label="Instagram"
+          socialNetwork={SocialNetwork.Instagram}
+          selectedNetworks={selectedNetworks}
+          onChange={onChange}
+        />
+      </div>
+    </div>
+  );
+}
+
+function SocialNetworkOption({
+  label,
+  socialNetwork,
+  selectedNetworks,
+  onChange,
+}: {
+  label: string;
+  socialNetwork: SocialNetwork;
+  selectedNetworks: string[];
+  onChange: (values: string[]) => void;
+}) {
   const toggleNetwork = (network: string) => {
     const isSelected = selectedNetworks.includes(network);
     if (isSelected && selectedNetworks.length === 1) {
@@ -38,42 +73,20 @@ function SocialNetworkSelector({
   };
 
   return (
-    <div className="p-3">
-      <div
-        role="group"
-        aria-label="Réseau social"
-        className="inline-flex rounded-md border border-input p-1 gap-1"
-      >
-        <Button
-          type="button"
-          variant={
-            selectedNetworks.includes(SocialNetwork.YouTube)
-              ? "secondary"
-              : "ghost"
-          }
-          size="sm"
-          aria-pressed={selectedNetworks.includes(SocialNetwork.YouTube)}
-          aria-label="Visualiser les résultats YouTube"
-          onClick={() => toggleNetwork(SocialNetwork.YouTube)}
-        >
-          YouTube
-        </Button>
-        <Button
-          type="button"
-          variant={
-            selectedNetworks.includes(SocialNetwork.Instagram)
-              ? "secondary"
-              : "ghost"
-          }
-          size="sm"
-          aria-pressed={selectedNetworks.includes(SocialNetwork.Instagram)}
-          aria-label="Visualiser les résultats Instagram"
-          onClick={() => toggleNetwork(SocialNetwork.Instagram)}
-        >
-          Instagram
-        </Button>
-      </div>
-    </div>
+    <Button
+      type="button"
+      variant="ghost"
+      className={cn(
+        selectedNetworks.includes(socialNetwork) ? "bg-background" : "",
+        "rounded-md",
+      )}
+      size="sm"
+      aria-pressed={selectedNetworks.includes(socialNetwork)}
+      aria-label={`Visualiser les résultats ${label}`}
+      onClick={() => toggleNetwork(socialNetwork)}
+    >
+      {label}
+    </Button>
   );
 }
 
