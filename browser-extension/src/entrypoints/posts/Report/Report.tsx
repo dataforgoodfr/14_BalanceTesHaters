@@ -34,17 +34,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Packer } from "docx";
+import { buildReportCsv } from "./reportCsv";
+import { buildReportDocx } from "./reportDocx";
 
 function Report({
   reportQueryData,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
 }>) {
-  const [screenshotDialogOpen, setScreenshotDialogOpen] = useState(false);
+  const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
 
-  const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(
-    null,
-  );
+  const [selectedScreenshot, setSelectedScreenshot] = React.useState<
+    string | null
+  >(null);
 
   const queryKey = React.useMemo(
     () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
@@ -72,11 +75,52 @@ function Report({
     );
   }, [reportQueryData?.postCommentList]);
 
+  const canExportCsv =
+    !isLoading && (reportQueryData?.postCommentList.length ?? 0) > 0;
+  const canExportDocx = canExportCsv;
+
+  const exportCsv = () => {
+    if (!reportQueryData) {
+      return;
+    }
+    const csvContent = buildReportCsv(reportQueryData, data ?? []);
+    const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
+
+    void browser.downloads.download({
+      url:
+        "data:text/csv;charset=utf-8," +
+        encodeURIComponent("\uFEFF" + csvContent),
+      filename: `rapport-bth-${generatedAt}.csv`,
+      saveAs: true,
+    });
+  };
+
+  const exportDocx = async () => {
+    if (!reportQueryData) {
+      return;
+    }
+    const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
+    const docxDocument = buildReportDocx(reportQueryData, data ?? []);
+    const blob = await Packer.toBlob(docxDocument);
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+      await browser.downloads.download({
+        url: objectUrl,
+        filename: `rapport-bth-${generatedAt}.docx`,
+        saveAs: true,
+      });
+    } finally {
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    }
+  };
+
   return (
     <>
       <div className="flex justify-between">
         <Button
           variant="link"
+          nativeButton={false}
           render={
             <Link to="/">
               <MoveLeft /> Revenir à la vue d&apos;ensemble
@@ -84,11 +128,22 @@ function Report({
           }
         />
         <div className="flex gap-2">
-          <Button variant="outline" disabled>
+          <Button
+            variant="outline"
+            disabled={!canExportCsv}
+            onClick={exportCsv}
+          >
             Exporter les données en CSV
           </Button>
           <Button variant="outline" disabled>
             Télécharger le PDF
+          </Button>
+          <Button
+            variant="outline"
+            disabled={!canExportDocx}
+            onClick={() => void exportDocx()}
+          >
+            Télécharger le DOCX
           </Button>
         </div>
       </div>
@@ -96,8 +151,8 @@ function Report({
         <TriangleAlert className="me-2" />
         <span>
           Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez
-          à télécharger le rapport en PDF ou exporter les données su rapport en
-          CSV
+          à télécharger le rapport en DOCX ou exporter les données du rapport en
+          CSV.
         </span>
       </div>
       <div className="flex flex-col items-end">
