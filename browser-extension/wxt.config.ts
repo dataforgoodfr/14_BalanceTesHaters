@@ -15,6 +15,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
   }),
   manifest: {
+    name: "Balance Tes Haters : outil de détection de commentaires malveillants",
     permissions: [
       "storage",
       "scripting",

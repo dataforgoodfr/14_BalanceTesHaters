@@ -10,6 +10,7 @@ import { Link } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { formatAnalysisDate } from "@/shared/utils/post-util";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -72,17 +73,15 @@ function PostListPage() {
                   <PostSummary post={post} />
                   <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                     <div className="font-semibold">
-                      Analyse du{" "}
-                      {new Date(post.lastAnalysisDate).toLocaleDateString(
-                        undefined,
-                        {
-                          day: "numeric",
-                          month: "short",
-                        },
-                      )}
+                      Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
                     </div>
                     <div>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled
+                        className="text-muted-foreground opacity-60 cursor-not-allowed"
+                      >
                         Relancer l&apos;analyse
                       </Button>
                       <Button

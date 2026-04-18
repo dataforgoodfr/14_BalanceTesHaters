@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook";
+
 import { defineConfig, globalIgnores } from "eslint/config";
 import eslint from "@eslint/js";
 import configPrettier from "eslint-config-prettier";
@@ -11,6 +14,7 @@ export default defineConfig([
   globalIgnores([
     ".wxt/",
     ".output/",
+    ".storybook/",
     "playwright-report",
     "test-results",
     "coverage",
@@ -57,7 +61,7 @@ export default defineConfig([
       "react/prop-types": "off",
     },
   },
-  json.configs.recommended,
-  //markdown.configs.recommended,
+  json.configs.recommended, //markdown.configs.recommended,
   css.configs.recommended,
+  storybook.configs["flat/recommended"],
 ]);

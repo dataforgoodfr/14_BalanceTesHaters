@@ -52,3 +52,37 @@ export function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
       return "";
   }
 }
+
+export function getPublicationTypeLabel(
+  postUrl: string,
+  socialNetwork: SocialNetworkName,
+): string {
+  try {
+    const parsedUrl = new URL(postUrl);
+    const pathname = parsedUrl.pathname.toLowerCase();
+
+    if (socialNetwork === SocialNetwork.YouTube) {
+      if (pathname.startsWith("/shorts/")) {
+        return "Short";
+      }
+      if (pathname === "/watch" || pathname.startsWith("/watch/")) {
+        return "Vidéo";
+      }
+      return "Publication";
+    }
+
+    if (socialNetwork === SocialNetwork.Instagram) {
+      if (pathname.startsWith("/reel/") || pathname.startsWith("/reels/")) {
+        return "Reel";
+      }
+      if (pathname.startsWith("/p/")) {
+        return "Post (page ou modal)";
+      }
+      return "Publication";
+    }
+  } catch {
+    return "Inconnu";
+  }
+
+  return "Publication";
+}

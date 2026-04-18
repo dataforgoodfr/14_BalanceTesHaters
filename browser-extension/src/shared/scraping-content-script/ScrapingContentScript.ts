@@ -141,7 +141,10 @@ export class ScrapingContentScript {
         return this.scrapingStatus;
       } else {
         console.error("[SCS] - Unexpected error while scraping", e);
-        const errorMessage = String(e);
+        const errorMessage =
+          e instanceof Error && e.stack
+            ? `${e.message}\n${e.stack}`
+            : String(e);
         this.scrapAbortController = null;
         this.scrapingStatus = scrapingFailed(errorMessage);
         return this.scrapingStatus;

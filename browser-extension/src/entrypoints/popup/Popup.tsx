@@ -8,9 +8,10 @@ import {
 import { startScraping } from "../scraping-sidepanel/startScraping";
 import { ViewPreviousAnalysesButton } from "../scraping-sidepanel/ViewPreviousAnalysesButton";
 import { openSidePanel } from "./openSidePanel";
-import { Logo } from "./Logo";
+import { Logo } from "../../components/shared/Logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon, InfoIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
+import { PageNotScrapableAlert } from "./PageNotScrapableAlert";
 
 export function Popup() {
   return (
@@ -57,13 +58,7 @@ function PopupContent() {
   if (tabInfo.type === ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE) {
     return (
       <div className="flex flex-col gap-2 px-2">
-        <Alert className="max-w-md">
-          <InfoIcon />
-          <AlertDescription>
-            Navigue vers une publication youtube ou instagram pour lancer une
-            analyse.
-          </AlertDescription>
-        </Alert>
+        <PageNotScrapableAlert />
         <ViewPreviousAnalysesButton />
       </div>
     );
@@ -82,6 +77,7 @@ function PopupContent() {
   // Scraping has already been started, completed... use SidePanel to display it
   return (
     <Button
+      size="lg"
       data-testid="start-scraping-button"
       className="w-full"
       onClick={() => {
@@ -98,6 +94,7 @@ function PopupContent() {
 function StartScrapingButton({ tabId }: { tabId: number }) {
   return (
     <Button
+      size="lg"
       data-testid="start-scraping-button"
       className="w-full"
       onClick={() => void handleStartScrapingClick(tabId)}

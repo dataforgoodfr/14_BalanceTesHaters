@@ -40,7 +40,7 @@ interface CommentTreeTableProps {
 
 export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
-  const [showScreenshot, setShowScreenshot] = useState(false);
+  const [showScreenshot, setShowScreenshot] = useState(true);
   const [contentDialogOpen, setContentDialogOpen] = useState(false);
   const [screenshotDialogOpen, setScreenshotDialogOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{
@@ -166,7 +166,15 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         cell: ({ row }) => {
           if (row.original.classifiedAt) {
             return (row.original.classification || []).map(
-              (category, index) => <Badge key={index}>{category}</Badge>,
+              (category, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className={getClassificationBadgeClassName(category)}
+                >
+                  {category}
+                </Badge>
+              ),
             );
           } else {
             return "Non ";
@@ -314,4 +322,27 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
       </Dialog>
     </div>
   );
+}
+
+function getClassificationBadgeClassName(category: string): string {
+  const normalizedCategory = category.toLowerCase();
+  if (normalizedCategory.includes("absence")) {
+    return "bg-green-100 border-green-200 text-green-800";
+  }
+  if (
+    normalizedCategory.includes("autre") ||
+    normalizedCategory.includes("cyberharcèlement")
+  ) {
+    return "bg-red-100 border-red-200 text-red-800";
+  }
+  if (normalizedCategory.includes("menace")) {
+    return "bg-orange-100 border-orange-200 text-orange-800";
+  }
+  if (
+    normalizedCategory.includes("insulte") ||
+    normalizedCategory.includes("injure")
+  ) {
+    return "bg-amber-100 border-amber-200 text-amber-900";
+  }
+  return "bg-slate-100 border-slate-200 text-slate-800";
 }

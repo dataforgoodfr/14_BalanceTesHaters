@@ -76,7 +76,8 @@ function ActiveAuthors({
                     %
                   </TableCell>
                   <TableCell>
-                    {authorStats.numberOfComments} commentaires
+                    {authorStats.numberOfComments} commentaire
+                    {authorStats.numberOfComments > 1 ? "s" : ""}
                   </TableCell>
                 </TableRow>
               ))}

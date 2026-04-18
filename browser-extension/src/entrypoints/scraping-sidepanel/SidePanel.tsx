@@ -1,17 +1,32 @@
 import { Spinner } from "@/components/ui/spinner";
 import { DisplayTabNotScrapable } from "./DisplayTabNotScrapable";
-import { DisplayScrapingNotStarted } from "./DisplayScrapingNotStarted";
-import { DisplayScrapingInProgress } from "./DisplayScrapingInProgress";
-import { DisplayScrapingFailed } from "./DisplayScrapingFailed";
-import { DisplayScrapingCanceled } from "./DisplayScrapingCanceled";
-import { DisplayClassificationInProgress } from "./DisplayClassificationInProgress";
-import { DisplayClassificationSucceeded } from "./DisplayClassificationSucceeded";
-import { DisplayClassificationFailed } from "./DisplayClassificationFailed";
+import { DisplayScrapingNotStarted } from "./scraping/DisplayScrapingNotStarted";
+import { DisplayScrapingInProgress } from "./scraping/DisplayScrapingInProgress";
+import { DisplayScrapingFailed } from "./scraping/DisplayScrapingFailed";
+import { DisplayScrapingCanceled } from "./scraping/DisplayScrapingCanceled";
+import { DisplayClassificationInProgress } from "./classification/DisplayClassificationInProgress";
+import { DisplayClassificationSucceeded } from "./classification/DisplayClassificationSucceeded";
+import { DisplayClassificationFailed } from "./classification/DisplayClassificationFailed";
 import {
   ScrapingAndClassificationTabInfoType,
+  TabInfoClassificationFailed,
+  TabInfoClassificationInProgess,
+  TabInfoClassificationSucceeded,
+  TabInfoNotScrapableTab,
+  TabInfoScrapingCanceled,
+  TabInfoScrapingFailed,
+  TabInfoScrapingInProgress,
+  TabInfoScrapingNotStarted,
   useScrapingAndClassificationTabInfo,
 } from "./useScrapingAndClassificationTabInfo";
 import { getTabIdFromSidePanelUrl } from "./side-panel-url";
+import {
+  SidePanelHeader,
+  SidePanelLayout,
+  SidePanelTitle,
+} from "./SidePanelLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 export function SidePanel() {
   const tabId = getTabIdFromSidePanelUrl(document.URL);
@@ -24,8 +39,15 @@ export function SidePanel() {
   if (queryError) {
     return (
       <>
-        <h2>Erreur inattendue</h2>
-        <p>{queryError.message}</p>
+        <SidePanelLayout>
+          <SidePanelHeader>
+            <SidePanelTitle>Erreur inattendue</SidePanelTitle>
+          </SidePanelHeader>
+          <Alert variant="destructive">
+            <AlertCircleIcon />
+            <AlertDescription>{queryError.message}</AlertDescription>
+          </Alert>
+        </SidePanelLayout>
       </>
     );
   }
@@ -33,9 +55,28 @@ export function SidePanel() {
     isPending ||
     tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB
   ) {
-    return <Spinner className="m-auto size-8" />;
+    return (
+      <SidePanelLayout>
+        <Spinner className="m-auto size-8" />;
+      </SidePanelLayout>
+    );
   }
 
+  return <SidePanelContent tabInfo={tabInfo} />;
+}
+export function SidePanelContent({
+  tabInfo,
+}: {
+  tabInfo:
+    | TabInfoScrapingNotStarted
+    | TabInfoNotScrapableTab
+    | TabInfoScrapingInProgress
+    | TabInfoScrapingFailed
+    | TabInfoScrapingCanceled
+    | TabInfoClassificationInProgess
+    | TabInfoClassificationSucceeded
+    | TabInfoClassificationFailed;
+}) {
   switch (tabInfo.type) {
     case ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE:
       return <DisplayTabNotScrapable />;

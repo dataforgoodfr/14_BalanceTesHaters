@@ -22,7 +22,9 @@
     "test:e2e": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test",
     "test:e2e:ui": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --ui",
     "test:e2e:debug": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --debug",
-    "test:e2e:report": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright show-report"
+    "test:e2e:report": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright show-report",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@base-ui/react": "^1.1.0",
@@ -55,6 +57,9 @@
     "@eslint/json": "^0.14.0",
     "@eslint/markdown": "^7.5.1",
     "@playwright/test": "^1.58.2",
+    "@storybook/addon-a11y": "^10.3.4",
+    "@storybook/addon-docs": "^10.3.4",
+    "@storybook/react-vite": "^10.3.4",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.0.18",
@@ -63,12 +68,16 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-storybook": "^10.3.4",
     "globals": "^17.0.0",
     "playwright": "^1.58.2",
     "prettier": "^3.7.4",
+    "storybook": "^10.3.4",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.52.0",
+    "vite": "7.3.1",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18",
     "wxt": "^0.20.13"
   },

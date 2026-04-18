@@ -1,4 +1,4 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
 type SocialNetworkSelectorProps = Readonly<{
@@ -6,40 +6,73 @@ type SocialNetworkSelectorProps = Readonly<{
   onChange: (values: string[]) => void;
 }>;
 
+const SOCIAL_NETWORK_OPTIONS = [
+  SocialNetwork.YouTube,
+  SocialNetwork.Instagram,
+] as const;
+
 function SocialNetworkSelector({
   value,
   onChange,
 }: SocialNetworkSelectorProps) {
-  const handleChange = (newVals: string[]) => {
-    if (newVals.length === 0) {
+  const selectedNetworks = value.filter((network) =>
+    SOCIAL_NETWORK_OPTIONS.includes(
+      network as (typeof SOCIAL_NETWORK_OPTIONS)[number],
+    ),
+  );
+
+  const toggleNetwork = (network: string) => {
+    const isSelected = selectedNetworks.includes(network);
+    if (isSelected && selectedNetworks.length === 1) {
       // prevent deselecting all options, at least one should be selected
       return;
     }
-    onChange(newVals);
+
+    const updated = isSelected
+      ? selectedNetworks.filter((item) => item !== network)
+      : [...selectedNetworks, network];
+    const ordered = SOCIAL_NETWORK_OPTIONS.filter((item) =>
+      updated.includes(item),
+    );
+    onChange(ordered);
   };
 
   return (
     <div className="p-3">
-      <ToggleGroup
-        multiple
-        variant="outline"
-        value={value}
-        onValueChange={handleChange}
+      <div
+        role="group"
         aria-label="Réseau social"
+        className="inline-flex rounded-md border border-input p-1 gap-1"
       >
-        <ToggleGroupItem
-          value={SocialNetwork.YouTube}
+        <Button
+          type="button"
+          variant={
+            selectedNetworks.includes(SocialNetwork.YouTube)
+              ? "secondary"
+              : "ghost"
+          }
+          size="sm"
+          aria-pressed={selectedNetworks.includes(SocialNetwork.YouTube)}
           aria-label="Visualiser les résultats YouTube"
+          onClick={() => toggleNetwork(SocialNetwork.YouTube)}
         >
           YouTube
-        </ToggleGroupItem>
-        <ToggleGroupItem
-          value={SocialNetwork.Instagram}
+        </Button>
+        <Button
+          type="button"
+          variant={
+            selectedNetworks.includes(SocialNetwork.Instagram)
+              ? "secondary"
+              : "ghost"
+          }
+          size="sm"
+          aria-pressed={selectedNetworks.includes(SocialNetwork.Instagram)}
           aria-label="Visualiser les résultats Instagram"
+          onClick={() => toggleNetwork(SocialNetwork.Instagram)}
         >
           Instagram
-        </ToggleGroupItem>
-      </ToggleGroup>
+        </Button>
+      </div>
     </div>
   );
 }

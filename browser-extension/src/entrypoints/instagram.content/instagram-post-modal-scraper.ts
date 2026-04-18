@@ -7,6 +7,7 @@ import { INSTAGRAM_URL, instagramPageInfo } from "./instagramPageInfo";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { captureInstagramCommentScreenshots } from "./instagram-comment-screenshot-capture";
+import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 import {
   isLikelyInstagramAccountPath,
   looksLikeInstagramUiLabel,
@@ -33,8 +34,10 @@ const LOAD_MORE_CONTROLS_SELECTOR =
 const LOAD_MORE_COMMENTS_LABELS = [
   "voir plus de commentaires",
   "voir tous les commentaires",
+  "voir les commentaires",
   "afficher plus de commentaires",
   "afficher tous les commentaires",
+  "afficher les commentaires",
   "charger d'autres commentaires",
   "voir les commentaires masques",
   "voir le commentaire masque",
@@ -44,9 +47,11 @@ const LOAD_MORE_COMMENTS_LABELS = [
   "voir ce message",
   "show more comments",
   "show all comments",
+  "show comments",
   "load more comments",
   "view more comments",
   "view all comments",
+  "view comments",
   "view hidden comments",
   "see hidden comments",
   "show hidden comments",
@@ -62,6 +67,39 @@ const COMMENT_TEXT_SELECTORS = [
   ":scope div[dir='auto'] span",
   ":scope h1",
   ":scope span",
+];
+const NON_LOAD_MORE_CONTROL_TERMS = [
+  "comment options",
+  "options de commentaire",
+  "like",
+  "likes",
+  "j'aime",
+  "j’aime",
+  "share",
+  "partager",
+  "send",
+  "envoyer",
+];
+const RELATIVE_DATE_TEXT_REGEXES = [
+  /^\d+\s*(?:s|sec|min|h|j|d|w|wk|sem|mo|m|y|yr|ans?|years?)\.?$/i,
+  /^(?:il y a\s*)\d+\s*(?:secondes?|minutes?|heures?|jours?|semaines?|mois|ans?)$/i,
+  /^\d+\s*(?:seconds?|minutes?|hours?|days?|weeks?|months?|years?)\s+ago$/i,
+  /^(?:now|maintenant|just now)$/i,
+];
+const UNKNOWN_COMMENT_DATE_TEXT = "date inconnue";
+const COMMENT_TEXT_NOISE_TERMS = [
+  "like",
+  "likes",
+  "reply",
+  "replies",
+  "j'aime",
+  "j’aime",
+  "repondre",
+  "répondre",
+  "verified",
+  "modifie",
+  "modifié",
+  "edited",
 ];
 type InstagramPostElements = {
   channelHeader: HTMLElement;
@@ -95,7 +133,7 @@ export class InstagramPostModalScraper {
     }
 
     const scrapedAt = currentIsoDate();
-    const postElements = this.selectPostElements();
+    const postElements = this.selectPostElements(pageInfo.postId);
 
     this.debug("Scraping author...");
     const author = this.scrapPostAuthor(postElements.channelHeader);
@@ -114,6 +152,7 @@ export class InstagramPostModalScraper {
       await this.scrapPostComments(
         postElements.scrollableArea,
         progressManager.subTaskProgressManager({ from: 0, to: 70 }),
+        pageInfo.postId,
       );
 
     this.debug("Capturing comment screenshots...");
@@ -162,8 +201,8 @@ export class InstagramPostModalScraper {
     );
   }
 
-  private selectPostElements(): InstagramPostElements {
-    const modalRoot = this.selectModalRoot();
+  private selectPostElements(postId: string): InstagramPostElements {
+    const modalRoot = this.selectModalRoot(postId);
 
     return {
       channelHeader: modalRoot,
@@ -172,54 +211,148 @@ export class InstagramPostModalScraper {
     };
   }
 
-  private selectModalRoot(): HTMLElement {
-    const selectors = [
-      '[role="dialog"] article',
-      '[role="dialog"]',
+  private selectModalRoot(postId: string): HTMLElement {
+    const visibleDialogs = this.scrapingSupport
+      .selectAll(document, '[role="dialog"]', HTMLElement)
+      .filter((dialog) => this.isVisible(dialog));
+    if (visibleDialogs.length > 0) {
+      const dialogScopedCandidates: HTMLElement[] = [];
+      for (const dialog of visibleDialogs) {
+        dialogScopedCandidates.push(dialog);
+        for (const article of this.scrapingSupport.selectAll(
+          dialog,
+          "article",
+          HTMLElement,
+        )) {
+          dialogScopedCandidates.push(article);
+        }
+      }
+      const bestDialogCandidate = this.selectBestModalCandidate(
+        dialogScopedCandidates,
+        postId,
+      );
+      if (bestDialogCandidate) {
+        return bestDialogCandidate;
+      }
+    }
+
+    const fallbackCandidates: HTMLElement[] = this.scrapingSupport.selectAll(
+      document,
       "main article",
-    ];
-    const candidates: HTMLElement[] = [];
-    for (const selector of selectors) {
-      for (const candidate of this.scrapingSupport.selectAll(
-        document,
-        selector,
-        HTMLElement,
-      )) {
-        candidates.push(candidate);
-      }
-    }
-
-    let firstWithDateTime: HTMLElement | undefined;
-    for (const candidate of candidates) {
-      const hasAuthorLink = this.scrapingSupport.select(
-        candidate,
-        "a[href^='/']",
-        HTMLAnchorElement,
-      );
-      const hasDateTime = this.scrapingSupport.select(
-        candidate,
-        "time[datetime]",
-        HTMLElement,
-      );
-      if (hasAuthorLink && hasDateTime) {
-        return candidate;
-      }
-
-      if (!firstWithDateTime && hasDateTime) {
-        firstWithDateTime = candidate;
-      }
-    }
-
-    if (firstWithDateTime) {
-      return firstWithDateTime;
+      HTMLElement,
+    );
+    const bestFallbackCandidate = this.selectBestModalCandidate(
+      fallbackCandidates,
+      postId,
+    );
+    if (bestFallbackCandidate) {
+      return bestFallbackCandidate;
     }
     throw new Error("Failed to resolve selector: instagram modal root");
+  }
+
+  private selectBestModalCandidate(
+    candidates: HTMLElement[],
+    postId: string,
+  ): HTMLElement | undefined {
+    let bestCandidate: HTMLElement | undefined;
+    let bestCandidateScore = -1;
+    for (const candidate of candidates) {
+      const score = this.scoreModalRootCandidate(candidate, postId);
+      if (score > bestCandidateScore) {
+        bestCandidate = candidate;
+        bestCandidateScore = score;
+      }
+    }
+
+    if (!bestCandidate || bestCandidateScore <= 0) {
+      return undefined;
+    }
+    return bestCandidate;
+  }
+
+  private isVisible(element: HTMLElement): boolean {
+    const rect = element.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  private scoreModalRootCandidate(
+    candidate: HTMLElement,
+    postId: string,
+  ): number {
+    let score = 0;
+    if (candidate.closest("[role='dialog']")) {
+      score += 500;
+    }
+
+    const postLinkCount = this.scrapingSupport
+      .selectAll(candidate, "a[href]", HTMLAnchorElement)
+      .filter((link) =>
+        link.getAttribute("href")?.includes(`/${postId}`),
+      ).length;
+    score += Math.min(postLinkCount, 3) * 400;
+
+    const accountLinkCount = this.scrapingSupport
+      .selectAll(candidate, "a[href^='/']", HTMLAnchorElement)
+      .filter((link) => {
+        const href = link.getAttribute("href");
+        if (!href) {
+          return false;
+        }
+        return Boolean(this.extractInstagramAccountPathFromHref(href));
+      }).length;
+    score += Math.min(accountLinkCount, 8) * 30;
+
+    const listItemCount = this.scrapingSupport.selectAll(
+      candidate,
+      "li",
+      HTMLElement,
+    ).length;
+    score += Math.min(listItemCount, 12) * 20;
+
+    const timeCount = this.scrapingSupport.selectAll(
+      candidate,
+      "time[datetime], time",
+      HTMLElement,
+    ).length;
+    score += Math.min(timeCount, 8) * 15;
+
+    const postTextCount = this.scrapingSupport.selectAll(
+      candidate,
+      "h1, h2",
+      HTMLElement,
+    ).length;
+    score += Math.min(postTextCount, 4) * 10;
+
+    const commentKeywordMatches = this.countCommentKeywordMatches(candidate);
+    score += Math.min(commentKeywordMatches, 5) * 35;
+
+    return score;
+  }
+
+  private countCommentKeywordMatches(candidate: HTMLElement): number {
+    const controls = Array.from(
+      candidate.querySelectorAll(LOAD_MORE_CONTROLS_SELECTOR),
+    ).filter(
+      (element): element is HTMLElement => element instanceof HTMLElement,
+    );
+    let matches = 0;
+    for (const control of controls) {
+      const text = this.extractControlSearchText(control);
+      if (!text) {
+        continue;
+      }
+      if (this.isLoadMoreCommentsLabel(text)) {
+        matches += 1;
+      }
+    }
+    return matches;
   }
 
   private scrapPostAuthor(channelHeader: HTMLElement): Author {
     const links = this.scrapingSupport.selectAll(
       channelHeader,
-      "a[href^='/']",
+      "a[href]",
       HTMLAnchorElement,
     );
 
@@ -238,23 +371,48 @@ export class InstagramPostModalScraper {
       }
     }
 
-    if (!selectedLink || !selectedAccountPath) {
+    const channelName = normalizeInstagramText(selectedLink?.textContent);
+    if (!selectedLink || !selectedAccountPath || !channelName) {
+      const fallbackName = this.scrapPostAuthorNameFallback(channelHeader);
+      if (fallbackName) {
+        return {
+          name: fallbackName,
+          accountHref: document.URL,
+        };
+      }
       throw new Error("Missing channel href");
     }
 
-    const channelName =
-      normalizeInstagramText(selectedLink.textContent) ?? selectedAccountPath;
-    if (!channelName) {
+    const resolvedChannelName = channelName ?? selectedAccountPath;
+    if (!resolvedChannelName) {
       throw new Error("Missing channel name");
     }
 
     return {
-      name: channelName,
+      name: resolvedChannelName,
       accountHref: new URL(
         `/${selectedAccountPath}/`,
         INSTAGRAM_URL,
       ).toString(),
     };
+  }
+
+  private scrapPostAuthorNameFallback(
+    channelHeader: HTMLElement,
+  ): string | undefined {
+    const fallbackSelectors = ["header a[href]", "h1", "h2", "a[role='link']"];
+    for (const selector of fallbackSelectors) {
+      const element = this.scrapingSupport.select(
+        channelHeader,
+        selector,
+        HTMLElement,
+      );
+      const text = normalizeInstagramText(element?.textContent);
+      if (text) {
+        return text;
+      }
+    }
+    return undefined;
   }
 
   private extractInstagramAccountPathFromHref(
@@ -295,19 +453,25 @@ export class InstagramPostModalScraper {
       HTMLElement,
     );
     const date = timeElement?.getAttribute("datetime");
-    if (!date) {
-      throw new Error("Missing publication datetime in modal");
+    if (date) {
+      return {
+        type: "absolute",
+        date,
+      };
     }
 
     return {
-      type: "absolute",
-      date,
+      type: "unknown date",
+      dateText:
+        normalizeInstagramText(timeElement?.textContent) ??
+        UNKNOWN_COMMENT_DATE_TEXT,
     };
   }
 
   private async scrapPostComments(
     scrollableArea: HTMLElement,
     progressManager: ProgressManager,
+    postId: string,
   ): Promise<ScrapedComments> {
     const commentsContainer = this.selectCommentsContainer(scrollableArea);
     commentsContainer.scrollIntoView();
@@ -328,6 +492,62 @@ export class InstagramPostModalScraper {
         extraction = broaderExtraction;
       }
     }
+
+    if (this.countAllComments(extraction.comments) === 0) {
+      const listExtraction =
+        this.scrapCommentHierarchyFromListItems(commentsContainer);
+      if (
+        this.countAllComments(listExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = listExtraction;
+      }
+    }
+
+    if (this.countAllComments(extraction.comments) === 0) {
+      const broaderListExtraction =
+        this.scrapCommentHierarchyFromListItems(scrollableArea);
+      if (
+        this.countAllComments(broaderListExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = broaderListExtraction;
+      }
+    }
+
+    if (this.countAllComments(extraction.comments) === 0) {
+      const anchorExtraction =
+        this.scrapCommentHierarchyFromAuthorAnchors(commentsContainer);
+      if (
+        this.countAllComments(anchorExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = anchorExtraction;
+      }
+    }
+
+    if (this.countAllComments(extraction.comments) === 0) {
+      const broaderAnchorExtraction =
+        this.scrapCommentHierarchyFromAuthorAnchors(scrollableArea);
+      if (
+        this.countAllComments(broaderAnchorExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = broaderAnchorExtraction;
+      }
+    }
+
+    if (this.countAllComments(extraction.comments) <= 1) {
+      const permalinkExtraction =
+        this.scrapCommentHierarchyFromPermalinkAnchors(document.body, postId);
+      if (
+        this.countAllComments(permalinkExtraction.comments) >
+        this.countAllComments(extraction.comments)
+      ) {
+        extraction = permalinkExtraction;
+      }
+    }
+
     progressManager.setProgress(100);
 
     return extraction;
@@ -365,7 +585,7 @@ export class InstagramPostModalScraper {
   private scoreCommentsContainer(element: HTMLElement): number {
     const markerCount = this.scrapingSupport.selectAll(
       element,
-      "time[datetime]",
+      "time[datetime], time",
       HTMLElement,
     ).length;
     const listItemCount = this.scrapingSupport.selectAll(
@@ -409,7 +629,7 @@ export class InstagramPostModalScraper {
       const hasSpinner = Boolean(this.selectSpinner(commentsContainer));
       const markerCount = this.scrapingSupport.selectAll(
         scrollableArea,
-        "time[datetime]",
+        "time[datetime], time",
         HTMLElement,
       ).length;
 
@@ -485,7 +705,15 @@ export class InstagramPostModalScraper {
       return element;
     }
 
-    return undefined;
+    let current: Element | null = element;
+    for (let depth = 0; depth < 5 && current; depth += 1) {
+      if (current instanceof HTMLElement) {
+        return current;
+      }
+      current = current.parentElement;
+    }
+
+    return element.parentElement ?? undefined;
   }
 
   private extractControlSearchText(element: Element): string | undefined {
@@ -530,7 +758,26 @@ export class InstagramPostModalScraper {
   }
 
   private isLoadMoreCommentsLabel(text: string): boolean {
-    return LOAD_MORE_COMMENTS_LABELS.some((label) => text.includes(label));
+    if (NON_LOAD_MORE_CONTROL_TERMS.some((term) => text.includes(term))) {
+      return false;
+    }
+
+    const normalizedWithoutCounts = text
+      .replace(/\d+[.,]?\d*\s*[km]?/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (
+      LOAD_MORE_COMMENTS_LABELS.some((label) =>
+        normalizedWithoutCounts.includes(label),
+      )
+    ) {
+      return true;
+    }
+
+    return /(?:\bvoir\b|\bafficher\b|\bshow\b|\bview\b|\bload\b).*\bcomment(?:aire|aires|s)?\b/i.test(
+      normalizedWithoutCounts,
+    );
   }
 
   private clickLoadMoreCommentsControls(containers: HTMLElement[]): boolean {
@@ -644,7 +891,7 @@ export class InstagramPostModalScraper {
     const seenSignatures = new Set<string>();
     const times = this.scrapingSupport.selectAll(
       root,
-      "time[datetime]",
+      "time[datetime], time",
       HTMLElement,
     );
 
@@ -721,6 +968,386 @@ export class InstagramPostModalScraper {
     };
   }
 
+  private scrapCommentHierarchyFromListItems(
+    root: HTMLElement,
+  ): ScrapedComments {
+    const records: Array<{
+      node: HTMLElement;
+      parentNode?: HTMLElement;
+      comment: CommentSnapshot;
+      screenshotElement: HTMLElement;
+    }> = [];
+    const seenNodes = new Set<HTMLElement>();
+    const seenSignatures = new Set<string>();
+    const listItems = this.scrapingSupport.selectAll(root, "li", HTMLElement);
+
+    for (const listItem of listItems) {
+      const commentNode = listItem;
+      if (seenNodes.has(commentNode)) {
+        continue;
+      }
+
+      const scrapedComment = this.scrapLooseCommentFromElement(listItem);
+      if (!scrapedComment) {
+        continue;
+      }
+
+      const signature = [
+        scrapedComment.comment.author.accountHref,
+        scrapedComment.comment.publishedAt.type,
+        scrapedComment.comment.publishedAt.type === "absolute"
+          ? scrapedComment.comment.publishedAt.date
+          : scrapedComment.comment.publishedAt.type === "unknown date"
+            ? scrapedComment.comment.publishedAt.dateText
+            : "",
+        scrapedComment.comment.textContent,
+      ].join("|");
+      if (seenSignatures.has(signature)) {
+        continue;
+      }
+      seenNodes.add(commentNode);
+      seenSignatures.add(signature);
+      records.push({
+        node: commentNode,
+        parentNode: commentNode.parentElement?.closest("li") ?? undefined,
+        comment: scrapedComment.comment,
+        screenshotElement: scrapedComment.screenshotElement,
+      });
+    }
+
+    records.sort((a, b) => {
+      if (a.node === b.node) {
+        return 0;
+      }
+      const relation = a.node.compareDocumentPosition(b.node);
+      if (relation & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+      return -1;
+    });
+
+    const topLevelComments: CommentSnapshot[] = [];
+    const commentsByNode = new Map<HTMLElement, CommentSnapshot>();
+    const commentElementsById = new Map<string, HTMLElement>();
+
+    for (const record of records) {
+      commentsByNode.set(record.node, record.comment);
+      commentElementsById.set(record.comment.id, record.screenshotElement);
+      if (record.parentNode) {
+        const parentComment = commentsByNode.get(record.parentNode);
+        if (parentComment) {
+          parentComment.replies.push(record.comment);
+          continue;
+        }
+      }
+      topLevelComments.push(record.comment);
+    }
+
+    return {
+      comments: topLevelComments,
+      commentElementsById,
+    };
+  }
+
+  private scrapCommentHierarchyFromAuthorAnchors(
+    root: HTMLElement,
+  ): ScrapedComments {
+    const records: Array<{
+      node: HTMLElement;
+      parentNode?: HTMLElement;
+      comment: CommentSnapshot;
+      screenshotElement: HTMLElement;
+    }> = [];
+    const seenNodes = new Set<HTMLElement>();
+    const seenSignatures = new Set<string>();
+    const accountAnchors = this.scrapingSupport
+      .selectAll(root, "a[href^='/']", HTMLAnchorElement)
+      .filter((anchor) => {
+        const href = anchor.getAttribute("href");
+        return Boolean(href && this.extractInstagramAccountPathFromHref(href));
+      });
+
+    for (const anchor of accountAnchors) {
+      const candidateContainers = this.collectAnchorContainers(anchor);
+      let selected: ScrapedLooseComment | undefined;
+      let selectedNode: HTMLElement | undefined;
+      for (const container of candidateContainers) {
+        const scraped = this.scrapLooseCommentFromElement(container);
+        if (!scraped) {
+          continue;
+        }
+        selected = scraped;
+        selectedNode = container.closest("li") ?? container;
+        break;
+      }
+
+      if (!selected || !selectedNode || seenNodes.has(selectedNode)) {
+        continue;
+      }
+
+      const signature = [
+        selected.comment.author.accountHref,
+        selected.comment.publishedAt.type,
+        selected.comment.publishedAt.type === "absolute"
+          ? selected.comment.publishedAt.date
+          : selected.comment.publishedAt.type === "unknown date"
+            ? selected.comment.publishedAt.dateText
+            : "",
+        selected.comment.textContent,
+      ].join("|");
+      if (seenSignatures.has(signature)) {
+        continue;
+      }
+
+      seenNodes.add(selectedNode);
+      seenSignatures.add(signature);
+      records.push({
+        node: selectedNode,
+        parentNode: selectedNode.parentElement?.closest("li") ?? undefined,
+        comment: selected.comment,
+        screenshotElement: selected.screenshotElement,
+      });
+    }
+
+    records.sort((a, b) => {
+      if (a.node === b.node) {
+        return 0;
+      }
+      const relation = a.node.compareDocumentPosition(b.node);
+      if (relation & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+      return -1;
+    });
+
+    const topLevelComments: CommentSnapshot[] = [];
+    const commentsByNode = new Map<HTMLElement, CommentSnapshot>();
+    const commentElementsById = new Map<string, HTMLElement>();
+
+    for (const record of records) {
+      commentsByNode.set(record.node, record.comment);
+      commentElementsById.set(record.comment.id, record.screenshotElement);
+      if (record.parentNode) {
+        const parentComment = commentsByNode.get(record.parentNode);
+        if (parentComment) {
+          parentComment.replies.push(record.comment);
+          continue;
+        }
+      }
+      topLevelComments.push(record.comment);
+    }
+
+    return {
+      comments: topLevelComments,
+      commentElementsById,
+    };
+  }
+
+  private scrapCommentHierarchyFromPermalinkAnchors(
+    root: HTMLElement,
+    postId: string,
+  ): ScrapedComments {
+    const records: Array<{
+      node: HTMLElement;
+      parentNode?: HTMLElement;
+      comment: CommentSnapshot;
+      screenshotElement: HTMLElement;
+    }> = [];
+    const seenNodes = new Set<HTMLElement>();
+    const seenSignatures = new Set<string>();
+    const permalinkAnchors = this.scrapingSupport
+      .selectAll(root, "a[href*='/p/'][href*='/c/']", HTMLAnchorElement)
+      .filter((anchor) =>
+        Boolean(
+          this.extractCommentIdFromPermalink(
+            anchor.getAttribute("href"),
+            postId,
+          ),
+        ),
+      );
+
+    for (const permalinkAnchor of permalinkAnchors) {
+      const commentId = this.extractCommentIdFromPermalink(
+        permalinkAnchor.getAttribute("href"),
+        postId,
+      );
+      if (!commentId) {
+        continue;
+      }
+
+      const commentContainer =
+        this.findCommentContainerFromPermalinkAnchor(permalinkAnchor);
+      const commentNode = commentContainer.closest("li") ?? commentContainer;
+      if (seenNodes.has(commentNode)) {
+        continue;
+      }
+
+      const scraped = this.scrapLooseCommentFromElement(commentContainer);
+      const comment = scraped?.comment;
+      const screenshotElement = scraped?.screenshotElement ?? commentContainer;
+      if (!comment) {
+        continue;
+      }
+
+      comment.commentId ??= commentId;
+
+      const signature = [
+        comment.commentId ?? "",
+        comment.author.accountHref,
+        comment.publishedAt.type,
+        comment.publishedAt.type === "absolute"
+          ? comment.publishedAt.date
+          : comment.publishedAt.type === "unknown date"
+            ? comment.publishedAt.dateText
+            : "",
+        comment.textContent,
+      ].join("|");
+      if (seenSignatures.has(signature)) {
+        continue;
+      }
+
+      seenNodes.add(commentNode);
+      seenSignatures.add(signature);
+      records.push({
+        node: commentNode,
+        parentNode: commentNode.parentElement?.closest("li") ?? undefined,
+        comment,
+        screenshotElement,
+      });
+    }
+
+    records.sort((a, b) => {
+      if (a.node === b.node) {
+        return 0;
+      }
+      const relation = a.node.compareDocumentPosition(b.node);
+      if (relation & Node.DOCUMENT_POSITION_PRECEDING) {
+        return 1;
+      }
+      return -1;
+    });
+
+    const topLevelComments: CommentSnapshot[] = [];
+    const commentsByNode = new Map<HTMLElement, CommentSnapshot>();
+    const commentElementsById = new Map<string, HTMLElement>();
+
+    for (const record of records) {
+      commentsByNode.set(record.node, record.comment);
+      commentElementsById.set(record.comment.id, record.screenshotElement);
+      if (record.parentNode) {
+        const parentComment = commentsByNode.get(record.parentNode);
+        if (parentComment) {
+          parentComment.replies.push(record.comment);
+          continue;
+        }
+      }
+      topLevelComments.push(record.comment);
+    }
+
+    return {
+      comments: topLevelComments,
+      commentElementsById,
+    };
+  }
+
+  private extractCommentIdFromPermalink(
+    href: string | null,
+    postId: string,
+  ): string | undefined {
+    if (!href) {
+      return undefined;
+    }
+
+    const parsedUrl = new URL(href, INSTAGRAM_URL);
+    const match = parsedUrl.pathname.match(/^\/p\/([^/]+)\/c\/([^/]+)\/?$/);
+    if (!match) {
+      return undefined;
+    }
+
+    const [, shortcode, commentId] = match;
+    if (shortcode !== postId || !commentId) {
+      return undefined;
+    }
+    return commentId;
+  }
+
+  private findCommentContainerFromPermalinkAnchor(
+    permalinkAnchor: HTMLAnchorElement,
+  ): HTMLElement {
+    let current: HTMLElement | null = permalinkAnchor;
+    let bestCandidate: HTMLElement = permalinkAnchor;
+    let bestScore = Number.NEGATIVE_INFINITY;
+
+    for (let depth = 0; depth < 10 && current; depth += 1) {
+      const score = this.scorePermalinkCommentContainerCandidate(current);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = current;
+      }
+      current = current.parentElement;
+    }
+
+    return bestCandidate;
+  }
+
+  private scorePermalinkCommentContainerCandidate(
+    candidate: HTMLElement,
+  ): number {
+    const normalizedText = normalizeInstagramText(candidate.textContent) ?? "";
+    const author = this.scrapAuthorFromContainer(candidate);
+    const extractedText = this.extractCommentText(candidate, author?.name).text;
+    const fallbackText = author
+      ? this.extractFallbackCommentText(candidate, author.name)
+      : undefined;
+    const timeCount = this.scrapingSupport.selectAll(
+      candidate,
+      "time[datetime], time",
+      HTMLElement,
+    ).length;
+
+    let score = 0;
+    if (author) {
+      score += 80;
+    }
+    if (extractedText) {
+      score += 160;
+    }
+    if (fallbackText) {
+      score += 70;
+    }
+    if (timeCount > 0) {
+      score += 40;
+    }
+    if (
+      /\b(?:like|likes|reply|replies|j['’]aime|repondre|répondre)\b/i.test(
+        normalizedText,
+      )
+    ) {
+      score += 30;
+    }
+    if (normalizedText.length > 900) {
+      score -= 80;
+    }
+    if (this.scrapingSupport.select(candidate, "header, nav", HTMLElement)) {
+      score -= 80;
+    }
+    return score;
+  }
+
+  private collectAnchorContainers(anchor: HTMLElement): HTMLElement[] {
+    const containers: HTMLElement[] = [];
+    let current: HTMLElement | null = anchor;
+
+    for (let depth = 0; depth < 9 && current; depth += 1) {
+      if (!containers.includes(current)) {
+        containers.push(current);
+      }
+      current = current.parentElement;
+    }
+
+    return containers;
+  }
+
   private findCommentElementFromTime(
     timeElement: HTMLElement,
   ): HTMLElement | undefined {
@@ -745,7 +1372,7 @@ export class InstagramPostModalScraper {
 
     const timeCount = this.scrapingSupport.selectAll(
       element,
-      "time[datetime]",
+      "time[datetime], time",
       HTMLElement,
     ).length;
     if (timeCount > 3) {
@@ -759,9 +1386,16 @@ export class InstagramPostModalScraper {
     commentElement: HTMLElement,
   ): ScrapedLooseComment | undefined {
     const author = this.scrapAuthorFromContainer(commentElement);
-    const publishedAt = this.scrapPublishedAtFromContainer(commentElement);
+    const publishedAt = this.scrapPublishedAtFromContainer(commentElement) ?? {
+      type: "unknown date",
+      dateText: UNKNOWN_COMMENT_DATE_TEXT,
+    };
     const extractedText = this.extractCommentText(commentElement, author?.name);
-    const text = extractedText.text;
+    const text =
+      extractedText.text ??
+      (author
+        ? this.extractFallbackCommentText(commentElement, author.name)
+        : undefined);
 
     if (!author || !publishedAt || !text) {
       return undefined;
@@ -789,6 +1423,45 @@ export class InstagramPostModalScraper {
         extractedText.sourceElement,
       ),
     };
+  }
+
+  private extractFallbackCommentText(
+    commentElement: HTMLElement,
+    authorName: string,
+  ): string | undefined {
+    const normalizedText = normalizeInstagramText(commentElement.textContent);
+    if (!normalizedText) {
+      return undefined;
+    }
+
+    let candidate = normalizedText;
+    const escapedAuthorName = this.escapeRegex(authorName);
+    candidate = candidate.replace(
+      new RegExp(`^${escapedAuthorName}\\b\\s*`, "i"),
+      "",
+    );
+
+    for (const noiseTerm of COMMENT_TEXT_NOISE_TERMS) {
+      candidate = candidate.replace(
+        new RegExp(`\\b${this.escapeRegex(noiseTerm)}\\b`, "gi"),
+        " ",
+      );
+    }
+    candidate = candidate.replace(/\b\d+\s*(?:likes?|j['’]aime)\b/gi, " ");
+    candidate = candidate.replace(/\s+/g, " ").trim();
+
+    const sanitized = sanitizeInstagramCommentText(candidate);
+    if (!sanitized || looksLikeInstagramUiLabel(sanitized)) {
+      return undefined;
+    }
+    if (sanitized.length <= 1) {
+      return undefined;
+    }
+    return sanitized;
+  }
+
+  private escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   }
 
   private extractCommentText(
@@ -916,14 +1589,46 @@ export class InstagramPostModalScraper {
       HTMLElement,
     );
     const date = timeElement?.getAttribute("datetime");
-    if (!date) {
+    if (date) {
+      return {
+        type: "absolute",
+        date,
+      };
+    }
+
+    const dateText =
+      this.findDateLikeText(element) ??
+      normalizeInstagramText(timeElement?.textContent);
+    if (!dateText) {
       return undefined;
     }
 
-    return {
-      type: "absolute",
-      date,
-    };
+    return new PublicationDateTextParsing(dateText, new Date()).parse();
+  }
+
+  private findDateLikeText(element: HTMLElement): string | undefined {
+    const candidates = this.scrapingSupport.selectAll(
+      element,
+      "time, a, span",
+      HTMLElement,
+    );
+
+    for (const candidate of candidates) {
+      const text = normalizeInstagramText(candidate.textContent);
+      if (!text) {
+        continue;
+      }
+
+      const normalized = text.toLowerCase().replace(/\s+/g, " ").trim();
+      if (
+        RELATIVE_DATE_TEXT_REGEXES.some((regex) => regex.test(normalized)) &&
+        !looksLikeInstagramUiLabel(normalized)
+      ) {
+        return text;
+      }
+    }
+
+    return undefined;
   }
 
   private countAllComments(comments: CommentSnapshot[]): number {

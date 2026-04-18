@@ -9,6 +9,7 @@ import { UpdatePostWithClassificationResultMessage } from "../../background/clas
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
+import { getPublicationTypeLabel } from "@/shared/utils/post-util";
 
 function PostSnapshotDetailPage() {
   const params = useParams();
@@ -61,6 +62,8 @@ function PostSnapshotDetailPage() {
             >
               {post.author.name}
             </a>
+            {" · "}
+            {getPublicationTypeLabel(post.url, post.socialNetwork)}
           </h1>
           <div className="text-left">
             <Button
@@ -85,6 +88,15 @@ function PostSnapshotDetailPage() {
               Publiée le: <DisplayPublicationDate date={post.publishedAt} />
               <div>
                 Capturée le: {new Date(post.scrapedAt).toLocaleDateString()}
+              </div>
+              <div>
+                Type: {getPublicationTypeLabel(post.url, post.socialNetwork)}
+              </div>
+              <div className="break-all">
+                URL:{" "}
+                <a href={post.url} target="_blank" rel="noopener noreferrer">
+                  {post.url}
+                </a>
               </div>
             </div>
             <div className="italic">
