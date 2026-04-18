@@ -39,7 +39,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_BASE_MODEL = "camembert-base"  # Best choice for French text
+DEFAULT_BASE_MODEL = "camembert-base"  
 MAX_LENGTH = 256
 BATCH_SIZE = 16
 NUM_EPOCHS = 10
@@ -101,7 +101,7 @@ def compute_metrics(eval_pred):
         "f1_weighted": f1_score(labels, preds, average="weighted", zero_division=0),
         "precision_micro": precision_score(labels, preds, average="micro", zero_division=0),
         "recall_micro": recall_score(labels, preds, average="micro", zero_division=0),
-        "subset_accuracy": accuracy_score(labels, preds),  # exact match
+        "subset_accuracy": accuracy_score(labels, preds),  
     }
 
 
@@ -121,7 +121,6 @@ def fetch_annotated_data() -> list[Annotation]:
     )
 
     data = service.fetch_records_paginated()
-    # Keep only records which are annotated (same filter as original)
     data = [annotation for annotation in data if annotation.annotated_category]
     logger.info(f"Fetched {len(data)} annotated records from NocoDB")
     return data
@@ -155,7 +154,6 @@ def finetune(
 
     num_labels = len(mlb.classes_)
 
-    # --- Split: train / eval / test ---
     texts_train, texts_temp, labels_train, labels_temp = train_test_split(
         texts, labels, test_size=EVAL_SPLIT + TEST_SPLIT, random_state=SEED, shuffle=True
     )
@@ -167,7 +165,6 @@ def finetune(
         f"Split: {len(texts_train)} train / {len(texts_eval)} eval / {len(texts_test)} test"
     )
 
-    # --- Tokenizer & Model ---
     tokenizer = AutoTokenizer.from_pretrained(base_model)
     model = AutoModelForSequenceClassification.from_pretrained(
         base_model,
@@ -175,12 +172,10 @@ def finetune(
         problem_type="multi_label_classification",
     )
 
-    # --- Datasets ---
     train_ds = CyberHarassmentDataset(texts_train, labels_train, tokenizer)
     eval_ds = CyberHarassmentDataset(texts_eval, labels_eval, tokenizer)
     test_ds = CyberHarassmentDataset(texts_test, labels_test, tokenizer)
 
-    # --- Training arguments ---
     training_args = TrainingArguments(
         output_dir=str(output_dir / "checkpoints"),
         eval_strategy="epoch",
@@ -212,12 +207,10 @@ def finetune(
     logger.info(f"Starting fine-tuning with base model: {base_model}")
     trainer.train()
 
-    # --- Save best model ---
     save_dir = output_dir / "best_model"
     trainer.save_model(str(save_dir))
     tokenizer.save_pretrained(str(save_dir))
 
-    # Save label mapping
     label_mapping = {"classes": list(mlb.classes_)}
     with open(save_dir / "label_mapping.json", "w", encoding="utf-8") as f:
         json.dump(label_mapping, f, ensure_ascii=False, indent=2)
@@ -237,19 +230,16 @@ def evaluate(trainer, test_ds, labels_test, mlb, output_dir: Path):
     probs = torch.sigmoid(torch.tensor(logits)).numpy()
     preds = (probs >= 0.5).astype(int)
 
-    # Per-class report
     report = classification_report(
         labels_test, preds, target_names=list(mlb.classes_), zero_division=0
     )
-    logger.info(f"\n=== Classification Report (Test Set) ===\n{report}")
+    logger.info(f"\n Classification Report")
 
-    # Save report
     report_path = output_dir / "classification_report.txt"
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report)
     logger.info(f"Classification report saved to {report_path}")
 
-    # Global metrics
     metrics = {
         "f1_micro": f1_score(labels_test, preds, average="micro", zero_division=0),
         "f1_macro": f1_score(labels_test, preds, average="macro", zero_division=0),
@@ -279,7 +269,6 @@ def predict_all(
     load_dotenv()
     nocodb_annotation_table_id: str = os.environ["NOCODB_ANNOTATION_TABLE_ID"]
 
-    # Load model + tokenizer + label mapping
     tokenizer = AutoTokenizer.from_pretrained(str(model_dir))
     model = AutoModelForSequenceClassification.from_pretrained(str(model_dir))
     model.eval()
@@ -291,7 +280,6 @@ def predict_all(
         label_mapping = json.load(f)
     classes = label_mapping["classes"]
 
-    # Output CSV (same structure as original script)
     model_name_for_file = re.sub(r"[^A-Za-z0-9._-]+", "_", str(model_dir.name))
     output_file_path = (
         output_dir / f"predictions_{nocodb_annotation_table_id}_{model_name_for_file}.csv"
@@ -322,7 +310,6 @@ def predict_all(
             probs = torch.sigmoid(logits).cpu().numpy()[0]
             predicted_labels = [classes[i] for i, p in enumerate(probs) if p >= 0.5]
 
-            # Write row (same format as original)
             row = record.model_dump(mode="json")
             row["annotated_category"] = (
                 ",".join(row["annotated_category"]) if row["annotated_category"] else None
@@ -363,7 +350,6 @@ def main():
     )
     args = parser.parse_args()
 
-    # Directories (same data dir convention as original script)
     data_dir = Path(__file__).resolve().parent.parent / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
 
@@ -374,7 +360,7 @@ def main():
         output_dir = data_dir / f"bert_{model_slug}"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Fetch data from NocoDB (reused from original)
+    # Fetch data from NocoDB
     data = fetch_annotated_data()
 
     if args.predict_only:
@@ -386,7 +372,7 @@ def main():
             )
         predict_all(data, model_dir, data_dir)
     else:
-        # Full pipeline: fine-tune + evaluate + predict
+        # fine-tune + evaluate + predict
         texts, labels, mlb = prepare_labels(data)
 
         trainer, tokenizer, test_ds, texts_test, labels_test = finetune(
@@ -398,7 +384,7 @@ def main():
         model_dir = output_dir / "best_model"
         predict_all(data, model_dir, data_dir)
 
-    logger.info("Done!")
+    logger.info("Done")
 
 
 if __name__ == "__main__":
