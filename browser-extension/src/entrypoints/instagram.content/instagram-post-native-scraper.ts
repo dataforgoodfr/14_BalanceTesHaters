@@ -19,6 +19,23 @@ import {
 } from "./instagram-comment-text-utils";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
+const LOAD_HIDDEN_COMMENTS_CONTROLS_SELECTOR =
+  "button, a, div[role='button'], [aria-label], [title], span, svg, title";
+const LOAD_HIDDEN_COMMENTS_LABELS = [
+  "voir les commentaires masques",
+  "voir le commentaire masque",
+  "afficher les commentaires masques",
+  "afficher le commentaire masque",
+  "voir ce commentaire",
+  "voir ce message",
+  "see hidden comments",
+  "view hidden comments",
+  "show hidden comments",
+  "show hidden comment",
+  "see this comment",
+  "show this comment",
+];
+
 const REEL_COMMENT_CONTROL_SELECTOR =
   "button, a, div[role='button'], [aria-label], [title], span, svg, title";
 const REEL_COMMENT_CONTROL_LABELS = [
@@ -602,6 +619,46 @@ export class InstagramPostNativeScraper {
       await new Promise((resolve) => setTimeout(resolve, 500));
       spinner = this.selectSpinner(commentsContainer);
     }
+
+    // In some Instagram layouts, additional hidden comments are behind an
+    // explicit "see hidden comments" button and no spinner is shown.
+    for (let i = 0; i < 40; i += 1) {
+      await this.scrapingSupport.resumeHostPage();
+      const clicked = this.clickLoadHiddenCommentsControls(commentsContainer);
+      if (!clicked) {
+        return;
+      }
+      commentsContainer.scrollIntoView({ block: "end" });
+      await this.scrapingSupport.sleep(250);
+    }
+  }
+
+  private clickLoadHiddenCommentsControls(container: HTMLElement): boolean {
+    const controls = Array.from(
+      container.querySelectorAll(LOAD_HIDDEN_COMMENTS_CONTROLS_SELECTOR),
+    );
+    const seen = new Set<HTMLElement>();
+    let clicked = false;
+
+    for (const element of controls) {
+      const text = this.extractControlSearchText(element);
+      if (!text || !this.isLoadHiddenCommentsLabel(text)) {
+        continue;
+      }
+      const target = this.resolveClickableControl(element);
+      if (!target || seen.has(target)) {
+        continue;
+      }
+      seen.add(target);
+      this.activateControl(target);
+      clicked = true;
+    }
+
+    return clicked;
+  }
+
+  private isLoadHiddenCommentsLabel(text: string): boolean {
+    return LOAD_HIDDEN_COMMENTS_LABELS.some((label) => text.includes(label));
   }
 
   private async loadAllReplies(commentsContainer: HTMLElement) {
@@ -611,18 +668,23 @@ export class InstagramPostNativeScraper {
       HTMLElement,
     );
 
+    const expandableReplyThreads: HTMLElement[] = [];
     for (const replyThreadElement of repliesThreadElements) {
-      const expandRepliesElement = this.scrapingSupport.selectOrThrow(
+      const expandRepliesElement = this.scrapingSupport.select(
         replyThreadElement,
         ":scope>div>div>span",
         HTMLElement,
       );
+      if (!expandRepliesElement) {
+        continue;
+      }
       expandRepliesElement.scrollIntoView();
       expandRepliesElement.click();
+      expandableReplyThreads.push(replyThreadElement);
     }
 
     await Promise.all(
-      repliesThreadElements.map((replyThreadElement) =>
+      expandableReplyThreads.map((replyThreadElement) =>
         this.loadMoreReplies(replyThreadElement),
       ),
     );
