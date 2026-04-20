@@ -7,9 +7,9 @@ import {
   TrafficCone,
 } from "lucide-react";
 import { Link, NavLink } from "react-router";
-import { Logo } from "../popup/Logo";
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/shared/Logo";
 
 function SidePanelMenu() {
   return (
