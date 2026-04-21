@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
-import { MoveLeft } from "lucide-react";
+import { MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import KpiCard from "../Shared/KpiCards/KpiCard";
@@ -19,6 +19,7 @@ import CommentsTable, { PostCommentWithId } from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
+import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
 
 function PostDetailPage() {
   const params = useParams();
@@ -60,6 +61,14 @@ function PostDetailPage() {
               }
             />
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  void openPostAndStartScraping(post.url);
+                }}
+              >
+                <RotateCwIcon /> Relancer l&apos;analyse
+              </Button>
               <Button variant="outline" disabled>
                 Exporter en CSV
               </Button>

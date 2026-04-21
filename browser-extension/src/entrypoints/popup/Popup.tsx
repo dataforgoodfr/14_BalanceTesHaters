@@ -7,7 +7,7 @@ import {
 } from "../scraping-sidepanel/useScrapingAndClassificationTabInfo";
 import { startScraping } from "../scraping-sidepanel/startScraping";
 import { ViewPreviousAnalysesButton } from "../scraping-sidepanel/ViewPreviousAnalysesButton";
-import { openSidePanel } from "./openSidePanel";
+import { openSidePanel } from "../actions/openSidePanel";
 import { Logo } from "../../components/shared/Logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
