@@ -64,6 +64,23 @@ export const ScrapingNotStarted: Story = {
   },
 };
 
+export const ScrapingNotStartedWithExistingSnapshot: Story = {
+  args: {
+    tabInfo: {
+      type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT,
+      tabId: 42,
+      pageInfo: {
+        isScrapablePost: true,
+        socialNetwork: SocialNetwork.YouTube,
+        postId: "xxx",
+      },
+      scrapingStatus: {
+        type: "not-started",
+      },
+    },
+  },
+};
+
 export const ScrapingInProgress: Story = {
   args: {
     tabInfo: {
