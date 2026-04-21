@@ -69,9 +69,27 @@ def classify_ollama(model_id, prompt_instructions, comment):
     )
     return response['message']['content']
 
+def get_mlx_model(model_id):
+    from mlx_lm import load
+    model, tokenizer = load(model_id)
+    return model, tokenizer
+
+def classify_mlx(model, tokenizer, prompt_instructions, comment):
+    from mlx_lm import generate
+    messages = [{'role': 'user', 'content': f"{prompt_instructions} Prompt à classifier : {comment}"}]
+    if hasattr(tokenizer, "apply_chat_template"):
+        prompt = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+    else:
+        prompt = f"{prompt_instructions} Prompt à classifier : {comment}"
+    return generate(model, tokenizer, prompt=prompt, max_tokens=512, verbose=False)
+
 def extract_binary_output(raw_output):
-    # Remove think tags if any (qwen sometimes uses them)
+    # Remove complete <think>...</think> blocks
     output = re.sub(r"<think>.*?</think>", "", raw_output, flags=re.DOTALL).strip()
+    # Remove unclosed <think> blocks (model truncated mid-thought)
+    output = re.sub(r"<think>.*", "", output, flags=re.DOTALL).strip()
     # Extract first digit found if model is talkative
     digits = [ch for ch in output if ch in ("0", "1")]
     return digits[0] if digits else "0"
@@ -93,9 +111,15 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--backend",
-        choices=["transformers", "ollama"],
+        choices=["transformers", "ollama", "mlx"],
         default="transformers",
         help="Backend to use for inference",
+    )
+    parser.add_argument(
+        "--truncate",
+        type=int,
+        default=None,
+        help="Truncate comments to this many characters before inference",
     )
     parser.add_argument(
         "--prompt-file",
@@ -146,6 +170,8 @@ if __name__ == "__main__":
     model = None
     if args.backend == "transformers":
         tokenizer, model = get_transformers_model(args.model)
+    elif args.backend == "mlx":
+        model, tokenizer = get_mlx_model(args.model)
 
     with output_file_path.open("w", newline="", encoding="utf-8") as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -153,10 +179,13 @@ if __name__ == "__main__":
         iterator = enumerate(tqdm(data, desc=f"Classifying ({args.backend})", unit="rec", total=total))
         for idx, record in iterator:
             try:
+                comment = record.comment[:args.truncate] if args.truncate else record.comment
                 if args.backend == "transformers":
-                    raw_output = classify_transformers(tokenizer, model, prompt_instructions, record.comment)
+                    raw_output = classify_transformers(tokenizer, model, prompt_instructions, comment)
+                elif args.backend == "mlx":
+                    raw_output = classify_mlx(model, tokenizer, prompt_instructions, comment)
                 else:
-                    raw_output = classify_ollama(args.model, prompt_instructions, record.comment)
+                    raw_output = classify_ollama(args.model, prompt_instructions, comment)
                 
                 final_output = extract_binary_output(raw_output)
             except Exception as e:

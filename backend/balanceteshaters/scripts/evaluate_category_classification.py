@@ -101,13 +101,14 @@ def get_predictions(filepath: Path):
     true_values = df["annotated_category"].map(annotation_to_int).tolist()
     predicted_values = df["predicted_category"].astype(int).tolist()
 
-    # Drop rows where true label is None (unmappable)
-    pairs = [(t, p) for t, p in zip(true_values, predicted_values) if t is not None]
+    # Drop rows where true label is None/NaN (unmappable, e.g. "Suspect")
+    # pandas converts None returns from .map() to float NaN, so use pd.notna()
+    pairs = [(t, p) for t, p in zip(true_values, predicted_values) if pd.notna(t)]
     if not pairs:
         return [], []
 
     true_values, predicted_values = zip(*pairs)
-    return list(true_values), list(predicted_values)
+    return [int(t) for t in true_values], [int(p) for p in predicted_values]
 
 
 if __name__ == "__main__":
