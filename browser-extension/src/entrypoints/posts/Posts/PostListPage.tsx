@@ -11,6 +11,8 @@ import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
+import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
+import { RotateCwIcon } from "lucide-react";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -79,10 +81,11 @@ function PostListPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled
-                        className="text-muted-foreground opacity-60 cursor-not-allowed"
+                        onClick={() => {
+                          void openPostAndStartScraping(post.url);
+                        }}
                       >
-                        Relancer l&apos;analyse
+                        <RotateCwIcon /> Relancer l&apos;analyse
                       </Button>
                       <Button
                         variant="ghost"
