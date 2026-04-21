@@ -65,42 +65,53 @@ function PopupContent() {
   }
 
   if (
-    tabInfo.type === ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED
+    tabInfo.type ===
+      ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED ||
+    tabInfo.type ===
+      ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT
   ) {
     return (
       <div className="flex flex-col gap-2 px-2">
-        <StartScrapingButton tabId={tabInfo.tabId} />
+        <Button
+          size="lg"
+          data-testid="start-scraping-button"
+          className="w-full"
+          onClick={() => {
+            if (
+              tabInfo.type !==
+              ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT
+            ) {
+              // We don't start scraping if  previously scrapped to show the "Analyse existante" alert
+              startScraping(tabInfo.tabId);
+            }
+            void openSidePanel(tabInfo.tabId).then(() => {
+              window.close();
+            });
+          }}
+        >
+          Analyser cette publication
+        </Button>
         <ViewPreviousAnalysesButton />
       </div>
     );
   }
+
   // Scraping has already been started, completed... use SidePanel to display it
   return (
-    <Button
-      size="lg"
-      data-testid="start-scraping-button"
-      className="w-full"
-      onClick={() => {
-        void openSidePanel(tabInfo.tabId).then(() => {
-          window.close();
-        });
-      }}
-    >
-      Ouvrir le side panel
-    </Button>
-  );
-}
-
-function StartScrapingButton({ tabId }: { tabId: number }) {
-  return (
-    <Button
-      size="lg"
-      data-testid="start-scraping-button"
-      className="w-full"
-      onClick={() => void handleStartScrapingClick(tabId)}
-    >
-      Analyser cette publication
-    </Button>
+    <div className="flex flex-col gap-2 px-2">
+      <Button
+        size="lg"
+        className="w-full"
+        onClick={() => {
+          void openSidePanel(tabInfo.tabId).then(() => {
+            window.close();
+          });
+        }}
+      >
+        Ouvrir le side panel
+      </Button>
+      <ViewPreviousAnalysesButton />
+    </div>
   );
 }
 
@@ -118,10 +129,4 @@ async function queryActiveTab(): Promise<Browser.tabs.Tab | undefined> {
   const queryOptions = { active: true, lastFocusedWindow: true };
   const [tab] = await browser.tabs.query(queryOptions);
   return tab;
-}
-
-async function handleStartScrapingClick(tabId: number) {
-  startScraping(tabId);
-  await openSidePanel(tabId);
-  window.close();
 }

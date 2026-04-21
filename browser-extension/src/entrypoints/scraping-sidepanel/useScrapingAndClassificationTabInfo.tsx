@@ -10,7 +10,10 @@ import {
   ScrapingSucceeded,
 } from "@/shared/scraping-content-script/ScrapingStatus";
 import { ScrapableSocialNetworkPage as ScrapableSocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
-import { getPostSnapshotById } from "@/shared/storage/post-snapshot-storage";
+import {
+  getPostSnapshotById,
+  getPostSnapshotsForPostId,
+} from "@/shared/storage/post-snapshot-storage";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useEffect } from "react";
 import {
@@ -26,6 +29,7 @@ export enum ScrapingAndClassificationTabInfoType {
   NO_TAB = "no-tab",
   NOT_SCRAPABLE = "not-scrapable",
   SCRAPING_NOT_STARTED = "scraping-not-started",
+  SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT = "scraping-not-started-with-existing-snapshot",
   SCRAPING_IN_PROGRESS = "scraping-in-progress",
   SCRAPING_CANCELED = "scraping-canceled",
   SCRAPING_FAILED = "scraping-failed",
@@ -79,6 +83,7 @@ export type ScrapingAndClassificationTabInfo =
   | NoTabInfo
   | TabInfoNotScrapableTab
   | TabInfoScrapingNotStarted
+  | TabInfoScrapingNotStartedWithExistingSnapshot
   | TabInfoScrapingInProgress
   | TabInfoScrapingFailed
   | TabInfoScrapingCanceled
@@ -97,6 +102,13 @@ export type TabInfoNotScrapableTab = {
 
 export type TabInfoScrapingNotStarted = {
   type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED;
+  tabId: number;
+  pageInfo: ScrapableSocialNetworkPageInfo;
+  scrapingStatus: ScrapingNotStarted;
+};
+
+export type TabInfoScrapingNotStartedWithExistingSnapshot = {
+  type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT;
   tabId: number;
   pageInfo: ScrapableSocialNetworkPageInfo;
   scrapingStatus: ScrapingNotStarted;
@@ -163,12 +175,7 @@ export async function queryScrapingAndClassificationTabInfo(
   const scrapingStatus = await client.getScrapingStatus();
   switch (scrapingStatus.type) {
     case "not-started":
-      return {
-        type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED,
-        tabId,
-        pageInfo,
-        scrapingStatus,
-      };
+      return await buildScrapingNotStartedInfo(tabId, pageInfo, scrapingStatus);
     case "running":
     case "canceling":
       return {
@@ -236,4 +243,33 @@ export async function buildClassificationStatus(
         snapshot,
       };
   }
+}
+
+export async function buildScrapingNotStartedInfo(
+  tabId: number,
+  pageInfo: ScrapableSocialNetworkPageInfo,
+  scrapingStatus: ScrapingNotStarted,
+): Promise<
+  TabInfoScrapingNotStarted | TabInfoScrapingNotStartedWithExistingSnapshot
+> {
+  const existingSnapshots = await getPostSnapshotsForPostId(
+    pageInfo.socialNetwork,
+    pageInfo.postId,
+  );
+
+  if (existingSnapshots.length > 0) {
+    return {
+      type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT,
+      tabId,
+      pageInfo,
+      scrapingStatus,
+    };
+  }
+
+  return {
+    type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED,
+    tabId,
+    pageInfo,
+    scrapingStatus,
+  };
 }

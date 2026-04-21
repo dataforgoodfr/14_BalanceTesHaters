@@ -1,6 +1,7 @@
 import { Spinner } from "@/components/ui/spinner";
 import { DisplayTabNotScrapable } from "./DisplayTabNotScrapable";
 import { DisplayScrapingNotStarted } from "./scraping/DisplayScrapingNotStarted";
+import { DisplayScrapingNotStartedWithExistingSnapshot } from "./scraping/DisplayScrapingNotStartedWithExistingSnapshot";
 import { DisplayScrapingInProgress } from "./scraping/DisplayScrapingInProgress";
 import { DisplayScrapingFailed } from "./scraping/DisplayScrapingFailed";
 import { DisplayScrapingCanceled } from "./scraping/DisplayScrapingCanceled";
@@ -17,6 +18,7 @@ import {
   TabInfoScrapingFailed,
   TabInfoScrapingInProgress,
   TabInfoScrapingNotStarted,
+  TabInfoScrapingNotStartedWithExistingSnapshot,
   useScrapingAndClassificationTabInfo,
 } from "./useScrapingAndClassificationTabInfo";
 import { getTabIdFromSidePanelUrl } from "./side-panel-url";
@@ -69,6 +71,7 @@ export function SidePanelContent({
 }: {
   tabInfo:
     | TabInfoScrapingNotStarted
+    | TabInfoScrapingNotStartedWithExistingSnapshot
     | TabInfoNotScrapableTab
     | TabInfoScrapingInProgress
     | TabInfoScrapingFailed
@@ -82,6 +85,10 @@ export function SidePanelContent({
       return <DisplayTabNotScrapable />;
     case ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED:
       return <DisplayScrapingNotStarted tabInfo={tabInfo} />;
+    case ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT:
+      return (
+        <DisplayScrapingNotStartedWithExistingSnapshot tabInfo={tabInfo} />
+      );
     case ScrapingAndClassificationTabInfoType.SCRAPING_IN_PROGRESS:
       return <DisplayScrapingInProgress tabInfo={tabInfo} />;
     case ScrapingAndClassificationTabInfoType.SCRAPING_FAILED:
