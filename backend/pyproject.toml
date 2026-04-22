@@ -33,3 +33,10 @@ dependencies = [
     "datasets>=3.0.0",
     "python-dotenv>=1.0.0",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+# E402: scripts that patch sys.path before project imports (standalone runner pattern)
+per-file-ignores = { "balanceteshaters/scripts/**/*.py" = ["E402"] }
