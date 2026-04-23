@@ -9,14 +9,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList, {
-  DateFilterOptions,
   emptyFilters,
-  PostFilters,
 } from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
 import { RotateCwIcon } from "lucide-react";
-import { filterPosts, formatAnalysisDate } from "@/shared/utils/post-util";
+import {
+  DateFilterOptions,
+  filterPosts,
+  formatAnalysisDate,
+  PostFilters,
+} from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 
@@ -77,7 +80,7 @@ function PostListPage() {
   }, [data, searchTerm, postFilters]);
 
   return (
-    <main className="p-4 flex flex-col gap-6 w-5/6 items-start">
+    <main className="p-4 flex flex-col gap-6  items-start">
       <PageHeader title="Publications analysées" />
       <SocialNetworkSelector
         value={socialNetworkFilter}

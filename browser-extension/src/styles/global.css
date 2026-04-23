@@ -39,7 +39,7 @@ blockquote {
 }
 
 main {
-  @apply bg-background m-3 rounded-md overflow-hidden;
+  @apply bg-background m-3 rounded-md overflow-hidden w-11/12;
 }
 
 /* Shadcn theme*/

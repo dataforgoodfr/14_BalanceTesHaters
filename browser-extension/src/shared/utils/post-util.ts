@@ -1,10 +1,28 @@
-import {
-  NbHatefulCommentsOptions,
-  PostFilters,
-} from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
+
+export enum NbHatefulCommentsOptions {
+  ZERO_TEN = "0_10",
+  TEN_FIFTY = "10_50",
+  FIFTY_PLUS = "50+",
+}
+
+export enum DateFilterOptions {
+  SEVEN_DAYS = "7days",
+  THIRTY_DAYS = "30days",
+  TWELVE_MONTHS = "12months",
+}
+
+export type PostFilters = {
+  date: string[];
+  score: string[];
+  alert: string[];
+  nbHatefulComments: string[];
+  status: string[];
+  containsCategory: string[];
+  containsAuthor: string[];
+};
 
 export function isCommentHateful(comment: PostComment): boolean {
   return comment.classification?.[0] === "Cyberharcèlement (autre)";

@@ -133,7 +133,6 @@ function HarassmentTrendChart({
   const hatefulCommentList = commentList.filter((comment) =>
     isCommentHateful(comment),
   );
-  console.log("Hateful comment list for chart:", hatefulCommentList);
 
   const commentByDateAggregation: { date: Date; nombre: number }[] =
     getAllDates(dateRange, hatefulCommentList).map((date) => ({

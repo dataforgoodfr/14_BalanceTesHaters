@@ -12,30 +12,34 @@ import HelpPage from "./Help/HelpPage";
 export default function App() {
   return (
     <HashRouter>
-      <div className="flex flex-1  bg-gray-100 dark:bg-gray-800 h-screen">
-        <SidePanelMenu />
-        <Routes>
-          <Route index path="/" element={<HomePage />} />
-          <Route index path="/posts" element={<PostListPage />} />
-          <Route
-            index
-            path="/posts/:socialNetworkName/:postId"
-            element={<PostDetailPage />}
-          />
-          <Route index path="/help" element={<HelpPage />} />
+      <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
+        <div className="w-1/5 overflow-y-auto">
+          <SidePanelMenu />
+        </div>
+        <div className="flex-1 w-fit overflow-y-auto ">
+          <Routes>
+            <Route index path="/" element={<HomePage />} />
+            <Route index path="/posts" element={<PostListPage />} />
+            <Route
+              index
+              path="/posts/:socialNetworkName/:postId"
+              element={<PostDetailPage />}
+            />
+            <Route index path="/help" element={<HelpPage />} />
 
-          <Route path="/debug" element={<DebugPage />} />
-          <Route
-            index
-            path="/post-snapshots"
-            element={<PostSnapshotListPage />}
-          />
-          <Route
-            path="/post-snapshots/:snapshotId"
-            element={<PostSnapshotDetailPage />}
-          />
-          <Route path="/build-report" element={<BuildReport />} />
-        </Routes>
+            <Route path="/debug" element={<DebugPage />} />
+            <Route
+              index
+              path="/post-snapshots"
+              element={<PostSnapshotListPage />}
+            />
+            <Route
+              path="/post-snapshots/:snapshotId"
+              element={<PostSnapshotDetailPage />}
+            />
+            <Route path="/build-report" element={<BuildReport />} />
+          </Routes>
+        </div>
       </div>
     </HashRouter>
   );

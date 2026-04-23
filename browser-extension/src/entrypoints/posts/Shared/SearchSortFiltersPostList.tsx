@@ -12,6 +12,11 @@ import {
   HatefulCategory,
   HatefulCategoryLabels,
 } from "@/shared/model/HatefulCategory";
+import {
+  DateFilterOptions,
+  NbHatefulCommentsOptions,
+  PostFilters,
+} from "@/shared/utils/post-util";
 
 type FilterCategory =
   | "date"
@@ -21,28 +26,6 @@ type FilterCategory =
   | "status"
   | "containsCategory"
   | "containsAuthor";
-
-export type PostFilters = {
-  date: string[];
-  score: string[];
-  alert: string[];
-  nbHatefulComments: string[];
-  status: string[];
-  containsCategory: string[];
-  containsAuthor: string[];
-};
-
-export enum DateFilterOptions {
-  SEVEN_DAYS = "7days",
-  THIRTY_DAYS = "30days",
-  TWELVE_MONTHS = "12months",
-}
-
-export enum NbHatefulCommentsOptions {
-  ZERO_TEN = "0_10",
-  TEN_FIFTY = "10_50",
-  FIFTY_PLUS = "50+",
-}
 
 const filterOptions = {
   date: [
@@ -141,6 +124,14 @@ function SearchSortFiltersPostList({
     });
   };
 
+  const handleOpenChange = (open: React.SetStateAction<boolean>) => {
+    setFiltersOpen(open);
+    // Lorsque la modale se ferme, les filtres sont réinitialisés à la valeur des filtres appliqués
+    if (!open) {
+      setSelectedFilters(postFilters);
+    }
+  };
+
   const nbSelectedFilters = Object.values(postFilters).reduce(
     (acc, filters) => acc + filters.length,
     0,
@@ -155,7 +146,7 @@ function SearchSortFiltersPostList({
         onChange={(event) => setSearchTerm(event.target.value)}
       />
 
-      <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+      <Popover open={filtersOpen} onOpenChange={handleOpenChange}>
         <PopoverTrigger>
           <Button variant="outline" onClick={() => setFiltersOpen(true)}>
             <Funnel /> Filtrer{" "}
