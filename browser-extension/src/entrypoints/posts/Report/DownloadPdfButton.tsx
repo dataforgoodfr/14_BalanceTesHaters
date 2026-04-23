@@ -6,6 +6,7 @@ import { PdfReport } from "./PdfReport";
 import { Post } from "@/shared/model/post/Post";
 import { REPORT_PDF_FILE_NAME } from "@/shared/utils/report-data";
 import { ReportQueryData } from "./BuildReport";
+import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
 
 interface DownloadPdfButtonProps {
   reportQueryData: ReportQueryData;
@@ -29,7 +30,7 @@ export const DownloadPdfButton = ({
   if (instance.loading || !instance.url || instance.error) {
     return (
       <Button disabled>
-        {instance.loading ? "Génération..." : "Télécharger le PDF"}
+        {instance.loading ? "Génération..." : DOWNLOAD_PDF_LABEL}
       </Button>
     );
   }
@@ -43,7 +44,7 @@ export const DownloadPdfButton = ({
           target="_blank"
           rel="noreferrer"
         >
-          Télécharger le PDF
+          {DOWNLOAD_PDF_LABEL}
         </a>
       }
     />

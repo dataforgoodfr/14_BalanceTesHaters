@@ -23,6 +23,7 @@ import { useReportPosts } from "@/shared/utils/report-data";
 import { DownloadPdfButton } from "./DownloadPdfButton";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
+import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
 
 const Report = ({
   reportQueryData,
@@ -40,7 +41,6 @@ const Report = ({
 
   const queryKey = useMemo(
     () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [reportQueryData?.socialNetworkList?.join(",")],
   );
 
@@ -116,7 +116,7 @@ const Report = ({
             />
           ) : (
             <Button variant="outline" disabled>
-              Télécharger le PDF
+              {DOWNLOAD_PDF_LABEL}
             </Button>
           )}
           <Button
@@ -132,8 +132,8 @@ const Report = ({
         <TriangleAlert className="me-2" />
         <span>
           Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez
-          à télécharger le rapport en PDF ou en DOCX, ou exporter les données
-          du rapport en CSV.
+          à télécharger le rapport en PDF ou en DOCX, ou exporter les données du
+          rapport en CSV.
         </span>
       </div>
       <div className="flex flex-col items-end">

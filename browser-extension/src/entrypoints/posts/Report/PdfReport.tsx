@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   colCommentAuthor: { width: "22%" },
   colCommentScreenshot: { width: "58%" },
   colCommentDate: { width: "20%" },
-  screenshotImage: { maxWidth: "100%", maxHeight: pxToPt(140) },
+  screenshotImage: { maxWidth: "100%" },
   naText: { color: "#9ca3af" },
   pagination: { fontSize: pxToPt(10), color: GRAY_500 },
   categoryDescription: { fontSize: pxToPt(10), lineHeight: 1.4 },
