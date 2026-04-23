@@ -1,11 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { getEarliestPostDate, filterPosts } from "../post-util";
+import { getEarliestPostDate, filterPosts, PostFilters, NbHatefulCommentsOptions } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Post, PostComment } from "@/shared/model/post/Post";
 import {
-  PostFilters,
-  NbHatefulCommentsOptions,
   emptyFilters,
 } from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 
