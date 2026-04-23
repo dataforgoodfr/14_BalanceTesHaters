@@ -13,7 +13,7 @@ import { Logo } from "@/components/shared/Logo";
 
 function SidePanelMenu() {
   return (
-    <div className="flex flex-col p-3">
+    <div className="flex flex-col p-3 ">
       <Logo className="mx-auto mt-4 mb-8" />
       <Button className="text-xs mb-6">
         <Plus />
@@ -40,7 +40,7 @@ function SidePanelMenu() {
       <SidePanelMenuItem
         label="Signaler un problème technique"
         to="/contact-support"
-        className="my-auto"
+        className="mt-8"
         icon={<TrafficCone />}
       />
     </div>
