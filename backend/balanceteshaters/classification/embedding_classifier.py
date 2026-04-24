@@ -13,35 +13,43 @@ logger = logging.getLogger(__name__)
 _N_CTX = 32768
 
 
+ClassificationResult = tuple[list[str], float]
+
+
 class EmbeddingClassifier:
     n_ctx = _N_CTX
 
-    def __init__(self, repo_id: str):
-        logger.info("Loading embedding classifier from HuggingFace repo %s", repo_id)
+    def __init__(self, repo_id: str, threshold: float = 0.5):
+        logger.info(
+            "Loading embedding classifier from HuggingFace repo %s (threshold=%.2f)",
+            repo_id, threshold,
+        )
         clf_path = hf_hub_download(repo_id=repo_id, filename="harassment_arctic_mlp.joblib")
         self.clf = joblib.load(clf_path)
         self.encoder = SentenceTransformer("Snowflake/snowflake-arctic-embed-l-v2.0")
+        self.threshold = threshold
         logger.info("Embedding classifier loaded")
 
     def count_tokens(self, text: str) -> int:
-        # Rough approximation (1 token ≈ 4 chars); only used for BatchClassifier budget.
         return max(1, len(text) // 4)
 
     def truncate(self, text: str, max_tokens: int) -> str:
-        # SentenceTransformer handles hard truncation internally; this is a safety net.
         return text[: max_tokens * 4]
 
-    def classify(self, text: str) -> list[str]:
+    def classify(self, text: str) -> ClassificationResult:
         return self.classify_batch([text])[0]
 
-    def classify_batch(self, texts: list[str]) -> list[list[str]]:
+    def classify_batch(self, texts: list[str]) -> list[ClassificationResult]:
         if not texts:
             return []
         embeddings = self.encoder.encode(texts, convert_to_numpy=True, show_progress_bar=False)
-        predictions = self.clf.predict(embeddings)
+        probas = self.clf.predict_proba(embeddings)[:, 1]
         return [
-            [BinaryLabel.CYBERHARCELEMENT_DEFINITION_GENERALE.value]
-            if pred == 1
-            else [BinaryLabel.ABSENCE_DE_CYBERHARCELEMENT.value]
-            for pred in predictions
+            (
+                [BinaryLabel.CYBERHARCELEMENT_DEFINITION_GENERALE.value]
+                if score >= self.threshold
+                else [BinaryLabel.ABSENCE_DE_CYBERHARCELEMENT.value],
+                float(score),
+            )
+            for score in probas
         ]

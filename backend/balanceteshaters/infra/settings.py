@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     public_api_token: str
 
     embedding_hf_repo_id: str = "gregco/balance-tes-haters-classifier"
+    embedding_threshold: float = 0.3
     embedding_max_batch_size: int = 64
     embedding_batch_timeout_s: float = 0.05
 
