@@ -49,6 +49,16 @@ class NocoDBService:
         response.raise_for_status()
         return response.json()
 
+    def delete_records(self, table_id: str, record_ids: list[int]) -> None:
+        """Delete records by ID list (batched to avoid URL length limits)."""
+        url = f"{self.nocodb_url}/api/v3/data/{self.base_id}/{table_id}/records"
+        headers = {"accept": "application/json", "xc-token": self.token, "Content-Type": "application/json"}
+        batch_size = 10
+        for i in range(0, len(record_ids), batch_size):
+            batch = record_ids[i:i + batch_size]
+            response = requests.delete(url, headers=headers, json=[{"id": rid} for rid in batch])
+            response.raise_for_status()
+
     def count_records(self, table_id: str, where_str: str | None = None) -> int:
         """Count the number of records in a NocoDB table."""
         url = f"{self.nocodb_url}/api/v3/data/{self.base_id}/{table_id}/count"
