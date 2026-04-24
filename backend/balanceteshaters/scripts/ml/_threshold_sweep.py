@@ -1,38 +1,50 @@
 # ruff: noqa: E402
+"""
+Sweep decision thresholds for the Arctic + classical pipeline.
+Logs any run that beats the default t=0.50 threshold to NocoDB.
+"""
 import os
 import subprocess
 import sys
 import tempfile
 os.environ['PYTORCH_MPS_HIGH_WATERMARK_RATIO'] = '0.0'
+
 import numpy as np
 import pandas as pd
 import sklearn.metrics
 from dotenv import load_dotenv
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
+SCRIPTS_DIR = Path(__file__).resolve().parent.parent.parent.parent
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
 load_dotenv()
 
 from balanceteshaters.services.nocodb import NocoDBService
-from balanceteshaters.scripts.ml.config import ANNOTATION_TABLE_ID, EVAL_TABLE_ID, CHECKPOINTS_DIR, DATA_DIR
+from balanceteshaters.scripts.ml.config import (
+    ANNOTATION_TABLE_ID, ARCTIC_EMBED_MODEL_ID, CHECKPOINTS_DIR, DATA_DIR, EVAL_TABLE_ID, model_slug,
+)
 
+_HELPER = Path(__file__).parent / '_eval_subprocess.py'
 tmp = Path(tempfile.mkdtemp())
 emb_path = str(tmp / 'X_arctic.npy')
-helper = str(Path(__file__).parent / '_eval_subprocess.py')
-MODEL_ID = 'Snowflake/snowflake-arctic-embed-l-v2.0'
+
+# Best F1 from the frozen-embedding classical runs (from 04_compare_evaluate.py)
+BASELINE_F1 = 0.741
+
+THRESHOLDS = [0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20]
 
 print('Embedding test set...')
-r = subprocess.run([sys.executable, helper, 'embed', MODEL_ID, emb_path], capture_output=True, text=True)
+r = subprocess.run(
+    [sys.executable, str(_HELPER), 'embed', ARCTIC_EMBED_MODEL_ID, emb_path],
+    capture_output=True, text=True,
+)
 if r.returncode != 0:
     print(r.stderr[-500:])
     sys.exit(1)
 
 X_test = np.load(emb_path)
-test_df = pd.read_parquet(DATA_DIR / 'test.parquet')
-y_true = test_df['label'].values
-
-THRESHOLDS = [0.50, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20]
-BEST_SO_FAR = 0.741
+y_true = pd.read_parquet(DATA_DIR / 'test.parquet')['label'].values
 
 nocodb = NocoDBService(os.environ['NOCODB_BASE_URL'], os.environ['NOCODB_TOKEN'], os.environ['NOCODB_BASE_ID'])
 
@@ -54,7 +66,7 @@ def best_threshold(proba):
     return best_t, best_m
 
 
-def log(run_name, dataset, t, m):
+def log_result(run_name, dataset, t, m):
     nocodb.create_record(EVAL_TABLE_ID, {
         'model_name': f'{run_name}+threshold={t}',
         'table_id': ANNOTATION_TABLE_ID,
@@ -69,41 +81,46 @@ def log(run_name, dataset, t, m):
     })
 
 
+def print_row(run, t, m):
+    flag = '  *** BEATS BASELINE' if m['f1'] > BASELINE_F1 else ''
+    print(f'  {run:<58} {t:>6.2f} {m["f1"]:>7.4f} {m["precision"]:>7.4f} {m["recall"]:>7.4f} {m["accuracy"]:>7.4f}{flag}')
+
+
 print(f'\n{"Run":<60} {"BestT":>6} {"F1":>7} {"P":>7} {"R":>7} {"Acc":>7}')
 print('-' * 100)
 
+slug = model_slug(ARCTIC_EMBED_MODEL_ID)
+
 for clf_name in ['logreg', 'lightgbm', 'mlp']:
-    ckpt = CHECKPOINTS_DIR / f'snowflake-arctic-embed-l-v2.0+{clf_name}+real.joblib'
+    ckpt = CHECKPOINTS_DIR / f'{slug}+{clf_name}+real.joblib'
     if not ckpt.exists():
         continue
     proba_path = str(tmp / f'proba_{clf_name}.npy')
     r = subprocess.run(
-        [sys.executable, helper, 'predict_proba_classical', emb_path, str(ckpt), proba_path],
+        [sys.executable, str(_HELPER), 'predict_proba_classical', emb_path, str(ckpt), proba_path],
         capture_output=True, text=True,
     )
     if r.returncode != 0:
         print(f'  [error] {clf_name}: {r.stderr[-200:]}')
         continue
-    proba = np.load(proba_path)
-    t, m = best_threshold(proba)
-    run = f'snowflake-arctic-embed-l-v2.0+{clf_name}+real'
-    flag = '  *** BEATS BEST' if m['f1'] > BEST_SO_FAR else ''
-    print(f'  {run:<58} {t:>6.2f} {m["f1"]:>7.4f} {m["precision"]:>7.4f} {m["recall"]:>7.4f} {m["accuracy"]:>7.4f}{flag}')
+    run = f'{slug}+{clf_name}+real'
+    t, m = best_threshold(np.load(proba_path))
+    print_row(run, t, m)
     if t != 0.50:
-        log(run, 'real', t, m)
+        log_result(run, 'real', t, m)
 
-# fine-tuned head_only real
-ft_dir = str(CHECKPOINTS_DIR / 'snowflake-arctic-embed-l-v2.0-finetuned-head_only-real')
+ft_dir = str(CHECKPOINTS_DIR / f'{slug}-finetuned-head_only-real')
 proba_path = str(tmp / 'proba_ft_real.npy')
-r = subprocess.run([sys.executable, helper, 'predict_proba', MODEL_ID, ft_dir, proba_path], capture_output=True, text=True)
+r = subprocess.run(
+    [sys.executable, str(_HELPER), 'predict_proba', ARCTIC_EMBED_MODEL_ID, ft_dir, proba_path],
+    capture_output=True, text=True,
+)
 if r.returncode == 0:
-    proba = np.load(proba_path)
-    t, m = best_threshold(proba)
-    run = 'snowflake-arctic-embed-l-v2.0-finetuned-head_only-real'
-    flag = '  *** BEATS BEST' if m['f1'] > BEST_SO_FAR else ''
-    print(f'  {run:<58} {t:>6.2f} {m["f1"]:>7.4f} {m["precision"]:>7.4f} {m["recall"]:>7.4f} {m["accuracy"]:>7.4f}{flag}')
+    run = f'{slug}-finetuned-head_only-real'
+    t, m = best_threshold(np.load(proba_path))
+    print_row(run, t, m)
     if t != 0.50:
-        log(run, 'real', t, m)
+        log_result(run, 'real', t, m)
 else:
     print(f'  [error] finetuned: {r.stderr[-300:]}')
 

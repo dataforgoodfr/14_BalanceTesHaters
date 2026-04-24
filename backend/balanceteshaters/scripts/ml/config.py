@@ -3,7 +3,7 @@ import torch
 
 JINA_MODEL_ID = "jinaai/jina-embeddings-v5-text-nano"    # 239M, EuroBERT, CPU-only (MPS segfault)
 JINA_SMALL_MODEL_ID = "jinaai/jina-embeddings-v5-text-small"  # 677M, Qwen3-based, MPS-safe
-# Decoder-only, 270M, 640-dim, 94-language, no trust_remote_code needed
+# Encoder-only, 270M, 640-dim, 94-language, no trust_remote_code needed
 BIDIR_MODEL_ID = "microsoft/harrier-oss-v1-270m"
 # Encoder-only, 568M, 1024-dim, bge-m3-retromae base, MRL, no trust_remote_code
 ARCTIC_EMBED_MODEL_ID = "Snowflake/snowflake-arctic-embed-l-v2.0"

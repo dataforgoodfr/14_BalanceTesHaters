@@ -3,8 +3,8 @@
 Fine-tune embedding models for binary harassment classification.
 
 Usage:
-  python 03_finetune_embedding.py --model bidir --strategy full --dataset real
-  python 03_finetune_embedding.py --model jina  --strategy head_only --dataset augmented
+  python 03_finetune_embedding.py --model bidir  --strategy full      --dataset real
+  python 03_finetune_embedding.py --model arctic --strategy head_only --dataset augmented_v2
 """
 import os
 os.environ.setdefault("PYTORCH_MPS_HIGH_WATERMARK_RATIO", "0.0")
