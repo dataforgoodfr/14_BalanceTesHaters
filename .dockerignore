@@ -1,0 +1,9 @@
+backend/.venv
+backend/balanceteshaters/data
+backend/balanceteshaters/scripts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.ruff_cache
+browser-extension/node_modules

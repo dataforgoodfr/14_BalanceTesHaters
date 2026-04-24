@@ -1,7 +1,9 @@
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
-from balanceteshaters.classification.slm_classifier import SLMClassifier
+if TYPE_CHECKING:
+    from balanceteshaters.classification.embedding_classifier import EmbeddingClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -9,13 +11,13 @@ logger = logging.getLogger(__name__)
 class BatchClassifier:
     """Queues classification requests and processes them in configurable batches.
 
-    Collects concurrent requests and processes them in true batches using the 
+    Collects concurrent requests and processes them in true batches using the
     model's ability to classify multiple texts in one prompt.
     """
 
     def __init__(
         self,
-        classifier: SLMClassifier,
+        classifier: "EmbeddingClassifier",
         max_batch_size: int = 16,
         batch_timeout_s: float = 0.5,
     ):
