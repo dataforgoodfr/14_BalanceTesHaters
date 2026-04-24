@@ -26,6 +26,7 @@ class Container(containers.DeclarativeContainer):
     classifier = providers.ThreadSafeSingleton(
         EmbeddingClassifier,
         repo_id=settings().embedding_hf_repo_id,
+        threshold=settings().embedding_threshold,
     )
 
     batch_classifier = providers.ThreadSafeSingleton(

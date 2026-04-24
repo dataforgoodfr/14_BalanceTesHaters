@@ -43,16 +43,15 @@ class ClassificationTask:
         async def _classify_single(comment: dict):
             comment_id = comment["id"]
             text = comment.get("text_content", "")
-            
-            # This call now happens concurrently for all comments in the list
-            categories = await self.classifier.classify(text)
-            
-            # Recurse for replies concurrently as well
+
+            categories, score = await self.classifier.classify(text)
+
             replies_results = await self.classify_comments(comment.get("replies", []))
-            
+
             result = {
                 comment_id: {
                     "classification": categories,
+                    "score": round(score, 4),
                     "classified_at": datetime.datetime.now(datetime.timezone.utc)
                     .isoformat()
                     .replace("+00:00", "Z"),
