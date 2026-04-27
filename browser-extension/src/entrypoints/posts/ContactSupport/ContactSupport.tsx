@@ -1,12 +1,11 @@
-import { TrafficConeIcon } from "lucide-react";
-import PageHeader from "../Shared/PageHeader";
-
 import { Alert } from "@/components/ui/alert";
+import PageHeader from "../Shared/PageHeader";
+import { TrafficConeIcon } from "lucide-react";
 
-function HelpPage() {
+function ContactSupport() {
   return (
     <main className="p-4 flex flex-col gap-6  items-start">
-      <PageHeader title="Aide et ressources" />
+      <PageHeader title="Signaler un problème" />
       <Alert variant="destructive">
         <TrafficConeIcon /> En cours de développement
       </Alert>
@@ -14,4 +13,4 @@ function HelpPage() {
   );
 }
 
-export default HelpPage;
+export default ContactSupport;

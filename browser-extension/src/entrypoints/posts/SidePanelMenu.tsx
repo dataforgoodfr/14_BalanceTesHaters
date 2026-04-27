@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
+  AlertTriangleIcon,
   ChartColumn,
+  CylinderIcon,
   File,
   MessageCircleQuestionMark,
   Plus,
-  TrafficCone,
 } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import React from "react";
@@ -13,7 +14,7 @@ import { Logo } from "@/components/shared/Logo";
 
 function SidePanelMenu() {
   return (
-    <div className="flex flex-col p-3 ">
+    <div className="flex flex-col p-3 h-full">
       <Logo className="mx-auto mt-4 mb-8" />
       <Button className="text-xs mb-6">
         <Plus />
@@ -35,14 +36,20 @@ function SidePanelMenu() {
           to="/help"
           icon={<MessageCircleQuestionMark />}
         />
-        <SidePanelMenuItem label="[Dev] Données brutes" to="/post-snapshots" />
       </div>
-      <SidePanelMenuItem
-        label="Signaler un problème technique"
-        to="/contact-support"
-        className="mt-8"
-        icon={<TrafficCone />}
-      />
+      <div className="grow " />
+      <div className="flex flex-col gap-1 ">
+        <SidePanelMenuItem
+          label="Signaler un problème technique"
+          to="/contact-support"
+          icon={<AlertTriangleIcon />}
+        />
+        <SidePanelMenuItem
+          label="Données brutes"
+          to="/post-snapshots"
+          icon={<CylinderIcon />}
+        />
+      </div>
     </div>
   );
 }
