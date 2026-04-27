@@ -105,13 +105,7 @@ function SearchSortFiltersPostList({
 
   const toggleFilter = (value: string) => {
     setSelectedFilters((prev) => {
-      const current = prev[selectedCategory];
-      return {
-        ...prev,
-        [selectedCategory]: current.includes(value)
-          ? current.filter((v) => v !== value)
-          : [...current, value],
-      };
+      return togglePostFiltersValue(prev, selectedCategory, value);
     });
   };
 
@@ -123,10 +117,9 @@ function SearchSortFiltersPostList({
     }
   };
 
-  const nbSelectedFilters = Object.values(postFilters).reduce(
-    (acc, filters) => acc + filters.length,
-    0,
-  );
+  const nbSelectedFilters = Object.values(postFilters).filter((categoryValue) =>
+    isCategoryFiltered(categoryValue),
+  ).length;
 
   return (
     <div className="flex gap-3 w-full">
@@ -173,9 +166,11 @@ function SearchSortFiltersPostList({
               <div className="min-w-64 p-2">
                 <div className="flex flex-col gap-1 ">
                   {filterOptions[selectedCategory].map((option) => {
-                    const isSelected = selectedFilters[
-                      selectedCategory
-                    ].includes(option.value);
+                    const isSelected = isSelectedOption(
+                      selectedFilters,
+                      selectedCategory,
+                      option.value,
+                    );
                     return (
                       <Button
                         variant="ghost"
@@ -228,3 +223,56 @@ function SearchSortFiltersPostList({
 }
 
 export default SearchSortFiltersPostList;
+
+function isSelectedOption(
+  selectedFilters: PostFilters,
+  selectedCategory: keyof PostFilters,
+  optionValue: string,
+) {
+  if (Array.isArray(selectedFilters[selectedCategory])) {
+    return (selectedFilters[selectedCategory] as string[]).includes(
+      optionValue,
+    );
+  } else {
+    return (selectedFilters[selectedCategory] as string) === optionValue;
+  }
+}
+
+function togglePostFiltersValue(
+  previousFilters: PostFilters,
+  filterCategory: keyof PostFilters,
+  selectedValue: string,
+): PostFilters {
+  const previousCategoryValue = previousFilters[filterCategory];
+  if (Array.isArray(previousCategoryValue)) {
+    // Multi category value
+    const newCategoryValue: string[] = (
+      previousCategoryValue as string[]
+    ).includes(selectedValue)
+      ? previousCategoryValue.filter((v) => v !== selectedValue)
+      : [...previousCategoryValue, selectedValue];
+    return {
+      ...previousFilters,
+      [filterCategory]: newCategoryValue,
+    };
+  } else {
+    // Single category value
+    // Set to undefined if clicking current value or replace value
+    const newCategoryValue: string | undefined =
+      (previousCategoryValue as string) === selectedValue
+        ? undefined
+        : selectedValue;
+    return {
+      ...previousFilters,
+      [filterCategory]: newCategoryValue,
+    };
+  }
+}
+
+function isCategoryFiltered(
+  categoryValue: string[] | string | undefined,
+): boolean {
+  return Array.isArray(categoryValue)
+    ? categoryValue.length > 0
+    : categoryValue !== undefined;
+}

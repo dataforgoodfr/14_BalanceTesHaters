@@ -15,19 +15,21 @@ export enum DateFilterOptions {
 }
 
 export type PostFilters = {
-  date: string[];
+  date: DateFilterOptions | undefined;
+  nbHatefulComments: NbHatefulCommentsOptions[];
+
   score: string[];
   alert: string[];
-  nbHatefulComments: string[];
   status: string[];
   containsCategory: string[];
   containsAuthor: string[];
 };
+
 export const emptyPostFilters: PostFilters = {
-  date: [],
+  nbHatefulComments: [],
+  date: undefined,
   score: [],
   alert: [],
-  nbHatefulComments: [],
   status: [],
   containsCategory: [],
   containsAuthor: [],
@@ -151,23 +153,24 @@ export function filterPosts(
   let filteredPosts = posts;
   if (filters.nbHatefulComments) {
     filteredPosts = filteredPosts.filter((post) => {
-      const nbHatefulComment = post.comments.filter(isCommentHateful).length;
+      const postHatefulCommentsCount =
+        post.comments.filter(isCommentHateful).length;
       return (
         filters.nbHatefulComments.length == 0 ||
         (filters.nbHatefulComments.includes(
           NbHatefulCommentsOptions.ZERO_TEN,
         ) &&
-          nbHatefulComment > 0 &&
-          nbHatefulComment <= 10) ||
+          postHatefulCommentsCount > 0 &&
+          postHatefulCommentsCount <= 10) ||
         (filters.nbHatefulComments.includes(
           NbHatefulCommentsOptions.TEN_FIFTY,
         ) &&
-          nbHatefulComment >= 10 &&
-          nbHatefulComment <= 50) ||
+          postHatefulCommentsCount >= 10 &&
+          postHatefulCommentsCount <= 50) ||
         (filters.nbHatefulComments.includes(
           NbHatefulCommentsOptions.FIFTY_PLUS,
         ) &&
-          nbHatefulComment >= 50)
+          postHatefulCommentsCount >= 50)
       );
     });
   }
