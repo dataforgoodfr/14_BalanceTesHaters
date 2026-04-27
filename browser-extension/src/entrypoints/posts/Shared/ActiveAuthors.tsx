@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { PostComment } from "@/shared/model/post/Post";
-import { getPercentage } from "@/shared/utils/maths";
 import {
   ChartConfig,
   ChartContainer,
@@ -19,75 +18,42 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { isCommentHateful } from "@/shared/utils/post-util";
+import { getHatefulAuthorStatsList } from "@/shared/utils/report-stats";
 
 const MAX_AUTHORS_TO_DISPLAY = 10; // Nombre maximum d'auteurs à afficher dans la liste des auteurs actifs
-
-type AuthorStats = {
-  name: string;
-  numberOfComments: number;
-  numberOfHatefulComments: number;
-};
 
 type ActiveAuthorsProps = {
   postComments: PostComment[];
   isLoading: boolean;
 };
 
+type ChartDataPoint = {
+  authorName: string;
+  hatefulCommentsCount: number;
+  hatefulContributionPercentageLabel: string;
+};
 function ActiveAuthors({
   postComments,
   isLoading,
 }: Readonly<ActiveAuthorsProps>) {
-  const totalHatefulCommentNumber = postComments.filter((comment) =>
-    isCommentHateful(comment),
-  ).length;
-
-  const authorStatsList = postComments
-    .reduce((authorStatsList: AuthorStats[], currentComment) => {
-      const existingAuthorIndex = authorStatsList.findIndex(
-        (author) => author.name === currentComment.author.name,
-      );
-
-      // Si l'auteur n'est pas encore dans la liste des commentaires les plus récents, on l'ajoute
-      if (existingAuthorIndex === -1) {
-        authorStatsList.push({
-          name: currentComment.author.name,
-          numberOfComments: 1,
-          numberOfHatefulComments: isCommentHateful(currentComment) ? 1 : 0,
-        });
-      } else {
-        // Si l'auteur est déjà dans la liste, on incrémente le nombre de commentaires
-        authorStatsList[existingAuthorIndex].numberOfComments += 1;
-        if (isCommentHateful(currentComment)) {
-          authorStatsList[existingAuthorIndex].numberOfHatefulComments += 1;
-        }
-      }
-      return authorStatsList;
-    }, [])
-    .filter((authorStats) => authorStats.numberOfHatefulComments >= 1) // ne garder que les auteurs avec au moins 1 commentaire haineux;
-    .sort(
-      // trier par nombre de commentaires haineux décroissant
-      (a, b) => b.numberOfHatefulComments - a.numberOfHatefulComments,
-    )
-    .slice(0, MAX_AUTHORS_TO_DISPLAY)
-    .map((authorStats) => ({
-      name: authorStats.name,
-      nombre: authorStats.numberOfHatefulComments,
-      hatefulCommentRatio:
-        getPercentage(
-          authorStats.numberOfHatefulComments,
-          totalHatefulCommentNumber,
-        ).toFixed(2) + "%",
-    }));
+  const dataPoints: ChartDataPoint[] = getHatefulAuthorStatsList(
+    postComments,
+    MAX_AUTHORS_TO_DISPLAY,
+  ).map((s) => ({
+    authorName: s.authorName,
+    hatefulCommentsCount: s.hatefulCommentsCount,
+    hatefulContributionPercentageLabel:
+      s.hateContributionPercentage.toFixed(2) + "%",
+  }));
 
   const chartConfig = {
-    nombre: {
+    hatefulCommentsCount: {
       label: "Commentaires malveillants",
     },
-    name: {
+    authorName: {
       label: "Auteurs",
     },
-    hatefulCommentRatio: {
+    hatefulContributionPercentageLabel: {
       label: "Ratio de commentaires malveillants",
     },
   } satisfies ChartConfig;
@@ -100,15 +66,11 @@ function ActiveAuthors({
 
         {!isLoading && (
           <ChartContainer config={chartConfig} className="aspect-auto h-75 ">
-            <BarChart
-              accessibilityLayer
-              data={authorStatsList}
-              layout="vertical"
-            >
-              <XAxis dataKey="nombre" type="number" />
+            <BarChart accessibilityLayer data={dataPoints} layout="vertical">
+              <XAxis dataKey="hatefulCommentsCount" type="number" />
               <YAxis
                 className="break-all"
-                dataKey="name"
+                dataKey="authorName"
                 type="category"
                 tickLine={false}
                 axisLine={false}
@@ -116,13 +78,13 @@ function ActiveAuthors({
               />
               <ChartLegend content={<ChartLegendContent />} />
               <Bar
-                dataKey="nombre"
+                dataKey="hatefulCommentsCount"
                 fill="var(--primary)"
                 radius={4}
                 shape={ColoredRectangle}
               >
                 <LabelList
-                  dataKey="hatefulCommentRatio"
+                  dataKey="hatefulContributionPercentageLabel"
                   position="insideRight"
                   fill="var(--primary-foreground)"
                 />
