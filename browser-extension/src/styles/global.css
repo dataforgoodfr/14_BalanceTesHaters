@@ -163,4 +163,10 @@ a {
   body {
     @apply bg-background text-foreground;
   }
+
+  /** See https://ui.shadcn.com/docs/changelog/2026-04-pointer-cursor */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
