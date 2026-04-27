@@ -1,8 +1,6 @@
-import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { ReportQueryData, useStepper } from "./BuildReport";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
+
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +8,7 @@ import PostSummary from "../Shared/PostSummary";
 import { useForm } from "@tanstack/react-form";
 import { getFormId } from "./StepperComponents";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
+import { useFilteredPostList } from "../Shared/useFilteredPostList";
 
 function Step2Posts({
   reportQueryData,
@@ -18,29 +17,14 @@ function Step2Posts({
   reportQueryData: ReportQueryData | undefined;
   setPostList: (postList: string[]) => void;
 }>) {
-  const queryKey = React.useMemo(
-    () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
-    [reportQueryData?.socialNetworkList?.join(",")],
-  );
-  const [searchTerm, setSearchTerm] = React.useState("");
-
-  const { data, isLoading } = useQuery({
-    queryKey,
-    queryFn: () =>
-      getPostsBySocialNetworkAndPeriod(reportQueryData?.socialNetworkList),
-  });
-
-  const filteredPosts = React.useMemo(() => {
-    if (!data || data.length === 0 || !searchTerm.trim()) {
-      return data || [];
-    }
-    const searchValue = searchTerm.trim().toLowerCase();
-    return data.filter((post) => {
-      const title = post.title?.toLowerCase() ?? "";
-      const description = post.textContent?.toLowerCase() ?? "";
-      return title.includes(searchValue) || description.includes(searchValue);
-    });
-  }, [data, searchTerm]);
+  const {
+    searchTerm,
+    setSearchTerm,
+    postFilters,
+    setPostFilters,
+    isLoading,
+    filteredPosts,
+  } = useFilteredPostList(reportQueryData?.socialNetworkList || []);
 
   const stepper = useStepper();
 
@@ -63,6 +47,8 @@ function Step2Posts({
       <SearchSortFiltersPostList
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        postFilters={postFilters}
+        setPostFilters={setPostFilters}
       />
 
       {isLoading && <Spinner className="size-8" />}

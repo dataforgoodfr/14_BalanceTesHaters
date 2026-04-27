@@ -1,11 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { getEarliestPostDate, filterPosts, PostFilters, NbHatefulCommentsOptions } from "../post-util";
+import {
+  getEarliestPostDate,
+  filterPosts,
+  PostFilters,
+  NbHatefulCommentsOptions,
+  emptyPostFilters,
+} from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Post, PostComment } from "@/shared/model/post/Post";
-import {
-  emptyFilters,
-} from "@/entrypoints/posts/Shared/SearchSortFiltersPostList";
 
 /**
  * Helper function to create a dummy Post list with a specific publication date
@@ -172,7 +175,7 @@ describe("post utilities", () => {
           createDummyPost({ title: "JavaScript Advanced" }),
         ];
 
-        const result = filterPosts(posts, "JavaScript", emptyFilters);
+        const result = filterPosts(posts, "JavaScript", emptyPostFilters);
 
         expect(result).toHaveLength(2);
         expect(result.every((p) => p.title?.includes("JavaScript"))).toBe(true);
@@ -185,7 +188,7 @@ describe("post utilities", () => {
           createDummyPost({ textContent: "Another tutorial here" }),
         ];
 
-        const result = filterPosts(posts, "tutorial", emptyFilters);
+        const result = filterPosts(posts, "tutorial", emptyPostFilters);
 
         expect(result).toHaveLength(2);
       });
@@ -199,7 +202,7 @@ describe("post utilities", () => {
           }),
         ];
 
-        const result = filterPosts(posts, "abc123", emptyFilters);
+        const result = filterPosts(posts, "abc123", emptyPostFilters);
 
         expect(result).toHaveLength(2);
       });
@@ -240,7 +243,7 @@ describe("post utilities", () => {
           }),
         ];
 
-        const result = filterPosts(posts, "spam", emptyFilters);
+        const result = filterPosts(posts, "spam", emptyPostFilters);
 
         expect(result).toHaveLength(1);
         expect(result[0].comments[0].textContent).toContain("spam");
@@ -252,9 +255,9 @@ describe("post utilities", () => {
           createDummyPost({ title: "Python Guide" }),
         ];
 
-        const resultLower = filterPosts(posts, "javascript", emptyFilters);
-        const resultUpper = filterPosts(posts, "JAVASCRIPT", emptyFilters);
-        const resultMixed = filterPosts(posts, "JaVaScRiPt", emptyFilters);
+        const resultLower = filterPosts(posts, "javascript", emptyPostFilters);
+        const resultUpper = filterPosts(posts, "JAVASCRIPT", emptyPostFilters);
+        const resultMixed = filterPosts(posts, "JaVaScRiPt", emptyPostFilters);
 
         expect(resultLower).toHaveLength(1);
         expect(resultUpper).toHaveLength(1);
@@ -267,7 +270,7 @@ describe("post utilities", () => {
           createDummyPost({ title: "Post 2" }),
         ];
 
-        const result = filterPosts(posts, "", emptyFilters);
+        const result = filterPosts(posts, "", emptyPostFilters);
 
         expect(result).toHaveLength(2);
       });
@@ -278,7 +281,7 @@ describe("post utilities", () => {
           createDummyPost({ title: "Post 2" }),
         ];
 
-        const result = filterPosts(posts, "   ", emptyFilters);
+        const result = filterPosts(posts, "   ", emptyPostFilters);
 
         expect(result).toHaveLength(2);
       });
@@ -289,7 +292,7 @@ describe("post utilities", () => {
           createDummyPost({ title: "Python" }),
         ];
 
-        const result = filterPosts(posts, "script", emptyFilters);
+        const result = filterPosts(posts, "script", emptyPostFilters);
 
         expect(result).toHaveLength(1);
       });
@@ -323,7 +326,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
         };
 
@@ -352,7 +355,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.TEN_FIFTY],
         };
 
@@ -382,7 +385,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.FIFTY_PLUS],
         };
 
@@ -411,7 +414,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [
             NbHatefulCommentsOptions.ZERO_TEN,
             NbHatefulCommentsOptions.FIFTY_PLUS,
@@ -438,7 +441,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [],
         };
 
@@ -470,7 +473,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
         };
 
@@ -491,7 +494,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.FIFTY_PLUS],
         };
 
@@ -503,7 +506,7 @@ describe("post utilities", () => {
 
     describe("edge cases", () => {
       it("should handle empty posts array", () => {
-        const result = filterPosts([], "search", emptyFilters);
+        const result = filterPosts([], "search", emptyPostFilters);
         expect(result).toHaveLength(0);
       });
 
@@ -511,7 +514,7 @@ describe("post utilities", () => {
         const posts = [createDummyPost({ comments: [] })];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
         };
 
@@ -543,7 +546,7 @@ describe("post utilities", () => {
         ];
 
         const filters: PostFilters = {
-          ...emptyFilters,
+          ...emptyPostFilters,
           nbHatefulComments: [NbHatefulCommentsOptions.ZERO_TEN],
         };
 

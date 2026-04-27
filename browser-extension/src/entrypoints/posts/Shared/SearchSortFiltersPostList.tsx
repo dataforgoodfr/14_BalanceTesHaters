@@ -14,6 +14,7 @@ import {
 } from "@/shared/model/HatefulCategory";
 import {
   DateFilterOptions,
+  emptyPostFilters,
   NbHatefulCommentsOptions,
   PostFilters,
 } from "@/shared/utils/post-util";
@@ -84,16 +85,6 @@ const categories = [
     isDisabled: true,
   },
 ] as const;
-
-export const emptyFilters: PostFilters = {
-  date: [],
-  score: [],
-  alert: [],
-  nbHatefulComments: [],
-  status: [],
-  containsCategory: [],
-  containsAuthor: [],
-};
 
 function SearchSortFiltersPostList({
   searchTerm,
@@ -209,7 +200,7 @@ function SearchSortFiltersPostList({
                 variant="outline"
                 className="rounded-md"
                 size="sm"
-                onClick={() => setSelectedFilters(emptyFilters)}
+                onClick={() => setSelectedFilters(emptyPostFilters)}
               >
                 Réinitialiser
               </Button>
