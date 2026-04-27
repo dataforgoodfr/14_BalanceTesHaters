@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { PostComment } from "@/shared/model/post/Post";
-import { getAuthorStatsList, getNumberOfHatefulAuthors } from "../report-stats";
+import {
+  getHatefulAuthorStatsList,
+  getNumberOfHatefulAuthors,
+} from "../report-stats";
 
 const buildComment = (
   authorName: string,
@@ -34,22 +37,32 @@ describe("report-stats", () => {
 
   it("should build sorted author stats limited to hateful authors", () => {
     expect(
-      getAuthorStatsList([
+      getHatefulAuthorStatsList([
         buildComment("Alice", ["Cyberharcèlement (autre)"]),
         buildComment("Alice", ["Neutre"]),
         buildComment("Bob", ["Cyberharcèlement (autre)"]),
+        buildComment("Donald", ["Cyberharcèlement (autre)"]),
+        buildComment("Donald", ["Cyberharcèlement (autre)"]),
         buildComment("Claire", ["Neutre"]),
       ]),
     ).toEqual([
       {
-        name: "Bob",
-        numberOfComments: 1,
-        numberOfHatefulComments: 1,
+        authorName: "Donald",
+        commentsCount: 2,
+        hatefulCommentsCount: 2,
+        hateContributionPercentage: 50,
       },
       {
-        name: "Alice",
-        numberOfComments: 2,
-        numberOfHatefulComments: 1,
+        authorName: "Alice",
+        commentsCount: 2,
+        hatefulCommentsCount: 1,
+        hateContributionPercentage: 25,
+      },
+      {
+        authorName: "Bob",
+        commentsCount: 1,
+        hatefulCommentsCount: 1,
+        hateContributionPercentage: 25,
       },
     ]);
   });

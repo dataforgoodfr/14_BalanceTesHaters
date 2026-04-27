@@ -16,7 +16,7 @@ import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
 import {
-  getAuthorStatsList,
+  getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,
 } from "@/shared/utils/report-stats";
 import { getPercentage } from "@/shared/utils/maths";
@@ -166,6 +166,7 @@ interface PdfReportProps {
   posts: Post[];
 }
 
+const MAX_HATEFUL_AUTHORS = 10;
 export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   const { postCommentList } = reportQueryData;
 
@@ -176,7 +177,10 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
     numberOfComments,
   ).toFixed(2);
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(postCommentList);
-  const authorStatsList = getAuthorStatsList(postCommentList);
+  const hatefulAuthorsStatsList = getHatefulAuthorStatsList(
+    postCommentList,
+    MAX_HATEFUL_AUTHORS,
+  );
 
   const groupedCommentsByPost = getEntriesGroupedByPostKey(postCommentList);
 
@@ -241,21 +245,17 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                   Commentaires
                 </Text>
               </View>
-              {authorStatsList.map((author) => (
-                <View key={author.name} style={styles.tableDataRow}>
+              {hatefulAuthorsStatsList.map((stats) => (
+                <View key={stats.authorName} style={styles.tableDataRow}>
                   <Text style={[styles.tableCell, styles.colAuthorName]}>
-                    {author.name}
+                    {stats.authorName}
                   </Text>
                   <Text style={[styles.tableCell, styles.colRatio]}>
-                    {getPercentage(
-                      author.numberOfHatefulComments,
-                      author.numberOfComments,
-                    ).toFixed(2)}
-                    %
+                    {stats.hateContributionPercentage.toFixed(2)}%
                   </Text>
                   <Text style={[styles.tableCell, styles.colCount]}>
-                    {author.numberOfComments} commentaire
-                    {author.numberOfComments > 1 ? "s" : ""}
+                    {stats.commentsCount} commentaire
+                    {stats.commentsCount > 1 ? "s" : ""}
                   </Text>
                 </View>
               ))}
