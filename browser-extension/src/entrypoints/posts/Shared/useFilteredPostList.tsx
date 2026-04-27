@@ -27,7 +27,7 @@ export function useFilteredPostList(
 ): UseFilteredPostListData {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [postFilters, setPostFilters] = React.useState(emptyPostFilters);
-  const queryKey = ["posts", socialNetworkFilter, postFilters.date.join(",")];
+  const queryKey = ["posts", socialNetworkFilter, postFilters.date];
 
   const { data, isLoading } = useQuery({
     queryKey,
@@ -57,27 +57,28 @@ export function useFilteredPostList(
 }
 
 function getStartPeriodFromFilters(filters: PostFilters): Date | undefined {
-  if (filters.date.length === 0) {
+  if (filters.date === undefined) {
     return undefined;
   }
 
   // We take the longest chosen range
   const startDate = new Date();
-  if (filters.date.includes(DateFilterOptions.TWELVE_MONTHS)) {
+
+  if (filters.date === DateFilterOptions.TWELVE_MONTHS) {
     startDate.setMonth(startDate.getMonth() - 12);
-  } else if (filters.date.includes(DateFilterOptions.THIRTY_DAYS)) {
+  } else if (filters.date === DateFilterOptions.THIRTY_DAYS) {
     startDate.setDate(startDate.getDate() - 30);
-  } else if (filters.date.includes(DateFilterOptions.SEVEN_DAYS)) {
+  } else if (filters.date === DateFilterOptions.SEVEN_DAYS) {
     startDate.setDate(startDate.getDate() - 7);
   } else {
-    return undefined;
+    throw new Error("Unexpected");
   }
   startDate.setHours(0, 0, 0, 0);
   return startDate;
 }
 
 function getEndPeriodFromFilters(filters: PostFilters): Date | undefined {
-  if (filters.date.length === 0) {
+  if (filters.date === DateFilterOptions.TWELVE_MONTHS) {
     return undefined;
   } else {
     const endDate = new Date();
