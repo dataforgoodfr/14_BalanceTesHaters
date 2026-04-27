@@ -23,6 +23,15 @@ export type PostFilters = {
   containsCategory: string[];
   containsAuthor: string[];
 };
+export const emptyPostFilters: PostFilters = {
+  date: [],
+  score: [],
+  alert: [],
+  nbHatefulComments: [],
+  status: [],
+  containsCategory: [],
+  containsAuthor: [],
+};
 
 export function isCommentHateful(comment: PostComment): boolean {
   return comment.classification?.[0] === "Cyberharcèlement (autre)";
