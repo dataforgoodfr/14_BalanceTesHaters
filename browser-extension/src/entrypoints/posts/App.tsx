@@ -8,6 +8,7 @@ import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
 import { BuildReport } from "./Report/BuildReport";
 import HelpPage from "./Help/HelpPage";
+import ContactSupport from "./ContactSupport/ContactSupport";
 
 export default function App() {
   return (
@@ -27,17 +28,22 @@ export default function App() {
             />
             <Route index path="/help" element={<HelpPage />} />
 
-            <Route path="/debug" element={<DebugPage />} />
             <Route
               index
               path="/post-snapshots"
               element={<PostSnapshotListPage />}
             />
+
+            <Route path="/build-report" element={<BuildReport />} />
+
+            <Route path="/contact-support" element={<ContactSupport />} />
+
+            {/* Dev pages */}
             <Route
               path="/post-snapshots/:snapshotId"
               element={<PostSnapshotDetailPage />}
             />
-            <Route path="/build-report" element={<BuildReport />} />
+            <Route path="/debug" element={<DebugPage />} />
           </Routes>
         </div>
       </div>
