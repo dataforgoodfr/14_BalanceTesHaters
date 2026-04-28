@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     logging_configuration_file: pathlib.Path
     private_api_token: str
     public_api_token: str
+    cutoff_days: int = 30
 
     embedding_hf_repo_id: str = "gregco/balance-tes-haters-classifier"
     embedding_threshold: float = 0.3

@@ -109,6 +109,7 @@ Toutes les variables sont dans `docker/.env`. Les principales :
 | `BTH_PRIVATE_API_TOKEN` | Token pour les routes privées (GET liste des jobs) |
 | `BTH_EMBEDDING_HF_REPO_ID` | Repo HuggingFace du classifier (défaut : `gregco/balance-tes-haters-classifier`) |
 | `BTH_API_PORT` | Port exposé sur la machine hôte (défaut : `8001`) |
+| `BTH_CUTOFF_DAYS` | Durée de conservation des données de classification en base de données (défaut : `30`) |
 
 ### 5. Inspecter la base de données
 

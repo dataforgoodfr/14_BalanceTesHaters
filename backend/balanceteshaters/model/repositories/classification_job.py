@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import UUID
 
 from balanceteshaters.model.base import ClassificationJob, JobStatus
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
@@ -63,3 +63,15 @@ async def list_jobs_by_status(
         select(ClassificationJob).where(ClassificationJob.status == status)
     )
     return result.scalars().all()
+
+
+async def delete_job_created_before(
+    session: AsyncSession, cutoff_date: datetime
+) -> int:
+    stmt = (
+        delete(ClassificationJob)
+        .where(ClassificationJob.created_at < cutoff_date)
+        .returning(ClassificationJob.id)
+    )
+    deleted_ids = await session.execute(stmt)
+    return len(deleted_ids.all())
