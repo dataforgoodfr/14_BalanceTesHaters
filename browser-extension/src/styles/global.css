@@ -63,10 +63,18 @@ main {
   --accent-foreground: oklch(0.205 0 0);
   --navigation-accent: oklch(0.9393 0.028757 266.368);
   --destructive: oklch(0.577 0.245 27.325);
+
   --destructive-foreground: oklch(0.577 0.245 27.325);
+
+  /** colors for BTH variant of destructive colors (used in buttons and cards)*/
+  --bth-destructive: #b91c1c;
+  --bth-destructive-ring: #fca5a5;
+  --bth-destructive-hover: #e5e5e5;
+  --bth-destructive-subtle: #fef2f2;
+
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(11.305% 0.00823 18.36);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -139,6 +147,12 @@ main {
   --color-navigation-accent: var(--navigation-accent);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-bth-destructive: var(--bth-destructive);
+  --color-bth-destructive-ring: var(--destructive-ring);
+  --color-bth-destructive-hover: var(--bth-destructive-hover);
+  --color-bth-destructive-ring: var(--bth-destructive-ring);
+  --color-bth-destructive-subtle: var(--bth-destructive-subtle);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
