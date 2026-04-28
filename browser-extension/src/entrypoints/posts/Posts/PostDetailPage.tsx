@@ -53,7 +53,7 @@ function PostDetailPage() {
           {/* Header */}
           <div className="flex justify-between">
             <Button
-              variant="link"
+              variant="ghost"
               render={
                 <Link to="/posts">
                   <MoveLeft /> Publications analysées
@@ -62,34 +62,31 @@ function PostDetailPage() {
             />
             <div className="flex gap-2">
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={() => {
                   void openPostAndStartScraping(post.url);
                 }}
               >
                 <RotateCwIcon /> Relancer l&apos;analyse
               </Button>
-              <Button variant="outline" disabled>
-                Exporter en CSV
-              </Button>
-              <Button variant="outline" disabled>
-                Exporter en PDF
+              <Button variant="default" disabled>
+                Exporter les données en CSV
               </Button>
             </div>
           </div>
 
           {/* Content */}
           <div className="flex flex-col gap-4">
-            <div>
+            <div className="mb-8">
               <h1 className="mt-2 mb-1 ">
                 Analyse des commentaires malveillants
               </h1>
-              <span className="text-lg mt-0">
+              <span className="text-base mt-0">
                 Données collectées le{" "}
                 {formatAnalysisDate(post.lastAnalysisDate)}
               </span>
             </div>
-            <h2 className="text-left">Publication analysée</h2>
+            <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
                 <PostSummary post={post} />
@@ -129,9 +126,11 @@ function PostDetailPage() {
               </div>
             </div>
             <div className="text-left">
-              <h2>Commentaires malveillants</h2>
-              <span className="text-gray-500">
-                Sélectionner les commentaires pour créer un rapport
+              <h3>Commentaires malveillants</h3>
+              <span className="text-muted-foreground text-sm italic">
+                Pour créer un rapport de preuves : sélectionner un ou plusieurs
+                commentaires (ou “Tout sélectionner”), puis cliquer sur “Créer
+                un rapport”.
               </span>
               <CommentsTable
                 commentList={hatefulComments}
