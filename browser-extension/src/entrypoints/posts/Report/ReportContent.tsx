@@ -97,7 +97,12 @@ export const ReportContent = ({
         return (
           <div key={postKey} className="flex flex-col gap-2">
             <Card className="p-5">
-              <PostSummary post={post} />
+              <PostSummary
+                url={post.url}
+                publishedAt={post.publishedAt}
+                title={post.title}
+                coverImageUrl={post.coverImageUrl}
+              />{" "}
             </Card>
 
             <div className="rounded-md border">

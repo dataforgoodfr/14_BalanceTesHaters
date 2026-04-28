@@ -9,7 +9,7 @@ import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
-import { RotateCwIcon } from "lucide-react";
+import { EyeIcon, RotateCwIcon } from "lucide-react";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
@@ -48,17 +48,22 @@ function PostListPage() {
         <NoPost />
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 w-full">
         {filteredPosts &&
           filteredPosts.length > 0 &&
           filteredPosts.map((post) => (
-            <Card key={post.postId}>
+            <Card key={post.postId} className="w-full">
               <CardContent className="flex items-center gap-5">
                 <Checkbox className="mr-2" />
                 <div className="w-full">
-                  <PostSummary post={post} />
-                  <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                    <div className="font-semibold">
+                  <PostSummary
+                    url={post.url}
+                    publishedAt={post.publishedAt}
+                    title={post.title}
+                    coverImageUrl={post.coverImageUrl}
+                  />
+                  <div className="mt-2 rounded-2xl bg-muted flex flex-row px-6 py-2 items-center justify-between bg-navigation-accent/50 border">
+                    <div className="text-sm font-medium">
                       Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
                     </div>
                     <div>
@@ -80,12 +85,12 @@ function PostListPage() {
                               "/posts/" + post.socialNetwork + "/" + post.postId
                             }
                           >
-                            Voir le détail
+                            <EyeIcon /> Consulter
                           </Link>
                         }
                       ></Button>
                     </div>
-                  </Card>
+                  </div>
                 </div>
               </CardContent>
             </Card>

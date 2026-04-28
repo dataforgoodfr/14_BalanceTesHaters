@@ -89,7 +89,12 @@ function PostDetailPage() {
             <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary post={post} />
+                <PostSummary
+                  url={post.url}
+                  publishedAt={post.publishedAt}
+                  title={post.title}
+                  coverImageUrl={post.coverImageUrl}
+                />
                 <div className="text-right text-muted-foreground whitespace-nowrap">
                   <div>{getSocialNetworkName(post.socialNetwork)}</div>
                   <div>

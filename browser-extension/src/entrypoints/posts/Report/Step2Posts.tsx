@@ -101,7 +101,12 @@ function Step2Posts({
                         }}
                       />
                       <div className="w-full">
-                        <PostSummary post={post} />
+                        <PostSummary
+                          url={post.url}
+                          publishedAt={post.publishedAt}
+                          title={post.title}
+                          coverImageUrl={post.coverImageUrl}
+                        />
                         <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                           <div className="font-semibold">
                             Analyse du{" "}
