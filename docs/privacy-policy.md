@@ -11,7 +11,11 @@ Pour chaque analyse de publication déclenchée par l'utilisateur l'extension co
 
 ## 2. Utilisation des données
 
-Le traitement des données est fondé sur l'intérêt légitime à protéger les utilisateurs contre le harcèlement en ligne. L'extension collecte les informations strictement nécessaires pour:
+Le traitement des données est fondé sur l'intérêt légitime à protéger les utilisateurs contre le harcèlement en ligne.
+
+Certaines données collectées peuvent également être qualifiées de données relatives à des condamnations pénales et à des infractions. Féministes contre le cyberharcèlement assure une mission d’intérêt général sous le contrôle de l’administration et est conventionnée par le ministère de la Justice. Conformément à l’article 10 du RGPD, Féministes contre le cyberharcèlement est habilitée, dans le cadre de ses attributions, à traiter des données relatives à des condamnations pénales et à des infractions
+
+L'extension collecte les informations strictement nécessaires pour:
 
 1. **Analyser les commentaires** : Classifier les commentaires selon diferentes catégories de contenu nocif (harcèlement, discours haineux, etc.)
 2. **Générer des rapports** : Créer des rapports exportables pour documenter les cas de harcèlement
