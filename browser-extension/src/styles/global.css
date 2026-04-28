@@ -26,7 +26,7 @@ h3 {
 }
 
 h4 {
-  @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  @apply scroll-m-20 text-xl font-medium tracking-tight;
   font-family: "Red Hat Display Variable";
 }
 
