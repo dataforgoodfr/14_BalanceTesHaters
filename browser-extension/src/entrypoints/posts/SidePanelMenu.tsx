@@ -24,17 +24,17 @@ function SidePanelMenu() {
         <SidePanelMenuItem
           label="Vue d'ensemble"
           to="/"
-          icon={<ChartColumn />}
+          icon={<ChartColumn size="16" />}
         />
         <SidePanelMenuItem
           label="Publications analysées"
           to="/posts"
-          icon={<File />}
+          icon={<File size="16" />}
         />
         <SidePanelMenuItem
           label="Aide et ressources"
           to="/help"
-          icon={<MessageCircleQuestionMark />}
+          icon={<MessageCircleQuestionMark size="16" />}
         />
       </div>
       <div className="grow " />
@@ -42,12 +42,12 @@ function SidePanelMenu() {
         <SidePanelMenuItem
           label="Signaler un problème technique"
           to="/contact-support"
-          icon={<AlertTriangleIcon />}
+          icon={<AlertTriangleIcon size="16" />}
         />
         <SidePanelMenuItem
           label="Données brutes"
           to="/post-snapshots"
-          icon={<CylinderIcon />}
+          icon={<CylinderIcon size="16" />}
         />
       </div>
     </div>
@@ -69,8 +69,8 @@ function SidePanelMenuItem({
     <NavLink
       className={({ isActive }) =>
         cn(
-          isActive ? "bg-navigation-accent font-semibold" : "",
-          "flex rounded-sm justify-start hover:bg-navigation-accent p-2 items-center",
+          isActive ? "bg-navigation-accent font-medium" : "font-normal",
+          "text-left text-sm flex rounded-sm justify-start hover:bg-navigation-accent p-2 items-center",
           className,
         )
       }
