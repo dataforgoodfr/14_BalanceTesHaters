@@ -129,6 +129,9 @@ main {
 }
 
 @theme inline {
+  --font-display:
+    "Red Hat Display Variable", ui-sans-serif, sans-serif, system-ui;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartLegend,
@@ -174,7 +174,11 @@ function HarassmentTrendChart({
 
   return (
     <Card className="w-full min-h-100">
-      <CardHeader>Évolution des commentaires malveillants</CardHeader>
+      <CardHeader>
+        <CardTitle className="text-left text-muted-forground font-display font-medium">
+          Évolution des commentaires malveillants
+        </CardTitle>
+      </CardHeader>
       <CardContent className="p-4">
         <ChartContainer
           config={chartConfig}

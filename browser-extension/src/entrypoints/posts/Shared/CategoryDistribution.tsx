@@ -1,10 +1,14 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WorkInProgress from "../WorkInProgress";
 
 function CategoryDistribution() {
   return (
     <Card className="w-full relative">
-      <CardHeader>Répartition par catégories</CardHeader>
+      <CardHeader>
+        <CardTitle className="text-left text-muted-forground font-display font-medium">
+          Répartition par catégories
+        </CardTitle>
+      </CardHeader>
       <CardContent className="p-4">
         <WorkInProgress />
         <p>
