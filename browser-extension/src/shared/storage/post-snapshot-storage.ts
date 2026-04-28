@@ -6,6 +6,10 @@ import {
 import { SocialNetworkName } from "../model/SocialNetworkName";
 import { isRunningClassificationStatus } from "../model/ClassificationStatus";
 
+export async function getPostSnapshotsBytesInUse(): Promise<number> {
+  return browser.storage.local.getBytesInUse(postSnapshotsStorageKey);
+}
+
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
   const index = posts.findIndex((p) => p.id === postSnapshot.id);
@@ -46,8 +50,8 @@ export async function deletePostSnapshot(postSnapshotId: string) {
 }
 
 export async function getPostSnapshots(): Promise<PostSnapshot[]> {
-  const partial = await browser.storage.local.get("posts");
-  const postSnapshotList = partial["posts"] || [];
+  const partial = await browser.storage.local.get(postSnapshotsStorageKey);
+  const postSnapshotList = partial[postSnapshotsStorageKey] || [];
 
   const PostArraySchema = PostSnapshotSchema.array();
   const result = PostArraySchema.safeParse(postSnapshotList);
@@ -161,5 +165,7 @@ export async function getPostSnapshotsPendingResults(): Promise<
 }
 
 async function writePostSnapshotsLists(newPosts: PostSnapshot[]) {
-  await browser.storage.local.set({ posts: newPosts });
+  await browser.storage.local.set({ [postSnapshotsStorageKey]: newPosts });
 }
+
+const postSnapshotsStorageKey = "posts";
