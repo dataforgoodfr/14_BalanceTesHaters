@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { PostComment } from "@/shared/model/post/Post";
 import {
@@ -60,7 +60,11 @@ function ActiveAuthors({
 
   return (
     <Card className="w-full relative">
-      <CardHeader>Principaux auteurs de commentaires malveillants</CardHeader>
+      <CardHeader>
+        <CardTitle className="text-left text-muted-forground font-display font-medium">
+          Principaux auteurs de commentaires malveillants
+        </CardTitle>
+      </CardHeader>
       <CardContent className="">
         {isLoading && <Spinner className="size-8" />}
 
