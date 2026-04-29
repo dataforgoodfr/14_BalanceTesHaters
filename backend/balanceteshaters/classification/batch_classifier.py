@@ -1,11 +1,13 @@
 import asyncio
 import logging
+from time import perf_counter
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from balanceteshaters.classification.embedding_classifier import ClassificationResult, EmbeddingClassifier
-
-logger = logging.getLogger(__name__)
+    from balanceteshaters.classification.embedding_classifier import (
+        ClassificationResult,
+        EmbeddingClassifier,
+    )
 
 
 class BatchClassifier:
@@ -21,18 +23,21 @@ class BatchClassifier:
         max_batch_size: int = 16,
         batch_timeout_s: float = 0.5,
     ):
+        self.logger = logging.getLogger(
+            f"{__name__}.{self.__class__.__name__}",
+        )
         self.classifier = classifier
         self.max_batch_size = max_batch_size
         self.batch_timeout = batch_timeout_s
-        self._queue: asyncio.Queue[tuple[str, asyncio.Future["ClassificationResult"]]] = (
-            asyncio.Queue()
-        )
+        self._queue: asyncio.Queue[
+            tuple[str, asyncio.Future["ClassificationResult"]]
+        ] = asyncio.Queue()
         self._task: asyncio.Task | None = None
 
     async def start(self) -> None:
         if self._task is None or self._task.done():
             self._task = asyncio.create_task(self._batch_loop())
-            logger.info(
+            self.logger.info(
                 "BatchClassifier started (max_batch=%d, timeout=%.2fs)",
                 self.max_batch_size,
                 self.batch_timeout,
@@ -45,7 +50,7 @@ class BatchClassifier:
                 await self._task
             except asyncio.CancelledError:
                 pass
-            logger.info("BatchClassifier stopped")
+            self.logger.info("BatchClassifier stopped")
 
     async def classify(self, text: str) -> "ClassificationResult":
         budget = self.classifier.n_ctx - 300
@@ -65,17 +70,19 @@ class BatchClassifier:
             first_item = await self._queue.get()
             batch = [first_item]
             current_tokens = self.classifier.count_tokens(first_item[0])
-            
+
             deadline = loop.time() + self.batch_timeout
-            
+
             while len(batch) < self.max_batch_size:
                 remaining_time = deadline - loop.time()
                 if remaining_time <= 0:
                     break
                 try:
-                    next_item = await asyncio.wait_for(self._queue.get(), timeout=remaining_time)
+                    next_item = await asyncio.wait_for(
+                        self._queue.get(), timeout=remaining_time
+                    )
                     next_tokens = self.classifier.count_tokens(next_item[0])
-                    
+
                     if current_tokens + next_tokens < MAX_TOKEN_BUDGET:
                         batch.append(next_item)
                         current_tokens += next_tokens
@@ -86,7 +93,12 @@ class BatchClassifier:
                 except asyncio.TimeoutError:
                     break
 
-            logger.debug("Processing batch of %d items (total tokens: ~%d)", len(batch), current_tokens)
+            self.logger.debug(
+                "Processing batch of %d items (total tokens: ~%d)",
+                len(batch),
+                current_tokens,
+            )
+            time_start = perf_counter()
             texts = [text for text, _ in batch]
             futures = [future for _, future in batch]
             try:
@@ -100,3 +112,8 @@ class BatchClassifier:
                 for future in futures:
                     if not future.done():
                         future.set_exception(exc)
+            time_end = perf_counter()
+            self.logger.debug(
+                "Batch processed in %.2f seconds",
+                time_end - time_start,
+            )

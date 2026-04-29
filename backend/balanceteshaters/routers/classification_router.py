@@ -1,4 +1,3 @@
-import asyncio
 import datetime
 import logging
 from typing import Annotated
@@ -14,7 +13,7 @@ from balanceteshaters.model.repositories import (
 )
 from balanceteshaters.routers.classification_model import ClassificationJob
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
 
 router = APIRouter()
 
@@ -32,6 +31,7 @@ async def post_classification_job(
         ClassificationTask, Depends(Provide[Container.classification_task])
     ],
     settings: Annotated[Settings, Depends(Provide[Container.settings])],
+    background_tasks: BackgroundTasks,
     x_token: Annotated[str | None, Header()] = None,
 ):
     if not x_token or x_token != settings.public_api_token:
@@ -47,7 +47,7 @@ async def post_classification_job(
             job.model_dump()["comments"],
         )
         await session.commit()
-        asyncio.create_task(classificationTask.classify(classification_job.id))
+        background_tasks.add_task(classificationTask.classify, classification_job.id)
         return {"job_id": str(classification_job.id)}
 
 
