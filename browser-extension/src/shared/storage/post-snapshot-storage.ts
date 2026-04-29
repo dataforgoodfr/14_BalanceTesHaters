@@ -6,6 +6,10 @@ import {
 import { SocialNetworkName } from "../model/SocialNetworkName";
 import { isRunningClassificationStatus } from "../model/ClassificationStatus";
 
+export async function getPostSnapshotsBytesInUse(): Promise<number> {
+  return browser.storage.local.getBytesInUse(postSnapshotsStorageKey);
+}
+
 export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
   const posts = await getPostSnapshots();
   const index = posts.findIndex((p) => p.id === postSnapshot.id);
@@ -46,8 +50,8 @@ export async function deletePostSnapshot(postSnapshotId: string) {
 }
 
 export async function getPostSnapshots(): Promise<PostSnapshot[]> {
-  const partial = await browser.storage.local.get("posts");
-  const postSnapshotList = partial["posts"] || [];
+  const partial = await browser.storage.local.get(postSnapshotsStorageKey);
+  const postSnapshotList = partial[postSnapshotsStorageKey] || [];
 
   const PostArraySchema = PostSnapshotSchema.array();
   const result = PostArraySchema.safeParse(postSnapshotList);
@@ -126,31 +130,42 @@ export async function getPostSnapshotsByPostId(
 }
 
 /**
- * Get all post snapshots that have a classificationJobId but whose classification
- * is not yet completed or failed. This is used to periodically poll for classification results.
- * @returns PostSnapshots that need their classification results updated
+ * Get all post snapshots that have not been submitted for classification yet
+ * (no classification job id).
+ * @returns PostSnapshots pending submission
  */
-export async function getPostSnapshotsPendingClassification(): Promise<
+export async function getPostSnapshotsPendingSubmission(): Promise<
+  PostSnapshot[]
+> {
+  const posts = await getPostSnapshots();
+  return posts.filter((p) => !p.classificationJobId);
+}
+
+/**
+ * Get all post snapshots that have a classificationJobId but whose classification
+ * is not yet completed or failed.
+ * @returns PostSnapshots pending results
+ */
+export async function getPostSnapshotsPendingResults(): Promise<
   PostSnapshot[]
 > {
   const posts = await getPostSnapshots();
   return posts.filter((p) => {
-    // Must have a classification job ID
     if (!p.classificationJobId) {
       return false;
     }
-    // Must NOT be completed or failed - use the helper function
     if (
       p.classificationStatus &&
       !isRunningClassificationStatus(p.classificationStatus)
     ) {
       return false;
     }
-    // Include posts with no status, or SUBMITTED/IN_PROGRESS status
     return true;
   });
 }
 
 async function writePostSnapshotsLists(newPosts: PostSnapshot[]) {
-  await browser.storage.local.set({ posts: newPosts });
+  await browser.storage.local.set({ [postSnapshotsStorageKey]: newPosts });
 }
+
+const postSnapshotsStorageKey = "posts";

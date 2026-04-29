@@ -6,7 +6,7 @@ export default function DisplayPublishedDate({
   date: PublicationDate;
 }>) {
   return (
-    <span className="text-gray-500">
+    <span className="text-xs text-muted-foreground">
       Publiée {at.type === "absolute" && <>le {formatDate(at.date)}</>}
       {at.type === "relative" && (
         <>

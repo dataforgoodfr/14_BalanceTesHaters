@@ -12,6 +12,7 @@ const meta = {
   },
   args: {
     children: "My Button",
+    disabled: false,
   },
 } satisfies Meta<typeof Button>;
 

@@ -26,7 +26,7 @@ h3 {
 }
 
 h4 {
-  @apply scroll-m-20 text-xl font-semibold tracking-tight;
+  @apply scroll-m-20 text-xl font-medium tracking-tight;
   font-family: "Red Hat Display Variable";
 }
 
@@ -38,15 +38,15 @@ blockquote {
   @apply mt-6 border-l-2 pl-6 italic;
 }
 
-a {
-  @apply hover:underline;
+main {
+  @apply bg-background m-3 rounded-md overflow-hidden w-11/12;
 }
 
 /* Shadcn theme*/
 :root {
   --font-sans: "Red Hat Text Variable", ui-sans-serif, sans-serif, system-ui;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.14 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -59,12 +59,22 @@ a {
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
+  --accent-2: oklch(0.9219 0 0);
   --accent-foreground: oklch(0.205 0 0);
+  --navigation-accent: oklch(0.9393 0.028757 266.368);
   --destructive: oklch(0.577 0.245 27.325);
+
   --destructive-foreground: oklch(0.577 0.245 27.325);
+
+  /** colors for BTH variant of destructive colors (used in buttons and cards)*/
+  --bth-destructive: #b91c1c;
+  --bth-destructive-ring: #fca5a5;
+  --bth-destructive-hover: #e5e5e5;
+  --bth-destructive-subtle: #fef2f2;
+
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(11.305% 0.00823 18.36);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -95,7 +105,9 @@ a {
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
   --accent: oklch(0.269 0 0);
+  --accent-2: oklch(0.32 0 0);
   --accent-foreground: oklch(0.985 0 0);
+  --navigation-accent: oklch(0.9393 0.028757 266.368);
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: oklch(0.269 0 0);
@@ -117,6 +129,9 @@ a {
 }
 
 @theme inline {
+  --font-display:
+    "Red Hat Display Variable", ui-sans-serif, sans-serif, system-ui;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -131,8 +146,16 @@ a {
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-2: var(--accent-2);
+  --color-navigation-accent: var(--navigation-accent);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-bth-destructive: var(--bth-destructive);
+  --color-bth-destructive-ring: var(--destructive-ring);
+  --color-bth-destructive-hover: var(--bth-destructive-hover);
+  --color-bth-destructive-ring: var(--bth-destructive-ring);
+  --color-bth-destructive-subtle: var(--bth-destructive-subtle);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -162,5 +185,11 @@ a {
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /** See https://ui.shadcn.com/docs/changelog/2026-04-pointer-cursor */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }

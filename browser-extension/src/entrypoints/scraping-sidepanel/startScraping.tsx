@@ -1,9 +1,6 @@
-import { ScrapTabMessage } from "../background/scraping/scrap-tab-message";
+import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
 
 export function startScraping(tabId: number) {
-  const message: ScrapTabMessage = {
-    msgType: "scrap-tab",
-    tabId: tabId,
-  };
-  void browser.runtime.sendMessage(message);
+  // Start scraping without waiting for result
+  void new ScrapingContentScriptClient(tabId).scrapPost();
 }

@@ -15,6 +15,7 @@ import {
   ScrapingStatus,
 } from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
+import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -110,6 +111,12 @@ export class ScrapingContentScript {
       // Store post snapshot
       console.info("[SCS] - Storing post snapshot");
       await insertPostSnapshot(postSnapshot);
+
+      console.info("[SCS] - Submit for classification");
+      // Request background to submit to backend without awaiting
+      // If this fails it will be recovered by background polling
+      void sendSubmitClassificationRequestMessage(postSnapshot.id);
+
       const end = Date.now();
       const durationMs = end - start;
       const topLevelCommentCounts = postSnapshot.comments.length;
@@ -118,12 +125,14 @@ export class ScrapingContentScript {
       console.info(
         `[SCS] - Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (${topLevelCommentCounts} top level)`,
       );
+
       this.scrapingStatus = {
         type: "succeeded",
         postSnapshotId: postSnapshot.id,
         durationMs: durationMs,
       };
       this.scrapAbortController = null;
+
       return this.scrapingStatus;
     } catch (e) {
       if (e === ABORT_CANCEL_SCRAPING_REASON) {

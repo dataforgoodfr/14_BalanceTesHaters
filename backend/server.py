@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 logger.info("Starting BalanceTesHaters")
 
 container.init_resources()
-container.slm_classifier()
+container.classifier()
 
 
 @asynccontextmanager

@@ -11,9 +11,7 @@ dependencies = [
     "colorlog>=6.10.1",
     "dependency-injector[pydantic2]>=4.48.2",
     "fastapi[standard]>=0.122.0",
-    "llama-cpp-python>=0.3.0",
     "lingua-language-detector>=2.1.1",
-    "ollama>=0.6.1",
     "pyjwt>=2.10.1",
     "python-multipart>=0.0.20",
     "requests>=2.32.5",
@@ -32,6 +30,7 @@ dependencies = [
     "sentence-transformers>=3.0.0",
     "datasets>=3.0.0",
     "python-dotenv>=1.0.0",
+    "huggingface-hub>=0.27.0",
 ]
 
 [tool.ruff]
@@ -40,3 +39,11 @@ line-length = 120
 [tool.ruff.lint]
 # E402: scripts that patch sys.path before project imports (standalone runner pattern)
 per-file-ignores = { "balanceteshaters/scripts/**/*.py" = ["E402"] }
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

@@ -3,10 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
-import { MoveLeft } from "lucide-react";
+import { MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import KpiCard from "../Shared/KpiCards/KpiCard";
 import {
   formatAnalysisDate,
   getPublicationTypeLabel,
@@ -19,6 +18,8 @@ import CommentsTable, { PostCommentWithId } from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
+import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
+import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 function PostDetailPage() {
   const params = useParams();
@@ -45,14 +46,14 @@ function PostDetailPage() {
   const numberOfHatefulComments = hatefulComments.length;
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-5/6">
+    <main className="p-4 flex flex-col gap-6 w-5/6">
       {isLoading && <div>Chargement...</div>}
       {post && (
         <>
           {/* Header */}
           <div className="flex justify-between">
             <Button
-              variant="link"
+              variant="ghost"
               render={
                 <Link to="/posts">
                   <MoveLeft /> Publications analysées
@@ -60,30 +61,40 @@ function PostDetailPage() {
               }
             />
             <div className="flex gap-2">
-              <Button variant="outline" disabled>
-                Exporter en CSV
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  void openPostAndStartScraping(post.url);
+                }}
+              >
+                <RotateCwIcon /> Relancer l&apos;analyse
               </Button>
-              <Button variant="outline" disabled>
-                Exporter en PDF
+              <Button variant="default" disabled>
+                Exporter les données en CSV
               </Button>
             </div>
           </div>
 
           {/* Content */}
           <div className="flex flex-col gap-4">
-            <div>
+            <div className="mb-8">
               <h1 className="mt-2 mb-1 ">
                 Analyse des commentaires malveillants
               </h1>
-              <span className="text-lg mt-0">
+              <span className="text-base mt-0">
                 Données collectées le{" "}
                 {formatAnalysisDate(post.lastAnalysisDate)}
               </span>
             </div>
-            <h2 className="text-left">Publication analysée</h2>
+            <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary post={post} />
+                <PostSummary
+                  url={post.url}
+                  publishedAt={post.publishedAt}
+                  title={post.title}
+                  coverImageUrl={post.coverImageUrl}
+                />
                 <div className="text-right text-muted-foreground whitespace-nowrap">
                   <div>{getSocialNetworkName(post.socialNetwork)}</div>
                   <div>
@@ -94,31 +105,24 @@ function PostDetailPage() {
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
-              <div className="flex">
-                <div className="flex gap-4 justify-between">
-                  <NumberHatefulCommentsKpiCard
-                    numberOfHatefulComments={numberOfHatefulComments}
-                    numberOfComments={allComments.length}
-                    isLoading={isLoading}
-                  />
-                  <PercentageHatefulCommentsKpiCard
-                    numberOfHatefulComments={numberOfHatefulComments}
-                    numberOfComments={allComments.length}
-                    isLoading={isLoading}
-                  />
-                  <NumberHatefulAuhorsKpiCard
-                    hatefulCommentList={hatefulComments}
-                    isLoading={isLoading}
-                  />
-                  <KpiCard
-                    title="Gravité"
-                    value="Modérée"
-                    isWorkInProgress={true}
-                    isLoading={isLoading}
-                  ></KpiCard>
-                </div>
+              <div className="flex gap-4 justify-between w-full">
+                <NumberHatefulCommentsKpiCard
+                  numberOfHatefulComments={numberOfHatefulComments}
+                  numberOfComments={allComments.length}
+                  isLoading={isLoading}
+                />
+                <PercentageHatefulCommentsKpiCard
+                  numberOfHatefulComments={numberOfHatefulComments}
+                  numberOfComments={allComments.length}
+                  isLoading={isLoading}
+                />
+                <NumberHatefulAuhorsKpiCard
+                  hatefulCommentList={hatefulComments}
+                  isLoading={isLoading}
+                />
+                <SecurityAlert isLoading={isLoading}></SecurityAlert>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-4 w-full">
                 <ActiveAuthors
                   postComments={post.comments}
                   isLoading={isLoading}
@@ -127,9 +131,11 @@ function PostDetailPage() {
               </div>
             </div>
             <div className="text-left">
-              <h2>Commentaires malveillants</h2>
-              <span className="text-gray-500">
-                Sélectionner les commentaires pour créer un rapport
+              <h3>Commentaires malveillants</h3>
+              <span className="text-muted-foreground text-sm italic">
+                Pour créer un rapport de preuves : sélectionner un ou plusieurs
+                commentaires (ou “Tout sélectionner”), puis cliquer sur “Créer
+                un rapport”.
               </span>
               <CommentsTable
                 commentList={hatefulComments}
@@ -141,7 +147,7 @@ function PostDetailPage() {
           </div>
         </>
       )}
-    </div>
+    </main>
   );
 }
 

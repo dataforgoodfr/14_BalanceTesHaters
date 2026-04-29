@@ -4,8 +4,8 @@ import { CommentTreeTable } from "./CommentTreeTable";
 import { Binary, Check, MoveLeft, RefreshCcwIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DisplayPublicationDate from "./DisplayPublicationDate";
-import { SubmitClassificationRequestMessage } from "../../background/classification/submitClassificationForPostMessage";
-import { UpdatePostWithClassificationResultMessage } from "../../background/classification/updatePostWithClassificationResultMessage";
+import { sendSubmitClassificationRequestMessage } from "../../background/classification/submitClassificationForPostMessage";
+import { sendUpdatePostWithClassificationResultMessage } from "../../background/classification/updatePostWithClassificationResultMessage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
@@ -29,17 +29,9 @@ function PostSnapshotDetailPage() {
       }
 
       if (!post.classificationStatus) {
-        const message: SubmitClassificationRequestMessage = {
-          msgType: "submit-classification-request",
-          postSnapshotId: post.id,
-        };
-        await browser.runtime.sendMessage(message);
+        await sendSubmitClassificationRequestMessage(post.id);
       } else if (isRunningClassificationStatus(post.classificationStatus)) {
-        const message: UpdatePostWithClassificationResultMessage = {
-          msgType: "update-post-classification",
-          postSnapshotId: post.id,
-        };
-        await browser.runtime.sendMessage(message);
+        await sendUpdatePostWithClassificationResultMessage(post.id);
       }
     },
     onSuccess: () => {
@@ -49,7 +41,7 @@ function PostSnapshotDetailPage() {
   });
 
   return (
-    <div className="p-4">
+    <main className="p-4">
       {isLoading && <div>Loading...</div>}
       {post && (
         <>
@@ -144,7 +136,7 @@ function PostSnapshotDetailPage() {
           <CommentTreeTable comments={post.comments} />
         </>
       )}
-    </div>
+    </main>
   );
 }
 

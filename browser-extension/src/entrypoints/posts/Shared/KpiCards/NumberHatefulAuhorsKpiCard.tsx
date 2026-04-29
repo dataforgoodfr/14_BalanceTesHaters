@@ -1,5 +1,6 @@
 import { PostComment } from "@/shared/model/post/Post";
 import KpiCard from "./KpiCard";
+import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
 
 type NumberHatefulAuhorsKpiCardProperties = {
   hatefulCommentList: PostComment[];
@@ -10,9 +11,7 @@ export default function NumberHatefulAuhorsKpiCard({
   hatefulCommentList,
   isLoading,
 }: Readonly<NumberHatefulAuhorsKpiCardProperties>) {
-  const numberOfHatefulAuthors = new Set(
-    hatefulCommentList.map((c) => c.author.name),
-  ).size;
+  const numberOfHatefulAuthors = getNumberOfHatefulAuthors(hatefulCommentList);
 
   return (
     <KpiCard

@@ -1,8 +1,6 @@
 import React from "react";
 import SocialNetworkSelector from "../Shared/SocialNetworkSelector";
 import { Spinner } from "@/components/ui/spinner";
-import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,79 +8,73 @@ import { Link } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
+import { EyeIcon, RotateCwIcon } from "lucide-react";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
+import PageHeader from "../Shared/PageHeader";
+import NoPost from "../Shared/NoPost";
+import { useFilteredPostList } from "../Shared/useFilteredPostList";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
   >([SocialNetwork.YouTube]);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const queryKey = ["posts", socialNetworkFilter];
 
-  const { data, isLoading } = useQuery({
-    queryKey,
-    queryFn: () => getPostsBySocialNetworkAndPeriod(socialNetworkFilter),
-  });
-
-  const filteredPosts = React.useMemo(() => {
-    if (!data || data.length === 0 || !searchTerm.trim()) {
-      return data || [];
-    }
-    const searchValue = searchTerm.trim().toLowerCase();
-    return data.filter((post) => {
-      const title = post.title?.toLowerCase() ?? "";
-      const description = post.textContent?.toLowerCase() ?? "";
-      return title.includes(searchValue) || description.includes(searchValue);
-    });
-  }, [data, searchTerm]);
+  const {
+    searchTerm,
+    setSearchTerm,
+    postFilters,
+    setPostFilters,
+    isLoading,
+    filteredPosts,
+  } = useFilteredPostList(socialNetworkFilter);
 
   return (
-    <div className="p-4 flex flex-col gap-6 w-5/6">
-      <h1 className="mt-2">Publications analysées</h1>
+    <main className="p-4 flex flex-col gap-6  items-start">
+      <PageHeader title="Publications analysées" />
       <SocialNetworkSelector
         value={socialNetworkFilter}
         onChange={setSocialNetworkFilter}
       />
-
-      {filteredPosts && filteredPosts.length > 0 && (
-        <span className="text-gray-500 text-left text-lg ms-2 mt-0">
-          {filteredPosts.length} publication
-          {filteredPosts.length > 1 ? "s" : ""} analysée
-          {filteredPosts.length > 1 ? "s" : ""}
-        </span>
-      )}
-
       <SearchSortFiltersPostList
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
+        postFilters={postFilters}
+        setPostFilters={setPostFilters}
       />
 
       {isLoading && <Spinner className="size-8" />}
       {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
-        <p className="text-center">Aucune publication</p>
+        <NoPost />
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 w-full">
         {filteredPosts &&
           filteredPosts.length > 0 &&
           filteredPosts.map((post) => (
-            <Card key={post.postId}>
+            <Card key={post.postId} className="w-full">
               <CardContent className="flex items-center gap-5">
                 <Checkbox className="mr-2" />
                 <div className="w-full">
-                  <PostSummary post={post} />
-                  <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                    <div className="font-semibold">
+                  <PostSummary
+                    url={post.url}
+                    publishedAt={post.publishedAt}
+                    title={post.title}
+                    coverImageUrl={post.coverImageUrl}
+                  />
+                  <div className="mt-2 rounded-2xl bg-muted flex flex-row px-6 py-2 items-center justify-between bg-navigation-accent/50 border">
+                    <div className="text-sm font-medium">
                       Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
                     </div>
                     <div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        disabled
-                        className="text-muted-foreground opacity-60 cursor-not-allowed"
+                        onClick={() => {
+                          void openPostAndStartScraping(post.url);
+                        }}
                       >
-                        Relancer l&apos;analyse
+                        <RotateCwIcon /> Relancer l&apos;analyse
                       </Button>
                       <Button
                         variant="ghost"
@@ -93,18 +85,18 @@ function PostListPage() {
                               "/posts/" + post.socialNetwork + "/" + post.postId
                             }
                           >
-                            Voir le détail
+                            <EyeIcon /> Consulter
                           </Link>
                         }
                       ></Button>
                     </div>
-                  </Card>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
       </div>
-    </div>
+    </main>
   );
 }
 

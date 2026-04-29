@@ -1,7 +1,9 @@
 import asyncio
 import logging
+from typing import TYPE_CHECKING
 
-from balanceteshaters.classification.slm_classifier import SLMClassifier
+if TYPE_CHECKING:
+    from balanceteshaters.classification.embedding_classifier import ClassificationResult, EmbeddingClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -9,20 +11,20 @@ logger = logging.getLogger(__name__)
 class BatchClassifier:
     """Queues classification requests and processes them in configurable batches.
 
-    Collects concurrent requests and processes them in true batches using the 
+    Collects concurrent requests and processes them in true batches using the
     model's ability to classify multiple texts in one prompt.
     """
 
     def __init__(
         self,
-        classifier: SLMClassifier,
+        classifier: "EmbeddingClassifier",
         max_batch_size: int = 16,
         batch_timeout_s: float = 0.5,
     ):
         self.classifier = classifier
         self.max_batch_size = max_batch_size
         self.batch_timeout = batch_timeout_s
-        self._queue: asyncio.Queue[tuple[str, asyncio.Future[list[str]]]] = (
+        self._queue: asyncio.Queue[tuple[str, asyncio.Future["ClassificationResult"]]] = (
             asyncio.Queue()
         )
         self._task: asyncio.Task | None = None
@@ -45,13 +47,11 @@ class BatchClassifier:
                 pass
             logger.info("BatchClassifier stopped")
 
-    async def classify(self, text: str) -> list[str]:
-        # Truncate to budget (n_ctx - safety buffer)
+    async def classify(self, text: str) -> "ClassificationResult":
         budget = self.classifier.n_ctx - 300
         truncated_text = self.classifier.truncate(text, budget)
-        
         loop = asyncio.get_running_loop()
-        future: asyncio.Future[list[str]] = loop.create_future()
+        future: asyncio.Future["ClassificationResult"] = loop.create_future()
         await self._queue.put((truncated_text, future))
         return await future
 
