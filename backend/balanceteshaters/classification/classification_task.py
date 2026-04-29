@@ -68,7 +68,7 @@ class ClassificationTask:
         final_classifications = {}
         for res in all_results:
             final_classifications.update(res)
-            
+
         return final_classifications
 
     async def get_job(self, job_id: UUID):
