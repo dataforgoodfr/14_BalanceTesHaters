@@ -1,7 +1,12 @@
 "use server";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { Post } from "@/shared/model/post/Post";
 import { PublicationDate } from "@/shared/model/PublicationDate";
-import { isCommentHateful } from "@/shared/utils/post-util";
+import {
+  getSocialNetworkName,
+  isCommentHateful,
+} from "@/shared/utils/post-util";
 
 function PostSummary({ post }: { post: Post }) {
   const hatefulCommentsCount =
@@ -9,33 +14,50 @@ function PostSummary({ post }: { post: Post }) {
       ? post.comments.filter(isCommentHateful).length
       : undefined;
   return (
-    <div className="flex">
-      {post.coverImageUrl && (
-        <img
-          src={post.coverImageUrl}
-          alt=""
-          className="w-32 h-22 object-cover mr-4 rounded-2xl"
-        />
-      )}
-      <div className="text-left flex flex-col items-start gap-1">
-        <span className="font-medium text-base font-display">{post.title}</span>
-        <span className="font-normal text-xs">
-          URL:{" "}
-          <a href={post.url} target="_blank" rel="noopener noreferrer">
-            {post.url}
-          </a>
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {publishedAtText(post.publishedAt)} • {""}
-          {hatefulCommentsCount === undefined ? (
-            <>{post.comments.length} commentaires</>
-          ) : (
-            <>
-              {hatefulCommentsCount}/{post.comments.length} commentaires
-              malveillants
-            </>
-          )}
-        </span>
+    <div className="flex w-full">
+      <div className="flex-grow flex">
+        {post.coverImageUrl && (
+          <img
+            src={post.coverImageUrl}
+            alt=""
+            className="w-32 h-22 object-cover mr-4 rounded-2xl"
+          />
+        )}
+        <div className="text-left flex flex-col items-start gap-1">
+          <span className="font-medium text-base font-display">
+            {post.title}
+          </span>
+          <span className="font-normal text-xs">
+            URL:{" "}
+            <a href={post.url} target="_blank" rel="noopener noreferrer">
+              {post.url}
+            </a>
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {publishedAtText(post.publishedAt)} • {""}
+            {hatefulCommentsCount === undefined ? (
+              <>{post.comments.length} commentaires</>
+            ) : (
+              <>
+                {hatefulCommentsCount}/{post.comments.length} commentaires
+                malveillants
+              </>
+            )}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-none text-right text-muted-foreground whitespace-nowrap">
+        {post.latestAnalysisStatus === "COMPLETED" ? (
+          <Badge variant="outline">
+            {getSocialNetworkName(post.socialNetwork)}
+          </Badge>
+        ) : (
+          <Badge variant="outline">
+            <Spinner />
+            En cours
+          </Badge>
+        )}
       </div>
     </div>
   );
