@@ -108,8 +108,8 @@ export function buildReportDocx(
             "Date source plateforme",
             publicationDateSourceText(post.publishedAt),
           ],
-          ["Dernière collecte", formatDateTimeForDocx(post.lastAnalysisDate)],
-          ["Dernière collecte (UTC brut)", post.lastAnalysisDate],
+          ["Dernière collecte", formatDateTimeForDocx(post.latestAnalysisDate)],
+          ["Dernière collecte (UTC brut)", post.latestAnalysisDate],
         ]),
       );
     } else {

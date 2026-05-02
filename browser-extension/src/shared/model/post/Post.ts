@@ -1,3 +1,4 @@
+import { ClassificationStatus } from "../ClassificationStatus";
 import { CommentSharedProperties } from "../CommentSharedPropertiesSchema";
 import { PostSharedProperties } from "../PostSharedProperties";
 
@@ -12,9 +13,11 @@ export type Post = PostSharedProperties & {
   comments: PostComment[];
 
   /**
-   * Date of the last snapshot on which this post is based.
+   * Date of the latest snapshot on which this post is based.
    */
-  lastAnalysisDate: string;
+  latestAnalysisDate: string;
+
+  latestAnalysisStatus?: ClassificationStatus;
 };
 
 export type PostComment = CommentSharedProperties & {

@@ -57,15 +57,10 @@ function PostListPage() {
               <CardContent className="flex items-center gap-5">
                 <Checkbox className="mr-2" />
                 <div className="w-full">
-                  <PostSummary
-                    url={post.url}
-                    publishedAt={post.publishedAt}
-                    title={post.title}
-                    coverImageUrl={post.coverImageUrl}
-                  />
+                  <PostSummary post={post} />
                   <div className="mt-2 rounded-2xl bg-muted flex flex-row px-6 py-2 items-center justify-between bg-navigation-accent/50 border">
                     <div className="text-sm font-medium">
-                      Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
+                      Analyse du {formatAnalysisDate(post.latestAnalysisDate)}
                     </div>
                     <div>
                       <Button
