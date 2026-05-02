@@ -83,18 +83,13 @@ function PostDetailPage() {
               </h1>
               <span className="text-base mt-0">
                 Données collectées le{" "}
-                {formatAnalysisDate(post.lastAnalysisDate)}
+                {formatAnalysisDate(post.latestAnalysisDate)}
               </span>
             </div>
             <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary
-                  url={post.url}
-                  publishedAt={post.publishedAt}
-                  title={post.title}
-                  coverImageUrl={post.coverImageUrl}
-                />
+                <PostSummary post={post} />
                 <div className="text-right text-muted-foreground whitespace-nowrap">
                   <div>{getSocialNetworkName(post.socialNetwork)}</div>
                   <div>

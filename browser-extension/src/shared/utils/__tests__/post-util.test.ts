@@ -25,7 +25,7 @@ function createDummyPostWithDate(publishedAt: PublicationDate): Post {
       name: "Dummy Author",
       accountHref: "https://youtube.com/@dummyauthor",
     },
-    lastAnalysisDate: new Date().toLocaleDateString(),
+    latestAnalysisDate: new Date().toLocaleDateString(),
     comments: [],
   };
 }
@@ -48,7 +48,7 @@ function createDummyPost(overrides: Partial<Post> = {}): Post {
       name: "Dummy Author",
       accountHref: "https://youtube.com/@dummyauthor",
     },
-    lastAnalysisDate: new Date().toLocaleDateString(),
+    latestAnalysisDate: new Date().toLocaleDateString(),
     comments: [],
     ...overrides,
   };

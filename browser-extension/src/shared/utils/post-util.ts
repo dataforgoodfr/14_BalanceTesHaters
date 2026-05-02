@@ -35,8 +35,9 @@ export const emptyPostFilters: PostFilters = {
   containsAuthor: [],
 };
 
+export const categoryCyberHarcelementAutre = "Cyberharcèlement (autre)";
 export function isCommentHateful(comment: PostComment): boolean {
-  return comment.classification?.[0] === "Cyberharcèlement (autre)";
+  return comment.classification?.[0] === categoryCyberHarcelementAutre;
 }
 
 export function isPostPublishedAfter(post: PostSnapshot, date: Date): boolean {

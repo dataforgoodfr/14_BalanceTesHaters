@@ -126,9 +126,9 @@ function buildReportCsvRows(
       generated_at: generatedAt,
       generated_at_raw_utc: generatedAtRawUtc,
       post_last_analysis_at: post
-        ? formatDateTimeForCsv(post.lastAnalysisDate)
+        ? formatDateTimeForCsv(post.latestAnalysisDate)
         : "",
-      post_last_analysis_at_raw_utc: post?.lastAnalysisDate ?? "",
+      post_last_analysis_at_raw_utc: post?.latestAnalysisDate ?? "",
       report_organization: reportOrganizationTypeToText(
         reportQueryData.reportOrganizationType,
       ),

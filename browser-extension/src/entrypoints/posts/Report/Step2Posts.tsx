@@ -101,16 +101,11 @@ function Step2Posts({
                         }}
                       />
                       <div className="w-full">
-                        <PostSummary
-                          url={post.url}
-                          publishedAt={post.publishedAt}
-                          title={post.title}
-                          coverImageUrl={post.coverImageUrl}
-                        />
+                        <PostSummary post={post} />
                         <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
                           <div className="font-semibold">
                             Analyse du{" "}
-                            {formatAnalysisDate(post.lastAnalysisDate)}
+                            {formatAnalysisDate(post.latestAnalysisDate)}
                           </div>
                         </Card>
                       </div>
