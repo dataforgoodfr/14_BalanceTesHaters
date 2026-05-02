@@ -9,7 +9,7 @@ import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
-import { EyeIcon, RotateCwIcon } from "lucide-react";
+import { EyeIcon, RotateCwIcon, Trash2Icon } from "lucide-react";
 import { formatAnalysisDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
@@ -27,6 +27,7 @@ function PostListPage() {
     setPostFilters,
     isLoading,
     filteredPosts,
+    deletePost,
   } = useFilteredPostList(socialNetworkFilter);
 
   return (
@@ -67,6 +68,15 @@ function PostListPage() {
                       Analyse du {formatAnalysisDate(post.lastAnalysisDate)}
                     </div>
                     <div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          void deletePost(post);
+                        }}
+                      >
+                        <Trash2Icon /> Supprimer
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"

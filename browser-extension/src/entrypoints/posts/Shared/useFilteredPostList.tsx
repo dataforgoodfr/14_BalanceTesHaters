@@ -6,8 +6,9 @@ import {
   PostFilters,
 } from "@/shared/utils/post-util";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
+import { deletePost as deletePostFromStorage } from "@/shared/storage/post-snapshot-storage";
 
 export type UseFilteredPostListData = {
   searchTerm: string;
@@ -16,6 +17,7 @@ export type UseFilteredPostListData = {
   setPostFilters: (postFilters: PostFilters) => void;
   filteredPosts: Post[];
   isLoading: boolean;
+  deletePost: (post: Post) => Promise<void>;
 };
 /**
  * React hook for querying and filtering a post list
@@ -27,8 +29,8 @@ export function useFilteredPostList(
 ): UseFilteredPostListData {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [postFilters, setPostFilters] = React.useState(emptyPostFilters);
+  const queryClient = useQueryClient();
   const queryKey = ["posts", socialNetworkFilter, postFilters.date];
-
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
@@ -39,13 +41,42 @@ export function useFilteredPostList(
       ),
   });
 
+  // Handle optimistic deletion for instant user feedback
+  const [postsPendingDeletion, setPostsPendingDeletion] = React.useState<
+    Set<string>
+  >(new Set());
+
   const filteredPosts = React.useMemo(() => {
     if (!data || data.length === 0) {
       return data || [];
     }
 
-    return filterPosts(data, searchTerm, postFilters);
-  }, [data, searchTerm, postFilters]);
+    const notBeingDeleted = data.filter(
+      (p) => !postsPendingDeletion.has(uniqueId(p)),
+    );
+
+    return filterPosts(notBeingDeleted, searchTerm, postFilters);
+  }, [data, postsPendingDeletion, searchTerm, postFilters]);
+
+  const deletePost = async (post: Post): Promise<void> => {
+    const postUniqueId = uniqueId(post);
+    setPostsPendingDeletion((prev) => {
+      return new Set([...prev, postUniqueId]);
+    });
+
+    try {
+      await deletePostFromStorage(post.socialNetwork, post.postId);
+      await queryClient.invalidateQueries({ queryKey });
+    } finally {
+      setPostsPendingDeletion((prev) => {
+        const copy = new Set(prev);
+        copy.delete(postUniqueId);
+        return copy;
+      });
+    }
+    return;
+  };
+
   return {
     searchTerm,
     setSearchTerm,
@@ -53,6 +84,7 @@ export function useFilteredPostList(
     setPostFilters,
     filteredPosts,
     isLoading,
+    deletePost,
   };
 }
 
@@ -85,4 +117,8 @@ function getEndPeriodFromFilters(filters: PostFilters): Date | undefined {
     endDate.setHours(0, 0, 0, 0);
     return endDate;
   }
+}
+
+function uniqueId(post: Post): string {
+  return post.socialNetwork + " - " + post.postId;
 }
