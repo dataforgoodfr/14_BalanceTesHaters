@@ -49,6 +49,22 @@ export async function deletePostSnapshot(postSnapshotId: string) {
   await writePostSnapshotsLists(filtered);
 }
 
+export async function deletePost(
+  socialNetwork: SocialNetworkName,
+  postId: string,
+) {
+  const posts = await getPostSnapshots();
+  const filtered = posts.filter(
+    (p) => !(p.socialNetwork === socialNetwork && p.postId === postId),
+  );
+  if (filtered.length == posts.length) {
+    throw new Error(
+      "Cannot find an existing Post with id: " + socialNetwork + "-" + postId,
+    );
+  }
+  await writePostSnapshotsLists(filtered);
+}
+
 export async function getPostSnapshots(): Promise<PostSnapshot[]> {
   const partial = await browser.storage.local.get(postSnapshotsStorageKey);
   const postSnapshotList = partial[postSnapshotsStorageKey] || [];
