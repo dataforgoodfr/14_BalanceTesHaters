@@ -14,6 +14,7 @@ import { formatAnalysisDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
+import { cn } from "@/lib/utils";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -58,7 +59,14 @@ function PostListPage() {
                 <Checkbox className="mr-2" />
                 <div className="w-full">
                   <PostSummary post={post} />
-                  <div className="mt-2 rounded-2xl bg-muted flex flex-row px-6 py-2 items-center justify-between bg-navigation-accent/50 border">
+                  <div
+                    className={cn(
+                      "mt-2 rounded-2xl flex flex-row px-6 py-2 items-center justify-between border",
+                      post.latestAnalysisStatus === "COMPLETED"
+                        ? "bg-navigation-accent/50 "
+                        : "bg-muted",
+                    )}
+                  >
                     <div className="text-sm font-medium">
                       Analyse du {formatAnalysisDate(post.latestAnalysisDate)}
                     </div>
@@ -66,6 +74,7 @@ function PostListPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={post.latestAnalysisStatus !== "COMPLETED"}
                         onClick={() => {
                           void deletePost(post);
                         }}
@@ -75,6 +84,7 @@ function PostListPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={post.latestAnalysisStatus !== "COMPLETED"}
                         onClick={() => {
                           void openPostAndStartScraping(post.url);
                         }}
@@ -84,6 +94,7 @@ function PostListPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        disabled={post.latestAnalysisStatus !== "COMPLETED"}
                         render={
                           <Link
                             to={

@@ -6,12 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import {
-  formatAnalysisDate,
-  getPublicationTypeLabel,
-  getSocialNetworkName,
-  isCommentHateful,
-} from "@/shared/utils/post-util";
+import { formatAnalysisDate, isCommentHateful } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
 import CommentsTable, { PostCommentWithId } from "./CommentsTable";
@@ -90,13 +85,6 @@ function PostDetailPage() {
             <Card>
               <CardContent className="flex gap-3 justify-between">
                 <PostSummary post={post} />
-                <div className="text-right text-muted-foreground whitespace-nowrap">
-                  <div>{getSocialNetworkName(post.socialNetwork)}</div>
-                  <div>
-                    Type:{" "}
-                    {getPublicationTypeLabel(post.url, post.socialNetwork)}
-                  </div>
-                </div>
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
