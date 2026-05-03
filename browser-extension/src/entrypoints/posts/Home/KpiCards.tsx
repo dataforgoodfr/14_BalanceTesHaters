@@ -24,7 +24,9 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
     <>
       {isLoading && <Spinner className="size-8" />}
       {!posts && !isLoading && (
-        <p>Aucun post collecté pour la période sélectionnée.</p>
+        <p className="mt-6">
+          Aucun post collecté pour la période sélectionnée.
+        </p>
       )}
       <div className="flex gap-4 justify-between">
         <PercentageHatefulCommentsKpiCard
