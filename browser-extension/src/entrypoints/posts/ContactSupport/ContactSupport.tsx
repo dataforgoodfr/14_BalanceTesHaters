@@ -42,7 +42,7 @@ function ContactSupport() {
         <CardContent>
           <p>
             Pour signaler ton problème technique tu peux envoyer un email à
-            &nbsp;<code>bth-devs[at]googlegroups.com </code>
+            &nbsp;<code>bth-devs@googlegroups.com </code>
             <a
               href="https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/new"
               target="_blank"

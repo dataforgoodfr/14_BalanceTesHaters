@@ -8,6 +8,9 @@ import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
 import { BuildReport } from "./Report/BuildReport";
 import HelpPage from "./Help/HelpPage";
+import ProductHelpPage from "./Help/ProductHelpPage";
+import HarrasementHelpPage from "./Help/HarrasementHelpPage";
+import PrivacyPolicyPage from "./Help/PrivacyPolicyPage";
 import ContactSupport from "./ContactSupport/ContactSupport";
 
 export default function App() {
@@ -27,6 +30,17 @@ export default function App() {
               element={<PostDetailPage />}
             />
             <Route index path="/help" element={<HelpPage />} />
+            <Route index path="/help/product" element={<ProductHelpPage />} />
+            <Route
+              index
+              path="/help/harrasement"
+              element={<HarrasementHelpPage />}
+            />
+            <Route
+              index
+              path="/help/privacy-policy"
+              element={<PrivacyPolicyPage />}
+            />
 
             <Route
               index
