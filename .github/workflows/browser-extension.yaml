@@ -1,9 +1,12 @@
-name: browser-extension
+name: Web Extension
 
 on:
   pull_request:
   push:
     branches: [main]
+    tags:
+      # Tags named webext-v** will trigger Web extension release creation
+      - webext-v**
 
 jobs:
   extension-checks:
@@ -53,14 +56,35 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
+
+      - name: Calculate Extension Version
+        id: vars
+        run: |
+          SHA=${GITHUB_SHA::7}
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then            
+            WEBEXT_VERSION_NAME="0.0.0-dev-pr${{ github.event.number }}-$SHA"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            # Strips 'webext-v' prefix to result in 'x.y.z-sha'
+            WEBEXT_TAG_VERSION=${GITHUB_REF_NAME#webext-v}
+            WEBEXT_VERSION_NAME="$WEBEXT_TAG_VERSION-$SHA"
+          else
+            WEBEXT_VERSION_NAME="0.0.0-dev-latest-$SHA"
+          fi
+          echo "WEBEXT_VERSION_NAME=$WEBEXT_VERSION_NAME" >> $GITHUB_ENV
+
+      - name: Set version in package.json
+        run: |
+          jq --arg ver "$WEBEXT_VERSION_NAME" '.version = $ver' package.json > tmp.json && mv tmp.json package.json
+
       - name: Build extension zip
         env:
           # Inject the VITE_BACKEND_API_TOKEN.
           VITE_BACKEND_API_TOKEN: ${{ secrets.VITE_BACKEND_API_TOKEN }}
         run: pnpm zip
 
-      - name: Upload build artifacts
+      - name: "[PR] Upload build artifacts"
         uses: actions/upload-artifact@v4
+        if: github.event_name == 'pull_request'
         id: upload-bth-extension-artifact
         with:
           if-no-files-found: error
@@ -71,7 +95,7 @@ jobs:
             ${{ github.workspace }}/browser-extension/.output/chrome-mv3
           retention-days: 30
 
-      - name: Link artifacts in PR
+      - name: "[PR] Link artifacts in PR"
         if: github.event_name == 'pull_request' && steps.upload-bth-extension-artifact.outcome == 'success'
         uses: thollander/actions-comment-pull-request@v3
         with:
@@ -79,12 +103,12 @@ jobs:
             📦 Web extension build artifacts: ${{ steps.upload-bth-extension-artifact.outputs.artifact-url }}
           comment-tag: extension-artifacts
 
-      - name: Copy assets named bth-extension
+      - name: "[main] Copy assets named bth-extension"
         if: github.ref == 'refs/heads/main'
         run: |
           cp .output/bth-extension-*-chrome.zip .output/bth-extension-latest-chrome.zip
 
-      - name: Update assets on extension-latest release
+      - name: "[main] Update assets on extension-latest release"
         uses: softprops/action-gh-release@v2.5.0
         if: github.ref == 'refs/heads/main'
         with:
@@ -94,6 +118,13 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           files: ${{github.workspace}}/browser-extension/.output/bth-extension-latest*.zip
+
+      - name: "[tag] Create release"
+        uses: softprops/action-gh-release@v2.5.0
+        if: github.ref_type == 'tag'
+        with:
+          fail_on_unmatched_files: true
+          files: ${{github.workspace}}/browser-extension/.output/bth-extension-*.zip
 
   e2e-tests:
     defaults:
