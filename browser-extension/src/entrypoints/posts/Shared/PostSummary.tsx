@@ -70,7 +70,7 @@ export function publishedAtText(at: PublicationDate): string {
     case "relative":
       return `Publiée entre le ${formatDate(at.resolvedDateRange.start)} et le ${formatDate(at.resolvedDateRange.end)}`;
     case "unknown date":
-      return `Publiée  à une date inconnue`;
+      return `Publiée à une date inconnue`;
   }
 }
 

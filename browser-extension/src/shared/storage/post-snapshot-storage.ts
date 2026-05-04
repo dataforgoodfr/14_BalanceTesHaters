@@ -26,7 +26,7 @@ export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
 
 export async function insertPostSnapshot(postSnapshot: PostSnapshot) {
   const existingPosts = await getPostSnapshots();
-  if (existingPosts.find((p) => p.id == postSnapshot.id)) {
+  if (existingPosts.find((p) => p.id === postSnapshot.id)) {
     throw new Error("Post already exists with id: " + postSnapshot.id);
   }
 
@@ -41,7 +41,7 @@ export async function deleteAllPostSnapshots() {
 export async function deletePostSnapshot(postSnapshotId: string) {
   const posts = await getPostSnapshots();
   const filtered = posts.filter((p) => !(p.id === postSnapshotId));
-  if (filtered.length == posts.length) {
+  if (filtered.length === posts.length) {
     throw new Error(
       "Cannot find an existing PostSnapshot with id: " + postSnapshotId,
     );
@@ -57,7 +57,7 @@ export async function deletePost(
   const filtered = posts.filter(
     (p) => !(p.socialNetwork === socialNetwork && p.postId === postId),
   );
-  if (filtered.length == posts.length) {
+  if (filtered.length === posts.length) {
     throw new Error(
       "Cannot find an existing Post with id: " + socialNetwork + "-" + postId,
     );
