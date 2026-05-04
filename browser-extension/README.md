@@ -13,7 +13,7 @@ Voir [./CONTRIBUTING.md](./CONTRIBUTING.md)
 Pour installer depuis un zip:
 
 - Télécharger le zip
-  - Pour la dernière version de dev: https://github.com/dataforgoodfr/14_BalanceTesHaters/releases/download/extension-latest/bth-extension-0.0.0-chrome.zip
+  - Pour la dernière version de dev: https://github.com/dataforgoodfr/14_BalanceTesHaters/releases/download/extension-latest/bth-extension-latest-chrome.zip
   - Les PR contiennent un lien vers un artifact de build
 - Dézipper le fichier et copier le chemin vers le répertoire dézippé
 - Ouvrir Google Chrome
