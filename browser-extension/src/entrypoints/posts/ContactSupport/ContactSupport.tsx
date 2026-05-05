@@ -35,7 +35,7 @@ function ContactSupport() {
   });
 
   return (
-    <main className="p-4 flex flex-col gap-6  items-start">
+    <main className="flex flex-col gap-6  items-start">
       <PageHeader title="Signaler un problème" />
       <Card>
         <CardTitle>Comment signaler mon problème</CardTitle>

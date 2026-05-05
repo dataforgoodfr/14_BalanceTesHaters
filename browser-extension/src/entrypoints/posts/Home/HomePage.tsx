@@ -40,7 +40,7 @@ function HomePage() {
   const allComments = (data || []).flatMap((p) => p.comments);
 
   return (
-    <main className="p-4 flex flex-col gap-6 w-full ">
+    <main className="flex flex-col gap-6">
       <PageHeader title="Vue d'ensemble" />
       <div className="flex justify-between ">
         <SocialNetworkSelector

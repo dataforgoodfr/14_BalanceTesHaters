@@ -41,7 +41,7 @@ function PostSnapshotDetailPage() {
   });
 
   return (
-    <main className="p-4">
+    <main>
       {isLoading && <div>Loading...</div>}
       {post && (
         <>

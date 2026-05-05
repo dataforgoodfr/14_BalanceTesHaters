@@ -88,7 +88,7 @@ function PostSnapshotListPage() {
   };
 
   return (
-    <main className="p-4 flex flex-col gap-4 w-full max-w-full overflow-x-hidden">
+    <main className="flex flex-col gap-4 overflow-x-hidden">
       <h1>Publications collectées</h1>
 
       {postsQuery.isLoading && <Spinner className="size-8" />}

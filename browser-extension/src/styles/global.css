@@ -39,7 +39,7 @@ blockquote {
 }
 
 main {
-  @apply bg-background m-3 rounded-md overflow-hidden w-11/12;
+  @apply bg-background m-3 p-4 rounded-md w-full min-h-[calc(100%-var(--spacing)*6)] h-fit;
 }
 
 /* Shadcn theme*/
