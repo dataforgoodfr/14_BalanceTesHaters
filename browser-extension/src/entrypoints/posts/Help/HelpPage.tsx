@@ -6,7 +6,7 @@ import { BookOpenTextIcon, HandHeartIcon, ShieldCheckIcon } from "lucide-react";
 
 function HelpPage() {
   return (
-    <main className="p-4 flex flex-col gap-6 items-start w-full max-w-4xl">
+    <main className="flex flex-col gap-6 items-start">
       <PageHeader title="Aide et ressources" />
 
       <div className="grid gap-4 md:grid-cols-3 w-full">

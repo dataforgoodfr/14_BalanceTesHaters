@@ -32,7 +32,7 @@ function PostListPage() {
   } = useFilteredPostList(socialNetworkFilter);
 
   return (
-    <main className="p-4 flex flex-col gap-6  items-start">
+    <main className="flex flex-col gap-6  items-start">
       <PageHeader title="Publications analysées" />
       <SocialNetworkSelector
         value={socialNetworkFilter}

@@ -41,7 +41,7 @@ function PostDetailPage() {
   const numberOfHatefulComments = hatefulComments.length;
 
   return (
-    <main className="p-4 flex flex-col gap-6 w-5/6">
+    <main className="flex flex-col gap-6">
       {isLoading && <div>Chargement...</div>}
       {post && (
         <>

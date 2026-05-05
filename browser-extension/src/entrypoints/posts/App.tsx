@@ -17,10 +17,10 @@ export default function App() {
   return (
     <HashRouter>
       <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
-        <div className="w-1/5 overflow-y-auto">
+        <div className="w-[210px] flex-none overflow-y-auto">
           <SidePanelMenu />
         </div>
-        <div className="flex-1 w-fit overflow-y-auto ">
+        <div className="flex-grow flex-shrink flex overflow-y-auto">
           <Routes>
             <Route index path="/" element={<HomePage />} />
             <Route index path="/posts" element={<PostListPage />} />

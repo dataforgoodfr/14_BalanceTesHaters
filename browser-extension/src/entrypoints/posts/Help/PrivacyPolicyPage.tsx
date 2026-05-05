@@ -4,7 +4,7 @@ import { HelpPageContent } from "./HelpContent";
 
 function PrivacyPolicyPage() {
   return (
-    <main className="p-4 flex flex-col items-start w-full max-w-4xl">
+    <main className="flex flex-col items-start ">
       <PageHeader title="Aide et ressources - Données personnelles et politique de confidentialité" />
       <HelpPageContent mdContent={privacyPolicyMarkdown}></HelpPageContent>
     </main>
