@@ -10,6 +10,7 @@ on:
 
 jobs:
   extension-checks:
+    name: Checks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,10 +41,13 @@ jobs:
         run: pnpm test
 
   extension-artifacts:
+    name: Build Artifacts
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: browser-extension
+    outputs:
+      tag-release-id: ${{steps.create-tag-release.outputs.id}}
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v4
@@ -58,7 +62,7 @@ jobs:
         run: pnpm install
 
       - name: Calculate Extension Version
-        id: vars
+        id: compute-version
         run: |
           SHA=${GITHUB_SHA::7}
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then            
@@ -70,11 +74,13 @@ jobs:
           else
             WEBEXT_VERSION_NAME="0.0.0-dev-latest-$SHA"
           fi
-          echo "WEBEXT_VERSION_NAME=$WEBEXT_VERSION_NAME" >> $GITHUB_ENV
+          echo "version-name=$WEBEXT_VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "tag-version=$WEBEXT_TAG_VERSION" >> $GITHUB_OUTPUT
 
       - name: Set version in package.json
         run: |
-          jq --arg ver "$WEBEXT_VERSION_NAME" '.version = $ver' package.json > tmp.json && mv tmp.json package.json
+          echo "Using package version: ${{steps.compute-version.outputs.version-name}}" 
+          jq --arg ver "${{steps.compute-version.outputs.version-name}}" '.version = $ver' package.json > tmp.json && mv tmp.json package.json
 
       - name: Build extension zip
         env:
@@ -112,7 +118,7 @@ jobs:
         uses: softprops/action-gh-release@v2.5.0
         if: github.ref == 'refs/heads/main'
         with:
-          name: Extension Development Build
+          name: Web Extension Latest Development Build
           tag_name: extension-latest
           target_commitish: ${{github.sha}}
           prerelease: true
@@ -120,13 +126,57 @@ jobs:
           files: ${{github.workspace}}/browser-extension/.output/bth-extension-latest*.zip
 
       - name: "[tag] Create release"
+        id: create-tag-release
         uses: softprops/action-gh-release@v2.5.0
         if: github.ref_type == 'tag'
         with:
+          name: Web Extension ${{steps.compute-version.outputs.tag-version}}
           fail_on_unmatched_files: true
           files: ${{github.workspace}}/browser-extension/.output/bth-extension-*.zip
 
+  publish:
+    name: Publish Release To Store
+    needs: [extension-checks, extension-artifacts]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    environment: Chrome Web Store
+    defaults:
+      run:
+        working-directory: browser-extension
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: "browser-extension/package.json"
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: "browser-extension/package.json"
+          cache-dependency-path: "browser-extension/pnpm-lock.yaml"
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: "Fetch artifacts from tag release"
+        env:
+          TAG_RELEASE_ID: ${{needs.extension-artifacts.outputs.tag-release-id}}
+        run: |
+          RELEASE_ASSETS_URL="https://api.github.com/repos/dataforgoodfr/14_BalanceTesHaters/releases/$TAG_RELEASE_ID/assets"
+          echo "RELEASE_ASSETS_URL: $RELEASE_ASSETS_URL"
+          # Query assets and extract download url for chrome zip
+          CHROME_ASSET_DOWNLOAD_URL=$(curl $RELEASE_ASSETS_URL | jq -r '.[] | select(.browser_download_url|test(".*chrome.zip")) | .browser_download_url')
+          echo "CHROME_ASSET_DOWNLOAD_URL: $CHROME_ASSET_DOWNLOAD_URL"
+          curl -o chrome-extension.zip $CHROME_ASSET_DOWNLOAD_URL
+      - name: "Submit to Chrome Web Store"
+        env:
+          CHROME_EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
+          CHROME_PUBLISH_TARGET: "default"
+          CHROME_SKIP_SUBMIT_REVIEW: false
+          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: pnpm wxt submit --chrome-zip chrome-extension.zip
+
   e2e-tests:
+    name: E2E Tests
     defaults:
       run:
         working-directory: browser-extension

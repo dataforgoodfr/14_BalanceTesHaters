@@ -59,3 +59,20 @@ e.g. `pnpm dlx shadcn@latest add accordion`
 - [vitest](https://vitest.dev/) comme framework de test
 - prettier comme formatter
 - eslint comme linter
+
+# Release process
+
+Pour déclencher une release de l'extension il suffit de créer un tag git de la forme webext-v<x.y.z> et le publier sur github.
+
+Cela declenchera la création de la release GITHUB ainsi que la publication vers le Chrome Web Store.
+
+Exemple pour créé une version 0.0.3
+
+```bash
+# Sync with remote
+git fetch
+# Create a webext-v0.0.3 tag from current origin/main
+git tag -a webext-v0.0.3 origin/main
+# Push the tag
+git push origin tag webext-v0.0.3
+```
