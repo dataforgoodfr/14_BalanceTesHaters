@@ -76,10 +76,15 @@ function PostDetailPage() {
               <h1 className="mt-2 mb-1 ">
                 Analyse des commentaires malveillants
               </h1>
-              <span className="text-base mt-0">
+              <div className="text-base mt-0">
                 Données collectées le{" "}
-                {formatAnalysisDate(post.latestAnalysisDate)}
-              </span>
+                {formatAnalysisDate(post.firstAnalysisDate)}
+              </div>
+              {post.analysisCount > 1 && (
+                <div className="text-base mt-0 italic">
+                  Mise à jour le {formatAnalysisDate(post.latestAnalysisDate)}
+                </div>
+              )}
             </div>
             <h3 className="text-left">Publication analysée</h3>
             <Card>

@@ -38,6 +38,8 @@ const inProgressPost: Post = {
   comments: Array<PostComment>(100).fill(exampleComment),
   latestAnalysisDate: "2026-03-22T00:00:00.000Z",
   latestAnalysisStatus: "IN_PROGRESS",
+  firstAnalysisDate: "2026-03-22T00:00:00.000Z",
+  analysisCount: 1,
 };
 
 const completedPost: Post = {
