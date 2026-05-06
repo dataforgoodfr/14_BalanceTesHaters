@@ -16,6 +16,8 @@ export default defineConfig({
   }),
   manifest: {
     name: "Balance Tes Haters : outil de détection de commentaires malveillants",
+    description:
+      "L'outil Balance tes Haters permet de récupérer automatiquement des commentaires sous une ou plusieurs vidéos, et de les classer en fonction de leur agressivité, afin d'aider les victimes de cyberharcèlement à générer un dossier de plainte.",
     permissions: [
       // storage and unlimitedStorage used to store post snapshots
       "storage",
