@@ -16,18 +16,9 @@ import { Post, PostComment } from "@/shared/model/post/Post";
  * @returns Array containing a single Post with dummy data
  */
 function createDummyPostWithDate(publishedAt: PublicationDate): Post {
-  return {
-    postId: "dummy-post-1",
-    socialNetwork: SocialNetwork.YouTube,
-    url: "https://www.youtube.com/watch?v=dummy",
+  return createDummyPost({
     publishedAt,
-    author: {
-      name: "Dummy Author",
-      accountHref: "https://youtube.com/@dummyauthor",
-    },
-    latestAnalysisDate: new Date().toLocaleDateString(),
-    comments: [],
-  };
+  });
 }
 
 /**
@@ -48,6 +39,8 @@ function createDummyPost(overrides: Partial<Post> = {}): Post {
       name: "Dummy Author",
       accountHref: "https://youtube.com/@dummyauthor",
     },
+    firstAnalysisDate: new Date().toLocaleDateString(),
+    analysisCount: 1,
     latestAnalysisDate: new Date().toLocaleDateString(),
     comments: [],
     ...overrides,

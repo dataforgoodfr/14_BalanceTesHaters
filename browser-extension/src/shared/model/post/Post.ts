@@ -13,6 +13,15 @@ export type Post = PostSharedProperties & {
   comments: PostComment[];
 
   /**
+   * Date of first PostSnapshot
+   */
+  firstAnalysisDate: string;
+
+  /**
+   * Number of PostSnapshot associated to this post
+   */
+  analysisCount: number;
+  /**
    * Date of the latest snapshot on which this post is based.
    */
   latestAnalysisDate: string;

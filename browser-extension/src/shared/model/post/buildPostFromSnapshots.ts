@@ -30,6 +30,8 @@ export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
     textContent: latest.textContent,
     title: latest.title,
     comments: buildCommentsFromSnapshots(oldestFirst),
+    firstAnalysisDate: oldest.scrapedAt,
+    analysisCount: snapshots.length,
     latestAnalysisDate: latest.scrapedAt,
     latestAnalysisStatus: latest.classificationStatus,
   };
