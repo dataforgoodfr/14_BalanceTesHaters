@@ -115,7 +115,10 @@ function PostDetailPage() {
                   postComments={post.comments}
                   isLoading={isLoading}
                 />
-                <CategoryDistribution />
+                <CategoryDistribution
+                  postComments={post.comments}
+                  isLoading={isLoading}
+                />
               </div>
             </div>
             <div className="text-left">

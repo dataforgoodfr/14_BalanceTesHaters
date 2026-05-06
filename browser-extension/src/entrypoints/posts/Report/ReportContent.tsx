@@ -87,7 +87,10 @@ export const ReportContent = ({
           postComments={reportQueryData?.postCommentList ?? []}
           isLoading={isLoadingPosts}
         />
-        <CategoryDistribution />
+        <CategoryDistribution
+          postComments={posts?.flatMap((p) => p.comments) ?? []}
+          isLoading={isLoadingPosts}
+        />
       </div>
       {groupedCommentsByPost.map(([postKey, commentList], index) => {
         const post = posts?.find(
