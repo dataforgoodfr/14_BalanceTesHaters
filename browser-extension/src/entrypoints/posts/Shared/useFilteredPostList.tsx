@@ -4,6 +4,8 @@ import {
   emptyPostFilters,
   filterPosts,
   PostFilters,
+  PostSortingCategory,
+  sortPosts,
 } from "@/shared/utils/post-util";
 import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +28,7 @@ export type UseFilteredPostListData = {
  */
 export function useFilteredPostList(
   socialNetworkFilter: string[],
+  postSortingCategory: PostSortingCategory,
 ): UseFilteredPostListData {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [postFilters, setPostFilters] = React.useState(emptyPostFilters);
@@ -54,9 +57,19 @@ export function useFilteredPostList(
     const notBeingDeleted = data.filter(
       (p) => !postsPendingDeletion.has(uniqueId(p)),
     );
-
-    return filterPosts(notBeingDeleted, searchTerm, postFilters);
-  }, [data, postsPendingDeletion, searchTerm, postFilters]);
+    const filteredPostList: Post[] = filterPosts(
+      notBeingDeleted,
+      searchTerm,
+      postFilters,
+    );
+    return sortPosts(filteredPostList, postSortingCategory);
+  }, [
+    data,
+    postsPendingDeletion,
+    searchTerm,
+    postFilters,
+    postSortingCategory,
+  ]);
 
   const deletePost = async (post: Post): Promise<void> => {
     const postUniqueId = uniqueId(post);

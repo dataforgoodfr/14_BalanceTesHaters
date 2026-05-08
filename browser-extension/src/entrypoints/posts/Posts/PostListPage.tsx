@@ -10,7 +10,10 @@ import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { openPostAndStartScraping } from "../../actions/openPostAndStartScraping";
 import { EyeIcon, RotateCwIcon, Trash2Icon } from "lucide-react";
-import { formatAnalysisDate } from "@/shared/utils/post-util";
+import {
+  formatAnalysisDate,
+  PostSortingCategory,
+} from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
@@ -20,6 +23,8 @@ function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
     string[]
   >([SocialNetwork.YouTube]);
+  const [postSortingCategory, setPostSortingCategory] =
+    React.useState<PostSortingCategory>(PostSortingCategory.ANALYSIS_DATE_DESC);
 
   const {
     searchTerm,
@@ -29,7 +34,7 @@ function PostListPage() {
     isLoading,
     filteredPosts,
     deletePost,
-  } = useFilteredPostList(socialNetworkFilter);
+  } = useFilteredPostList(socialNetworkFilter, postSortingCategory);
 
   return (
     <main className="flex flex-col gap-6  items-start">
@@ -43,6 +48,8 @@ function PostListPage() {
         setSearchTerm={setSearchTerm}
         postFilters={postFilters}
         setPostFilters={setPostFilters}
+        postSortingCategory={postSortingCategory}
+        setPostSortingCategory={setPostSortingCategory}
       />
 
       {isLoading && <Spinner className="size-8" />}

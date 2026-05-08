@@ -1,6 +1,13 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowDownUp, Funnel, Check, ChevronRight } from "lucide-react";
+import {
+  ArrowDownUp,
+  Funnel,
+  Check,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 import {
   Popover,
   PopoverContent,
@@ -17,6 +24,7 @@ import {
   emptyPostFilters,
   NbHatefulCommentsOptions,
   PostFilters,
+  PostSortingCategory,
 } from "@/shared/utils/post-util";
 
 type FilterCategory =
@@ -91,13 +99,18 @@ function SearchSortFiltersPostList({
   setSearchTerm,
   postFilters,
   setPostFilters,
+  postSortingCategory: selectedSortingCategory,
+  setPostSortingCategory,
 }: Readonly<{
   searchTerm: string;
   setSearchTerm: (value: string) => void;
   postFilters: PostFilters;
   setPostFilters: (value: PostFilters) => void;
+  postSortingCategory: PostSortingCategory;
+  setPostSortingCategory: (value: PostSortingCategory) => void;
 }>) {
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [sortingOpen, setSortingOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] =
     useState<FilterCategory>("date");
   const [selectedFilters, setSelectedFilters] =
@@ -109,12 +122,16 @@ function SearchSortFiltersPostList({
     });
   };
 
-  const handleOpenChange = (open: React.SetStateAction<boolean>) => {
+  const handleFiltersOpenChange = (open: React.SetStateAction<boolean>) => {
     setFiltersOpen(open);
     // Lorsque la modale se ferme, les filtres sont réinitialisés à la valeur des filtres appliqués
     if (!open) {
       setSelectedFilters(postFilters);
     }
+  };
+
+  const handleSortingOpenChange = (open: React.SetStateAction<boolean>) => {
+    setSortingOpen(open);
   };
 
   const nbSelectedFilters = Object.values(postFilters).filter((categoryValue) =>
@@ -130,7 +147,7 @@ function SearchSortFiltersPostList({
         onChange={(event) => setSearchTerm(event.target.value)}
       />
 
-      <Popover open={filtersOpen} onOpenChange={handleOpenChange}>
+      <Popover open={filtersOpen} onOpenChange={handleFiltersOpenChange}>
         <PopoverTrigger>
           <Button variant="outline" onClick={() => setFiltersOpen(true)}>
             <Funnel /> Filtrer{" "}
@@ -214,10 +231,56 @@ function SearchSortFiltersPostList({
         </PopoverContent>
       </Popover>
 
-      <Button variant="outline" disabled>
-        <ArrowDownUp />
-        Trier
-      </Button>
+      <Popover open={sortingOpen} onOpenChange={handleSortingOpenChange}>
+        <PopoverTrigger>
+          <Button variant="outline" onClick={() => setSortingOpen(true)}>
+            <ArrowDownUp /> Trier
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-auto p-0 flex flex-col min-w-sm"
+        >
+          <div>
+            {Object.values(PostSortingCategory).map((sortingCategory) => (
+              <div key={sortingCategory} className="p-1">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setPostSortingCategory(
+                      sortingCategory as PostSortingCategory,
+                    );
+                    setSortingOpen(false);
+                  }}
+                  className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
+                >
+                  {[
+                    PostSortingCategory.ANALYSIS_DATE_DESC,
+                    PostSortingCategory.PUBLICATION_DATE_DESC,
+                    PostSortingCategory.NB_HATEFUL_COMMENTS_DESC,
+                  ].includes(sortingCategory as PostSortingCategory) && (
+                    <ArrowUp />
+                  )}
+                  {[
+                    PostSortingCategory.ANALYSIS_DATE_ASC,
+                    PostSortingCategory.PUBLICATION_DATE_ASC,
+                    PostSortingCategory.NB_HATEFUL_COMMENTS_ASC,
+                  ].includes(sortingCategory as PostSortingCategory) && (
+                    <ArrowDown />
+                  )}
+                  <span>
+                    {getSortingLabel(sortingCategory as PostSortingCategory)}
+                  </span>
+                  {selectedSortingCategory ===
+                    (sortingCategory as PostSortingCategory) && (
+                    <Check className="ms-auto" />
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }
@@ -275,4 +338,24 @@ function isCategoryFiltered(
   return Array.isArray(categoryValue)
     ? categoryValue.length > 0
     : categoryValue !== undefined;
+}
+
+// Attention, Le texte ne correspond pas forcément à un ordre croissant ou décroissant au sens mathématique,
+// mais plutôt à une logique métier (ex: "de nouveau à ancien" est considéré comme descendant même si du point
+// de vue mathématique c'est un ordre croissant)
+function getSortingLabel(sortingCategory: PostSortingCategory): string {
+  switch (sortingCategory) {
+    case PostSortingCategory.ANALYSIS_DATE_ASC:
+      return "Date analyse : d’ancien à nouveau";
+    case PostSortingCategory.ANALYSIS_DATE_DESC:
+      return "Date analyse : de nouveau à ancien";
+    case PostSortingCategory.PUBLICATION_DATE_ASC:
+      return "Date publication : d’ancien à nouveau";
+    case PostSortingCategory.PUBLICATION_DATE_DESC:
+      return "Date publication : de nouveau à ancien";
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
+      return "Nb commentaires malveillants : de faible à élevé";
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
+      return "Nb commentaires malveillants : d’élevé à faible";
+  }
 }
