@@ -14,6 +14,15 @@ export enum DateFilterOptions {
   TWELVE_MONTHS = "12months",
 }
 
+export enum PostSortingCategory {
+  ANALYSIS_DATE_DESC = "analysisDateDesc",
+  ANALYSIS_DATE_ASC = "analysisDateAsc",
+  NB_HATEFUL_COMMENTS_DESC = "nbHatefulCommentsDesc",
+  NB_HATEFUL_COMMENTS_ASC = "nbHatefulCommentsAsc",
+  PUBLICATION_DATE_DESC = "publicationDateDesc",
+  PUBLICATION_DATE_ASC = "publicationDateAsc",
+}
+
 export type PostFilters = {
   date: DateFilterOptions | undefined;
   nbHatefulComments: NbHatefulCommentsOptions[];
@@ -192,4 +201,62 @@ export function filterPosts(
       commentsContent.includes(searchValue)
     );
   });
+}
+
+export function sortPosts(
+  posts: Post[],
+  sortingCategory: PostSortingCategory,
+): Post[] {
+  switch (sortingCategory) {
+    case PostSortingCategory.ANALYSIS_DATE_ASC:
+      return [...posts].sort(
+        (a, b) =>
+          new Date(a.latestAnalysisDate).getTime() -
+          new Date(b.latestAnalysisDate).getTime(),
+      );
+    case PostSortingCategory.ANALYSIS_DATE_DESC:
+      return [...posts].sort(
+        (a, b) =>
+          new Date(b.latestAnalysisDate).getTime() -
+          new Date(a.latestAnalysisDate).getTime(),
+      );
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
+      return [...posts].sort(
+        (a, b) =>
+          a.comments.filter(isCommentHateful).length -
+          b.comments.filter(isCommentHateful).length,
+      );
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
+      return [...posts].sort(
+        (a, b) =>
+          b.comments.filter(isCommentHateful).length -
+          a.comments.filter(isCommentHateful).length,
+      );
+    case PostSortingCategory.PUBLICATION_DATE_ASC:
+      return [...posts].sort((a, b) => {
+        return (
+          getPostDateForSorting(a).getTime() -
+          getPostDateForSorting(b).getTime()
+        );
+      });
+    case PostSortingCategory.PUBLICATION_DATE_DESC:
+      return [...posts].sort((a, b) => {
+        return (
+          getPostDateForSorting(b).getTime() -
+          getPostDateForSorting(a).getTime()
+        );
+      });
+  }
+}
+
+function getPostDateForSorting(post: Post): Date {
+  switch (post.publishedAt.type) {
+    case "absolute":
+      return new Date(post.publishedAt.date);
+    case "relative":
+      return new Date(post.publishedAt.resolvedDateRange.end);
+    default:
+      // earliest possible date
+      return new Date(0);
+  }
 }

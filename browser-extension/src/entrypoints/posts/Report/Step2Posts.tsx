@@ -7,8 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import PostSummary from "../Shared/PostSummary";
 import { useForm } from "@tanstack/react-form";
 import { getFormId } from "./StepperComponents";
-import { formatAnalysisDate } from "@/shared/utils/post-util";
+import {
+  formatAnalysisDate,
+  PostSortingCategory,
+} from "@/shared/utils/post-util";
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
+import React from "react";
 
 function Step2Posts({
   reportQueryData,
@@ -17,6 +21,9 @@ function Step2Posts({
   reportQueryData: ReportQueryData | undefined;
   setPostList: (postList: string[]) => void;
 }>) {
+  const [postSortingCategory, setPostSortingCategory] =
+    React.useState<PostSortingCategory>(PostSortingCategory.ANALYSIS_DATE_DESC);
+
   const {
     searchTerm,
     setSearchTerm,
@@ -24,7 +31,10 @@ function Step2Posts({
     setPostFilters,
     isLoading,
     filteredPosts,
-  } = useFilteredPostList(reportQueryData?.socialNetworkList || []);
+  } = useFilteredPostList(
+    reportQueryData?.socialNetworkList || [],
+    postSortingCategory,
+  );
 
   const stepper = useStepper();
 
@@ -49,6 +59,8 @@ function Step2Posts({
         setSearchTerm={setSearchTerm}
         postFilters={postFilters}
         setPostFilters={setPostFilters}
+        postSortingCategory={postSortingCategory}
+        setPostSortingCategory={setPostSortingCategory}
       />
 
       {isLoading && <Spinner className="size-8" />}
