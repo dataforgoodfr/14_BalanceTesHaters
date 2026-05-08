@@ -40,7 +40,6 @@ function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
 
   const handleSelect = (range: DateRange | undefined) => {
     setDateRange(range);
-    onChange?.(range);
   };
 
   const handleLastDays = (days: number | undefined) => {
@@ -53,8 +52,10 @@ function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
       dateRange.from?.setHours(0, 0, 0, 0);
       dateRange.to?.setHours(0, 0, 0, 0);
       handleSelect(dateRange);
+      onChange?.(dateRange);
     } else {
       handleSelect(undefined);
+      onChange?.(undefined);
     }
     setCalendarOpen(false);
   };
@@ -116,6 +117,26 @@ function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
                 date > new Date() || date < new Date("1900-01-01")
               }
             />
+          </div>
+          <div className=" flex gap-2 justify-end p-2 border border-t">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-sm"
+              onClick={() => handleSelect(undefined)}
+            >
+              Effacer
+            </Button>
+            <Button
+              size="sm"
+              className="rounded-sm"
+              onClick={() => {
+                onChange?.(dateRange);
+                setCalendarOpen(false);
+              }}
+            >
+              Valider
+            </Button>
           </div>
         </PopoverContent>
       </Popover>
