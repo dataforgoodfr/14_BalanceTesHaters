@@ -77,14 +77,14 @@ function PopupContent() {
           data-testid="start-scraping-button"
           className="w-full"
           onClick={() => {
-            if (
-              tabInfo.type !==
-              ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT
-            ) {
-              // We don't start scraping if  previously scrapped to show the "Analyse existante" alert
-              startScraping(tabInfo.tabId);
-            }
             void openSidePanel(tabInfo.tabId).then(() => {
+              if (
+                tabInfo.type !==
+                ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT
+              ) {
+                // We don't start scraping if  previously scrapped to show the "Analyse existante" alert
+                startScraping(tabInfo.tabId);
+              }
               window.close();
             });
           }}

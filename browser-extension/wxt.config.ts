@@ -14,40 +14,53 @@ export default defineConfig({
   vite: () => ({
     plugins: [tailwindcss()],
   }),
-  manifest: {
+  manifest: () => ({
     name: "Balance Tes Haters : outil de détection de commentaires malveillants",
     description:
       "L'outil Balance tes Haters permet de récupérer automatiquement des commentaires sous une ou plusieurs vidéos, et de les classer en fonction de leur agressivité, afin d'aider les victimes de cyberharcèlement à générer un dossier de plainte.",
     permissions: [
-      // storage and unlimitedStorage used to store post snapshots
       "storage",
       "unlimitedStorage",
-      // Scripting required for running content script in scraped pages
       "scripting",
-
-      // background, alarms and notifications required to poll server in background
-      // for classificaiton results and notify user
-      "background",
       "alarms",
       "notifications",
-      // Downloads required to download reports
       "downloads",
-      // Tabs required mostly to query tab in e2e tests
       "tabs",
-      // Active tab needed to captureVisibleTab and get current tab info
       "activeTab",
-      // Sidepanel needed to display scraping progresss
-      "sidePanel",
+      // CHrome specific permissions
+      ...(import.meta.env.CHROME ? ["sidePanel"] : []),
     ],
     host_permissions: [
-      // Allow sending data to backend server
       "http://localhost:8080/*",
       "https://balanceteshaters-app.services.d4g.fr/*",
-      // Allow access to scraped pages content
       "https://www.instagram.com/*",
       "https://www.youtube.com/*",
-      // <all_urls> required for captureVisibleTab when scrap started outside of "activeTab" scope that is from "Relance analyse"
       "<all_urls>",
     ],
+  }),
+  hooks: {
+    "build:manifestGenerated"(wxt, manifest) {
+      if (wxt.config.browser === "firefox") {
+        manifest.browser_specific_settings = {
+          gecko: {
+            id: "bth-extension@balanceteshaters.d4g.fr",
+            update_url:
+              "https://balanceteshaters-app.services.d4g.fr/updates/firefox.json",
+          },
+        };
+        manifest.sidebar_action = {
+          default_panel: "/scraping-sidepanel.html",
+          default_title: "Balance Tes Haters",
+          default_icon: {
+            "16": "icons/16.png",
+            "32": "icons/32.png",
+            "48": "icons/48.png",
+            "96": "icons/96.png",
+            "128": "icons/128.png",
+            "256": "icons/256.png",
+          },
+        };
+      }
+    },
   },
 });

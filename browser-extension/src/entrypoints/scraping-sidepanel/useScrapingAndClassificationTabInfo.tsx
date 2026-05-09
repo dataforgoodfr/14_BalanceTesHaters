@@ -44,8 +44,22 @@ export enum ScrapingAndClassificationTabInfoType {
  * @returns
  */
 export function useScrapingAndClassificationTabInfo(
-  tabId: number | undefined,
+  tabIdOrActiveTab: number | undefined | "use-active-tab",
 ): UseQueryResult<ScrapingAndClassificationTabInfo> {
+  const tabIdQueryKey = [tabIdOrActiveTab];
+  const { data: tabId } = useQuery({
+    queryKey: tabIdQueryKey,
+    queryFn: async () => {
+      if (tabIdOrActiveTab === "use-active-tab") {
+        const queryOptions = { active: true, lastFocusedWindow: true };
+        const [tab] = await browser.tabs.query(queryOptions);
+        return tab.id;
+      } else {
+        return tabIdOrActiveTab;
+      }
+    },
+  });
+
   const queryResult = useQuery({
     queryKey: scrapingAndClassificationTabInfoQueryKey(tabId),
     queryFn: () => queryScrapingAndClassificationTabInfo(tabId),
@@ -59,6 +73,9 @@ export function useScrapingAndClassificationTabInfo(
       changeInfo: Browser.tabs.OnUpdatedInfo,
     ) => {
       if (changedTabId === tabId && changeInfo.url) {
+        void queryClient.invalidateQueries({
+          queryKey: tabIdQueryKey,
+        });
         // Trigger query on tab url change to keep side panel content
         void queryClient.invalidateQueries({
           queryKey: scrapingAndClassificationTabInfoQueryKey(tabId),
@@ -159,7 +176,7 @@ export type TabInfoClassificationFailed = {
   snapshot: PostSnapshot;
 };
 
-export async function queryScrapingAndClassificationTabInfo(
+async function queryScrapingAndClassificationTabInfo(
   tabId: number | undefined,
 ): Promise<ScrapingAndClassificationTabInfo> {
   if (tabId === undefined) {

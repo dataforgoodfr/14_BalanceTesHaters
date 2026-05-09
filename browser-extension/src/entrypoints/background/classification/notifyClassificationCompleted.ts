@@ -20,43 +20,27 @@ export function notifyClassificationCompleted(
     nbPublications === 1
       ? `Analyse terminée`
       : `${nbPublications} analyses terminées`;
-  const message = `Tu peux consulter les résultats.`;
+  const message = `Clique sur la notification pour consulter les résultats.`;
 
   const resultsUrl =
     nbPublications === 1 ? postUrl(dedupedByPostIds[0]) : postListUrl();
-  const openResultsButtonTitle =
-    nbPublications === 1 ? `Accéder à l'analyse` : `Accéder aux analyse`;
 
   createNotification({
     title: title,
     message,
-    buttons: [
-      {
-        title: openResultsButtonTitle,
-        onClick: () => {
-          void browser.tabs.create({ url: resultsUrl, active: true });
-        },
-      },
-    ],
     onClick: () => {
       void browser.tabs.create({ url: resultsUrl, active: true });
     },
   });
 }
 
-type ButtonWithHandler = Browser.notifications.NotificationButton & {
-  onClick: () => void;
-};
-
 function createNotification({
   title,
   message,
-  buttons,
   onClick,
 }: {
   title: string;
   message: string;
-  buttons: ButtonWithHandler[];
   onClick?: () => void;
 }) {
   const id = "classification-completed-" + crypto.randomUUID();
@@ -66,16 +50,6 @@ function createNotification({
       onClick();
     }
   };
-  const onButtonClicked = (
-    clickedNotificationId: string,
-    buttonIndex: number,
-  ) => {
-    if (clickedNotificationId === id && buttons.length > buttonIndex) {
-      removeListeners();
-      buttons[buttonIndex].onClick();
-    }
-  };
-
   const onClosedListener = (closedNotificationId: string) => {
     if (closedNotificationId === id) {
       removeListeners();
@@ -83,22 +57,16 @@ function createNotification({
   };
   browser.notifications.onClosed.addListener(onClosedListener);
   browser.notifications.onClicked.addListener(onNotificationClicked);
-  browser.notifications.onButtonClicked.addListener(onButtonClicked);
   function removeListeners() {
     browser.notifications.onClosed.removeListener(onClosedListener);
     browser.notifications.onClicked.removeListener(onNotificationClicked);
-    browser.notifications.onButtonClicked.removeListener(onButtonClicked);
   }
-  const buttonsWithoutExtraOnClick = buttons.map(
-    ({ onClick: _, ...withoutOnClick }) => withoutOnClick,
-  );
   //Create notification and don't wait for the result
   void browser.notifications.create(id, {
     type: "basic",
     title,
     message,
     iconUrl: iconUrl,
-    buttons: buttonsWithoutExtraOnClick,
   });
 }
 
@@ -111,4 +79,4 @@ export function postListUrl() {
   return baseUrl + "#/posts";
 }
 
-export const notificaitonId = "classificaiton_completed";
+export const notificaitonId = "classification_completed";

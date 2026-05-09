@@ -26,7 +26,14 @@ export function buildFullImageFromFragments(
     }),
     { width: 0, height: 0 },
   );
-  let fullPageImage = new Image(Math.ceil(width), Math.ceil(height));
+  const firstFragmentImage = decodePng(
+    base64ToUint8Array(
+      extractBase64DataFromDataUrl(screenshotFragments[0].screenshotDataUrl),
+    ),
+  );
+  let fullPageImage = new Image(Math.ceil(width), Math.ceil(height), {
+    colorModel: firstFragmentImage.colorModel,
+  });
 
   for (const ps of screenshotFragments) {
     let partialImage = decodePng(
