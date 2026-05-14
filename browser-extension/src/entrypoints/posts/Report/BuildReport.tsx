@@ -8,6 +8,9 @@ import { PostCommentWithId } from "../Posts/CommentsTable";
 import Step4Organization from "./Step4Organization";
 import { StepperActions, StepperBanner } from "./StepperComponents";
 import Report from "./Report";
+import { FilePen, XIcon } from "lucide-react";
+import { Link } from "react-router";
+import { Button } from "@/components/ui/button";
 
 export enum ReportOrganizationType {
   BY_PUBLICATION = "BY_PUBLICATION",
@@ -114,28 +117,41 @@ const BthStepper = ({
 
   return (
     <>
-      <p>
-        Suivez les 4 étapes pour constituer un rapport et exportez-le dans un
-        format souhaité.
-      </p>
-
-      <Scoped>
-        <Stepper.Root
-          className="w-full h-full space-y-4"
-          orientation="horizontal"
-        >
-          <StepperBanner />
-          <StepContent
-            setSocialNetworkList={setSocialNetworkList}
-            setPostIdList={setPostIdList}
-            setCommentList={setCommentList}
-            setReportOrganizationType={setReportOrganizationType}
-            setDisplayReport={setDisplayReport}
-            reportQueryData={reportQueryData}
-          />
-          <StepperActions />
-        </Stepper.Root>
-      </Scoped>
+      <div className="sticky -mt-3 pb-2 w-full top-0 text-lg border-b bg-background flex justify-between items-center ">
+        <div className="flex gap-3">
+          <FilePen size="20" strokeWidth={1.5} />
+          <span>Créer un rapport de preuves</span>
+        </div>
+        <Button
+          className="cursor-pointer items-center "
+          variant="ghost"
+          render={
+            <Link to="/">
+              <XIcon className="size-5" />
+              <span className="sr-only">Retour à la vue d&apos;ensemble</span>
+            </Link>
+          }
+        ></Button>
+      </div>
+      <div className="mt-6 flex flex-col gap-6">
+        <Scoped>
+          <Stepper.Root
+            className="w-full h-full space-y-4"
+            orientation="horizontal"
+          >
+            <StepperBanner />
+            <StepContent
+              setSocialNetworkList={setSocialNetworkList}
+              setPostIdList={setPostIdList}
+              setCommentList={setCommentList}
+              setReportOrganizationType={setReportOrganizationType}
+              setDisplayReport={setDisplayReport}
+              reportQueryData={reportQueryData}
+            />
+            <StepperActions />
+          </Stepper.Root>
+        </Scoped>
+      </div>
     </>
   );
 };
