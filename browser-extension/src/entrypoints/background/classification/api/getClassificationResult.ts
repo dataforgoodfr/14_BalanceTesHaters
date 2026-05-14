@@ -2,6 +2,7 @@ import z from "zod";
 import { apiBaseUrl } from "./baseUrl";
 import { ClassificationApiError } from "./ClassificationApiError";
 import { apiToken } from "./apiToken";
+import { AnnotatedCategorySchema } from "@/shared/model/AnnotatedCategory";
 
 export const ClassificationResultStatus = z.enum([
   "SUBMITTED",
@@ -14,7 +15,7 @@ export type ClassificationResultStatus = z.output<
 >;
 
 export const CommentClassificationResult = z.object({
-  classification: z.array(z.string()),
+  classification: z.array(AnnotatedCategorySchema),
   classified_at: z.iso.datetime(),
 });
 
