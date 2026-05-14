@@ -47,7 +47,7 @@ function Step1Plateforme({
           e.stopPropagation();
           void form.handleSubmit();
         }}
-        className="space-y-6 p-4 flex justify-center"
+        className="space-y-6 p-4 flex flex-col items-center"
       >
         <form.Field
           name="socialNetworkList"
@@ -59,52 +59,48 @@ function Step1Plateforme({
           }}
         >
           {(field) => (
-            <div className="flex items-center  mt-2 gap-4  ">
-              {options.map((option) => (
-                <Field
-                  orientation="horizontal"
-                  key={option.id}
-                  className=" has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
-                >
-                  <Label className="w-[256px] justify-center border border-border rounded-md p-4">
-                    <Checkbox
-                      id={option.id}
-                      className="hidden"
-                      checked={field.state.value.includes(option.id)}
-                      onCheckedChange={(checked) => {
-                        const currentValue = field.state.value;
-                        const nextValue = checked
-                          ? [...currentValue, option.id]
-                          : currentValue.filter((val) => val !== option.id);
-
-                        field.handleChange(nextValue);
-                      }}
-                    />
-                    <div className="flex flex-col items-center gap-3 ">
-                      <img
-                        src={option.url}
-                        className="w-8 h-8"
-                        alt="Logo"
-                      ></img>
-                      <span className="font-semibold">{option.label}</span>
-                    </div>
-                  </Label>
-                  {/* <Label
-                    htmlFor={option.id}
-                    className="font-normal cursor-pointer"
+            <>
+              <div className="flex items-center mt-2 gap-4">
+                {options.map((option) => (
+                  <Field
+                    orientation="horizontal"
+                    key={option.id}
+                    className=" has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
                   >
-                    {option.label}
-                  </Label> */}
-                </Field>
-              ))}
+                    <Label className="w-[256px] justify-center border border-border rounded-md p-4">
+                      <Checkbox
+                        id={option.id}
+                        className="hidden"
+                        checked={field.state.value.includes(option.id)}
+                        onCheckedChange={(checked) => {
+                          const currentValue = field.state.value;
+                          const nextValue = checked
+                            ? [...currentValue, option.id]
+                            : currentValue.filter((val) => val !== option.id);
 
+                          field.handleChange(nextValue);
+                        }}
+                      />
+                      <div className="flex flex-col items-center gap-3 ">
+                        <img
+                          src={option.url}
+                          className="w-8 h-8"
+                          alt="Logo"
+                        ></img>
+                        <span className="font-semibold">{option.label}</span>
+                      </div>
+                    </Label>
+                  </Field>
+                ))}
+              </div>
+              
               {/* Error display */}
               {field.state.meta.errors.length > 0 && (
                 <span className="text-destructive text-sm mt-2">
                   {field.state.meta.errors.join(", ")}
                 </span>
               )}
-            </div>
+            </>
           )}
         </form.Field>
       </form>
