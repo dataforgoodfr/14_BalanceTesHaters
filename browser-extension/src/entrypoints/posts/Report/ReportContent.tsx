@@ -10,7 +10,7 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { Post } from "@/shared/model/post/Post";
 import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
-import { PublicationDate } from "@/shared/model/PublicationDate";
+import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { getSocialNetworkName } from "@/shared/utils/post-util";
 import { cn } from "@/lib/utils";
 import { NoticeUtilisation } from "./NoticeUtilisation";
@@ -77,7 +77,7 @@ export const ReportContent = ({
             <div className="flex justify-between p-4 bg-indigo-50 rounded-t-xl">
               <div className="flex flex-col gap-2 items-start">
                 <span className="text-lg font-semibold">
-                  Publication du {getDisplayDate(post.publishedAt)}
+                  Publication du {getPostDisplayDate(post.publishedAt)}
                 </span>
                 <span>{post.title}</span>
                 <span>
@@ -139,7 +139,7 @@ export const ReportContent = ({
                       />
                       <div className="flex flex-col items-end">
                         <span className="text-xs text-muted-foreground">
-                          Publié le {getDisplayDate(comment.publishedAt)}
+                          Publié le {formatCommentDate(comment.publishedAt)}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           Capturé le{" "}
@@ -165,7 +165,7 @@ export const ReportContent = ({
   );
 };
 
-function getDisplayDate(date: PublicationDate): string {
+function getPostDisplayDate(date: PublicationDate): string {
   if (date.type === "absolute") {
     return new Date(date.date).toLocaleDateString("fr-FR", {
       day: "numeric",
@@ -175,3 +175,22 @@ function getDisplayDate(date: PublicationDate): string {
   }
   return "Date inconnue";
 }
+
+// A mettre à jour en fonction du retour métier 
+const formatCommentDate = (publishedAt: PublicationDate): string => {
+  switch (publishedAt.type) {
+    case "absolute":
+      return new Date(publishedAt.date).toLocaleDateString("fr-FR");
+    case "relative":
+      return formatRelativeDate(publishedAt);
+    case "unknown date":
+      return publishedAt.dateText;
+  }
+};
+
+const formatRelativeDate = (relative: RelativeDate): string => {
+  const start = new Date(relative.resolvedDateRange.start).getTime();
+  const end = new Date(relative.resolvedDateRange.end).getTime();
+  const mid = new Date(start + Math.round((end - start) / 2));
+  return `~${mid.toLocaleDateString("fr-FR")}`;
+};
