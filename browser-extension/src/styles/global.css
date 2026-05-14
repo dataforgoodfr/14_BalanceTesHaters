@@ -127,6 +127,7 @@ main {
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+  --text-info: oklch(0.2626 0.1194 261.77);
 }
 
 @theme inline {
@@ -179,6 +180,7 @@ main {
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-primary-background: var(--primary-background);
+  --color-text-info: var(--text-info);
 }
 
 @layer base {

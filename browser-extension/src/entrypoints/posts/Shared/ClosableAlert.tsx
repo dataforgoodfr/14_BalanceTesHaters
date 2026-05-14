@@ -12,7 +12,7 @@ const closableAlertVariants = cva(
   {
     variants: {
       variant: {
-        info: "bg-navigation-accent  text-card-foreground"
+        info: "bg-navigation-accent text-card-foreground text-text-info",
       }
     },
     defaultVariants: {
@@ -41,10 +41,9 @@ const ClosableAlert = ({
   return (
     <Alert className={closableAlertVariants({ variant })}>
         <div className="mt-2" >{icon}</div>
-      
       <div className="flex-1 flex-col justify-center gap-1">
         <AlertTitle className="text-lg">{title}</AlertTitle>
-        <AlertDescription>{description}</AlertDescription>
+        <AlertDescription className="text">{description}</AlertDescription>
       </div>
       <button className="self-start cursor-pointer" onClick={() => setIsActive(false)}>
         <XIcon className="size-5" />
