@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { MoveLeft, TriangleAlert } from "lucide-react";
+import { CircleAlert, MoveLeft, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatAnalysisDate,
@@ -24,6 +24,7 @@ import { DownloadPdfButton } from "./DownloadPdfButton";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
+import ClosableAlert from "../Shared/ClosableAlert";
 
 const Report = ({
   reportQueryData,
@@ -97,7 +98,7 @@ const Report = ({
           nativeButton={false}
           render={
             <Link to="/">
-              <MoveLeft /> Revenir à la vue d&apos;ensemble
+              <MoveLeft /> Vue d&apos;ensemble
             </Link>
           }
         />
@@ -128,14 +129,13 @@ const Report = ({
           </Button>
         </div>
       </div>
-      <div className="flex justify-center items-end text-gray-500">
-        <TriangleAlert className="me-2" />
-        <span>
-          Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez
-          à télécharger le rapport en PDF ou en DOCX, ou exporter les données du
-          rapport en CSV.
-        </span>
-      </div>
+
+      <ClosableAlert
+        title="Important"
+        description="Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez à télécharger le rapport en PDF ou exporter les données du rapport en CSV"
+        icon={<CircleAlert />}
+      />
+
       <div className="flex flex-col items-end">
         <span>
           Généré le :{" "}
