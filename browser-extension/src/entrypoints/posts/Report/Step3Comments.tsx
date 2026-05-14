@@ -56,28 +56,30 @@ function Step3Comments({
   console.log("render Step3Comments : ", { allComments, reportQueryData });
 
   return (
-    <div className="flex flex-col gap-4 h-9/12 justify-center">
+    <>
       <StepHeader
         title="Sélectionne les commentaires"
         subTitle="Choisis les commentaires malveillants à inclure dans le rapport."
       />
-
-      {isLoading && <Spinner className="size-8" />}
-      {!isLoading && (!allComments || allComments.length === 0) && (
-        <p className="text-center">Aucun commentaire</p>
-      )}
-      {!isLoading && allComments.length > 0 && (
-        <CommentsTable
-          commentList={allComments}
-          defaultSelectedCommentIdList={
-            reportQueryData?.postCommentList.map((comment) => comment.id) ?? []
-          }
-          onSubmit={handleSubmit}
-          formId={getFormId(stepper.state.current.data.id)}
-          showScreenshotColumn={true}
-        />
-      )}
-    </div>
+      <div className="flex flex-col gap-4 h-9/12 justify-center">
+        {isLoading && <Spinner className="size-8" />}
+        {!isLoading && (!allComments || allComments.length === 0) && (
+          <p className="text-center">Aucun commentaire</p>
+        )}
+        {!isLoading && allComments.length > 0 && (
+          <CommentsTable
+            commentList={allComments}
+            defaultSelectedCommentIdList={
+              reportQueryData?.postCommentList.map((comment) => comment.id) ??
+              []
+            }
+            onSubmit={handleSubmit}
+            formId={getFormId(stepper.state.current.data.id)}
+            showScreenshotColumn={true}
+          />
+        )}
+      </div>
+    </>
   );
 }
 

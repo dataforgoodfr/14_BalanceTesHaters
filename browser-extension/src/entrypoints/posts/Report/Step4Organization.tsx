@@ -9,6 +9,7 @@ import { RadioGroup } from "@base-ui/react";
 import { RadioGroupItem } from "@/components/ui/radio-group";
 import { getFormId } from "./StepperComponents";
 import { StepHeader } from "./StepHeader";
+import { FileText, UserRound } from "lucide-react";
 
 function Step4Organization({
   setReportOrganizationType,
@@ -32,11 +33,17 @@ function Step4Organization({
   const options = [
     {
       id: ReportOrganizationType.BY_PUBLICATION.toString(),
-      label: "Par publication (par défaut)",
+      label: "Par auteur (recommandé)",
+      description:
+        "Idéal pour un dossier juridique prêt à remettre aux autorités",
+      icon: <UserRound />,
     },
     {
       id: ReportOrganizationType.BY_AUTHOR.toString(),
-      label: "Par auteur (en cours de développement)",
+      label: "Par publication",
+      description:
+        "Pratique si l’objectif est de traiter une vidéo/un post à la fois",
+      icon: <FileText />,
     },
   ];
 
@@ -61,22 +68,30 @@ function Step4Organization({
         <form.Field name="reportOrganizationType">
           {(field) => (
             <RadioGroup
-              defaultValue={ReportOrganizationType.BY_PUBLICATION}
+              defaultValue={ReportOrganizationType.BY_AUTHOR}
               className="flex flex-col items-left gap-3 "
+              
               onChange={(event) => {
                 field.handleChange((event.target as HTMLInputElement).id);
               }}
             >
               {options.map((option) => (
-                <div className="flex items-center gap-3" key={option.id}>
-                  <RadioGroupItem id={option.id.toString()} value={option.id} />
-                  <Label
-                    htmlFor={option.id.toString()}
-                    className="font-normal cursor-pointer"
-                  >
-                    {option.label}
-                  </Label>
-                </div>
+                <Label
+                  className=" justify-center border border-border rounded-md p-4 flex items-center gap-3 has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
+                  key={option.id}
+                >
+                  <RadioGroupItem
+                    id={option.id.toString()}
+                    value={option.id}
+                    className="hidden"
+                  />
+                  {option.icon}
+
+                  <div className="flex flex-col gap-2 items-start">
+                    <span className="font-semibold">{option.label}</span>
+                    <span className="font-medium">{option.description}</span>
+                  </div>
+                </Label>
               ))}
 
               {/* Error display */}
