@@ -149,7 +149,7 @@ const Report = ({
               Publications analysées : {reportQueryData?.postIdList.length}
             </span>
             <span>
-              Plateforme : {" "}
+              Plateforme :{" "}
               {reportQueryData?.socialNetworkList
                 .map((socialNetworkName) =>
                   getSocialNetworkName(socialNetworkName as SocialNetworkName),

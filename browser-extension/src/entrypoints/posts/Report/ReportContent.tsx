@@ -176,7 +176,7 @@ function getPostDisplayDate(date: PublicationDate): string {
   return "Date inconnue";
 }
 
-// A mettre à jour en fonction du retour métier 
+// A mettre à jour en fonction du retour métier
 const formatCommentDate = (publishedAt: PublicationDate): string => {
   switch (publishedAt.type) {
     case "absolute":

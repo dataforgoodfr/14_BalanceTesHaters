@@ -93,7 +93,7 @@ function Step1Plateforme({
                   </Field>
                 ))}
               </div>
-              
+
               {/* Error display */}
               {field.state.meta.errors.length > 0 && (
                 <span className="text-destructive text-sm mt-2">

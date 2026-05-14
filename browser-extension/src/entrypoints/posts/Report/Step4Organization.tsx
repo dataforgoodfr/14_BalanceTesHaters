@@ -70,7 +70,6 @@ function Step4Organization({
             <RadioGroup
               defaultValue={ReportOrganizationType.BY_AUTHOR}
               className="flex flex-col items-left gap-3 "
-              
               onChange={(event) => {
                 field.handleChange((event.target as HTMLInputElement).id);
               }}

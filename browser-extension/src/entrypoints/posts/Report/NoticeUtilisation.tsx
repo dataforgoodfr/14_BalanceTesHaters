@@ -18,7 +18,9 @@ export const NoticeUtilisation = () => {
           </ul>
         </div>
         <div>
-          <span className="text-lg font-semibold">2. Conserver les preuves</span>
+          <span className="text-lg font-semibold">
+            2. Conserver les preuves
+          </span>
           <ul className="list-disc list-inside">
             <li>
               Télécharger et sauvegarder le rapport dans un espace sûr et faire
