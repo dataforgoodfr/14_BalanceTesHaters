@@ -13,6 +13,7 @@ import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { getSocialNetworkName } from "@/shared/utils/post-util";
 import { cn } from "@/lib/utils";
+import { NoticeUtilisation } from "./NoticeUtilisation";
 
 interface ReportContentProps {
   reportQueryData?: ReportQueryData;
@@ -159,6 +160,7 @@ export const ReportContent = ({
           </div>
         );
       })}
+      <NoticeUtilisation />
     </div>
   );
 };
