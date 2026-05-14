@@ -4,9 +4,6 @@ import { UserRound } from "lucide-react";
 import KpiCard from "../Shared/KpiCards/KpiCard";
 
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
-import ActiveAuthors from "../Shared/ActiveAuthors";
-import CategoryDistribution from "../Shared/CategoryDistribution";
-import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PostSummary from "../Shared/PostSummary";
 import { Card } from "@/components/ui/card";
@@ -53,42 +50,30 @@ export const ReportContent = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">
         Rapport des commentaires malveillants
       </h1>
-      <div className="flex">
-        <div className="flex gap-4 justify-between">
-          <NumberHatefulCommentsKpiCard
-            numberOfHatefulComments={numberOfHatefulComments}
-            numberOfComments={numberOfComments}
-            isLoading={isLoadingPosts}
-          />
-          <PercentageHatefulCommentsKpiCard
-            numberOfHatefulComments={numberOfHatefulComments}
-            numberOfComments={numberOfComments}
-            isLoading={isLoadingPosts}
-          />
-          <NumberHatefulAuhorsKpiCard
-            hatefulCommentList={reportQueryData?.postCommentList ?? []}
-            isLoading={isLoadingPosts}
-          />
-          <KpiCard
-            title="Gravité"
-            value="Modérée"
-            isWorkInProgress={true}
-            isLoading={isLoadingPosts}
-          />
-          <SecurityAlert isLoading={isLoadingPosts}></SecurityAlert>
-        </div>
-      </div>
-      <div className="flex gap-6">
-        <ActiveAuthors
-          postComments={reportQueryData?.postCommentList ?? []}
+      <div className="flex gap-4 justify-between">
+        <NumberHatefulAuhorsKpiCard
+          hatefulCommentList={reportQueryData?.postCommentList ?? []}
           isLoading={isLoadingPosts}
         />
-        <CategoryDistribution />
+        <KpiCard
+          title="Score juridique moyen"
+          value="N/A"
+          isWorkInProgress={true}
+          isLoading={isLoadingPosts}
+        />
+        <NumberHatefulCommentsKpiCard
+          numberOfHatefulComments={numberOfHatefulComments}
+          numberOfComments={numberOfComments}
+          isLoading={isLoadingPosts}
+        />
+
+        <SecurityAlert isLoading={isLoadingPosts}></SecurityAlert>
       </div>
+      
       {groupedCommentsByPost.map(([postKey, commentList], index) => {
         const post = posts?.find(
           (p) => `${p.postId}-${p.socialNetwork}` === postKey,
