@@ -64,11 +64,11 @@ main {
   --navigation-accent: oklch(0.9393 0.028757 266.368);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --selected: oklch(0.9522 0.0241 288.49) /** background for selected items */
-    --selected-accent: oklch(0.7986 0.0833 282.83)
-    /** background for selected items */
-    /** colors for BTH variant of destructive colors (used in buttons and cards)*/
-    --bth-destructive: #b91c1c;
+  --selected: oklch(0.9522 0.0241 288.49); /** background for selected items */
+  --selected-accent: oklch(0.7986 0.0833 282.83);
+  /** background for selected items */
+  /** colors for BTH variant of destructive colors (used in buttons and cards)*/
+  --bth-destructive: #b91c1c;
   --bth-destructive-ring: #fca5a5;
   --bth-destructive-hover: #e5e5e5;
   --bth-destructive-subtle: #fef2f2;
