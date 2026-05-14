@@ -6,6 +6,7 @@ import { isCommentHateful } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
 import { getFormId } from "./StepperComponents";
+import { StepHeader } from "./StepHeader";
 
 function Step3Comments({
   reportQueryData,
@@ -56,9 +57,11 @@ function Step3Comments({
 
   return (
     <div className="flex flex-col gap-4 h-9/12 justify-center">
-      <span className="text-xl font-bold">
-        Affinez la sélection de commentaires à exporter :
-      </span>
+      <StepHeader
+        title="Sélectionne les commentaires"
+        subTitle="Choisis les commentaires malveillants à inclure dans le rapport."
+      />
+
       {isLoading && <Spinner className="size-8" />}
       {!isLoading && (!allComments || allComments.length === 0) && (
         <p className="text-center">Aucun commentaire</p>

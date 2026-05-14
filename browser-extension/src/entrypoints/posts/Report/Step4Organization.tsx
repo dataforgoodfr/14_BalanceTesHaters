@@ -8,6 +8,7 @@ import { useForm } from "@tanstack/react-form";
 import { RadioGroup } from "@base-ui/react";
 import { RadioGroupItem } from "@/components/ui/radio-group";
 import { getFormId } from "./StepperComponents";
+import { StepHeader } from "./StepHeader";
 
 function Step4Organization({
   setReportOrganizationType,
@@ -41,9 +42,10 @@ function Step4Organization({
 
   return (
     <>
-      <span className="text-xl font-bold mb-3">
-        Comment souhaitez-vous organiser ce rapport ?
-      </span>
+      <StepHeader
+        title="Choisis l’organisation du rapport"
+        subTitle="Sélectionne la structure la plus adaptée à l’objectif du dossier."
+      />
       <form
         id={getFormId(stepper.state.current.data.id)}
         onSubmit={(e) => {

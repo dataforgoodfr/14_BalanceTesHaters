@@ -5,6 +5,7 @@ import { useStepper, ReportQueryData } from "./BuildReport"; // or wherever the 
 import { useForm } from "@tanstack/react-form";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getFormId } from "./StepperComponents";
+import { StepHeader } from "./StepHeader";
 
 function Step1Plateforme({
   reportQueryData,
@@ -32,10 +33,11 @@ function Step1Plateforme({
 
   return (
     <>
-      <span className="text-xl font-bold mb-3">
-        Sur quelle plateforme se trouvent les publications à inclure dans ce
-        rapport ?
-      </span>
+      <StepHeader
+        title="Sélectionne une plateforme"
+        subTitle="Choisis la plateforme sur laquelle se trouvent les publications à inclure."
+      />
+
       <form
         id={getFormId(stepper.state.current.data.id)}
         onSubmit={(e) => {
