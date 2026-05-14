@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import PostSummary from "./PostSummary";
 import { Post, PostComment } from "@/shared/model/post/Post";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
-import { categoryCyberHarcelementAutre } from "@/shared/utils/post-util";
+import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 const meta = {
   title: "Shared/PostSummary",
   component: PostSummary,
@@ -48,7 +48,7 @@ const completedPost: Post = {
     ...Array<PostComment>(75).fill(exampleComment),
     ...Array<PostComment>(25).fill({
       ...exampleComment,
-      classification: [categoryCyberHarcelementAutre],
+      classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
     }),
   ],
   latestAnalysisStatus: "COMPLETED",

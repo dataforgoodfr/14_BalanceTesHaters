@@ -2,32 +2,27 @@ import { getPercentage } from "@/shared/utils/maths";
 import { PostComment } from "@/shared/model/post/Post";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import {
-  HatefulCategory,
-  HatefulCategoryLabels,
-} from "@/shared/model/HatefulCategory";
+  AnnotatedCategory,
+  getCategoryLabel,
+  isCategoryHateful,
+} from "@/shared/model/AnnotatedCategory";
 
 export type CategoryStat = {
   label: string;
   count: number;
 };
 
-const HATEFUL_CATEGORIES = Object.values(HatefulCategory).filter(
-  (c) => c !== HatefulCategory.ABSENCE_DE_CYBERHARCELEMENT,
+const HATEFUL_CATEGORIES = Object.values(AnnotatedCategory).filter((c) =>
+  isCategoryHateful(c),
 );
-
-const ABSENCE_LABEL =
-  HatefulCategoryLabels[HatefulCategory.ABSENCE_DE_CYBERHARCELEMENT];
 
 export const getCategoryStats = (
   postComments: readonly PostComment[],
 ): CategoryStat[] => {
-  const hatefulComments = postComments.filter(
-    (c) => c.classification?.[0] && c.classification[0] !== ABSENCE_LABEL,
-  );
   return HATEFUL_CATEGORIES.map((cat) => ({
-    label: HatefulCategoryLabels[cat],
-    count: hatefulComments.filter(
-      (c) => c.classification?.[0] === HatefulCategoryLabels[cat],
+    label: getCategoryLabel(cat),
+    count: postComments.filter((c) =>
+      (c.classification || []).some((commentCat) => commentCat === cat),
     ).length,
   }))
     .filter((s) => s.count > 0)

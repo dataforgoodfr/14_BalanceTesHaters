@@ -9,6 +9,7 @@ import {
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Post, PostComment } from "@/shared/model/post/Post";
+import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 /**
  * Helper function to create a dummy Post list with a specific publication date
@@ -60,7 +61,7 @@ function createHatefulComment(
       type: "absolute",
       date: new Date().toISOString(),
     },
-    classification: ["Cyberharcèlement (autre)"],
+    classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
     screenshotData:
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     isNew: false,
@@ -528,7 +529,7 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
-                classification: ["Positive"],
+                classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
                 screenshotData:
                   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 isNew: false,

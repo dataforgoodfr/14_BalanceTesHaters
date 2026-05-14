@@ -8,6 +8,7 @@ import {
 } from "../../api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "../mergeClassificationResultIntoPost";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 describe("mergeClassificationResultIntoPost", () => {
   function absoluteDate(
@@ -115,27 +116,29 @@ describe("mergeClassificationResultIntoPost", () => {
     ]);
     const result = createCompletedClassificationResult({
       [commentId]: {
-        classification: ["toxic"],
+        classification: [AnnotatedCategory.MENACES],
         classified_at: "2024-01-15T14:00:00.000Z",
       },
       [replyId1]: {
-        classification: ["neutral"],
+        classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
         classified_at: "2024-01-15T14:30:00.000Z",
       },
       [replyId2]: {
-        classification: ["friendly"],
+        classification: [AnnotatedCategory.DOXXING],
         classified_at: "2024-01-15T15:00:00.000Z",
       },
     });
 
     const updatedPost = mergeClassificationResultIntoPost(post, result);
 
-    expect(updatedPost.comments[0].classification).toEqual(["toxic"]);
+    expect(updatedPost.comments[0].classification).toEqual([
+      AnnotatedCategory.MENACES,
+    ]);
     expect(updatedPost.comments[0].replies[0].classification).toEqual([
-      "neutral",
+      AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT,
     ]);
     expect(
       updatedPost.comments[0].replies[0].replies[0].classification,
-    ).toEqual(["friendly"]);
+    ).toEqual([AnnotatedCategory.DOXXING]);
   });
 });

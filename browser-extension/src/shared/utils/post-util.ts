@@ -1,3 +1,4 @@
+import { isCategoryHateful } from "../model/AnnotatedCategory";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
@@ -44,9 +45,10 @@ export const emptyPostFilters: PostFilters = {
   containsAuthor: [],
 };
 
-export const categoryCyberHarcelementAutre = "Cyberharcèlement (autre)";
 export function isCommentHateful(comment: PostComment): boolean {
-  return comment.classification?.[0] === categoryCyberHarcelementAutre;
+  return (comment.classification || []).some((category) =>
+    isCategoryHateful(category),
+  );
 }
 
 export function isPostPublishedAfter(post: PostSnapshot, date: Date): boolean {
