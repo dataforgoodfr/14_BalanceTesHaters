@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { CircleAlert, MoveLeft, TriangleAlert } from "lucide-react";
+import { CircleAlert, MoveLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   formatAnalysisDate,
