@@ -25,6 +25,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
 import ClosableAlert from "../Shared/ClosableAlert";
+import { Logo } from "@/components/shared/Logo";
 
 const Report = ({
   reportQueryData,
@@ -136,38 +137,36 @@ const Report = ({
         icon={<CircleAlert />}
       />
 
-      <div className="flex flex-col items-end">
-        <span>
-          Généré le :{" "}
-          <span className="font-bold">
-            {formatAnalysisDate(new Date().toISOString())}
-          </span>
-        </span>
-        <span>
-          Publications analysées :{" "}
-          <span className="font-bold">
-            {reportQueryData?.postIdList.length}
-          </span>
-        </span>
-        <span>
-          Plateforme :{" "}
-          <span className="font-bold">
-            {reportQueryData?.socialNetworkList
-              .map((socialNetworkName) =>
-                getSocialNetworkName(socialNetworkName as SocialNetworkName),
-              )
-              .join(", ")}
-          </span>
-        </span>
-      </div>
+      <div className="max-w-5xl self-center flex flex-col gap-6">
+        <div className="flex justify-between items-center ">
+          <Logo className="" />
 
-      <ReportContent
-        reportQueryData={reportQueryData}
-        posts={posts}
-        isLoadingPosts={isLoadingPosts}
-        setSelectedScreenshot={setSelectedScreenshot}
-        setScreenshotDialogOpen={setScreenshotDialogOpen}
-      />
+          <div className="flex flex-col items-end">
+            <span>
+              Généré le : {formatAnalysisDate(new Date().toISOString())}
+            </span>
+            <span>
+              Publications analysées : {reportQueryData?.postIdList.length}
+            </span>
+            <span>
+              Plateforme : {" "}
+              {reportQueryData?.socialNetworkList
+                .map((socialNetworkName) =>
+                  getSocialNetworkName(socialNetworkName as SocialNetworkName),
+                )
+                .join(", ")}
+            </span>
+          </div>
+        </div>
+
+        <ReportContent
+          reportQueryData={reportQueryData}
+          posts={posts}
+          isLoadingPosts={isLoadingPosts}
+          setSelectedScreenshot={setSelectedScreenshot}
+          setScreenshotDialogOpen={setScreenshotDialogOpen}
+        />
+      </div>
 
       <Dialog
         open={screenshotDialogOpen}
