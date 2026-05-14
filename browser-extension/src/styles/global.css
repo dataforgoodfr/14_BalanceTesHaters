@@ -63,8 +63,9 @@ main {
   --accent-foreground: oklch(0.205 0 0);
   --navigation-accent: oklch(0.9393 0.028757 266.368);
   --destructive: oklch(0.577 0.245 27.325);
-
   --destructive-foreground: oklch(0.577 0.245 27.325);
+  --selected: oklch(0.9522 0.0241 288.49) /** background for selected items */
+  --selected-accent: oklch(0.7986 0.0833 282.83) /** background for selected items */
 
   /** colors for BTH variant of destructive colors (used in buttons and cards)*/
   --bth-destructive: #b91c1c;
@@ -150,7 +151,8 @@ main {
   --color-navigation-accent: var(--navigation-accent);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-
+  --color-selected: var(--selected);
+  --color-selected-accent: var(--selected-accent);
   --color-bth-destructive: var(--bth-destructive);
   --color-bth-destructive-ring: var(--destructive-ring);
   --color-bth-destructive-hover: var(--bth-destructive-hover);
