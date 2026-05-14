@@ -16,72 +16,65 @@ import LayoutWithSidePanel from "./LayoutWithSidePanel";
 export default function App() {
   return (
     <HashRouter>
-      <div className="flex h-screen bg-gray-100 dark:bg-gray-800">
-        {/* <div className="w-[210px] flex-none overflow-y-auto">
-          <SidePanelMenu />
-        </div>
-        <div className="flex-grow flex-shrink flex overflow-y-auto"> */}
-        <Routes>
-          <Route
-            index
-            path="/"
-            element={<LayoutWithSidePanel page={<HomePage />} />}
-          />
-          <Route
-            index
-            path="/posts"
-            element={<LayoutWithSidePanel page={<PostListPage />} />}
-          />
-          <Route
-            index
-            path="/posts/:socialNetworkName/:postId"
-            element={<PostDetailPage />}
-          />
-          <Route
-            index
-            path="/help"
-            element={<LayoutWithSidePanel page={<HelpPage />} />}
-          />
-          <Route
-            index
-            path="/help/product"
-            element={<LayoutWithSidePanel page={<ProductHelpPage />} />}
-          />
-          <Route
-            index
-            path="/help/harrasement"
-            element={<LayoutWithSidePanel page={<HarrasementHelpPage />} />}
-          />
-          <Route
-            index
-            path="/help/privacy-policy"
-            element={<LayoutWithSidePanel page={<PrivacyPolicyPage />} />}
-          />
+      <Routes>
+        <Route
+          index
+          path="/"
+          element={<LayoutWithSidePanel page={<HomePage />} />}
+        />
+        <Route
+          index
+          path="/posts"
+          element={<LayoutWithSidePanel page={<PostListPage />} />}
+        />
+        <Route
+          index
+          path="/posts/:socialNetworkName/:postId"
+          element={<PostDetailPage />}
+        />
+        <Route
+          index
+          path="/help"
+          element={<LayoutWithSidePanel page={<HelpPage />} />}
+        />
+        <Route
+          index
+          path="/help/product"
+          element={<LayoutWithSidePanel page={<ProductHelpPage />} />}
+        />
+        <Route
+          index
+          path="/help/harrasement"
+          element={<LayoutWithSidePanel page={<HarrasementHelpPage />} />}
+        />
+        <Route
+          index
+          path="/help/privacy-policy"
+          element={<LayoutWithSidePanel page={<PrivacyPolicyPage />} />}
+        />
 
-          <Route path="/build-report" element={<BuildReport />} />
+        <Route path="/build-report" element={<BuildReport />} />
 
-          <Route
-            path="/contact-support"
-            element={<LayoutWithSidePanel page={<ContactSupport />} />}
-          />
+        <Route
+          path="/contact-support"
+          element={<LayoutWithSidePanel page={<ContactSupport />} />}
+        />
 
-          {/* Dev pages */}
-          <Route
-            index
-            path="/post-snapshots"
-            element={<LayoutWithSidePanel page={<PostSnapshotListPage />} />}
-          />
-          <Route
-            path="/post-snapshots/:snapshotId"
-            element={<PostSnapshotDetailPage />}
-          />
-          <Route
-            path="/debug"
-            element={<LayoutWithSidePanel page={<DebugPage />} />}
-          />
-        </Routes>
-      </div>
-      {/* </div> */}
+        {/* Dev pages */}
+        <Route
+          index
+          path="/post-snapshots"
+          element={<LayoutWithSidePanel page={<PostSnapshotListPage />} />}
+        />
+        <Route
+          path="/post-snapshots/:snapshotId"
+          element={<PostSnapshotDetailPage />}
+        />
+        <Route
+          path="/debug"
+          element={<LayoutWithSidePanel page={<DebugPage />} />}
+        />
+      </Routes>
     </HashRouter>
   );
 }
