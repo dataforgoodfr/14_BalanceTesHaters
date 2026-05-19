@@ -57,6 +57,7 @@ function PostDetailPage() {
             />
             <div className="flex gap-2">
               <Button
+                roundness="round"
                 variant="secondary"
                 onClick={() => {
                   void openPostAndStartScraping(post.url);
@@ -64,7 +65,7 @@ function PostDetailPage() {
               >
                 <RotateCwIcon /> Relancer l&apos;analyse
               </Button>
-              <Button variant="default" disabled>
+              <Button roundness="round" variant="default" disabled>
                 Exporter les données en CSV
               </Button>
             </div>

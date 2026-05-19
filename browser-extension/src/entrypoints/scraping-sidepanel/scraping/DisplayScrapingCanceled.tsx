@@ -30,6 +30,7 @@ export function DisplayScrapingCanceled({
       <SidePanelActions>
         <Button
           size="lg"
+          roundness="round"
           data-testid="retry-scraping-button"
           className="w-full"
           onClick={() => {

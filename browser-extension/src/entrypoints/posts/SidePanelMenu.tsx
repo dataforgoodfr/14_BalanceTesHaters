@@ -16,7 +16,7 @@ function SidePanelMenu() {
   return (
     <div className="flex flex-col p-3 h-full">
       <Logo className="mx-auto mt-4 mb-8" />
-      <Button className="text-xs mb-6">
+      <Button roundness="round" className="text-xs mb-6">
         <Plus />
         <Link to="/build-report">Créer un rapport</Link>
       </Button>
