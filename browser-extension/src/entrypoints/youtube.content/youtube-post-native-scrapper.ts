@@ -753,13 +753,10 @@ export class YoutubePostNativeScrapper {
       }
       button.click();
     }
-    // Give 5s per comment section to load
-    const timeout = repliesButton.length * 5000;
-    await this.waitForCommentGhostSectionsToDisappear(
-      commentsContainer,
-      isShortsPost,
-      timeout,
-    );
+
+    // Wait for replies to load
+    await this.waitForRepliesToLoad(commentsContainer, isShortsPost);
+
     this.debug("All ", repliesButton.length, "replies loaded");
   }
 
@@ -1287,44 +1284,56 @@ export class YoutubePostNativeScrapper {
     return `https://i.ytimg.com/vi/${postId}/hq720.jpg`;
   }
 
-  private async waitForCommentGhostSectionsToDisappear(
+  private async waitForRepliesToLoad(
     commentsContainer: HTMLElement,
     isShortsPost: boolean,
-    timeout?: number,
-  ) {
+  ): Promise<number> {
     await this.scrapingSupport.sleep(300);
-    try {
-      await this.scrapingSupport.waitUntilNoVisibleElementMatches(
-        commentsContainer,
-        "#ghost-comment-section",
-        {
-          timeout: timeout,
-          onRemainingElements: async (elements) => {
-            this.debug(elements.length, " remaining ghost sections");
-            if (isShortsPost) {
-              await this.scrollShortsCommentsContainerToBottom(
-                commentsContainer,
-              );
-            } else {
-              for (const el of elements) {
-                el.scrollIntoView();
-                await this.scrapingSupport.resumeHostPage();
-              }
-            }
-          },
-        },
-      );
-    } catch (e) {
-      if (isShortsPost) {
-        // On Shorts, ghost placeholders can remain mounted even when comments are loaded.
-        // Do not fail the whole scraping flow in that case.
-        this.warn(
-          "Continuing despite remaining ghost comment sections on Shorts",
-          String(e),
-        );
-        return;
+
+    const timeoutPerElement = 5000;
+    const start = Date.now();
+    const listGhostSections = () => {
+      return this.scrapingSupport
+        .selectAll(commentsContainer, "#ghost-comment-section", HTMLElement)
+        .filter((e) => this.scrapingSupport.isVisible(e));
+    };
+    const initialGhostSectionsCount = listGhostSections().length;
+    let maxDate: number =
+      Date.now() + initialGhostSectionsCount * timeoutPerElement;
+
+    for (;;) {
+      const remaingGhostSections = listGhostSections();
+      const remainingGhostSectionsCount = remaingGhostSections.length;
+      if (remainingGhostSectionsCount === 0) {
+        return remainingGhostSectionsCount;
       }
-      throw e;
+      this.debug(
+        ` ${remainingGhostSectionsCount}/${initialGhostSectionsCount} still present after ${Date.now() - start}ms.`,
+      );
+      if (Date.now() > maxDate) {
+        // Assuming we are facing broken replies loading.
+        // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/304
+        this.warn(
+          `Adaptive timeout reached after ${Date.now() - start}ms. Assuming broken replies loading.`,
+        );
+        return remainingGhostSectionsCount;
+      }
+      const newDateForRemainingElements =
+        Date.now() + remainingGhostSectionsCount * timeoutPerElement;
+      if (newDateForRemainingElements < maxDate) {
+        // Decrease max Date if elements where solved faster than timeout per element
+        maxDate = newDateForRemainingElements;
+      }
+
+      if (isShortsPost) {
+        await this.scrollShortsCommentsContainerToBottom(commentsContainer);
+      } else {
+        for (const el of remaingGhostSections) {
+          el.scrollIntoView();
+          await this.scrapingSupport.resumeHostPage();
+        }
+      }
+      await this.scrapingSupport.sleep(500);
     }
   }
 
