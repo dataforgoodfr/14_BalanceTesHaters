@@ -50,10 +50,17 @@ function CategoryDistribution({
     fill: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
   }));
 
-  const chartConfig = dataPoints.reduce<ChartConfig>((acc, d) => {
-    acc[d.name] = { label: d.name, color: d.fill };
-    return acc;
-  }, {}) satisfies ChartConfig;
+  const chartConfig = dataPoints.reduce<ChartConfig>(
+    (acc, d) => {
+      acc[d.name] = { label: d.name, color: d.fill };
+      return acc;
+    },
+    {
+      commentsCount: {
+        label: "Commentaires malveillants",
+      },
+    },
+  ) satisfies ChartConfig;
 
   return (
     <Card className="w-full relative self-start">
@@ -99,39 +106,23 @@ function CategoryDistribution({
                   content={
                     <ChartTooltipContent
                       indicator="line"
-                      formatter={(value, _name, item) => (
-                        <>
-                          <div
-                            className="w-1 shrink-0 self-stretch rounded-[2px]"
-                            style={{
-                              backgroundColor: (
-                                item.payload as Record<string, unknown>
-                              ).fill as string,
-                            }}
-                          />
-                          <div className="flex flex-1 justify-between gap-2 leading-none">
-                            <span className="text-muted-foreground">
-                              Commentaires malveillants
-                            </span>
-                            <span className="font-mono font-medium tabular-nums">
-                              {total > 0
-                                ? `${((Number(value) / total) * 100).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`
-                                : "0 %"}
-                            </span>
-                          </div>
-                        </>
-                      )}
+                      labelKey="name"
+                      nameKey="commentsCount"
+                      className="text-left"
                     />
                   }
                 />
               </PieChart>
             </ChartContainer>
 
-            <ul className="flex flex-col gap-1.5 text-xs min-w-0">
+            <ul className="flex flex-col gap-1.5 text-xs min-w-0 ">
               {dataPoints.map((d) => (
-                <li key={d.name} className="flex items-start gap-2">
+                <li
+                  key={d.name}
+                  className="flex flex-row items-center gap-2 text-left"
+                >
                   <div
-                    className="size-2 mt-0.5 shrink-0 rounded-full"
+                    className="size-2 shrink-0 rounded-full "
                     style={{ backgroundColor: d.fill }}
                   />
                   <span className="flex-1 text-muted-foreground">{d.name}</span>
