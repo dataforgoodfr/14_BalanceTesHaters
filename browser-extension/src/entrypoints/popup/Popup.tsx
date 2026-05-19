@@ -74,6 +74,7 @@ function PopupContent() {
       <div className="flex flex-col gap-2 px-2">
         <Button
           size="lg"
+          roundness="round"
           data-testid="start-scraping-button"
           className="w-full"
           onClick={() => {
@@ -101,6 +102,7 @@ function PopupContent() {
     <div className="flex flex-col gap-2 px-2">
       <Button
         size="lg"
+        roundness="round"
         className="w-full"
         onClick={() => {
           void openSidePanel(tabInfo.tabId).then(() => {

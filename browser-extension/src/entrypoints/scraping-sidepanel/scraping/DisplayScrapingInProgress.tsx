@@ -41,6 +41,7 @@ export function DisplayScrapingInProgress({
       <SidePanelActions>
         <Button
           size="lg"
+          roundness="round"
           data-testid="cancel-scraping-button"
           className="w-full"
           variant="destructive"
