@@ -27,7 +27,7 @@ function HomePage() {
     dateRange?.to?.toISOString() ?? "",
   ];
 
-  const { data, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
       getPostsBySocialNetworkAndPeriod(
@@ -37,18 +37,25 @@ function HomePage() {
       ),
   });
 
-  const allComments = (data || []).flatMap((p) => p.comments);
+  const allComments = (posts || []).flatMap((p) => p.comments);
 
   return (
     <main className="flex flex-col gap-6">
       <PageHeader title="Vue d'ensemble" />
-      <div className="flex justify-between ">
+      <div className="flex align-start">
         <SocialNetworkSelector
           value={socialNetworkFilter}
           onChange={setSocialNetworkFilter}
         />
+      </div>
+      <div className="flex justify-between">
+        <div className="text-muted-foreground text-sm my-auto">
+          Publications analysées pour la période sélectionnée :{" "}
+          <span className="font-bold">{posts?.length}</span>
+        </div>
+
         <DateRangePicker
-          startDate={dateRange?.from || getEarliestPostDate(data)}
+          startDate={dateRange?.from || getEarliestPostDate(posts)}
           onChange={setDateRange}
         />
       </div>
@@ -57,7 +64,7 @@ function HomePage() {
 
       {allComments.length > 0 && (
         <>
-          <KpiCards posts={data} isLoading={isLoading} />
+          <KpiCards posts={posts} isLoading={isLoading} />
           <HarassmentTrendChart
             dateRange={dateRange}
             commentList={allComments}
