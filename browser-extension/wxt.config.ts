@@ -49,5 +49,9 @@ export default defineConfig({
       // <all_urls> required for captureVisibleTab when scrap started outside of "activeTab" scope that is from "Relance analyse"
       "<all_urls>",
     ],
+    content_security_policy: {
+      extension_pages:
+        "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
+    },
   },
 });
