@@ -1,6 +1,33 @@
 import { getPercentage } from "@/shared/utils/maths";
 import { PostComment } from "@/shared/model/post/Post";
 import { isCommentHateful } from "@/shared/utils/post-util";
+import {
+  AnnotatedCategory,
+  getCategoryLabel,
+  isCategoryHateful,
+} from "@/shared/model/AnnotatedCategory";
+
+export type CategoryStat = {
+  label: string;
+  count: number;
+};
+
+const HATEFUL_CATEGORIES = Object.values(AnnotatedCategory).filter((c) =>
+  isCategoryHateful(c),
+);
+
+export const getCategoryStats = (
+  postComments: readonly PostComment[],
+): CategoryStat[] => {
+  return HATEFUL_CATEGORIES.map((cat) => ({
+    label: getCategoryLabel(cat),
+    count: postComments.filter((c) =>
+      (c.classification || []).some((commentCat) => commentCat === cat),
+    ).length,
+  }))
+    .filter((s) => s.count > 0)
+    .sort((a, b) => b.count - a.count);
+};
 
 export type HatefulAuthorStats = {
   /**

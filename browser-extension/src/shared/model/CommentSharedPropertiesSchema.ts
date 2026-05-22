@@ -1,6 +1,7 @@
 import z from "zod";
 import { AuthorSchema } from "./Author";
 import { PublicationDateSchema } from "./PublicationDate";
+import { AnnotatedCategorySchema } from "./AnnotatedCategory";
 
 export const CommentSharedPropertiesSchema = z.object({
   textContent: z.string(),
@@ -12,7 +13,7 @@ export const CommentSharedPropertiesSchema = z.object({
    */
   publishedAt: PublicationDateSchema,
 
-  classification: z.string().array().optional(),
+  classification: AnnotatedCategorySchema.array().optional(),
   /** ISO date time of classification */
   classifiedAt: z.iso.datetime().optional(),
 

@@ -65,7 +65,10 @@ function HomePage() {
           />
           <div className="flex gap-4">
             <ActiveAuthors postComments={allComments} isLoading={isLoading} />
-            <CategoryDistribution />
+            <CategoryDistribution
+              postComments={allComments}
+              isLoading={isLoading}
+            />
           </div>
         </>
       )}

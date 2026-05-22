@@ -16,9 +16,9 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
-  HatefulCategory,
-  HatefulCategoryLabels,
-} from "@/shared/model/HatefulCategory";
+  AnnotatedCategory,
+  getCategoryLabel,
+} from "@/shared/model/AnnotatedCategory";
 import {
   DateFilterOptions,
   emptyPostFilters,
@@ -65,8 +65,8 @@ const filterOptions = {
     { label: "Non terminée", value: "in_progress" },
   ],
 
-  containsCategory: Object.values(HatefulCategory).map((category) => ({
-    label: HatefulCategoryLabels[category],
+  containsCategory: Object.values(AnnotatedCategory).map((category) => ({
+    label: getCategoryLabel(category),
     value: category,
   })),
 
