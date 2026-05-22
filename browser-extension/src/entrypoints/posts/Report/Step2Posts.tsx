@@ -88,6 +88,10 @@ function Step2Posts({
           setPostFilters={setPostFilters}
           postSortingCategory={postSortingCategory}
           setPostSortingCategory={setPostSortingCategory}
+          selectAll={() => {
+            form.setFieldValue("postList", filteredPosts.map((post) => post.postId));
+            setSelectedPostIds(filteredPosts.map((post) => post.postId));
+          }}
         />
 
         {isLoading && <Spinner className="size-8" />}

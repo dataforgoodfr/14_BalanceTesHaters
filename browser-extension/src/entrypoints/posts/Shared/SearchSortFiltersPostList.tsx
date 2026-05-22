@@ -101,6 +101,7 @@ function SearchSortFiltersPostList({
   setPostFilters,
   postSortingCategory: selectedSortingCategory,
   setPostSortingCategory,
+  selectAll,
 }: Readonly<{
   searchTerm: string;
   setSearchTerm: (value: string) => void;
@@ -108,6 +109,7 @@ function SearchSortFiltersPostList({
   setPostFilters: (value: PostFilters) => void;
   postSortingCategory: PostSortingCategory;
   setPostSortingCategory: (value: PostSortingCategory) => void;
+  selectAll: () => void;
 }>) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortingOpen, setSortingOpen] = useState(false);
@@ -146,6 +148,10 @@ function SearchSortFiltersPostList({
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value)}
       />
+
+      <Button variant="outline" onClick={() => selectAll()}>
+        Tout sélectionner
+      </Button>
 
       <Popover open={filtersOpen} onOpenChange={handleFiltersOpenChange}>
         <PopoverTrigger>
