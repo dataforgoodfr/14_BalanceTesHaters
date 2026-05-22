@@ -87,8 +87,9 @@ export const ReportComment = ({
             URL:{" "}
             <a href={post.url} target="_blank" rel="noopener noreferrer">
               {post.url}
-            </a>{"  "}
-            •  Publication du {getPostDisplayDate(post.publishedAt)} : &quot;{post.title}&quot;
+            </a>
+            {"  "}• Publication du {getPostDisplayDate(post.publishedAt)} :
+            &quot;{post.title}&quot;
           </>
         ) : (
           <>Pseudo auteur : {comment.author.name}</>
