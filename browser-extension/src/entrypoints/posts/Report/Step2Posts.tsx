@@ -14,6 +14,7 @@ import {
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
 import React from "react";
 import { StepHeader } from "./StepHeader";
+import { Button } from "@/components/ui/button";
 
 function Step2Posts({
   reportQueryData,
@@ -24,7 +25,9 @@ function Step2Posts({
 }>) {
   const [postSortingCategory, setPostSortingCategory] =
     React.useState<PostSortingCategory>(PostSortingCategory.ANALYSIS_DATE_DESC);
-
+  const [selectedPostIds, setSelectedPostIds] = React.useState<string[]>(
+    reportQueryData?.postIdList ?? [],
+  );
   const {
     searchTerm,
     setSearchTerm,
@@ -57,6 +60,27 @@ function Step2Posts({
       />
 
       <div>
+        {selectedPostIds.length > 0 && (
+          <div className="mb-3 pe-2 w-fit gap-1 bg-muted rounded-md flex items-center justify-start font-semibold ">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                form.setFieldValue("postList", []);
+                setSelectedPostIds([]);
+              }}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Déselectionner toutes les publications"
+            >
+              ✕
+            </Button>
+            <span className="text-sm">
+              {selectedPostIds.length} sélectionné
+              {selectedPostIds.length > 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+
         <SearchSortFiltersPostList
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -91,9 +115,9 @@ function Step2Posts({
           >
             {(field) => (
               <div className="flex flex-col gap-4">
-                <div>
+                <div className="mt-2">
                   {field.state.meta.errors.length > 0 && (
-                    <span className="text-destructive text-sm mt-2">
+                    <span className="text-destructive text-sm ">
                       {field.state.meta.errors.join(", ")}
                     </span>
                   )}
@@ -101,33 +125,36 @@ function Step2Posts({
                 {filteredPosts &&
                   filteredPosts.length > 0 &&
                   filteredPosts.map((post) => (
-                    <Card key={post.postId}>
-                      <CardContent className="flex items-center gap-5">
-                        <Checkbox
-                          id={post.postId}
-                          checked={field.state.value.includes(post.postId)}
-                          onCheckedChange={(checked) => {
-                            const currentValue = field.state.value;
-                            const nextValue = checked
-                              ? [...currentValue, post.postId]
-                              : currentValue.filter(
-                                  (val) => val !== post.postId,
-                                );
+                    <label key={post.postId}>
+                      <Card>
+                        <CardContent className="flex items-center gap-5">
+                          <Checkbox
+                            id={post.postId}
+                            checked={field.state.value.includes(post.postId)}
+                            onCheckedChange={(checked) => {
+                              const currentValue = field.state.value;
+                              const nextValue = checked
+                                ? [...currentValue, post.postId]
+                                : currentValue.filter(
+                                    (val) => val !== post.postId,
+                                  );
 
-                            field.handleChange(nextValue);
-                          }}
-                        />
-                        <div className="w-full">
-                          <PostSummary post={post} />
-                          <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                            <div className="font-semibold">
-                              Analyse du{" "}
-                              {formatAnalysisDate(post.latestAnalysisDate)}
-                            </div>
-                          </Card>
-                        </div>
-                      </CardContent>
-                    </Card>
+                              field.handleChange(nextValue);
+                              setSelectedPostIds(nextValue);
+                            }}
+                          />
+                          <div className="w-full">
+                            <PostSummary post={post} />
+                            <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
+                              <div className="font-semibold">
+                                Analyse du{" "}
+                                {formatAnalysisDate(post.latestAnalysisDate)}
+                              </div>
+                            </Card>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </label>
                   ))}
               </div>
             )}
