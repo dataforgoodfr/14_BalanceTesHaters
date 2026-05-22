@@ -14,7 +14,7 @@ const StepperTriggerWrapper = () => {
     <Stepper.Trigger
       render={(domProps) => (
         <Button
-          className="rounded-full"
+          roundness="round"
           variant={isInactive ? "secondary" : "default"}
           size="icon"
           {...domProps}
@@ -125,7 +125,8 @@ export const StepperActions = () => {
       <Stepper.Actions className="flex justify-center gap-6">
         {stepper.state.isFirst ? (
           <Button
-            type="button"
+                          roundness="round"
+type="button"
             className="w-1/6"
             variant="secondary"
             render={<Link to="/">Annuler</Link>}
@@ -134,7 +135,8 @@ export const StepperActions = () => {
           <Stepper.Prev
             render={(domProps) => (
               <Button
-                type="button"
+                             roundness="round"
+ type="button"
                 className="w-1/6"
                 variant="secondary"
                 {...domProps}
@@ -147,6 +149,7 @@ export const StepperActions = () => {
 
         {stepper.state.isLast ? (
           <Button
+            roundness="round"
             type="submit"
             form={getFormId(stepper.state.current.data.id)}
             className="w-1/6"
@@ -155,6 +158,7 @@ export const StepperActions = () => {
           </Button>
         ) : (
           <Button
+            roundness="round"
             type="submit"
             form={getFormId(stepper.state.current.data.id)}
             className="w-1/6"

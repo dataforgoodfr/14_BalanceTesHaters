@@ -34,6 +34,7 @@ export function DisplayScrapingFailed({
       <SidePanelActions>
         <Button
           size="lg"
+          roundness="round"
           data-testid="retry-scraping-button"
           className="w-full"
           onClick={() => startScraping(tabInfo.tabId)}

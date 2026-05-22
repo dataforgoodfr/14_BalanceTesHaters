@@ -35,6 +35,7 @@ export function DisplayClassificationSucceeded({
         {hasHatefullComments && (
           <Button
             size="lg"
+            roundness="round"
             data-testid="view-analysis-button"
             className="w-full"
             variant="default"
@@ -54,6 +55,7 @@ export function DisplayClassificationSucceeded({
 
         <Button
           size="lg"
+          roundness="round"
           data-testid="start-scraping-button"
           className="w-full"
           variant={hasHatefullComments ? "outline" : "default"}

@@ -29,7 +29,7 @@ export const DownloadPdfButton = ({
 
   if (instance.loading || !instance.url || instance.error) {
     return (
-      <Button disabled>
+      <Button roundness="round" disabled>
         {instance.loading ? "Génération..." : DOWNLOAD_PDF_LABEL}
       </Button>
     );
@@ -37,6 +37,7 @@ export const DownloadPdfButton = ({
 
   return (
     <Button
+      roundness="round"
       render={
         <a
           href={instance.url}

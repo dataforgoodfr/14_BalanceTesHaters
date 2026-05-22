@@ -106,6 +106,7 @@ const Report = ({
         <div className="flex gap-2">
           <Button
             variant="outline"
+            roundness="round"
             disabled={!canExportCsv}
             onClick={exportCsv}
           >
@@ -117,12 +118,13 @@ const Report = ({
               posts={posts}
             />
           ) : (
-            <Button variant="outline" disabled>
+            <Button roundness="round" variant="outline" disabled>
               {DOWNLOAD_PDF_LABEL}
             </Button>
           )}
           <Button
             variant="outline"
+            roundness="round"
             disabled={!canExportDocx}
             onClick={() => void exportDocx()}
           >

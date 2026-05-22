@@ -27,14 +27,34 @@ export const SizeLG: Story = {
   },
 };
 
+export const SizeLGRound: Story = {
+  args: {
+    size: "lg",
+    roundness: "round",
+  },
+};
+
 export const SizeSM: Story = {
   args: {
     size: "sm",
   },
 };
+export const SizeSMRound: Story = {
+  args: {
+    size: "sm",
+    roundness: "round",
+  },
+};
 export const SizeXS: Story = {
   args: {
     size: "xs",
+  },
+};
+
+export const SizeXSRound: Story = {
+  args: {
+    size: "xs",
+    roundness: "round",
   },
 };
 

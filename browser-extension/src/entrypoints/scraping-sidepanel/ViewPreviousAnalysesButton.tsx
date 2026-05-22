@@ -9,6 +9,7 @@ export function ViewPreviousAnalysesButton({
   return (
     <Button
       size="lg"
+      roundness="round"
       data-testid="view-analyses-button"
       className="w-full"
       variant="outline"
