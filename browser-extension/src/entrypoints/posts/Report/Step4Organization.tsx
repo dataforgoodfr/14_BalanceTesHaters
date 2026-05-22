@@ -8,6 +8,10 @@ import { useForm } from "@tanstack/react-form";
 import { RadioGroup } from "@base-ui/react";
 import { RadioGroupItem } from "@/components/ui/radio-group";
 import { getFormId } from "./StepperComponents";
+import { StepHeader } from "./StepHeader";
+import { FileText, UserRound } from "lucide-react";
+import WorkInProgress from "../WorkInProgress";
+import { cn } from "@/lib/utils";
 
 function Step4Organization({
   setReportOrganizationType,
@@ -30,20 +34,29 @@ function Step4Organization({
 
   const options = [
     {
-      id: ReportOrganizationType.BY_PUBLICATION.toString(),
-      label: "Par publication (par défaut)",
+      id: ReportOrganizationType.BY_AUTHOR.toString(),
+      label: "Par auteur (recommandé)",
+      description:
+        "Idéal pour un dossier juridique prêt à remettre aux autorités",
+      icon: <UserRound />,
+      disabled: true,
     },
     {
-      id: ReportOrganizationType.BY_AUTHOR.toString(),
-      label: "Par auteur (en cours de développement)",
+      id: ReportOrganizationType.BY_PUBLICATION.toString(),
+      label: "Par publication",
+      description:
+        "Pratique si l’objectif est de traiter une vidéo/un post à la fois",
+      icon: <FileText />,
+      disabled: false,
     },
   ];
 
   return (
     <>
-      <span className="text-xl font-bold mb-3">
-        Comment souhaitez-vous organiser ce rapport ?
-      </span>
+      <StepHeader
+        title="Choisis l’organisation du rapport"
+        subTitle="Sélectionne la structure la plus adaptée à l’objectif du dossier."
+      />
       <form
         id={getFormId(stepper.state.current.data.id)}
         onSubmit={(e) => {
@@ -59,22 +72,34 @@ function Step4Organization({
         <form.Field name="reportOrganizationType">
           {(field) => (
             <RadioGroup
-              defaultValue={ReportOrganizationType.BY_PUBLICATION}
+              defaultValue={ReportOrganizationType.BY_PUBLICATION.toString()}
               className="flex flex-col items-left gap-3 "
               onChange={(event) => {
                 field.handleChange((event.target as HTMLInputElement).id);
               }}
             >
               {options.map((option) => (
-                <div className="flex items-center gap-3" key={option.id}>
-                  <RadioGroupItem id={option.id.toString()} value={option.id} />
-                  <Label
-                    htmlFor={option.id.toString()}
-                    className="font-normal cursor-pointer"
-                  >
-                    {option.label}
-                  </Label>
-                </div>
+                <Label
+                  className={cn(
+                    option.disabled && "opacity-50",
+                    "relative justify-center border border-border rounded-md p-4 flex items-center gap-3 has-aria-checked:bg-selected has-aria-checked:border-selected-accent",
+                  )}
+                  key={option.id}
+                >
+                  {option.disabled && <WorkInProgress />}
+                  <RadioGroupItem
+                    id={option.id.toString()}
+                    value={option.id}
+                    className="hidden"
+                    disabled={option.disabled}
+                  />
+                  {option.icon}
+
+                  <div className="flex flex-col gap-2 items-start">
+                    <span className="font-semibold">{option.label}</span>
+                    <span className="font-medium">{option.description}</span>
+                  </div>
+                </Label>
               ))}
 
               {/* Error display */}

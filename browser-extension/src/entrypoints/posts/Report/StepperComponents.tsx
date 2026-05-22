@@ -3,6 +3,7 @@ import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
 import { Stepper, useStepper } from "./BuildReport";
+import { Link } from "react-router";
 
 const StepperTriggerWrapper = () => {
   const item = useStepItemContext();
@@ -122,18 +123,29 @@ export const StepperActions = () => {
   return (
     <div className="sticky bottom-0 border-t py-4 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">
-        <Stepper.Prev
-          render={(domProps) => (
-            <Button
-              roundness="round"
-              type="button"
-              className="w-1/6"
-              {...domProps}
-            >
-              <MoveLeft className="h-4 w-4 mr-1" /> Précédent
-            </Button>
-          )}
-        />
+        {stepper.state.isFirst ? (
+          <Button
+            roundness="round"
+            type="button"
+            className="w-1/6"
+            variant="secondary"
+            render={<Link to="/">Annuler</Link>}
+          ></Button>
+        ) : (
+          <Stepper.Prev
+            render={(domProps) => (
+              <Button
+                roundness="round"
+                type="button"
+                className="w-1/6"
+                variant="secondary"
+                {...domProps}
+              >
+                <MoveLeft className="h-4 w-4 mr-1" /> Précédent
+              </Button>
+            )}
+          />
+        )}
 
         {stepper.state.isLast ? (
           <Button

@@ -1,10 +1,13 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { useStepper, ReportQueryData } from "./BuildReport"; // or wherever the export is
 import { useForm } from "@tanstack/react-form";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getFormId } from "./StepperComponents";
+import { StepHeader } from "./StepHeader";
+import youtubeLogoUrl from "~/assets/youtube-logo.svg";
+import instagramLogoUrl from "~/assets/instagram-logo.svg";
 
 function Step1Plateforme({
   reportQueryData,
@@ -25,17 +28,18 @@ function Step1Plateforme({
     },
   });
 
-  const options: { id: string; label: string }[] = [
-    { id: SocialNetwork.Instagram, label: "Instagram" },
-    { id: SocialNetwork.YouTube, label: "YouTube" },
+  const options: { id: string; label: string; url: string }[] = [
+    { id: SocialNetwork.YouTube, label: "YouTube", url: youtubeLogoUrl },
+    { id: SocialNetwork.Instagram, label: "Instagram", url: instagramLogoUrl },
   ];
 
   return (
     <>
-      <span className="text-xl font-bold mb-3">
-        Sur quelle plateforme se trouvent les publications à inclure dans ce
-        rapport ?
-      </span>
+      <StepHeader
+        title="Sélectionne une plateforme"
+        subTitle="Choisis la plateforme sur laquelle se trouvent les publications à inclure."
+      />
+
       <form
         id={getFormId(stepper.state.current.data.id)}
         onSubmit={(e) => {
@@ -43,7 +47,7 @@ function Step1Plateforme({
           e.stopPropagation();
           void form.handleSubmit();
         }}
-        className="space-y-6 p-4 flex justify-center"
+        className="space-y-6 p-4 flex flex-col items-center"
       >
         <form.Field
           name="socialNetworkList"
@@ -55,29 +59,40 @@ function Step1Plateforme({
           }}
         >
           {(field) => (
-            <FieldGroup className="mt-2 gap-5 max-w-2xs w-2/3 ">
-              {options.map((option) => (
-                <Field orientation="horizontal" key={option.id}>
-                  <Checkbox
-                    id={option.id}
-                    checked={field.state.value.includes(option.id)}
-                    onCheckedChange={(checked) => {
-                      const currentValue = field.state.value;
-                      const nextValue = checked
-                        ? [...currentValue, option.id]
-                        : currentValue.filter((val) => val !== option.id);
-
-                      field.handleChange(nextValue);
-                    }}
-                  />
-                  <Label
-                    htmlFor={option.id}
-                    className="font-normal cursor-pointer"
+            <>
+              <div className="flex items-center mt-2 gap-4">
+                {options.map((option) => (
+                  <Field
+                    orientation="horizontal"
+                    key={option.id}
+                    className="rounded-md has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
                   >
-                    {option.label}
-                  </Label>
-                </Field>
-              ))}
+                    <Label className="w-[256px] justify-center border border-border rounded-md p-4">
+                      <Checkbox
+                        id={option.id}
+                        className="hidden"
+                        checked={field.state.value.includes(option.id)}
+                        onCheckedChange={(checked) => {
+                          const currentValue = field.state.value;
+                          const nextValue = checked
+                            ? [...currentValue, option.id]
+                            : currentValue.filter((val) => val !== option.id);
+
+                          field.handleChange(nextValue);
+                        }}
+                      />
+                      <div className="flex flex-col items-center gap-3 ">
+                        <img
+                          src={option.url}
+                          className="w-8 h-8"
+                          alt="Logo"
+                        ></img>
+                        <span className="font-semibold">{option.label}</span>
+                      </div>
+                    </Label>
+                  </Field>
+                ))}
+              </div>
 
               {/* Error display */}
               {field.state.meta.errors.length > 0 && (
@@ -85,7 +100,7 @@ function Step1Plateforme({
                   {field.state.meta.errors.join(", ")}
                 </span>
               )}
-            </FieldGroup>
+            </>
           )}
         </form.Field>
       </form>

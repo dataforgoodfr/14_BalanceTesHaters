@@ -13,6 +13,7 @@ import {
 } from "@/shared/utils/post-util";
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
 import React from "react";
+import { StepHeader } from "./StepHeader";
 
 function Step2Posts({
   reportQueryData,
@@ -50,10 +51,10 @@ function Step2Posts({
 
   return (
     <div className="flex flex-col gap-4 h-9/12 ">
-      <span className="text-xl font-bold">
-        Choisissez une ou plusieurs analyses de publications à inclure dans le
-        rapport :
-      </span>
+      <StepHeader
+        title="Sélectionne les publications"
+        subTitle="Choisis une ou plusieurs publications à inclure dans le rapport."
+      />
       <SearchSortFiltersPostList
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
