@@ -50,85 +50,90 @@ function Step2Posts({
   });
 
   return (
-    <div className="flex flex-col gap-4 h-9/12 ">
+    <div className="flex flex-col gap-4 h-9/12 items-center">
       <StepHeader
         title="Sélectionne les publications"
         subTitle="Choisis une ou plusieurs publications à inclure dans le rapport."
       />
-      <SearchSortFiltersPostList
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        postFilters={postFilters}
-        setPostFilters={setPostFilters}
-        postSortingCategory={postSortingCategory}
-        setPostSortingCategory={setPostSortingCategory}
-      />
 
-      {isLoading && <Spinner className="size-8" />}
-      {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
-        <p className="text-center">Aucune publication</p>
-      )}
+      <div>
+        <SearchSortFiltersPostList
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          postFilters={postFilters}
+          setPostFilters={setPostFilters}
+          postSortingCategory={postSortingCategory}
+          setPostSortingCategory={setPostSortingCategory}
+        />
 
-      <form
-        id={getFormId(stepper.state.current.data.id)}
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          void form.handleSubmit();
-        }}
-        className="space-y-6 p-4 flex justify-center"
-      >
-        <form.Field
-          name="postList"
-          validators={{
-            onChange: ({ value }) =>
-              value.length < 1
-                ? "Sélectionner au moins une publication"
-                : undefined,
+        {isLoading && <Spinner className="size-8" />}
+        {!isLoading && (!filteredPosts || filteredPosts.length === 0) && (
+          <p className="text-center">Aucune publication</p>
+        )}
+
+        <form
+          id={getFormId(stepper.state.current.data.id)}
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void form.handleSubmit();
           }}
+          className="space-y-6 flex justify-center"
         >
-          {(field) => (
-            <div className="flex flex-col gap-4">
-              <div>
-                {field.state.meta.errors.length > 0 && (
-                  <span className="text-destructive text-sm mt-2">
-                    {field.state.meta.errors.join(", ")}
-                  </span>
-                )}
-              </div>
-              {filteredPosts &&
-                filteredPosts.length > 0 &&
-                filteredPosts.map((post) => (
-                  <Card key={post.postId}>
-                    <CardContent className="flex items-center gap-5">
-                      <Checkbox
-                        id={post.postId}
-                        checked={field.state.value.includes(post.postId)}
-                        onCheckedChange={(checked) => {
-                          const currentValue = field.state.value;
-                          const nextValue = checked
-                            ? [...currentValue, post.postId]
-                            : currentValue.filter((val) => val !== post.postId);
+          <form.Field
+            name="postList"
+            validators={{
+              onChange: ({ value }) =>
+                value.length < 1
+                  ? "Sélectionner au moins une publication"
+                  : undefined,
+            }}
+          >
+            {(field) => (
+              <div className="flex flex-col gap-4">
+                <div>
+                  {field.state.meta.errors.length > 0 && (
+                    <span className="text-destructive text-sm mt-2">
+                      {field.state.meta.errors.join(", ")}
+                    </span>
+                  )}
+                </div>
+                {filteredPosts &&
+                  filteredPosts.length > 0 &&
+                  filteredPosts.map((post) => (
+                    <Card key={post.postId}>
+                      <CardContent className="flex items-center gap-5">
+                        <Checkbox
+                          id={post.postId}
+                          checked={field.state.value.includes(post.postId)}
+                          onCheckedChange={(checked) => {
+                            const currentValue = field.state.value;
+                            const nextValue = checked
+                              ? [...currentValue, post.postId]
+                              : currentValue.filter(
+                                  (val) => val !== post.postId,
+                                );
 
-                          field.handleChange(nextValue);
-                        }}
-                      />
-                      <div className="w-full">
-                        <PostSummary post={post} />
-                        <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
-                          <div className="font-semibold">
-                            Analyse du{" "}
-                            {formatAnalysisDate(post.latestAnalysisDate)}
-                          </div>
-                        </Card>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-            </div>
-          )}
-        </form.Field>
-      </form>
+                            field.handleChange(nextValue);
+                          }}
+                        />
+                        <div className="w-full">
+                          <PostSummary post={post} />
+                          <Card className="bg-muted mt-2 flex flex-row px-5 py-3 items-center justify-between">
+                            <div className="font-semibold">
+                              Analyse du{" "}
+                              {formatAnalysisDate(post.latestAnalysisDate)}
+                            </div>
+                          </Card>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+            )}
+          </form.Field>
+        </form>
+      </div>
     </div>
   );
 }
