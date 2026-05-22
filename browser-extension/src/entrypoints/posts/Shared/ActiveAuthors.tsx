@@ -94,12 +94,7 @@ function ActiveAuthors({
                 />
               </Bar>
               <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    indicator="line"
-                    className="max-w-1/12 text-left "
-                  />
-                }
+                content={<ChartTooltipContent indicator="line" />}
               />
             </BarChart>
           </ChartContainer>

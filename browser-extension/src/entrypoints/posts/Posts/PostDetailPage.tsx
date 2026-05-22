@@ -95,21 +95,21 @@ function PostDetailPage() {
             </Card>
             <div className="flex flex-col gap-3">
               <div className="flex gap-4 justify-between w-full">
-                <NumberHatefulCommentsKpiCard
-                  numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={allComments.length}
-                  isLoading={isLoading}
-                />
                 <PercentageHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
                   numberOfComments={allComments.length}
                   isLoading={isLoading}
                 />
+                <NumberHatefulCommentsKpiCard
+                  numberOfHatefulComments={numberOfHatefulComments}
+                  numberOfComments={allComments.length}
+                  isLoading={isLoading}
+                />
+                <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 <NumberHatefulAuhorsKpiCard
                   hatefulCommentList={hatefulComments}
                   isLoading={isLoading}
                 />
-                <SecurityAlert isLoading={isLoading}></SecurityAlert>
               </div>
               <div className="flex gap-4 w-full">
                 <ActiveAuthors
