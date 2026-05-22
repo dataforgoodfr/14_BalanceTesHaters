@@ -85,7 +85,7 @@ function Step1Plateforme({
                         <img
                           src={option.url}
                           className="w-8 h-8"
-                          alt="Logo"
+                          alt={option.label}
                         ></img>
                         <span className="font-semibold">{option.label}</span>
                       </div>
