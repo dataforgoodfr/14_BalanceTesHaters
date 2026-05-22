@@ -125,8 +125,8 @@ export const StepperActions = () => {
       <Stepper.Actions className="flex justify-center gap-6">
         {stepper.state.isFirst ? (
           <Button
-                          roundness="round"
-type="button"
+            roundness="round"
+            type="button"
             className="w-1/6"
             variant="secondary"
             render={<Link to="/">Annuler</Link>}
@@ -135,8 +135,8 @@ type="button"
           <Stepper.Prev
             render={(domProps) => (
               <Button
-                             roundness="round"
- type="button"
+                roundness="round"
+                type="button"
                 className="w-1/6"
                 variant="secondary"
                 {...domProps}
