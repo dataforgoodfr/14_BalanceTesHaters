@@ -17,6 +17,17 @@ const closableAlertVariants = cva("card rounded-md flex gap-4", {
   },
 });
 
+const closableAlertDescriptionVariants = cva("", {
+  variants: {
+    variant: {
+      info: "text-text-info",
+    },
+  },
+  defaultVariants: {
+    variant: "info",
+  },
+});
+
 type ClosableAlertProps = {
   title: string;
   description: string;
@@ -38,11 +49,15 @@ const ClosableAlert = ({
     <Alert className={closableAlertVariants({ variant })}>
       <div className="mt-2">{icon}</div>
       <div className="flex-1 flex-col justify-center gap-1">
-        <AlertTitle className="text-lg">{title}</AlertTitle>
-        <AlertDescription className="text">{description}</AlertDescription>
+        <AlertTitle className="text-lg ">{title}</AlertTitle>
+        <AlertDescription
+          className={closableAlertDescriptionVariants({ variant })}
+        >
+          {description}
+        </AlertDescription>
       </div>
       <button
-        className="self-start cursor-pointer"
+        className="self-start cursor-pointer "
         onClick={() => setIsActive(false)}
       >
         <XIcon className="size-5" />

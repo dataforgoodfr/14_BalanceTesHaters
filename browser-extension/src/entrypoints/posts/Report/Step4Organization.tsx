@@ -10,6 +10,8 @@ import { RadioGroupItem } from "@/components/ui/radio-group";
 import { getFormId } from "./StepperComponents";
 import { StepHeader } from "./StepHeader";
 import { FileText, UserRound } from "lucide-react";
+import WorkInProgress from "../WorkInProgress";
+import { cn } from "@/lib/utils";
 
 function Step4Organization({
   setReportOrganizationType,
@@ -32,18 +34,20 @@ function Step4Organization({
 
   const options = [
     {
-      id: ReportOrganizationType.BY_PUBLICATION.toString(),
+      id: ReportOrganizationType.BY_AUTHOR.toString(),
       label: "Par auteur (recommandé)",
       description:
         "Idéal pour un dossier juridique prêt à remettre aux autorités",
       icon: <UserRound />,
+      disabled: true,
     },
     {
-      id: ReportOrganizationType.BY_AUTHOR.toString(),
+      id: ReportOrganizationType.BY_PUBLICATION.toString(),
       label: "Par publication",
       description:
         "Pratique si l’objectif est de traiter une vidéo/un post à la fois",
       icon: <FileText />,
+      disabled: false,
     },
   ];
 
@@ -68,7 +72,7 @@ function Step4Organization({
         <form.Field name="reportOrganizationType">
           {(field) => (
             <RadioGroup
-              defaultValue={ReportOrganizationType.BY_AUTHOR}
+              defaultValue={ReportOrganizationType.BY_PUBLICATION.toString()}
               className="flex flex-col items-left gap-3 "
               onChange={(event) => {
                 field.handleChange((event.target as HTMLInputElement).id);
@@ -76,13 +80,18 @@ function Step4Organization({
             >
               {options.map((option) => (
                 <Label
-                  className=" justify-center border border-border rounded-md p-4 flex items-center gap-3 has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
+                  className={cn(
+                    option.disabled && "opacity-50",
+                    "relative justify-center border border-border rounded-md p-4 flex items-center gap-3 has-aria-checked:bg-selected has-aria-checked:border-selected-accent",
+                  )}
                   key={option.id}
                 >
+                  {option.disabled && <WorkInProgress />}
                   <RadioGroupItem
                     id={option.id.toString()}
                     value={option.id}
                     className="hidden"
+                    disabled={option.disabled}
                   />
                   {option.icon}
 

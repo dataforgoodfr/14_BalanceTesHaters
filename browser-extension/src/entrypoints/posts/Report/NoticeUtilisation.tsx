@@ -1,4 +1,4 @@
-import { BookOpenText } from "lucide-react";
+import { ArrowBigRight, BookOpenText } from "lucide-react";
 
 export const NoticeUtilisation = () => {
   return (
@@ -31,7 +31,10 @@ export const NoticeUtilisation = () => {
               contenus.
             </li>
           </ul>
-          Option : demander un constat par commissaire de justice
+          <div className="flex items-center gap-2">
+            <ArrowBigRight strokeWidth="1.5" size={20} />
+            <span>Option : demander un constat par commissaire de justice</span>
+          </div>
         </div>
         <div>
           <span className="text-lg font-semibold">3. Déposer plainte</span>

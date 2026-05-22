@@ -31,7 +31,6 @@ export const ReportContent = ({
   setScreenshotDialogOpen,
 }: ReportContentProps) => {
   const numberOfHatefulComments = reportQueryData?.postCommentList?.length ?? 0;
-  const numberOfComments = posts?.flatMap((post) => post.comments).length ?? 0;
 
   const openScreenshotDialog = (screenshot: string) => {
     setSelectedScreenshot(screenshot);
@@ -60,7 +59,6 @@ export const ReportContent = ({
         />
         <NumberHatefulCommentsKpiCard
           numberOfHatefulComments={numberOfHatefulComments}
-          numberOfComments={numberOfComments}
           isLoading={isLoadingPosts}
         />
 
