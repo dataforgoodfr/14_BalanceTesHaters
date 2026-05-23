@@ -2,13 +2,12 @@ name: CleverCloud deployment
 
 on:
   pull_request:
-    types: [opened, closed, synchronize, reopened]
   push:
     branches: [main]
 
 jobs:
   deploy:
-  - name: Deploy backend app
+    name: Deploy backend app
     uses: CleverCloud/clever-cloud-review-app@v2.0.2
     env:
       CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
