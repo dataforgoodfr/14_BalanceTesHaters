@@ -10,10 +10,12 @@ jobs:
     name: Deploy backend app
     runs-on: ubuntu-latest
     steps:
-      - uses: CleverCloud/clever-cloud-review-app@v2.0.2
-        env:
-          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-          ORGA_ID: ${{ secrets.ORGA_ID }}
+      - uses: actions/checkout@v3
+          with:
+            fetch-depth: 0
+      - uses: 47ng/actions-clever-cloud@v2.1.0
         with:
-          type: 'docker'
+          alias: 'BTH'
+        env:
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
