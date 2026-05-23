@@ -8,10 +8,12 @@ on:
 jobs:
   deploy:
     name: Deploy backend app
-    uses: CleverCloud/clever-cloud-review-app@v2.0.2
-    env:
-      CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
-      CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
-      ORGA_ID: ${{ secrets.ORGA_ID }}
-    with:
-      type: 'docker'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: CleverCloud/clever-cloud-review-app@v2.0.2
+        env:
+          CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
+          CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
+          ORGA_ID: ${{ secrets.ORGA_ID }}
+        with:
+          type: 'docker'
