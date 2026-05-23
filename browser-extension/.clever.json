@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "app_id": "app_dfa6f3a5-8b75-4da0-9aa6-851fe085bcb7",
+      "org_id": "orga_062fdfa3-d289-4e2f-8a55-b4ebe3a40fef",
+      "deploy_url": "https://push-n3-par-clevercloud-customers.services.clever-cloud.com/app_dfa6f3a5-8b75-4da0-9aa6-851fe085bcb7.git",
+      "git_ssh_url": "git+ssh://git@push-n3-par-clevercloud-customers.services.clever-cloud.com/app_dfa6f3a5-8b75-4da0-9aa6-851fe085bcb7.git",
+      "name": "BTH",
+      "alias": "BTH"
+    }
+  ]
+}
