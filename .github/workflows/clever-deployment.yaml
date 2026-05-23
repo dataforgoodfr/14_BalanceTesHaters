@@ -1,7 +1,6 @@
 name: CleverCloud deployment
 
 on:
-  pull_request:
   push:
     branches: [main]
 
