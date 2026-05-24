@@ -2,7 +2,7 @@ name: CleverCloud deployment
 
 on:
   pull_request:
-    types: [opened, closed, synchronize, reopened]
+    types: [synchronize]
     branches: [ main ]
   push:
     branches: [main]
@@ -21,6 +21,7 @@ jobs:
           alias: 'BTH'
           timeout: 1800
           force: true
+          sameCommitPolicy: ignore
         env:
           CLEVER_SECRET: ${{ secrets.CLEVER_SECRET }}
           CLEVER_TOKEN: ${{ secrets.CLEVER_TOKEN }}
