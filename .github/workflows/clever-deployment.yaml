@@ -7,12 +7,13 @@ on:
 jobs:
   deploy:
     name: Deploy backend app
+    environment: CleverCloud
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: 47ng/actions-clever-cloud@v2
+      - uses: 47ng/actions-clever-cloud@v2.1.0
         with:
           alias: 'BTH'
         env:
