@@ -1,9 +1,6 @@
 name: CleverCloud deployment
 
 on:
-  pull_request:
-    types: [synchronize]
-    branches: [ main ]
   push:
     branches: [main]
 
