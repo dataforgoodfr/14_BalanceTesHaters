@@ -27,21 +27,28 @@ export class ScrapingSupport {
     parent: ParentNode,
     selector: string,
     targetClass: Class<T>,
+    options?: ElementPredicateOption<T>,
   ): T | undefined {
-    const element = parent.querySelector(selector);
-    if (!element) {
-      return undefined;
+    const elements = this.selectAll(parent, selector, targetClass, options);
+    if (elements.length > 0) {
+      return elements[0];
     }
-    return this.castElement(element, targetClass);
+    return undefined;
   }
 
   selectAll<T extends Element>(
     parent: ParentNode,
     selector: string,
     targetClass: Class<T>,
+    options?: ElementPredicateOption<T>,
   ): T[] {
     const elements = Array.from(parent.querySelectorAll(selector));
-    return elements.map((e) => this.castElement(e, targetClass));
+    const casted = elements.map((e) => this.castElement(e, targetClass));
+    if (options?.predicate) {
+      return casted.filter(options.predicate);
+    } else {
+      return casted;
+    }
   }
 
   /**
@@ -57,10 +64,9 @@ export class ScrapingSupport {
     parent: ParentNode,
     selector: string,
     targetClass: Class<T>,
-    options?: {
-      predicate?: (e: T) => boolean;
-      timeout?: number;
-    },
+    options?: ElementPredicateOption<T> &
+      SelectionElementsDescriptorsOptions &
+      TimeoutOption,
   ): Promise<T> {
     const result = await this.waitForSelector(
       parent,
@@ -69,6 +75,12 @@ export class ScrapingSupport {
       options,
     );
     if (result.status === "failure") {
+      console.error(
+        result.message,
+        // Log parent as object. This makes it interactable in browser console (can select in element panel...).
+        "Parent:",
+        parent,
+      );
       throw new Error(result.message);
     }
     return result.element;
@@ -87,46 +99,48 @@ export class ScrapingSupport {
     parent: ParentNode,
     selector: string,
     targetClass: Class<T>,
-    options?: {
-      predicate?: (e: T) => boolean;
-      timeout?: number;
-    },
+    options?: ElementPredicateOption<T> &
+      SelectionElementsDescriptorsOptions &
+      TimeoutOption,
   ): Promise<WaitForSelectorResult<T>> {
     const timeout = options?.timeout || 30000;
 
     const start = Date.now();
     while (Date.now() - start < timeout) {
-      const element = this.select(parent, selector, targetClass);
-      if (element && (!options?.predicate || options?.predicate(element))) {
+      const elements = this.selectAll(parent, selector, targetClass, {
+        predicate: options?.predicate,
+      });
+      if (elements.length > 0) {
         return {
           status: "success",
-          element: element,
+          element: elements[0],
         };
       }
       await this.sleep(100);
     }
     return {
       status: "failure",
-      message:
-        "Failed to select element matching selector " +
-        selector +
-        " and predicate " +
-        String(options?.predicate) +
-        " before timeout",
+      message: this.buildFailedToSelectErrorMessage(selector, {
+        predicate: options?.predicate,
+        selectedElementDescriptor: options?.selectedElementDescriptor,
+        parentElementDescriptor: options?.parentElementDescriptor,
+        timeout,
+      }),
     };
   }
 
   async waitUntilNoVisibleElementMatches(
     parent: ParentNode,
     selector: string,
-    options?: {
-      extraPredicate?: (e: HTMLElement) => boolean;
-      /**
-       * Callback function called after each wait increments.
-       */
-      onRemainingElements: (remainingElements: HTMLElement[]) => Promise<void>;
-      timeout?: number;
-    },
+    options?: ElementPredicateOption<HTMLElement> &
+      TimeoutOption & {
+        /**
+         * Callback function called after each wait increments.
+         */
+        onRemainingElements?: (
+          remainingElements: HTMLElement[],
+        ) => Promise<void>;
+      },
   ): Promise<void> {
     const timeout = options?.timeout || 30000;
 
@@ -137,8 +151,8 @@ export class ScrapingSupport {
         selector,
         HTMLElement,
       ).filter((e) => this.isVisible(e));
-      visibleElements = options?.extraPredicate
-        ? visibleElements.filter(options?.extraPredicate)
+      visibleElements = options?.predicate
+        ? visibleElements.filter(options?.predicate)
         : visibleElements;
       if (visibleElements.length === 0) {
         return;
@@ -147,7 +161,7 @@ export class ScrapingSupport {
       if (Date.now() - start > timeout) {
         throw new Error(
           `Still ${visibleElements.length} elements matching selection at timeout.` +
-            ` Selector:${selector}, Predicate ${String(options?.extraPredicate)}, Timeout :(${timeout}ms)`,
+            ` Selector:${selector}, Predicate ${String(options?.predicate)}, Timeout :(${timeout}ms)`,
         );
       }
 
@@ -162,18 +176,45 @@ export class ScrapingSupport {
     parent: ParentNode,
     selector: string,
     targetClass: Class<T>,
+    options?: ElementPredicateOption<T> & SelectionElementsDescriptorsOptions,
   ): T {
-    const element = this.select(parent, selector, targetClass);
+    const element = this.select(parent, selector, targetClass, options);
     if (!element) {
+      const errorMessage = this.buildFailedToSelectErrorMessage<T>(selector, {
+        predicate: options?.predicate,
+        selectedElementDescriptor: options?.selectedElementDescriptor,
+        parentElementDescriptor: options?.parentElementDescriptor,
+      });
       console.error(
-        "Failed to resolve selector: ",
-        selector,
-        "parent: ",
+        errorMessage,
+        // Log parent as object. This makes it interactable in browser console (can select in element panel...).
+        "Parent:",
         parent,
       );
-      throw new Error("Failed to resolve selector: " + selector);
+      throw new Error(errorMessage);
     }
     return element;
+  }
+
+  private buildFailedToSelectErrorMessage<T extends Element>(
+    selector: string,
+    options?: ElementPredicateOption<T> &
+      SelectionElementsDescriptorsOptions &
+      TimeoutOption,
+  ) {
+    const selectedDescriptor = options?.selectedElementDescriptor
+      ? `${options?.selectedElementDescriptor} (selector: ${selector} and predicate: ${String(options?.predicate)})`
+      : `element with selector: ${selector} and predicate: ${String(options?.predicate)}`;
+    const parentDescriptor = options?.parentElementDescriptor
+      ? `${options?.parentElementDescriptor}`
+      : `parent`;
+
+    const beforeTimeout = options?.timeout
+      ? ` before timeout (${options?.timeout}ms)`
+      : "";
+
+    const errorMessage = `Failed to resolve ${selectedDescriptor} in ${parentDescriptor}${beforeTimeout}.`;
+    return errorMessage;
   }
 
   isVisible(element: HTMLElement): boolean {
@@ -215,4 +256,31 @@ export class ScrapingSupport {
   async resumeHostPage() {
     await this.sleep(1);
   }
+
+  async click(element: HTMLElement) {
+    element.dispatchEvent(
+      new MouseEvent("click", {
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    // Let the host page handle the click
+    await this.resumeHostPage();
+  }
 }
+
+export type SelectionElementsDescriptorsOptions = {
+  // Used in error message to help with debug
+  selectedElementDescriptor?: string;
+  // Used in error message to help with debug
+  parentElementDescriptor?: string;
+};
+
+export type ElementPredicateOption<T> = {
+  // Extra predicate to apply to selector
+  predicate?: (e: T) => boolean;
+};
+
+export type TimeoutOption = {
+  timeout?: number;
+};

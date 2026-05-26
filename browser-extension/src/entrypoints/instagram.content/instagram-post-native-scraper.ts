@@ -17,6 +17,7 @@ import {
   normalizeInstagramText,
   sanitizeInstagramCommentText,
 } from "./instagram-comment-text-utils";
+import { ogImageUrl } from "./og/ogImageUrl";
 
 const LOG_PREFIX = "[CS - InstagramPostNativeScraper] ";
 const LOAD_HIDDEN_COMMENTS_CONTROLS_SELECTOR =
@@ -186,7 +187,7 @@ export class InstagramPostNativeScraper {
       postId: pageInfo.postId,
       socialNetwork: SocialNetwork.Instagram,
       textContent,
-      coverImageUrl: this.coverImageUrl(),
+      coverImageUrl: ogImageUrl(this.scrapingSupport),
     };
   }
 
@@ -1090,14 +1091,5 @@ export class InstagramPostNativeScraper {
     }
 
     return segments;
-  }
-
-  private coverImageUrl() {
-    const element = this.scrapingSupport.select(
-      document,
-      "meta[property='og:image']",
-      HTMLElement,
-    );
-    return element?.getAttribute("content") ?? undefined;
   }
 }
