@@ -13,9 +13,10 @@ import {
   uint8ArrayToBase64,
 } from "../../shared/utils/base-64";
 import {
-  captureFullPageScreenshot,
-  FullPageScreenshotResult,
-} from "../../shared/native-screenshoting/cs/page-screenshot";
+  ScrollableScreenshot,
+  captureHtmlPageScreenshot,
+  captureTabScreenshotAsDataUrl,
+} from "@/shared/screenshoting";
 import { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
@@ -25,7 +26,6 @@ import { ProgressManager } from "@/shared/scraping-content-script/ProgressManage
 import { withRetry } from "../../shared/utils/withRetry";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { parseCommentPublishedTime } from "./parseCommentPublishedTime";
-import { captureTabScreenshotAsDataUrl } from "@/shared/native-screenshoting/cs/screenshot-cs-tab";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 const YOUTUBE_SHORTS_PATH_SEGMENT = "/shorts/";
@@ -431,7 +431,7 @@ export class YoutubePostNativeScrapper {
 
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
     collectedPostIds: Set<string>,
   ): Promise<CommentSnapshot[]> {
     const comments: CommentSnapshot[] = [];
@@ -457,7 +457,7 @@ export class YoutubePostNativeScrapper {
    */
   private async scrapCommentThread(
     commentThreadContainer: HTMLElement,
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
     collectedPostIds: Set<string>,
   ): Promise<CommentThread> {
     const commentContainer = this.scrapingSupport.selectOrThrow(
@@ -521,7 +521,7 @@ export class YoutubePostNativeScrapper {
 
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
     collectedPostIds: Set<string>,
   ): Promise<CommentSnapshot[]> {
     const expandedThreadsContainer = this.scrapingSupport.select(
@@ -553,7 +553,7 @@ export class YoutubePostNativeScrapper {
 
   private async capturePageScreenshot(
     progressManager: ProgressManager,
-  ): Promise<FullPageScreenshotResult> {
+  ): Promise<ScrollableScreenshot> {
     // Hide matshead overlay that prevent screenshoting elements
     const masthead = this.scrapingSupport.selectOrThrow(
       document,
@@ -564,7 +564,7 @@ export class YoutubePostNativeScrapper {
     await this.scrapingSupport.resumeHostPage();
 
     try {
-      return await captureFullPageScreenshot(
+      return await captureHtmlPageScreenshot(
         this.scrapingSupport,
         progressManager,
       );
@@ -779,7 +779,7 @@ export class YoutubePostNativeScrapper {
 
   private async scrapCommentWithoutReplies(
     commentContainer: HTMLElement,
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
   ): Promise<CommentSnapshot> {
     const scrapDate = currentIsoDate();
 
@@ -812,8 +812,8 @@ export class YoutubePostNativeScrapper {
 
     const boundingBox = commentContainer.getBoundingClientRect();
     if (
-      window.innerWidth !== fullPageScreenshot.viewPortSize.width ||
-      window.innerHeight !== fullPageScreenshot.viewPortSize.height
+      window.innerWidth !== fullPageScreenshot.clientSize.width ||
+      window.innerHeight !== fullPageScreenshot.clientSize.height
     ) {
       // Windows resized since screenshot
       // This surely have changed page layout
@@ -843,7 +843,7 @@ export class YoutubePostNativeScrapper {
 
   private async captureCommentScreenshotData(
     commentContainer: HTMLElement,
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
     boundingBox: DOMRect,
   ): Promise<string> {
     if (this.isShortsPostUrl(document.URL)) {
@@ -864,7 +864,7 @@ export class YoutubePostNativeScrapper {
   }
 
   private captureCommentScreenshotDataFromFullPage(
-    fullPageScreenshot: FullPageScreenshotResult,
+    fullPageScreenshot: ScrollableScreenshot,
     boundingBox: DOMRect,
   ): string {
     const originX = Math.floor(boundingBox.x + window.scrollX);

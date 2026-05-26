@@ -64,3 +64,8 @@ function handleIncomingMessages(
     return true;
   }
 }
+
+export {
+  TabScreenshotMessage,
+  TAB_SCREENSHOT_MSG,
+} from "./screenshoting/message";

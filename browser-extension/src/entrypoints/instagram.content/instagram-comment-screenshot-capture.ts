@@ -1,4 +1,4 @@
-import { captureTabScreenshotAsDataUrl } from "@/shared/native-screenshoting/cs/screenshot-cs-tab";
+import { captureTabScreenshotAsDataUrl } from "@/shared/screenshoting";
 import { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";

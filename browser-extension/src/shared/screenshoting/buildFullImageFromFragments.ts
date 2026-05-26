@@ -1,7 +1,5 @@
-import { Image, decodePng } from "image-js";
-import { base64ToUint8Array } from "../../utils/base-64";
-import { extractBase64DataFromDataUrl } from "../../utils/data-url";
-import { ScreenshotFragment } from "./screenshot-fragment";
+import { Image } from "image-js";
+import { ScreenshotFragment } from "./ScreenshotFragment";
 
 export function buildFullImageFromFragments(
   screenshotFragments: ScreenshotFragment[],
@@ -29,9 +27,7 @@ export function buildFullImageFromFragments(
   let fullPageImage = new Image(Math.ceil(width), Math.ceil(height));
 
   for (const ps of screenshotFragments) {
-    let partialImage = decodePng(
-      base64ToUint8Array(extractBase64DataFromDataUrl(ps.screenshotDataUrl)),
-    );
+    let partialImage = ps.screenshotImage;
     // Screencapture sometimes taken with subpixel resolution
     partialImage = partialImage.resize({
       height: Math.floor(ps.catpureArea.height),

@@ -1,5 +1,5 @@
 import { withRetry } from "@/shared/utils/withRetry";
-import { sleep } from "../../utils/sleep";
+import { sleep } from "../../../shared/utils/sleep";
 
 export type TabScreenshotResult = string | { error: string };
 
