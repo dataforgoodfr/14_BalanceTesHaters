@@ -5,6 +5,8 @@ export default defineContentScript({
   matches: ["https://www.instagram.com/*"],
   main() {
     const scraper = new InstagramScraper();
-    new ScrapingContentScript(scraper).registerListener();
+
+    const scs = new ScrapingContentScript(scraper);
+    scs.initialize();
   },
 });

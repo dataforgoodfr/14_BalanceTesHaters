@@ -1,10 +1,14 @@
-import { screenshotSenderTab } from "../../shared/native-screenshoting/background/screenshot-sender-tab";
-import { isScreenshotSenderTab } from "../../shared/native-screenshoting/message";
+import { screenshotSenderTab } from "./screenshoting/screenshotSenderTab";
+import { isScreenshotSenderTab } from "./screenshoting/message";
 import { submitClassificationRequestForPost } from "./classification/submitClassificationForPost";
 import { isSubmitClassificationRequestMessage } from "./classification/submitClassificationForPostMessage";
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
 import { startClassificationPolling } from "./classification/classificationPolling";
+import {
+  GetSenderInfoResult,
+  isGetSenderInfoMessage as isIdentifyMe,
+} from "./getSenderInfo";
 
 export default defineBackground(() => {
   console.info(
@@ -62,10 +66,14 @@ function handleIncomingMessages(
       },
     );
     return true;
+  } else if (isIdentifyMe(message)) {
+    sendResponse({
+      tabId: sender.tab?.id,
+    } satisfies GetSenderInfoResult);
   }
 }
 
 export {
-  TabScreenshotMessage,
+  type TabScreenshotMessage,
   TAB_SCREENSHOT_MSG,
 } from "./screenshoting/message";

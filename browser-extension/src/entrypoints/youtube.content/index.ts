@@ -6,6 +6,6 @@ export default defineContentScript({
   main() {
     const scraper = new YoutubeScraper();
 
-    new ScrapingContentScript(scraper).registerListener();
+    new ScrapingContentScript(scraper).initialize();
   },
 });
