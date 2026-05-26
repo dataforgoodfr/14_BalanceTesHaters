@@ -7,5 +7,17 @@ export interface SocialNetworkScraper {
   scrapPagePost(
     abortSignal: AbortSignal,
     progress: ProgressManager,
-  ): Promise<PostSnapshot>;
+  ): Promise<ScrapPagePostResult>;
+}
+
+export type ScrapPagePostResult = PostSnapshot | RequestRedirectAndScrap;
+
+export type RequestRedirectAndScrap = {
+  redirectUrl: string;
+};
+
+export function isRequestRedirectAndScrap(
+  res: ScrapPagePostResult,
+): res is RequestRedirectAndScrap {
+  return "redirectUrl" in res;
 }

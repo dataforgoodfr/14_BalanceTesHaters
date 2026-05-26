@@ -1,4 +1,7 @@
-import { SocialNetworkScraper } from "./SocialNetworkScraper";
+import {
+  isRequestRedirectAndScrap,
+  SocialNetworkScraper,
+} from "./SocialNetworkScraper";
 import { ScrapingResult } from "./ScrapTabResult";
 import {
   isScsPageInfoMessage,
@@ -16,6 +19,7 @@ import {
 } from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
+import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -60,6 +64,13 @@ export class ScrapingContentScript {
     }
   }
 
+  public async handleOnStartScraping() {
+    if (await this.hasOnInitScrapFlag()) {
+      await this.clearOnInitScrapFlag();
+      await this.scrapPost();
+    }
+  }
+
   private getPageInfo(): Promise<SocialNetworkPageInfo> {
     return this.scraper.getSocialNetworkPageInfo();
   }
@@ -86,7 +97,7 @@ export class ScrapingContentScript {
         progress: 0,
       };
       const start = Date.now();
-      const postSnapshot = await this.scraper.scrapPagePost(
+      const scrapResult = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
         new ProgressManager((progress) => {
           if (this.scrapingStatus.type !== "running") {
@@ -106,10 +117,24 @@ export class ScrapingContentScript {
           };
         }),
       );
+      if (isRequestRedirectAndScrap(scrapResult)) {
+        console.info("[SCS] - Scraper requested a page reload and restart");
+        // location.assign will stop the content script context
+        await this.storeOnInitScrapingFlag();
+
+        window.location.assign(scrapResult.redirectUrl);
+        return {
+          type: "failed",
+          errorMessage:
+            // TODO review scrapPost api to stop assuming result is returned or to return a new type continued-afte-reload
+            "Reloading page => content script will not be able to propagate context need to review API",
+        };
+      }
       console.info("[SCS] - Scraping completed");
 
       // Store post snapshot
       console.info("[SCS] - Storing post snapshot");
+      const postSnapshot = scrapResult;
       await insertPostSnapshot(postSnapshot);
 
       console.info("[SCS] - Submit for classification");
@@ -161,6 +186,27 @@ export class ScrapingContentScript {
     }
   }
 
+  private async storeOnInitScrapingFlag(): Promise<void> {
+    const restartStorageKey = await this.onInitScrapFlagStorageKey();
+    await browser.storage.local.set({ [restartStorageKey]: true });
+  }
+
+  private async clearOnInitScrapFlag(): Promise<void> {
+    await browser.storage.local.remove(await this.onInitScrapFlagStorageKey());
+  }
+
+  private async hasOnInitScrapFlag(): Promise<boolean> {
+    const key = await this.onInitScrapFlagStorageKey();
+    const partial = await browser.storage.local.get(key);
+    return !!partial[key];
+  }
+
+  private async onInitScrapFlagStorageKey() {
+    const tabId = (await sendGetSenderInfoMessage()).tabId!;
+    const restartStorageKey = "scs-restart-" + tabId;
+    return restartStorageKey;
+  }
+
   private cancelScraping(): void {
     if (this.scrapingStatus.type !== "running" || !this.scrapAbortController) {
       console.info("[SCS] - No scraping in progress to cancel");
@@ -170,7 +216,8 @@ export class ScrapingContentScript {
     this.scrapAbortController.abort(ABORT_CANCEL_SCRAPING_REASON);
   }
 
-  public registerListener() {
+  public initialize() {
     browser.runtime.onMessage.addListener(this.handleMessage.bind(this));
+    void this.handleOnStartScraping();
   }
 }
