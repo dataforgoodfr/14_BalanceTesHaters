@@ -70,9 +70,16 @@ Exemple pour créé une version 0.0.3
 
 ```bash
 # Sync with remote
+VERSION=0.0.3
 git fetch
 # Create a webext-v0.0.3 tag from current origin/main
-git tag -a webext-v0.0.3 origin/main
+git tag -a webext-v$VERSION origin/main
 # Push the tag
-git push origin tag webext-v0.0.3
+git push origin tag webext-v$VERSION
+```
+
+En une ligne:
+
+```bash
+VERSION=0.0.7 && git fetch && git tag -a webext-v$VERSION origin/main && git push origin tag webext-v$VERSION
 ```
