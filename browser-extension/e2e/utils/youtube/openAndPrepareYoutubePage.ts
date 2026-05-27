@@ -9,7 +9,7 @@ export async function openAndPrepareYoutubeVideoPage(
   await closeCookieDialogIfPresent(youtubePage);
   // Wait for page to load video element.
   // YouTube can first display a consent page before loading the player.
-  await youtubePage.waitForTimeout(500);
+  await youtubePage.waitForTimeout(3000);
   await closeCookieDialogIfPresent(youtubePage);
   // In CI, the video element can stay hidden while still being fully loaded.
   // We only need the player DOM to be present before starting scraping tests.
@@ -18,6 +18,7 @@ export async function openAndPrepareYoutubeVideoPage(
     timeout: 15_000,
   });
   await youtubePage.waitForTimeout(500);
+
   return youtubePage;
 }
 

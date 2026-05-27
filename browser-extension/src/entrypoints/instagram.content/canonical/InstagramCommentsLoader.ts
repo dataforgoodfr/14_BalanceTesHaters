@@ -7,7 +7,7 @@ import {
   VIEW_REPLIES_BUTTON_TEXT_REGEX,
 } from "./instagramElementsTexts";
 
-export const logger = createLogger("[CS - InstagramCommentsLoader]");
+const logger = createLogger("[CS - InstagramCommentsLoader]");
 
 export class InstagramCommentsLoader {
   constructor(

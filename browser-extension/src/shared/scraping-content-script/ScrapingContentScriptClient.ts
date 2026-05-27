@@ -8,7 +8,7 @@ import {
   ScsGetScrapingStatusMessage,
   ScsCancelScrapTabMessage,
 } from "./messages";
-import { ScrapingResult } from "./ScrapTabResult";
+import { StartScrapingResult } from "./StartScrapingResult";
 import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { ScrapingStatus } from "./ScrapingStatus";
 
@@ -37,10 +37,10 @@ export class ScrapingContentScriptClient {
     return response;
   }
 
-  async scrapPost(): Promise<ScrapingResult> {
+  async startScraping(): Promise<StartScrapingResult> {
     const response = await this.safeSendMessage<
       ScsScrapTabMessage,
-      ScrapingResult
+      StartScrapingResult
     >(SCS_SCRAP_TAB_MESSAGE);
     if (response === NO_CONTENT_SCRIPT) {
       // No Scraping Content script registered for this url

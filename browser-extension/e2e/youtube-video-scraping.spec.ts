@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
+import { flattenComments } from "./flattenComments";
 import { waitForPostStored } from "./utils/waitForPostStored";
-import { triggerYoutubeVideoScraping } from "./utils/triggerYoutubeVideoScraping";
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { triggerYoutubeVideoScraping } from "./utils/youtube/triggerYoutubeVideoScraping";
 
 ["en-US", "fr-FR"].forEach((locale) => {
   test.describe("Youtube Video Scraping with Locale:" + locale, () => {
@@ -51,7 +51,7 @@ import { CommentSnapshot } from "@/shared/model/PostSnapshot";
 
       // Check comments
       const topLevelComments = post.comments;
-      const allComments = flatten(topLevelComments);
+      const allComments = flattenComments(topLevelComments);
       expect(topLevelComments.length).toBeGreaterThan(0);
       expect(allComments.length).toBeGreaterThan(0);
 
@@ -101,7 +101,3 @@ import { CommentSnapshot } from "@/shared/model/PostSnapshot";
     });
   });
 });
-
-function flatten(comments: CommentSnapshot[]): CommentSnapshot[] {
-  return [...comments, ...comments.flatMap((c) => flatten(c.replies))];
-}

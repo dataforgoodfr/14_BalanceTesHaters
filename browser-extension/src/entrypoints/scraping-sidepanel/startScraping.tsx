@@ -2,5 +2,5 @@ import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/Sc
 
 export function startScraping(tabId: number) {
   // Start scraping without waiting for result
-  void new ScrapingContentScriptClient(tabId).scrapPost();
+  void new ScrapingContentScriptClient(tabId).startScraping();
 }
