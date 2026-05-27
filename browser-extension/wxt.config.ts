@@ -18,7 +18,7 @@ export default defineConfig({
     name: "Balance Tes Haters : outil de détection de commentaires malveillants",
     // Must be less than 132 characters for Chrome web store
     description:
-      "Balance tes Haters récupére des commentaires, les classe, pour aider les victimes de cyberharcèlement à créer un dossier de plainte.",
+      "Balance tes Haters récupère les commentaires pour aider les victimes de cyberharcèlement à créer un dossier de plainte.",
     permissions: [
       // storage and unlimitedStorage used to store post snapshots
       "storage",
