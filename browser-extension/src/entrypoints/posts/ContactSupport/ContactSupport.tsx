@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { getPostSnapshotsBytesInUse } from "@/shared/storage/post-snapshot-storage";
+import { apiBaseUrl } from "@/entrypoints/background/classification/api/baseUrl";
 
 type TechnicalInfo = {
   extensionId: string;
@@ -81,6 +82,7 @@ function ContactSupport() {
               Stockage total:{" "}
               {Math.round((data.totalStorageBytesInUse || 0) / 1024)}kb
               <br />
+              Serveur URL: {apiBaseUrl}
             </>
           )}
         </CardContent>
