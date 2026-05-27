@@ -26,6 +26,10 @@ export const test = base.extend<ExtensionFixtures>({
         `--load-extension=${pathToExtension}`,
         "--mute-audio",
       ],
+      viewport: {
+        width: 1920,
+        height: 1080,
+      },
     });
     await use(context);
     await context.close();

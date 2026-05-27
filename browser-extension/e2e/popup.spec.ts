@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
-import { openAndPrepareYoutubeVideoPage } from "./utils/openAndPrepareYoutubePage";
-import { youtubeVideoUrl } from "./utils/triggerYoutubeVideoScraping";
+import { openAndPrepareYoutubeVideoPage } from "./utils/youtube/openAndPrepareYoutubePage";
+import { youtubeVideoUrl } from "./utils/youtube/triggerYoutubeVideoScraping";
 import { PopupPageObject } from "./po/PopupPageObject";
 
 test.describe("Test popup content", () => {
@@ -26,7 +26,7 @@ test.describe("Test popup content", () => {
     await openAndPrepareYoutubeVideoPage(context, videoUrl);
 
     // Open popup linked to youtube Page
-    const popupPage = await PopupPageObject.open(
+    const popupPage = await PopupPageObject.openLinkedToUrl(
       extensionId,
       context,
       videoUrl,

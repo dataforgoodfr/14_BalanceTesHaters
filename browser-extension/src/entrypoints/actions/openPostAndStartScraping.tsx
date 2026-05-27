@@ -1,11 +1,11 @@
 import { openSidePanel } from "@/entrypoints/actions/openSidePanel";
 import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
-import { ScrapingResult } from "@/shared/scraping-content-script/ScrapTabResult";
+import { StartScrapingResult } from "@/shared/scraping-content-script/StartScrapingResult";
 import { sleep } from "@/shared/utils/sleep";
 
 export async function openPostAndStartScraping(
   postUrl: string,
-): Promise<ScrapingResult> {
+): Promise<StartScrapingResult> {
   const newTab = await browser.tabs.create({
     url: postUrl,
   });
@@ -17,7 +17,7 @@ export async function openPostAndStartScraping(
   for (;;) {
     const pageInfo = await client.getTabSocialNetworkPageInfo();
     if (pageInfo.isScrapablePost) {
-      const scrapingPromise = client.scrapPost();
+      const scrapingPromise = client.startScraping();
       await openSidePanel(newTab.id);
       return await scrapingPromise;
     }

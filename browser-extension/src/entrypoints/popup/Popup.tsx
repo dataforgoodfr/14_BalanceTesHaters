@@ -26,8 +26,11 @@ function PopupContent() {
   const [tabId, setTabId] = useState<number | undefined>(undefined);
   useEffect(() => {
     const parsedUrl = URL.parse(document.URL);
-    const tabUrl = parsedUrl?.hash?.substring(1);
-    const tabPromise = tabUrl ? queryTabWithUrl(tabUrl) : queryActiveTab();
+    const tabId = parsedUrl?.hash?.substring(1);
+    console.debug("Popup", "tabId:", tabId);
+    const tabPromise = tabId
+      ? queryTabWithId(Number.parseInt(tabId))
+      : queryActiveTab();
     void tabPromise.then((tab) => setTabId(tab?.id));
   });
 
@@ -117,14 +120,9 @@ function PopupContent() {
   );
 }
 
-async function queryTabWithUrl(tabUrl: string) {
-  console.log("Querying to tab with url " + tabUrl);
-  const queryOptions = { url: tabUrl };
-  const tabs = await browser.tabs.query(queryOptions);
-  if (tabs.length === 0) {
-    throw new Error("Couldn't find a tab with url: " + tabUrl);
-  }
-  return tabs[0];
+async function queryTabWithId(tabId: number): Promise<Browser.tabs.Tab> {
+  console.log("Popup - Querying to tab with id " + tabId);
+  return await browser.tabs.get(tabId);
 }
 
 async function queryActiveTab(): Promise<Browser.tabs.Tab | undefined> {

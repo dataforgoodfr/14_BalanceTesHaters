@@ -2,7 +2,7 @@ import {
   isRequestRedirectAndScrap,
   SocialNetworkScraper,
 } from "./SocialNetworkScraper";
-import { ScrapingResult } from "./ScrapTabResult";
+import { StartScrapingResult } from "./StartScrapingResult";
 import {
   isScsPageInfoMessage,
   isScsScrapTabMessage,
@@ -20,9 +20,13 @@ import {
 import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";
+import { createLogger } from "../utils/createLogger";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
+const logger = createLogger("[CS - SCS]");
+export const START_SCRAPING_LOG =
+  "Received start scraping message - start scraping";
 export class ScrapingContentScript {
   private scrapingStatus: ScrapingStatus = { type: "not-started" };
   private scrapAbortController: AbortController | null = null;
@@ -50,7 +54,14 @@ export class ScrapingContentScript {
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsScrapTabMessage(message)) {
-      void this.scrapPost().then(sendResponse);
+      logger.info(START_SCRAPING_LOG);
+
+      // Start scraping
+      void this.scrapPost();
+      // Answer started
+      sendResponse({
+        type: "started",
+      } as StartScrapingResult);
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsGetScrapingStatusMessage(message)) {
@@ -66,6 +77,7 @@ export class ScrapingContentScript {
 
   public async handleOnStartScraping() {
     if (await this.hasOnInitScrapFlag()) {
+      logger.info("hasOnInitScrapFlag => start scraping");
       await this.clearOnInitScrapFlag();
       await this.scrapPost();
     }
@@ -79,17 +91,17 @@ export class ScrapingContentScript {
     return Promise.resolve(this.scrapingStatus);
   }
 
-  private async scrapPost(): Promise<ScrapingResult> {
+  private async scrapPost(): Promise<void> {
     const pageInfo = await this.getPageInfo();
     if (!pageInfo.isScrapablePost) {
-      console.error("[SCS] - Page not scrapable");
-      return scrapingFailed("Page not scrapable");
+      logger.error("Page not scrapable");
+      return;
     }
     if (!isScrapingStartable(this.scrapingStatus)) {
-      console.error("[SCS] - Scraping is already running");
-      return scrapingFailed("Scraping is already running");
+      logger.error("Scraping is already running");
+      return;
     }
-    console.info("[SCS] - Start scraping");
+    logger.info("Start scraping");
     this.scrapAbortController = new AbortController();
     try {
       this.scrapingStatus = {
@@ -108,8 +120,8 @@ export class ScrapingContentScript {
           const roundedProgress = Math.round(progress);
           const durationSec = Math.round((Date.now() - start) / 1000);
 
-          console.info(
-            `[SCS] - Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
+          logger.info(
+            `Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
           );
           this.scrapingStatus = {
             type: "running",
@@ -118,26 +130,22 @@ export class ScrapingContentScript {
         }),
       );
       if (isRequestRedirectAndScrap(scrapResult)) {
-        console.info("[SCS] - Scraper requested a page reload and restart");
+        logger.info("Scraper requested a page reload and restart");
         // location.assign will stop the content script context
+        // We need to store that scraping needs to restart
         await this.storeOnInitScrapingFlag();
 
         window.location.assign(scrapResult.redirectUrl);
-        return {
-          type: "failed",
-          errorMessage:
-            // TODO review scrapPost api to stop assuming result is returned or to return a new type continued-afte-reload
-            "Reloading page => content script will not be able to propagate context need to review API",
-        };
+        return;
       }
-      console.info("[SCS] - Scraping completed");
+      logger.info("Scraping completed");
 
       // Store post snapshot
-      console.info("[SCS] - Storing post snapshot");
+      logger.info("Storing post snapshot");
       const postSnapshot = scrapResult;
       await insertPostSnapshot(postSnapshot);
 
-      console.info("[SCS] - Submit for classification");
+      logger.info("Submit for classification");
       // Request background to submit to backend without awaiting
       // If this fails it will be recovered by background polling
       void sendSubmitClassificationRequestMessage(postSnapshot.id);
@@ -147,8 +155,8 @@ export class ScrapingContentScript {
       const topLevelCommentCounts = postSnapshot.comments.length;
       const allCommentsCount = countAllComments(postSnapshot.comments);
       const durationSec = Math.round(durationMs / 1000);
-      console.info(
-        `[SCS] - Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (${topLevelCommentCounts} top level)`,
+      logger.info(
+        `Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (${topLevelCommentCounts} top level)`,
       );
 
       this.scrapingStatus = {
@@ -158,30 +166,25 @@ export class ScrapingContentScript {
       };
       this.scrapAbortController = null;
 
-      return this.scrapingStatus;
+      return;
     } catch (e) {
       if (e === ABORT_CANCEL_SCRAPING_REASON) {
         // AbortSignal.throwIfAborted throws the reason when aborted
-        console.info(
-          "[SCS] - Scraping was cancelled",
-          e,
-          " typeof e",
-          typeof e,
-        );
+        logger.info("Scraping was cancelled", e, " typeof e", typeof e);
         this.scrapAbortController = null;
         this.scrapingStatus = {
           type: "canceled",
         };
-        return this.scrapingStatus;
+        return;
       } else {
-        console.error("[SCS] - Unexpected error while scraping", e);
+        logger.error("Unexpected error while scraping", e);
         const errorMessage =
           e instanceof Error && e.stack
             ? `${e.message}\n${e.stack}`
             : String(e);
         this.scrapAbortController = null;
         this.scrapingStatus = scrapingFailed(errorMessage);
-        return this.scrapingStatus;
+        return;
       }
     }
   }
@@ -209,10 +212,10 @@ export class ScrapingContentScript {
 
   private cancelScraping(): void {
     if (this.scrapingStatus.type !== "running" || !this.scrapAbortController) {
-      console.info("[SCS] - No scraping in progress to cancel");
+      logger.info("No scraping in progress to cancel");
       return;
     }
-    console.info("[SCS] - Canceling scraping");
+    logger.info("Canceling scraping");
     this.scrapAbortController.abort(ABORT_CANCEL_SCRAPING_REASON);
   }
 
