@@ -377,7 +377,7 @@ export default function CommentsTable({
                 void navigate("/build-report", {
                   state: {
                     socialNetworkFilter: [commentList[0].socialNetwork],
-                    selectedPostIds: [commentList[0].postKey.split("|")[0]],
+                    selectedPostIds: [commentList[0].id],
                     selectedCommentList: commentList.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),
