@@ -20,7 +20,6 @@ import {
   getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,
 } from "@/shared/utils/report-stats";
-import { getPercentage } from "@/shared/utils/maths";
 import { ReportQueryData } from "./BuildReport";
 import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
@@ -76,6 +75,8 @@ const styles = StyleSheet.create({
   kpiRow: { flexDirection: "row", gap: pxToPt(16), marginBottom: pxToPt(16) },
   kpiCard: {
     flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-between",
     border: `1px solid ${BORDER}`,
     borderRadius: CARD_RADIUS,
     padding: pxToPt(12),
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     color: GRAY_500,
     marginBottom: pxToPt(4),
   },
-  kpiValue: { fontSize: pxToPt(18), fontWeight: 700 },
+  kpiValue: { fontSize: pxToPt(18), fontWeight: 600 },
 
   twoColRow: {
     flexDirection: "row",
@@ -194,11 +195,6 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   const { postCommentList } = reportQueryData;
 
   const numberOfHatefulComments = postCommentList.length;
-  const numberOfComments = posts.flatMap((p) => p.comments).length;
-  const percentageHateful = getPercentage(
-    numberOfHatefulComments,
-    numberOfComments,
-  ).toFixed(2);
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(postCommentList);
   const hatefulAuthorsStatsList = getHatefulAuthorStatsList(
     postCommentList,
@@ -234,18 +230,15 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
 
         <View style={styles.kpiRow}>
           <KpiCard
-            label="Nombre de commentaires malveillants"
-            value={`${numberOfHatefulComments}/${numberOfComments}`}
-          />
-          <KpiCard
-            label="Part des commentaires malveillants"
-            value={`${percentageHateful}%`}
-          />
-          <KpiCard
             label="Auteurs de commentaires malveillants"
             value={String(numberOfHatefulAuthors)}
           />
-          <KpiCard label="Gravité" value="Modérée" />
+          <KpiCard label="Score juridique moyen" value="N/A" />
+          <KpiCard
+            label="Nombre de commentaires malveillants"
+            value={String(numberOfHatefulComments)}
+          />
+          <KpiCard label="Alerte sécurité" value="N/A" />
         </View>
 
         <View style={styles.twoColRow}>
