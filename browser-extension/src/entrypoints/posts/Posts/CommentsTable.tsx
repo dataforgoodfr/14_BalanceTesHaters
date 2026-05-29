@@ -439,7 +439,12 @@ export default function CommentsTable({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      className={
+                        selectedCommentIdList.has(row.id) ? "bg-accent-2" : ""
+                      }
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
