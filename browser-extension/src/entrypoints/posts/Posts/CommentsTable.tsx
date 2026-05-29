@@ -16,7 +16,7 @@ import {
 import {
   ArrowDownUp,
   Eye,
-  EyeClosed,
+  EyeOff,
   Funnel,
   SearchIcon,
   UserRound,
@@ -216,7 +216,7 @@ export default function CommentsTable({
               {visibleComments.size === filteredComments.length ? (
                 <Eye />
               ) : (
-                <EyeClosed />
+                <EyeOff />
               )}
             </Button>
           </div>
@@ -226,7 +226,7 @@ export default function CommentsTable({
             variant="ghost"
             onClick={() => toggleCommentVisibility(row.id)}
           >
-            {visibleComments.has(row.id) ? <Eye /> : <EyeClosed />}
+            {visibleComments.has(row.id) ? <Eye /> : <EyeOff />}
           </Button>
         ),
       },
