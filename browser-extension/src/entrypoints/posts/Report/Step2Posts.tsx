@@ -89,7 +89,10 @@ function Step2Posts({
           postSortingCategory={postSortingCategory}
           setPostSortingCategory={setPostSortingCategory}
           selectAll={() => {
-            form.setFieldValue("postList", filteredPosts.map((post) => post.postId));
+            form.setFieldValue(
+              "postList",
+              filteredPosts.map((post) => post.postId),
+            );
             setSelectedPostIds(filteredPosts.map((post) => post.postId));
           }}
         />
