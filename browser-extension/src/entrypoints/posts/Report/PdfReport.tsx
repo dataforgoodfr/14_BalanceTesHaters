@@ -1,5 +1,6 @@
 import {
   Document,
+  Font,
   Image,
   Page,
   StyleSheet,
@@ -21,6 +22,10 @@ import {
 } from "@/shared/utils/report-stats";
 import { getPercentage } from "@/shared/utils/maths";
 import { ReportQueryData } from "./BuildReport";
+import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
+import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
+import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
+import redHatTextBold from "@/assets/fonts/RedHatText-Bold.ttf";
 
 const GRAY_200 = "#e5e7eb";
 const GRAY_500 = "#6b7280";
@@ -28,11 +33,22 @@ const BORDER = "#e5e7eb";
 const pxToPt = (pixels: number) => pixels * 0.75;
 const CARD_RADIUS = pxToPt(12);
 
+Font.register({
+  family: "Red Hat Text",
+  fonts: [
+    { src: redHatText },
+    { src: redHatTextMedium, fontWeight: 500 },
+    { src: redHatTextSemiBold, fontWeight: 600 },
+    { src: redHatTextBold, fontWeight: 700 },
+  ],
+});
+
 const styles = StyleSheet.create({
   page: {
     padding: pxToPt(28),
     fontSize: pxToPt(14),
     color: "#171717",
+    fontFamily: "Red Hat Text",
   },
 
   metaBlock: {
@@ -189,24 +205,16 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
       <Page size="A4" style={styles.page}>
         <View style={styles.metaBlock}>
           <Text style={styles.metaLine}>
-            Généré le{" "}
-            <Text style={styles.metaBold}>
-              {formatAnalysisDate(new Date().toISOString())}
-            </Text>
+            Généré le :{formatAnalysisDate(new Date().toISOString())}
           </Text>
           <Text style={styles.metaLine}>
-            Publications analysées :{" "}
-            <Text style={styles.metaBold}>
-              {reportQueryData.postIdList.length}
-            </Text>
+            Publications analysées : {reportQueryData.postIdList.length}
           </Text>
           <Text style={styles.metaLine}>
             Plateforme :{" "}
-            <Text style={styles.metaBold}>
-              {reportQueryData.socialNetworkList
-                .map((n) => getSocialNetworkName(n as SocialNetworkName))
-                .join(", ")}
-            </Text>
+            {reportQueryData.socialNetworkList
+              .map((n) => getSocialNetworkName(n as SocialNetworkName))
+              .join(", ")}
           </Text>
         </View>
 
