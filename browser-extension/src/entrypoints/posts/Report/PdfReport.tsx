@@ -26,6 +26,7 @@ import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
 import redHatTextBold from "@/assets/fonts/RedHatText-Bold.ttf";
+import bthLogo from "@/assets/bth-logo.png";
 
 const GRAY_200 = "#e5e7eb";
 const GRAY_500 = "#6b7280";
@@ -50,7 +51,13 @@ const styles = StyleSheet.create({
     color: "#171717",
     fontFamily: "Red Hat Text",
   },
-
+  bthImage: {
+    height: pxToPt(30),
+  },
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   metaBlock: {
     flexDirection: "column",
     alignItems: "flex-end",
@@ -203,19 +210,22 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View style={styles.metaBlock}>
-          <Text style={styles.metaLine}>
-            Généré le :{formatAnalysisDate(new Date().toISOString())}
-          </Text>
-          <Text style={styles.metaLine}>
-            Publications analysées : {reportQueryData.postIdList.length}
-          </Text>
-          <Text style={styles.metaLine}>
-            Plateforme :{" "}
-            {reportQueryData.socialNetworkList
-              .map((n) => getSocialNetworkName(n as SocialNetworkName))
-              .join(", ")}
-          </Text>
+        <View style={styles.metaRow}>
+          <Image src={bthLogo} style={styles.bthImage} />
+          <View style={styles.metaBlock}>
+            <Text style={styles.metaLine}>
+              Généré le :{formatAnalysisDate(new Date().toISOString())}
+            </Text>
+            <Text style={styles.metaLine}>
+              Publications analysées : {reportQueryData.postIdList.length}
+            </Text>
+            <Text style={styles.metaLine}>
+              Plateforme :{" "}
+              {reportQueryData.socialNetworkList
+                .map((n) => getSocialNetworkName(n as SocialNetworkName))
+                .join(", ")}
+            </Text>
+          </View>
         </View>
 
         <Text style={styles.pageTitle}>
