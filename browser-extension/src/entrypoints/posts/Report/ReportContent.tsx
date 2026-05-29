@@ -86,7 +86,6 @@ export const ReportContent = ({
           groupKey={group.groupKey}
           comments={group.comments}
           headerContent={group.headerContent}
-          postLatestAnalysisDate={group.postLatestAnalysisDate}
           onScreenshotClick={openScreenshotDialog}
           reportOrganizationType={
             reportQueryData?.reportOrganizationType ??

@@ -8,7 +8,6 @@ import { ReportOrganizationType } from "./BuildReport";
 
 interface ReportCommentProps {
   comment: PostCommentWithId;
-  postLatestAnalysisDate: Date;
   onScreenshotClick: (screenshot: string) => void;
   index: number;
   totalItems: number;
@@ -18,7 +17,6 @@ interface ReportCommentProps {
 
 export const ReportComment = ({
   comment,
-  postLatestAnalysisDate,
   onScreenshotClick,
   index,
   totalItems,
@@ -76,7 +74,7 @@ export const ReportComment = ({
             </span>
             <span className="text-xs text-muted-foreground">
               Capturé le{" "}
-              {new Date(postLatestAnalysisDate).toLocaleDateString("fr-FR")}
+              {post === undefined ? "Date inconnue" : new Date(post?.latestAnalysisDate).toLocaleDateString("fr-FR")}
             </span>
           </div>
         </div>

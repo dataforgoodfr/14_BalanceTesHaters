@@ -8,7 +8,6 @@ interface CommentGroupProps {
   groupKey: string;
   comments: PostCommentWithId[];
   headerContent: React.ReactNode;
-  postLatestAnalysisDate: Date;
   onScreenshotClick: (screenshot: string) => void;
   reportOrganizationType: ReportOrganizationType;
   commentPostMap?: Map<string, Post>;
@@ -18,7 +17,6 @@ export const ReportCommentGroup = ({
   groupKey,
   comments,
   headerContent,
-  postLatestAnalysisDate,
   onScreenshotClick,
   reportOrganizationType,
   commentPostMap,
@@ -32,7 +30,6 @@ export const ReportCommentGroup = ({
         <ReportComment
           key={comment.id}
           comment={comment}
-          postLatestAnalysisDate={postLatestAnalysisDate}
           onScreenshotClick={onScreenshotClick}
           index={index}
           totalItems={comments.length}
