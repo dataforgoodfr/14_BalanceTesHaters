@@ -16,11 +16,9 @@ import {
 import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
-import {
-  getHatefulAuthorStatsList,
-  getNumberOfHatefulAuthors,
-} from "@/shared/utils/report-stats";
+import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
 import { ReportQueryData } from "./BuildReport";
+import { NOTICE_UTILISATION_DATA } from "./noticeUtilisationData";
 import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
@@ -29,8 +27,15 @@ import bthLogo from "@/assets/bth-logo.png";
 
 const GRAY_200 = "#e5e7eb";
 const GRAY_500 = "#6b7280";
+const INDIGO_BRAND_950 = "#2F33A4";
+
 const BORDER = "#e5e7eb";
-const pxToPt = (pixels: number) => pixels * 0.75;
+
+// A4 Portrait
+//   72 dpi (défaut) ==> 595 x 842 px
+//   ? dpi (maquettes) ==> 1440 x 1983 px
+// Chaque pixel de la maquette correspond donc à 1140 / 595 = 2.42 pixels pdf
+const pxToPt = (pixels: number) => pixels / 2.42;
 const CARD_RADIUS = pxToPt(12);
 
 Font.register({
@@ -45,28 +50,47 @@ Font.register({
 
 const styles = StyleSheet.create({
   page: {
-    padding: pxToPt(28),
-    fontSize: pxToPt(14),
-    color: "#171717",
+    paddingVertical: pxToPt(46),
+    paddingHorizontal: pxToPt(96),
     fontFamily: "Red Hat Text",
+    fontSize: pxToPt(20),
+    color: "#171717",
+  },
+  repeatedHeader: {
+    top: 0,
+    right: 0,
+    position: "absolute",
+    paddingVertical: pxToPt(23),
+    paddingHorizontal: pxToPt(96),
+    fontSize: pxToPt(20),
+    color: GRAY_500,
+  },
+  pageNumber: {
+    bottom: 0,
+    right: 0,
+    position: "absolute",
+    paddingVertical: pxToPt(23),
+    paddingHorizontal: pxToPt(96),
+    fontSize: pxToPt(20),
+    color: GRAY_500,
   },
   bthImage: {
-    height: pxToPt(30),
+    height: pxToPt(55),
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    paddingVertical: pxToPt(46),
   },
   metaBlock: {
     flexDirection: "column",
     alignItems: "flex-end",
-    marginBottom: pxToPt(8),
   },
-  metaLine: { fontSize: pxToPt(12), marginBottom: pxToPt(2) },
+  metaLine: { fontSize: pxToPt(20), marginBottom: pxToPt(12) },
   metaBold: { fontWeight: 700 },
 
   pageTitle: {
-    fontSize: pxToPt(20),
+    fontSize: pxToPt(45),
     fontWeight: 700,
     textAlign: "center",
     marginBottom: pxToPt(16),
@@ -82,34 +106,17 @@ const styles = StyleSheet.create({
     padding: pxToPt(12),
   },
   kpiLabel: {
-    fontSize: pxToPt(14),
+    fontSize: pxToPt(17),
     color: GRAY_500,
     marginBottom: pxToPt(4),
   },
-  kpiValue: { fontSize: pxToPt(18), fontWeight: 600 },
-
-  twoColRow: {
-    flexDirection: "row",
-    gap: pxToPt(24),
-    marginBottom: pxToPt(16),
-  },
-  twoColCard: {
-    flex: 1,
-    border: `1px solid ${BORDER}`,
-    borderRadius: CARD_RADIUS,
-  },
-  cardHeader: {
-    padding: `${pxToPt(24)}px ${pxToPt(24)}px ${pxToPt(8)}px`,
-    fontSize: pxToPt(12),
-    fontWeight: 400,
-  },
-  cardContent: { padding: `0 ${pxToPt(16)}px ${pxToPt(16)}px` },
+  kpiValue: { fontSize: pxToPt(40), fontWeight: 600 },
 
   tableHeaderRow: {
     flexDirection: "row",
     backgroundColor: GRAY_200,
-    minHeight: pxToPt(40),
-    padding: `${pxToPt(8)}px ${pxToPt(8)}px`,
+    minHeight: pxToPt(120),
+    padding: `${pxToPt(20)}px ${pxToPt(30)}px`,
     alignItems: "center",
   },
   tableDataRow: {
@@ -156,6 +163,34 @@ const styles = StyleSheet.create({
   naText: { color: "#9ca3af" },
   pagination: { fontSize: pxToPt(10), color: GRAY_500 },
   categoryDescription: { fontSize: pxToPt(10), lineHeight: 1.4 },
+  noticeCard: {
+    margin: pxToPt(96),
+    padding: pxToPt(16),
+    fontFamily: "Red Hat Text",
+    backgroundColor: "#EEEDFF",
+    color: INDIGO_BRAND_950,
+    border: `1px solid #DDDEF9`,
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 4,
+  },
+  noticeTitle: {
+    fontSize: pxToPt(30),
+    fontWeight: 500,
+    borderBottom: `1px solid #DDDEF9`,
+    paddingBottom: pxToPt(8),
+  },
+  noticeSubtitle: {
+    fontWeight: 500,
+    fontSize: pxToPt(25),
+    marginTop: pxToPt(12),
+    marginBottom: pxToPt(8),
+  },
+  noticeContent: {
+    fontSize: pxToPt(20),
+    paddingLeft: pxToPt(12),
+    marginBottom: pxToPt(4),
+  },
 });
 
 const formatPublicationDate = (publishedAt: PublicationDate): string => {
@@ -176,6 +211,25 @@ const formatRelativeDate = (relative: RelativeDate): string => {
   return `~${mid.toLocaleDateString("fr-FR")}`;
 };
 
+const FixedContent = () => {
+  return (
+    <>
+      <Text
+        style={styles.repeatedHeader}
+        render={({ pageNumber }) =>
+          pageNumber > 1 && "Rapport des commentaires malveillants"
+        }
+        fixed
+      />
+      <Text
+        style={styles.pageNumber}
+        render={({ pageNumber }) => `${pageNumber}`}
+        fixed
+      />
+    </>
+  );
+};
+
 const KpiCard = ({ label, value }: { label: string; value: string }) => {
   return (
     <View style={styles.kpiCard}>
@@ -190,22 +244,18 @@ interface PdfReportProps {
   posts: Post[];
 }
 
-const MAX_HATEFUL_AUTHORS = 10;
 export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   const { postCommentList } = reportQueryData;
 
   const numberOfHatefulComments = postCommentList.length;
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(postCommentList);
-  const hatefulAuthorsStatsList = getHatefulAuthorStatsList(
-    postCommentList,
-    MAX_HATEFUL_AUTHORS,
-  );
 
   const groupedCommentsByPost = getEntriesGroupedByPostKey(postCommentList);
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A4" style={styles.page} wrap>
+        <FixedContent />
         <View style={styles.metaRow}>
           <Image src={bthLogo} style={styles.bthImage} />
           <View style={styles.metaBlock}>
@@ -241,52 +291,9 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
           <KpiCard label="Alerte sécurité" value="N/A" />
         </View>
 
-        <View style={styles.twoColRow}>
-          <View style={styles.twoColCard}>
-            <Text style={styles.cardHeader}>Auteurs actifs</Text>
-            <View style={styles.cardContent}>
-              <View style={styles.tableHeaderRow}>
-                <Text style={[styles.tableHeaderCell, styles.colAuthorName]}>
-                  Auteur
-                </Text>
-                <Text style={[styles.tableHeaderCell, styles.colRatio]}>
-                  % haineux
-                </Text>
-                <Text style={[styles.tableHeaderCell, styles.colCount]}>
-                  Commentaires
-                </Text>
-              </View>
-              {hatefulAuthorsStatsList.map((stats) => (
-                <View key={stats.authorName} style={styles.tableDataRow}>
-                  <Text style={[styles.tableCell, styles.colAuthorName]}>
-                    {stats.authorName}
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colRatio]}>
-                    {stats.hateContributionPercentage.toFixed(2)}%
-                  </Text>
-                  <Text style={[styles.tableCell, styles.colCount]}>
-                    {stats.commentsCount} commentaire
-                    {stats.commentsCount > 1 ? "s" : ""}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          <View style={styles.twoColCard}>
-            <Text style={styles.cardHeader}>Répartition par catégories</Text>
-            <View style={styles.cardContent}>
-              <Text style={styles.categoryDescription}>
-                Graphique circulaire présentant la répartition des commentaires
-                par catégorie.
-              </Text>
-            </View>
-          </View>
-        </View>
-
         {groupedCommentsByPost.map(([postKey, commentList], index) => {
           const post = posts.find(
-            (p) => `${p.postId}-${p.socialNetwork}` === postKey,
+            (p) => `${p.postId}|${p.socialNetwork}` === postKey,
           );
           if (!post) return null;
 
@@ -362,6 +369,25 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
             </View>
           );
         })}
+      </Page>
+      <Page wrap>
+        <FixedContent />
+
+        <View style={styles.noticeCard}>
+          <Text style={styles.noticeTitle}>
+            {NOTICE_UTILISATION_DATA.mainTitle}
+          </Text>
+          {NOTICE_UTILISATION_DATA.sections.map((section) => (
+            <View key={section.title}>
+              <Text style={styles.noticeSubtitle}>{section.title}</Text>
+              {section.items.map((item) => (
+                <Text key={item.text} style={styles.noticeContent}>
+                  • {item.text}
+                </Text>
+              ))}
+            </View>
+          ))}
+        </View>
       </Page>
     </Document>
   );
