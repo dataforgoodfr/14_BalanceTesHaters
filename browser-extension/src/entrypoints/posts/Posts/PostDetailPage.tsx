@@ -40,7 +40,7 @@ function PostDetailPage() {
             ...comment,
             id: i.toString(),
             postKey: buildPostKey(post.postId, post.socialNetwork),
-            socialNetwork: post?.socialNetwork,
+            socialNetwork: post.socialNetwork,
           } as PostCommentWithId;
         })
     : [];
