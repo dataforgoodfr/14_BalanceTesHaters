@@ -150,7 +150,7 @@ export default function CommentsTable({
           <Checkbox
             className="ms-3 me-5"
             checked={selectedCommentIdList.size === filteredComments.length}
-            onClick={() => setAllCommentsSelection()}
+            onClick={() => setAllCommentsSelection(true)}
           />
         ),
         cell: ({ row }) => (
@@ -310,8 +310,8 @@ export default function CommentsTable({
     }
   };
 
-  const setAllCommentsSelection = () => {
-    if (selectedCommentIdList.size === filteredComments.length) {
+  const setAllCommentsSelection = (canDeselect: boolean) => {
+    if (canDeselect && selectedCommentIdList.size === filteredComments.length) {
       updateSelectedCommentList(new Set());
     } else {
       const allVisibleRowIds = new Set(
@@ -332,8 +332,29 @@ export default function CommentsTable({
           void form.handleSubmit();
         }}
       >
-        <div className="p-3 flex justify-between">
-          <InputGroup className="mx-4 w-1/3">
+        {selectedCommentIdList.size > 0 && (
+          <div className="px-3 pt-2">
+            <div className="pe-2 w-fit gap-1 bg-muted rounded-md flex items-center justify-start font-semibold ">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  updateSelectedCommentList(new Set());
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Déselectionner tous les commentaires"
+              >
+                ✕
+              </Button>
+              <span className="text-sm">
+                {selectedCommentIdList.size} sélectionné
+                {selectedCommentIdList.size > 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="p-3 flex gap-4">
+          <InputGroup className=" w-1/3">
             <InputGroupInput
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
@@ -343,17 +364,18 @@ export default function CommentsTable({
               <SearchIcon />
             </InputGroupAddon>
           </InputGroup>
-          <div className="flex gap-4">
-            <Button variant="outline" disabled>
-              Tout sélectionner
-            </Button>
-            <Button variant="outline" disabled>
-              Filtrer <Funnel />
-            </Button>
-            <Button variant="outline" disabled>
-              Trier <ArrowDownUp />
-            </Button>{" "}
-          </div>
+          <Button
+            variant="outline"
+            onClick={() => setAllCommentsSelection(false)}
+          >
+            Tout sélectionner
+          </Button>
+          <Button variant="outline" disabled>
+            Filtrer <Funnel />
+          </Button>
+          <Button variant="outline" disabled>
+            Trier <ArrowDownUp />
+          </Button>
         </div>
         <form.Field
           name="commentIdList"
