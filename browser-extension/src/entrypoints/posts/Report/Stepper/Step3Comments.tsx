@@ -1,7 +1,7 @@
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { ReportQueryData, useStepper } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
-import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
+import CommentsTable, { PostCommentWithId } from "../../Posts/CommentsTable";
 import { isCommentHateful, buildPostKey } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";

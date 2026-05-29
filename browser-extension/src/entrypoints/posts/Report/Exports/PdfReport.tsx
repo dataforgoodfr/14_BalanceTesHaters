@@ -17,8 +17,8 @@ import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
-import { ReportQueryData } from "./BuildReport";
-import { NOTICE_UTILISATION_DATA } from "./noticeUtilisationData";
+import { ReportOrganizationType, ReportQueryData } from "../Stepper/BuildReport";
+import { NOTICE_UTILISATION_DATA } from "../Notice/noticeUtilisationData";
 import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
@@ -27,8 +27,8 @@ import bthLogo from "@/assets/bth-logo.png";
 
 const GRAY_200 = "#e5e7eb";
 const GRAY_500 = "#6b7280";
+const INDIGO_BRAND_50 = "#EEEDFF";
 const INDIGO_BRAND_950 = "#2F33A4";
-
 const BORDER = "#e5e7eb";
 
 // A4 Portrait
@@ -131,9 +131,20 @@ const styles = StyleSheet.create({
   colRatio: { width: "30%" },
   colCount: { width: "30%" },
 
-  postSection: { marginBottom: pxToPt(16) },
-  postSummaryCard: {
+  groupSection: {
+    marginBottom: pxToPt(16),
     border: `1px solid ${BORDER}`,
+  },
+  groupHeader: {
+    backgroundColor: INDIGO_BRAND_50,
+    position:"relative",
+    display:"flex",
+    flexDirection:"column",
+    borderBottom: `1px solid ${BORDER}`,
+    padding: `${pxToPt(20)}px ${pxToPt(30)}px`,
+  },
+
+  postSummaryCard: {
     borderRadius: CARD_RADIUS,
     padding: pxToPt(20),
     marginBottom: pxToPt(8),
@@ -167,7 +178,7 @@ const styles = StyleSheet.create({
     margin: pxToPt(96),
     padding: pxToPt(16),
     fontFamily: "Red Hat Text",
-    backgroundColor: "#EEEDFF",
+    backgroundColor: INDIGO_BRAND_50,
     color: INDIGO_BRAND_950,
     border: `1px solid #DDDEF9`,
     borderRadius: 8,
@@ -245,7 +256,7 @@ interface PdfReportProps {
 }
 
 export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
-  const { postCommentList } = reportQueryData;
+  const { postCommentList, reportOrganizationType } = reportQueryData;
 
   const numberOfHatefulComments = postCommentList.length;
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(postCommentList);
@@ -291,84 +302,77 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
           <KpiCard label="Alerte sécurité" value="N/A" />
         </View>
 
-        {groupedCommentsByPost.map(([postKey, commentList], index) => {
-          const post = posts.find(
-            (p) => `${p.postId}|${p.socialNetwork}` === postKey,
-          );
-          if (!post) return null;
+        {reportOrganizationType == ReportOrganizationType.BY_PUBLICATION &&
+          groupedCommentsByPost.map(([postKey, commentList], index) => {
+            const post = posts.find(
+              (p) => `${p.postId}|${p.socialNetwork}` === postKey,
+            );
+            if (!post) return null;
 
-          return (
-            <View key={postKey} style={styles.postSection}>
-              <View style={styles.postSummaryCard}>
-                {post.coverImageUrl && (
-                  <Image
-                    src={post.coverImageUrl}
-                    style={styles.postCoverImage}
-                  />
-                )}
-                <View style={styles.postInfoBlock}>
-                  {post.title && (
-                    <Text style={styles.postTitle}>{post.title}</Text>
-                  )}
-                  <Text style={styles.postMeta}>URL : {post.url}</Text>
-                  <Text style={styles.postMeta}>
-                    Publié le {formatPublicationDate(post.publishedAt)}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.commentsTable}>
-                <View style={styles.tableHeaderRow}>
-                  <Text
-                    style={[styles.tableHeaderCell, styles.colCommentAuthor]}
-                  >
-                    Auteur
-                  </Text>
-                  <Text
-                    style={[
-                      styles.tableHeaderCell,
-                      styles.colCommentScreenshot,
-                    ]}
-                  >
-                    Capture du commentaire
-                  </Text>
-                  <Text style={[styles.tableHeaderCell, styles.colCommentDate]}>
-                    Date
-                  </Text>
-                </View>
-                {commentList?.map((comment) => (
-                  <View key={comment.id} style={styles.tableDataRow}>
-                    <Text style={[styles.tableCell, styles.colCommentAuthor]}>
-                      {comment.author.name}
+            return (
+              <View key={postKey} style={styles.groupSection} >
+                <View style={styles.groupHeader}>
+                    <Text style={styles.postMeta}>
+                      Publication du {formatPublicationDate(post.publishedAt)}
                     </Text>
-                    <View style={styles.colCommentScreenshot}>
-                      {comment.screenshotData ? (
-                        <Image
-                          src={buildDataUrl(
-                            comment.screenshotData,
-                            PNG_MIME_TYPE,
-                          )}
-                          style={styles.screenshotImage}
-                        />
-                      ) : (
-                        <Text style={[styles.tableCell, styles.naText]}>
-                          N/A
-                        </Text>
-                      )}
-                    </View>
-                    <Text style={[styles.tableCell, styles.colCommentDate]}>
-                      {formatPublicationDate(comment.publishedAt)}
+                      <Text style={styles.postTitle}>{post.title}</Text>
+                    <Text style={styles.postMeta}>URL : {post.url}</Text>
+                </View>
+
+                <View style={styles.commentsTable}>
+                  <View style={styles.tableHeaderRow}>
+                    <Text
+                      style={[styles.tableHeaderCell, styles.colCommentAuthor]}
+                    >
+                      Auteur
+                    </Text>
+                    <Text
+                      style={[
+                        styles.tableHeaderCell,
+                        styles.colCommentScreenshot,
+                      ]}
+                    >
+                      Capture du commentaire
+                    </Text>
+                    <Text
+                      style={[styles.tableHeaderCell, styles.colCommentDate]}
+                    >
+                      Date
                     </Text>
                   </View>
-                ))}
-              </View>
+                  {commentList?.map((comment) => (
+                    <View key={comment.id} style={styles.tableDataRow}>
+                      <Text style={[styles.tableCell, styles.colCommentAuthor]}>
+                        {comment.author.name}
+                      </Text>
+                      <View style={styles.colCommentScreenshot}>
+                        {comment.screenshotData ? (
+                          <Image
+                            src={buildDataUrl(
+                              comment.screenshotData,
+                              PNG_MIME_TYPE,
+                            )}
+                            style={styles.screenshotImage}
+                          />
+                        ) : (
+                          <Text style={[styles.tableCell, styles.naText]}>
+                            N/A
+                          </Text>
+                        )}
+                      </View>
+                      <Text style={[styles.tableCell, styles.colCommentDate]}>
+                        {formatPublicationDate(comment.publishedAt)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
 
-              <Text style={styles.pagination}>
-                {index + 1}/{reportQueryData.postIdList.length} publications
-              </Text>
-            </View>
-          );
-        })}
+                <Text style={styles.pagination}>
+                  {index + 1}/{reportQueryData.postIdList.length} publications
+                </Text>
+              </View>
+            );
+          })}
       </Page>
       <Page wrap>
         <FixedContent />

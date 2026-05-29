@@ -4,7 +4,7 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { cn } from "@/lib/utils";
 import { Scale } from "lucide-react";
-import { ReportOrganizationType } from "./BuildReport";
+import { ReportOrganizationType } from "./Stepper/BuildReport";
 
 interface ReportCommentProps {
   comment: PostCommentWithId;

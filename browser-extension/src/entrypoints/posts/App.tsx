@@ -5,7 +5,7 @@ import { DebugPage } from "./DebugPage";
 import HomePage from "./Home/HomePage";
 import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
-import { BuildReport } from "./Report/BuildReport";
+import { BuildReport } from "./Report/Stepper/BuildReport";
 import HelpPage from "./Help/HelpPage";
 import ProductHelpPage from "./Help/ProductHelpPage";
 import HarrasementHelpPage from "./Help/HarrasementHelpPage";

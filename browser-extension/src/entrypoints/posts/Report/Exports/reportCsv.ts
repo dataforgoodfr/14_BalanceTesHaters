@@ -1,6 +1,6 @@
 import { getSocialNetworkName } from "@/shared/utils/post-util";
 import { Post } from "@/shared/model/post/Post";
-import { ReportQueryData } from "./BuildReport";
+import { ReportQueryData } from "../Stepper/BuildReport";
 import {
   booleanToFrenchText,
   formatDateTimeForCsv,

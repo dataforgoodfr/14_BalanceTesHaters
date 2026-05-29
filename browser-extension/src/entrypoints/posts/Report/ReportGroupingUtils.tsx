@@ -2,7 +2,7 @@ import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import React from "react";
-import { ReportOrganizationType } from "./BuildReport";
+import { ReportOrganizationType } from "./Stepper/BuildReport";
 import { buildPostKey } from "@/shared/utils/post-util";
 
 export interface GroupedData {

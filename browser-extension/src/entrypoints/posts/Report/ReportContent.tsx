@@ -1,4 +1,4 @@
-import { ReportQueryData, ReportOrganizationType } from "./BuildReport";
+import { ReportQueryData, ReportOrganizationType } from "./Stepper/BuildReport";
 
 import KpiCard from "../Shared/KpiCards/KpiCard";
 
@@ -7,7 +7,7 @@ import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommen
 
 import { Post } from "@/shared/model/post/Post";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
-import { NoticeUtilisation } from "./NoticeUtilisation";
+import { NoticeUtilisation } from "./Notice/NoticeUtilisation";
 import { ReportCommentGroup } from "./ReportCommentGroup";
 import { useMemo } from "react";
 import { getPublicationGroups, getAuthorGroups } from "./ReportGroupingUtils";
