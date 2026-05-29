@@ -91,6 +91,9 @@ main {
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
   --text-info: oklch(0.2626 0.1194 261.77);
+
+  /* A changer une fois le design system stabilisé */
+  --indigo-brand-100: oklch(0.9081 0.0367 283.95);
 }
 
 .dark {
@@ -181,6 +184,9 @@ main {
   --color-sidebar-ring: var(--sidebar-ring);
   --color-primary-background: var(--primary-background);
   --color-text-info: var(--text-info);
+
+  /* A changer une fois le design system stabilisé */
+  --color-indigo-brand-100: var(--indigo-brand-100);
 }
 
 @layer base {

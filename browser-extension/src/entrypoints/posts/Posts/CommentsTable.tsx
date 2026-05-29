@@ -418,7 +418,7 @@ export default function CommentsTable({
                 </div>
               )}
               <Table className="w-full table-fixed">
-                <TableHeader className="bg-gray-200">
+                <TableHeader className="bg-indigo-brand-100">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
