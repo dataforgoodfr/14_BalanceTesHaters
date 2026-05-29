@@ -375,8 +375,8 @@ export default function CommentsTable({
               onClick={() => {
                 void navigate("/build-report", {
                   state: {
-                    socialNetworkFilter: commentList[0].postKey.split("-")[1],
-                    selectedPostIds: [commentList[0].postKey.split("-")[0]],
+                    socialNetworkFilter: [commentList[0].postKey.split("|")[1]],
+                    selectedPostIds: [commentList[0].postKey.split("|")[0]],
                     selectedCommentList: commentList.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),

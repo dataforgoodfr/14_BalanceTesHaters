@@ -34,7 +34,7 @@ function PostDetailPage() {
       return {
         ...comment,
         id: i.toString(),
-        postKey: `${post?.postId}-${post?.socialNetwork}`,
+        postKey: `${post?.postId}|${post?.socialNetwork}`,
       } as PostCommentWithId;
     });
 
