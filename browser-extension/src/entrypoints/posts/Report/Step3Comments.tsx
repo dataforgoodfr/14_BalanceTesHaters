@@ -53,8 +53,6 @@ function Step3Comments({
     void stepper.navigation.next();
   };
 
-  console.log("render Step3Comments : ", { allComments, reportQueryData });
-
   return (
     <>
       <StepHeader
@@ -76,6 +74,7 @@ function Step3Comments({
             onSubmit={handleSubmit}
             formId={getFormId(stepper.state.current.data.id)}
             showScreenshotColumn={true}
+            showCreateReportButton={false}
           />
         )}
       </div>

@@ -72,7 +72,7 @@ function PostListPage() {
                 state: {
                   selectedPostIds,
                   socialNetworkFilter,
-                  skipToStep3: true,
+                  skipToStep: "step-3",
                 },
               });
             }}

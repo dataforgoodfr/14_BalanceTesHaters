@@ -56,6 +56,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { useNavigate } from "react-router";
 
 /**
  * Merged view of Post Snapshot
@@ -70,12 +71,14 @@ export default function CommentsTable({
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
+  showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
   commentList: PostCommentWithId[];
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
+  showCreateReportButton: boolean;
   showScreenshotColumn?: boolean;
 }>) {
   const [inputValue, setInputValue] = React.useState("");
@@ -321,6 +324,8 @@ export default function CommentsTable({
     }
   };
 
+  const navigate = useNavigate();
+
   return (
     <>
       <form
@@ -364,6 +369,25 @@ export default function CommentsTable({
               <SearchIcon />
             </InputGroupAddon>
           </InputGroup>
+          {showCreateReportButton && (
+            <Button
+              disabled={selectedCommentIdList.size === 0}
+              onClick={() => {
+                void navigate("/build-report", {
+                  state: {
+                    socialNetworkFilter: commentList[0].postKey.split("-")[1],
+                    selectedPostIds: [commentList[0].postKey.split("-")[0]],
+                    selectedCommentList: commentList.filter((comment) =>
+                      selectedCommentIdList.has(comment.id),
+                    ),
+                    skipToStep: "step-4",
+                  },
+                });
+              }}
+            >
+              Créer un rapport
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => setAllCommentsSelection(false)}

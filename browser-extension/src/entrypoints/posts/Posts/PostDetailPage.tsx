@@ -134,6 +134,7 @@ function PostDetailPage() {
                 defaultSelectedCommentIdList={[]}
                 formId=""
                 onSubmit={() => console.log("submitted")}
+                showCreateReportButton={true}
               />
             </div>
           </div>
