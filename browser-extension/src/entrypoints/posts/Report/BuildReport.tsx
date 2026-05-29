@@ -9,7 +9,7 @@ import Step4Organization from "./Step4Organization";
 import { StepperActions, StepperBanner } from "./StepperComponents";
 import Report from "./Report";
 import { FilePen, XIcon } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 
 export enum ReportOrganizationType {
@@ -173,7 +173,29 @@ const StepContent = ({
   setDisplayReport: (displayReport: boolean) => void;
   reportQueryData: ReportQueryData | undefined;
 }) => {
+  const location = useLocation();
+
+  const stateFromPostList = location.state as {
+    selectedPostIds?: string[];
+    socialNetworkFilter?: string[];
+    skipToStep3?: boolean;
+  };
+
   const stepper = useStepper();
+  React.useEffect(() => {
+    // If we come from the post list page with selected posts, we want to prefill the stepper with
+    // the selected posts and go to the step 3 (comments) directly
+    if (stateFromPostList?.skipToStep3) {
+      setSocialNetworkList(stateFromPostList.socialNetworkFilter || []);
+      setPostIdList(stateFromPostList.selectedPostIds || []);
+      setCommentList([]);
+      setReportOrganizationType(DEFAULT_REPORT_ORGANIZATION_TYPE);
+      void stepper.navigation.goTo(
+        stateFromPostList?.skipToStep3 ? "step-3" : "step-1",
+      );
+    }
+  }, [stateFromPostList]);
+
   return (
     <div className="pt-4">
       {stepper.flow.when("step-1", () => (
