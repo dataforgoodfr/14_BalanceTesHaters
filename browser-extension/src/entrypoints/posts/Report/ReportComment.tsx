@@ -74,7 +74,11 @@ export const ReportComment = ({
             </span>
             <span className="text-xs text-muted-foreground">
               Capturé le{" "}
-              {post === undefined ? "Date inconnue" : new Date(post?.latestAnalysisDate).toLocaleDateString("fr-FR")}
+              {post === undefined
+                ? "Date inconnue"
+                : new Date(post?.latestAnalysisDate).toLocaleDateString(
+                    "fr-FR",
+                  )}
             </span>
           </div>
         </div>
