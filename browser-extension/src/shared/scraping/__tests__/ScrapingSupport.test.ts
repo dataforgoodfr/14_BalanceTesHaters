@@ -359,7 +359,7 @@ describe("ScrapingSupport", () => {
       promise.catch(() => {});
       abortController.abort("ABORT");
 
-      await vi.advanceTimersByTimeAsync(100);
+      await vi.advanceTimersByTimeAsync(600);
       await expect(promise).rejects.toThrow();
     });
 

@@ -235,14 +235,14 @@ export class ScrapingSupport {
 
   /**
    * Wait a number of milliseconds.
-   * Checks abortSignal.throwIfAborted at least onece every 500ms
+   * Checks abortSignal.throwIfAborted at least once every 500ms
    * @param milliseconds
    */
   async sleep(milliseconds: number) {
     const start = Date.now();
     while (Date.now() - start < milliseconds) {
       this.abortSignal.throwIfAborted();
-      const remaining = Date.now() - start;
+      const remaining = milliseconds - (Date.now() - start);
       // Sleep by chunk of 500ms max
       const nextSleepDuration = Math.min(remaining, 500);
       await sleep(nextSleepDuration);
