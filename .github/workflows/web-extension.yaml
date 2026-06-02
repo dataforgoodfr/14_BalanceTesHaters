@@ -205,7 +205,7 @@ jobs:
         working-directory: ./browser-extension
         env:
           PATH_TO_EXTENSION: ../.output/chrome-mv3
-        run: xvfb-run pnpm playwright test --retries=3
+        run: CI=true xvfb-run pnpm playwright test --retries=3
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4

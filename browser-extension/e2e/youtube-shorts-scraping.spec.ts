@@ -13,6 +13,7 @@ test.describe("Youtube Shorts Scraping", () => {
     extensionId,
     context,
   }) => {
+    test.skip(!!process.env.CI, "Skipped in CI because bloqued by youtube");
     test.setTimeout(60_000);
 
     const youtubeShortId = "WPpURgqzXZ4";
@@ -28,7 +29,7 @@ test.describe("Youtube Shorts Scraping", () => {
     expect(triggerResult.scrapingStarted).toBeTruthy();
 
     // Wait for analysis to end
-    const scrapTimeout = 8 * 60 * 1000;
+    const scrapTimeout = 60 * 1000;
     test.setTimeout(scrapTimeout);
 
     const post = await waitForPostStored(context, youtubeShortId, scrapTimeout);
