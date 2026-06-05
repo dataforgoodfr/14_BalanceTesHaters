@@ -96,7 +96,10 @@ export const ReportComment = ({
             {post.title}&quot;
           </>
         ) : (
-          <>{LABEL_PSEUDO_AUTEUR}{comment.author.name}</>
+          <>
+            {LABEL_PSEUDO_AUTEUR}
+            {comment.author.name}
+          </>
         )}
       </div>
     </div>

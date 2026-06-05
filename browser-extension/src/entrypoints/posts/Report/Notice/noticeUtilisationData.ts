@@ -52,7 +52,9 @@ export const NOTICE_UTILISATION_DATA: NoticeData = {
     {
       title: "4. Se faire accompagner",
       items: [
-        { text: "En cas de besoin : association, personne de confiance, avocat." },
+        {
+          text: "En cas de besoin : association, personne de confiance, avocat.",
+        },
       ],
     },
     {

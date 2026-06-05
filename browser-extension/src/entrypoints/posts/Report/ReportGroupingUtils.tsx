@@ -2,7 +2,11 @@ import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
 import React from "react";
 import { ReportOrganizationType } from "./Stepper/BuildReport";
-import { getSecondTextAuthorHeader, getTitlePublicationHeader, LABEL_URL } from "./reportData";
+import {
+  getSecondTextAuthorHeader,
+  getTitlePublicationHeader,
+  LABEL_URL,
+} from "./reportData";
 import { buildPostKey } from "@/shared/utils/post-util";
 
 export interface GroupedData {
@@ -14,8 +18,6 @@ export interface GroupedData {
   reportOrganizationType: ReportOrganizationType;
   commentPostMap?: Map<string, Post>;
 }
-
-
 
 const HeaderContainer = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col gap-2 items-start">{children}</div>
@@ -80,7 +82,7 @@ export const getAuthorGroups = (
     }
     grouped.get(authorKey)!.push(comment);
 
-    let post:Post | undefined = undefined;
+    let post: Post | undefined = undefined;
     // Map comment to its post for later retrieval
     if (posts) {
       post = posts.find(
@@ -98,7 +100,7 @@ export const getAuthorGroups = (
     headerContent: createAuthorHeader(authorName, commentList.length),
     postLatestAnalysisDate: latestAnalysisDate,
     reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
-    post: commentPostMap.get(commentList[0].id), 
+    post: commentPostMap.get(commentList[0].id),
     commentPostMap,
   }));
 };
