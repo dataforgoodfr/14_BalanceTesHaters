@@ -24,6 +24,9 @@ import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
 import redHatTextRegular from "@/assets/fonts/RedHatText-Regular.ttf";
 import bthLogo from "@/assets/bth-logo.png";
+import scaleIcon from "@/assets/scale-icon.png";
+import noticeIcon from "@/assets/notice-icon.png";
+
 import {
   getLabelAnalysisComment,
   getLabelPublishedComment,
@@ -192,6 +195,10 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     marginBottom: 4,
   },
+  noticeIcon: {
+    width: pxToPt(30),
+    height: pxToPt(30),
+  },
   noticeTitle: {
     fontSize: pxToPt(30),
     borderBottom: `1px solid #DDDEF9`,
@@ -335,9 +342,13 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                   </Text>
                 )}
               </View>
-              <View style={styles.commentsList} >
+              <View style={styles.commentsList}>
                 {group.comments.map((comment) => (
-                  <View key={comment.id} style={styles.commentCard} wrap={false}>
+                  <View
+                    key={comment.id}
+                    style={styles.commentCard}
+                    wrap={false}
+                  >
                     <View style={styles.commentRow}>
                       <View>
                         {comment.classification?.map((label) => (
@@ -355,7 +366,8 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                           styles.fontWeightSemiBold,
                         ]}
                       >
-                        {LABEL_SCORE_JURIDIQUE}
+                        <Image src={scaleIcon} />
+                        <Text> {LABEL_SCORE_JURIDIQUE}</Text>
                       </Text>
                     </View>
                     <View style={styles.commentRow}>
@@ -406,6 +418,7 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
 
         <View style={styles.noticeCard}>
           <Text style={[styles.noticeTitle, styles.fontWeightMedium]}>
+            <Image src={noticeIcon} style={styles.noticeIcon} />{" "}
             {NOTICE_UTILISATION_DATA.mainTitle}
           </Text>
           {NOTICE_UTILISATION_DATA.sections.map((section) => (
