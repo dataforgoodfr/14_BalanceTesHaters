@@ -16,7 +16,7 @@ import {
 import {
   ArrowDownUp,
   Eye,
-  EyeClosed,
+  EyeOff,
   Funnel,
   SearchIcon,
   UserRound,
@@ -56,6 +56,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { useNavigate } from "react-router";
 
 /**
  * Merged view of Post Snapshot
@@ -63,6 +64,7 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 export type PostCommentWithId = PostComment & {
   id: string;
   postKey: string;
+  socialNetwork: string;
 };
 
 export default function CommentsTable({
@@ -70,12 +72,14 @@ export default function CommentsTable({
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
+  showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
   commentList: PostCommentWithId[];
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
+  showCreateReportButton: boolean;
   showScreenshotColumn?: boolean;
 }>) {
   const [inputValue, setInputValue] = React.useState("");
@@ -150,7 +154,7 @@ export default function CommentsTable({
           <Checkbox
             className="ms-3 me-5"
             checked={selectedCommentIdList.size === filteredComments.length}
-            onClick={() => setAllCommentsSelection()}
+            onClick={() => setAllCommentsSelection(true)}
           />
         ),
         cell: ({ row }) => (
@@ -213,7 +217,7 @@ export default function CommentsTable({
               {visibleComments.size === filteredComments.length ? (
                 <Eye />
               ) : (
-                <EyeClosed />
+                <EyeOff />
               )}
             </Button>
           </div>
@@ -223,7 +227,7 @@ export default function CommentsTable({
             variant="ghost"
             onClick={() => toggleCommentVisibility(row.id)}
           >
-            {visibleComments.has(row.id) ? <Eye /> : <EyeClosed />}
+            {visibleComments.has(row.id) ? <Eye /> : <EyeOff />}
           </Button>
         ),
       },
@@ -310,8 +314,8 @@ export default function CommentsTable({
     }
   };
 
-  const setAllCommentsSelection = () => {
-    if (selectedCommentIdList.size === filteredComments.length) {
+  const setAllCommentsSelection = (canDeselect: boolean) => {
+    if (canDeselect && selectedCommentIdList.size === filteredComments.length) {
       updateSelectedCommentList(new Set());
     } else {
       const allVisibleRowIds = new Set(
@@ -320,6 +324,8 @@ export default function CommentsTable({
       updateSelectedCommentList(allVisibleRowIds);
     }
   };
+
+  const navigate = useNavigate();
 
   return (
     <>
@@ -332,8 +338,29 @@ export default function CommentsTable({
           void form.handleSubmit();
         }}
       >
-        <div className="p-3 flex justify-between">
-          <InputGroup className="mx-4 w-1/3">
+        {selectedCommentIdList.size > 0 && (
+          <div className="px-3 pt-2">
+            <div className="pe-2 w-fit gap-1 bg-muted rounded-md flex items-center justify-start font-semibold ">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  updateSelectedCommentList(new Set());
+                }}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Déselectionner tous les commentaires"
+              >
+                ✕
+              </Button>
+              <span className="text-sm">
+                {selectedCommentIdList.size} sélectionné
+                {selectedCommentIdList.size > 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        )}
+        <div className="p-3 flex gap-4">
+          <InputGroup className=" w-1/3">
             <InputGroupInput
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
@@ -343,17 +370,37 @@ export default function CommentsTable({
               <SearchIcon />
             </InputGroupAddon>
           </InputGroup>
-          <div className="flex gap-4">
-            <Button variant="outline" disabled>
-              Tout sélectionner
+          {showCreateReportButton && (
+            <Button
+              disabled={selectedCommentIdList.size === 0}
+              onClick={() => {
+                void navigate("/build-report", {
+                  state: {
+                    socialNetworkFilter: [commentList[0].socialNetwork],
+                    selectedPostIds: [commentList[0].postKey.split("|")[0]],
+                    selectedCommentList: commentList.filter((comment) =>
+                      selectedCommentIdList.has(comment.id),
+                    ),
+                    skipToStep: "step-4",
+                  },
+                });
+              }}
+            >
+              Créer un rapport
             </Button>
-            <Button variant="outline" disabled>
-              Filtrer <Funnel />
-            </Button>
-            <Button variant="outline" disabled>
-              Trier <ArrowDownUp />
-            </Button>{" "}
-          </div>
+          )}
+          <Button
+            variant="outline"
+            onClick={() => setAllCommentsSelection(false)}
+          >
+            Tout sélectionner
+          </Button>
+          <Button variant="outline" disabled>
+            Filtrer <Funnel />
+          </Button>
+          <Button variant="outline" disabled>
+            Trier <ArrowDownUp />
+          </Button>
         </div>
         <form.Field
           name="commentIdList"
@@ -372,7 +419,7 @@ export default function CommentsTable({
                 </div>
               )}
               <Table className="w-full table-fixed">
-                <TableHeader className="bg-gray-200">
+                <TableHeader className="bg-indigo-brand-100">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
@@ -393,7 +440,12 @@ export default function CommentsTable({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      className={
+                        selectedCommentIdList.has(row.id) ? "bg-accent-2" : ""
+                      }
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(

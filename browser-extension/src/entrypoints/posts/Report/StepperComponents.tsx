@@ -1,4 +1,4 @@
-import { StepStatus, useStepItemContext } from "@stepperize/react/primitives";
+import { useStepItemContext } from "@stepperize/react/primitives";
 
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
@@ -17,6 +17,8 @@ const StepperTriggerWrapper = () => {
           roundness="round"
           variant={isInactive ? "secondary" : "default"}
           size="icon"
+          data-status={item.status}
+          className="data-[status=success]:opacity-50"
           {...domProps}
         >
           {isCompleted ? (
@@ -31,10 +33,16 @@ const StepperTriggerWrapper = () => {
 };
 
 const StepperTitleWrapper = ({ title }: { title: string }) => {
+  const item = useStepItemContext();
+
   return (
     <Stepper.Title
       render={(domProps) => (
-        <h4 className="text-sm font-medium" {...domProps}>
+        <h4
+          data-status={item.status}
+          className="text-sm font-medium data-[status=success]:opacity-50"
+          {...domProps}
+        >
           {title}
         </h4>
       )}
@@ -42,28 +50,9 @@ const StepperTitleWrapper = ({ title }: { title: string }) => {
   );
 };
 
-const StepperDescriptionWrapper = ({
-  description,
-}: {
-  description?: string;
-}) => {
-  if (!description) return null;
-  return (
-    <Stepper.Description
-      render={(domProps) => (
-        <p className="text-xs text-muted-foreground" {...domProps}>
-          {description}
-        </p>
-      )}
-    />
-  );
-};
-
 const StepperSeparatorWithLabelOrientation = ({
-  status,
   isLast,
 }: {
-  status: StepStatus;
   isLast: boolean;
 }) => {
   if (isLast) return null;
@@ -71,8 +60,7 @@ const StepperSeparatorWithLabelOrientation = ({
   return (
     <Stepper.Separator
       orientation="horizontal"
-      data-status={status}
-      className="absolute left-[calc(50%+30px)] right-[calc(-50%+20px)] top-5 block shrink-0 bg-muted data-[status=success]:bg-primary data-disabled:opacity-50 transition-all duration-300 ease-in-out h-0.5"
+      className="absolute left-[calc(80%+10px)] right-[calc(-20%+10px)] top-5 block  bg-muted h-0.5"
     />
   );
 };
@@ -83,13 +71,6 @@ export const StepperBanner = () => {
   return (
     <Stepper.List className="flex list-none gap-2 flex-row items-center justify-between">
       {stepper.state.all.map((stepData, index) => {
-        const currentIndex = stepper.state.current.index;
-        let status = "inactive";
-        if (index < currentIndex) {
-          status = "success";
-        } else if (index === currentIndex) {
-          status = "active";
-        }
         const isLast = index === stepper.state.all.length - 1;
         const data = stepData as {
           id: string;
@@ -102,15 +83,11 @@ export const StepperBanner = () => {
             step={stepData.id}
             className="group peer relative flex w-full flex-col items-center justify-center gap-2"
           >
-            <StepperTriggerWrapper />
-            <StepperSeparatorWithLabelOrientation
-              status={status as StepStatus}
-              isLast={isLast}
-            />
-            <div className="flex flex-col items-center text-center gap-1">
+            <div className="flex items-center gap-2">
+              <StepperTriggerWrapper />
               <StepperTitleWrapper title={data.title} />
-              <StepperDescriptionWrapper description={data.description} />
             </div>
+            <StepperSeparatorWithLabelOrientation isLast={isLast} />
           </Stepper.Item>
         );
       })}

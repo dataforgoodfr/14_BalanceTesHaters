@@ -3,6 +3,7 @@ import { Post } from "@/shared/model/post/Post";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import React from "react";
 import { ReportOrganizationType } from "./BuildReport";
+import { buildPostKey } from "@/shared/utils/post-util";
 
 export interface GroupedData {
   groupKey: string;
@@ -62,9 +63,10 @@ export const getPublicationGroups = (
   comments: PostCommentWithId[],
 ): GroupedData[] => {
   return Array.from(posts ?? []).map((post) => ({
-    groupKey: post.postId + "-" + post.socialNetwork,
+    groupKey: buildPostKey(post.postId, post.socialNetwork),
     comments: comments.filter(
-      (comment) => comment.postKey === post.postId + "-" + post.socialNetwork,
+      (comment) =>
+        comment.postKey === buildPostKey(post.postId, post.socialNetwork),
     ),
     headerContent: createPublicationHeader(post),
     postLatestAnalysisDate: new Date(post.latestAnalysisDate),
@@ -91,7 +93,7 @@ export const getAuthorGroups = (
     // Map comment to its post for later retrieval
     if (posts) {
       const post = posts.find(
-        (p) => p.postId + "-" + p.socialNetwork === comment.postKey,
+        (p) => buildPostKey(p.postId, p.socialNetwork) === comment.postKey,
       );
       if (post) {
         commentPostMap.set(comment.id, post);

@@ -112,6 +112,13 @@ export function formatAnalysisDate(isoDateTime: string): string {
   return `${date} à ${time}`;
 }
 
+export function buildPostKey(
+  postId: string,
+  socialNetwork: SocialNetworkName,
+): string {
+  return `${postId}|${socialNetwork}`;
+}
+
 export function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
   switch (socialNetwork) {
     case SocialNetwork.YouTube:
