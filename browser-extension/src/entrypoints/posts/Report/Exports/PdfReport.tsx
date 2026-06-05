@@ -335,9 +335,9 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                   </Text>
                 )}
               </View>
-              <View style={styles.commentsList}>
+              <View style={styles.commentsList} >
                 {group.comments.map((comment) => (
-                  <View key={comment.id} style={styles.commentCard}>
+                  <View key={comment.id} style={styles.commentCard} wrap={false}>
                     <View style={styles.commentRow}>
                       <View>
                         {comment.classification?.map((label) => (
