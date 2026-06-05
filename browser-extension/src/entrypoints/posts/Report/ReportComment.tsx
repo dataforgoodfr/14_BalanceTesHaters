@@ -1,10 +1,17 @@
 import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
-import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { cn } from "@/lib/utils";
 import { Scale } from "lucide-react";
 import { ReportOrganizationType } from "./Stepper/BuildReport";
+import {
+  getLabelAnalysisComment,
+  getLabelPublishedComment,
+  getTitlePublicationHeader,
+  LABEL_PSEUDO_AUTEUR,
+  LABEL_SCORE_JURIDIQUE,
+  LABEL_URL,
+} from "./reportData";
 
 interface ReportCommentProps {
   comment: PostCommentWithId;
@@ -45,7 +52,7 @@ export const ReportComment = ({
           {/* TODO: ajouter alerte sécurité */}
           <div className="flex items-center gap-2">
             <Scale size="12" />
-            Score juridique : N/A
+            {LABEL_SCORE_JURIDIQUE}
           </div>
         </div>
       </div>
@@ -70,15 +77,10 @@ export const ReportComment = ({
           </button>
           <div className="flex flex-col items-end">
             <span className="text-xs text-muted-foreground">
-              Publié le {formatCommentDate(comment.publishedAt)}
+              {getLabelPublishedComment(comment.publishedAt)}
             </span>
             <span className="text-xs text-muted-foreground">
-              Capturé le{" "}
-              {post === undefined
-                ? "Date inconnue"
-                : new Date(post?.latestAnalysisDate).toLocaleDateString(
-                    "fr-FR",
-                  )}
+              {getLabelAnalysisComment(post?.latestAnalysisDate)}
             </span>
           </div>
         </div>
@@ -86,46 +88,17 @@ export const ReportComment = ({
       <div className="text-muted-foreground self-start">
         {reportOrganizationType === ReportOrganizationType.BY_AUTHOR && post ? (
           <>
-            URL:{" "}
+            {LABEL_URL}
             <a href={post.url} target="_blank" rel="noopener noreferrer">
               {post.url}
             </a>
-            {"  "}• Publication du {getPostDisplayDate(post.publishedAt)} :
-            &quot;{post.title}&quot;
+            {"  "}• {getTitlePublicationHeader(post.publishedAt)} : &quot;
+            {post.title}&quot;
           </>
         ) : (
-          <>Pseudo auteur : {comment.author.name}</>
+          <>{LABEL_PSEUDO_AUTEUR}{comment.author.name}</>
         )}
       </div>
     </div>
   );
-};
-
-const formatCommentDate = (publishedAt: PublicationDate): string => {
-  switch (publishedAt.type) {
-    case "absolute":
-      return new Date(publishedAt.date).toLocaleDateString("fr-FR");
-    case "relative":
-      return formatRelativeDate(publishedAt);
-    case "unknown date":
-      return publishedAt.dateText;
-  }
-};
-
-const getPostDisplayDate = (date: PublicationDate): string => {
-  if (date.type === "absolute") {
-    return new Date(date.date).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  }
-  return "Date inconnue";
-};
-
-const formatRelativeDate = (relative: RelativeDate): string => {
-  const start = new Date(relative.resolvedDateRange.start).getTime();
-  const end = new Date(relative.resolvedDateRange.end).getTime();
-  const mid = new Date(start + Math.round((end - start) / 2));
-  return `~${mid.toLocaleDateString("fr-FR")}`;
 };

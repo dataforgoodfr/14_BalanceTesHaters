@@ -34,8 +34,9 @@ function Step3Comments({
           (comment) =>
             ({
               ...comment,
-              postKey: buildPostKey(p.postId, p.socialNetwork),
+              postId: p.postId,
               socialNetwork: p.socialNetwork,
+              postKey: buildPostKey(p.postId, p.socialNetwork),
             }) as PostCommentWithId,
         );
       })

@@ -51,7 +51,6 @@ export function BuildReport() {
     React.useState<ReportQueryData>();
 
   const [displayReport, setDisplayReport] = React.useState<boolean>(false);
-
   return (
     <main className="flex flex-col gap-6">
       {!displayReport && (

@@ -11,6 +11,7 @@ import { NoticeUtilisation } from "./Notice/NoticeUtilisation";
 import { ReportCommentGroup } from "./ReportCommentGroup";
 import { useMemo } from "react";
 import { getPublicationGroups, getAuthorGroups } from "./ReportGroupingUtils";
+import { LABEL_RAPPORT_COMMENTAIRES_MALVEILLANTS } from "./reportData";
 
 interface ReportContentProps {
   reportQueryData?: ReportQueryData;
@@ -59,7 +60,7 @@ export const ReportContent = ({
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">
-        Rapport des commentaires malveillants
+        {LABEL_RAPPORT_COMMENTAIRES_MALVEILLANTS}
       </h1>
       <div className="flex gap-4 justify-between">
         <NumberHatefulAuhorsKpiCard

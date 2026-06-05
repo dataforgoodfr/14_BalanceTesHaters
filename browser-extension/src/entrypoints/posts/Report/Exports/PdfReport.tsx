@@ -13,23 +13,40 @@ import {
   formatAnalysisDate,
   getSocialNetworkName,
 } from "@/shared/utils/post-util";
-import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
-import { getEntriesGroupedByPostKey } from "@/shared/utils/report-data";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
-import { ReportOrganizationType, ReportQueryData } from "../Stepper/BuildReport";
+import {
+  ReportOrganizationType,
+  ReportQueryData,
+} from "../Stepper/BuildReport";
 import { NOTICE_UTILISATION_DATA } from "../Notice/noticeUtilisationData";
-import redHatText from "@/assets/fonts/RedHatText-Regular.ttf";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
-import redHatTextBold from "@/assets/fonts/RedHatText-Bold.ttf";
+import redHatTextRegular from "@/assets/fonts/RedHatText-Regular.ttf";
 import bthLogo from "@/assets/bth-logo.png";
+import {
+  getLabelAnalysisComment,
+  getLabelPublishedComment,
+  getSecondTextAuthorHeader,
+  getTitlePublicationHeader,
+  LABEL_PSEUDO_AUTEUR,
+  LABEL_SCORE_JURIDIQUE,
+  LABEL_URL,
+} from "../reportData";
+import {
+  getAuthorGroups,
+  getPublicationGroups,
+  GroupedData,
+} from "../ReportGroupingUtils";
 
-const GRAY_200 = "#e5e7eb";
 const GRAY_500 = "#6b7280";
+const NEUTRAL_50 = "#FAFAFA";
+const GENERAL_SECONDARY_FOREGROUND = "#171717";
+const UNOFFICIAL_FOREGROUND_ALT = "#404040";
 const INDIGO_BRAND_50 = "#EEEDFF";
 const INDIGO_BRAND_950 = "#2F33A4";
 const BORDER = "#e5e7eb";
+const TEXT_DESTRUCTIVE = "#e7000b";
 
 // A4 Portrait
 //   72 dpi (défaut) ==> 595 x 842 px
@@ -41,10 +58,10 @@ const CARD_RADIUS = pxToPt(12);
 Font.register({
   family: "Red Hat Text",
   fonts: [
-    { src: redHatText },
-    { src: redHatTextMedium, fontWeight: 500 },
-    { src: redHatTextSemiBold, fontWeight: 600 },
-    { src: redHatTextBold, fontWeight: 700 },
+    { src: redHatTextRegular },
+    { src: redHatTextRegular, fontWeight: 500 },
+    { src: redHatTextMedium, fontWeight: 600 },
+    { src: redHatTextSemiBold, fontWeight: 700 },
   ],
 });
 
@@ -87,11 +104,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   metaLine: { fontSize: pxToPt(20), marginBottom: pxToPt(12) },
-  metaBold: { fontWeight: 700 },
 
   pageTitle: {
     fontSize: pxToPt(45),
-    fontWeight: 700,
+    fontWeight: 600,
     textAlign: "center",
     marginBottom: pxToPt(16),
   },
@@ -110,70 +126,61 @@ const styles = StyleSheet.create({
     color: GRAY_500,
     marginBottom: pxToPt(4),
   },
-  kpiValue: { fontSize: pxToPt(40), fontWeight: 600 },
-
-  tableHeaderRow: {
-    flexDirection: "row",
-    backgroundColor: GRAY_200,
-    minHeight: pxToPt(120),
-    padding: `${pxToPt(20)}px ${pxToPt(30)}px`,
-    alignItems: "center",
-  },
-  tableDataRow: {
-    flexDirection: "row",
-    padding: `${pxToPt(8)}px`,
-    borderBottom: `1px solid ${BORDER}`,
-    alignItems: "center",
-  },
-  tableHeaderCell: { fontWeight: 500, fontSize: pxToPt(10) },
-  tableCell: { fontSize: pxToPt(10) },
-  colAuthorName: { width: "40%" },
-  colRatio: { width: "30%" },
-  colCount: { width: "30%" },
-
+  kpiValue: { fontSize: pxToPt(40) },
   groupSection: {
     marginBottom: pxToPt(16),
     border: `1px solid ${BORDER}`,
+    borderRadius: CARD_RADIUS,
   },
   groupHeader: {
     backgroundColor: INDIGO_BRAND_50,
-    position:"relative",
-    display:"flex",
-    flexDirection:"column",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
     borderBottom: `1px solid ${BORDER}`,
+    borderTopLeftRadius: CARD_RADIUS,
+    borderTopRightRadius: CARD_RADIUS,
     padding: `${pxToPt(20)}px ${pxToPt(30)}px`,
   },
-
-  postSummaryCard: {
-    borderRadius: CARD_RADIUS,
-    padding: pxToPt(20),
-    marginBottom: pxToPt(8),
-    flexDirection: "row",
+  groupHeaderTitle: {
+    fontSize: pxToPt(25),
+    color: GENERAL_SECONDARY_FOREGROUND,
   },
-  postCoverImage: {
-    width: pxToPt(192),
-    height: pxToPt(128),
-    marginRight: pxToPt(16),
-    borderRadius: pxToPt(4),
-    objectFit: "cover",
+  groupHeaderContent: {
+    fontSize: pxToPt(20),
+    color: UNOFFICIAL_FOREGROUND_ALT,
   },
-  postInfoBlock: { flex: 1 },
-  postTitle: { fontSize: pxToPt(14), fontWeight: 600, marginBottom: pxToPt(4) },
-  postMeta: { fontSize: pxToPt(10), marginBottom: pxToPt(4) },
-
-  commentsTable: {
+  commentsList: {
+    margin: pxToPt(15),
     border: `1px solid ${BORDER}`,
-    borderRadius: 8,
-    overflow: "hidden",
-    marginBottom: 4,
+    borderRadius: CARD_RADIUS,
+    backgroundColor: NEUTRAL_50,
   },
-  colCommentAuthor: { width: "22%" },
-  colCommentScreenshot: { width: "58%" },
-  colCommentDate: { width: "20%" },
+  commentCard: {
+    borderBottom: `1px solid ${BORDER}`,
+    padding: pxToPt(20),
+  },
+  commentRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: pxToPt(8),
+  },
+  commentBadgeClassification: {
+    paddingHorizontal: pxToPt(4),
+    border: `1px solid ${BORDER}`,
+    borderRadius: pxToPt(20),
+    color: TEXT_DESTRUCTIVE,
+    marginRight: pxToPt(4),
+    fontSize: pxToPt(15),
+    marginBottom: pxToPt(20),
+  },
+  commentContent: { fontSize: pxToPt(15), color: UNOFFICIAL_FOREGROUND_ALT },
+  commentRightBlock: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+    width: "18%",
+  },
   screenshotImage: { maxWidth: "100%" },
-  naText: { color: "#9ca3af" },
-  pagination: { fontSize: pxToPt(10), color: GRAY_500 },
-  categoryDescription: { fontSize: pxToPt(10), lineHeight: 1.4 },
   noticeCard: {
     margin: pxToPt(96),
     padding: pxToPt(16),
@@ -187,12 +194,10 @@ const styles = StyleSheet.create({
   },
   noticeTitle: {
     fontSize: pxToPt(30),
-    fontWeight: 500,
     borderBottom: `1px solid #DDDEF9`,
     paddingBottom: pxToPt(8),
   },
   noticeSubtitle: {
-    fontWeight: 500,
     fontSize: pxToPt(25),
     marginTop: pxToPt(12),
     marginBottom: pxToPt(8),
@@ -202,25 +207,10 @@ const styles = StyleSheet.create({
     paddingLeft: pxToPt(12),
     marginBottom: pxToPt(4),
   },
+  fontWeightMedium: { fontWeight: 500 },
+  fontWeightSemiBold: { fontWeight: 600 },
+  fontWeightBold: { fontWeight: 700 },
 });
-
-const formatPublicationDate = (publishedAt: PublicationDate): string => {
-  switch (publishedAt.type) {
-    case "absolute":
-      return new Date(publishedAt.date).toLocaleDateString("fr-FR");
-    case "relative":
-      return formatRelativeDate(publishedAt);
-    case "unknown date":
-      return publishedAt.dateText;
-  }
-};
-
-const formatRelativeDate = (relative: RelativeDate): string => {
-  const start = new Date(relative.resolvedDateRange.start).getTime();
-  const end = new Date(relative.resolvedDateRange.end).getTime();
-  const mid = new Date(start + Math.round((end - start) / 2));
-  return `~${mid.toLocaleDateString("fr-FR")}`;
-};
 
 const FixedContent = () => {
   return (
@@ -245,7 +235,7 @@ const KpiCard = ({ label, value }: { label: string; value: string }) => {
   return (
     <View style={styles.kpiCard}>
       <Text style={styles.kpiLabel}>{label}</Text>
-      <Text style={styles.kpiValue}>{value}</Text>
+      <Text style={[styles.kpiValue, styles.fontWeightSemiBold]}>{value}</Text>
     </View>
   );
 };
@@ -261,7 +251,19 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   const numberOfHatefulComments = postCommentList.length;
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(postCommentList);
 
-  const groupedCommentsByPost = getEntriesGroupedByPostKey(postCommentList);
+  const comments = reportQueryData.postCommentList;
+  const organizationType = reportQueryData.reportOrganizationType;
+
+  let groupedData: GroupedData[] = [];
+
+  if (organizationType === ReportOrganizationType.BY_PUBLICATION) {
+    groupedData = getPublicationGroups(posts, comments);
+  } else if (organizationType === ReportOrganizationType.BY_AUTHOR) {
+    const latestAnalysisDate = posts?.[0]?.latestAnalysisDate
+      ? new Date(posts[0].latestAnalysisDate)
+      : new Date();
+    groupedData = getAuthorGroups(comments, latestAnalysisDate, posts);
+  }
 
   return (
     <Document>
@@ -271,7 +273,7 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
           <Image src={bthLogo} style={styles.bthImage} />
           <View style={styles.metaBlock}>
             <Text style={styles.metaLine}>
-              Généré le :{formatAnalysisDate(new Date().toISOString())}
+              Généré le : {formatAnalysisDate(new Date().toISOString())}
             </Text>
             <Text style={styles.metaLine}>
               Publications analysées : {reportQueryData.postIdList.length}
@@ -302,88 +304,115 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
           <KpiCard label="Alerte sécurité" value="N/A" />
         </View>
 
-        {reportOrganizationType == ReportOrganizationType.BY_PUBLICATION &&
-          groupedCommentsByPost.map(([postKey, commentList], index) => {
-            const post = posts.find(
-              (p) => `${p.postId}|${p.socialNetwork}` === postKey,
-            );
-            if (!post) return null;
-
-            return (
-              <View key={postKey} style={styles.groupSection} >
-                <View style={styles.groupHeader}>
-                    <Text style={styles.postMeta}>
-                      Publication du {formatPublicationDate(post.publishedAt)}
+        {groupedData.map((group) => {
+          return (
+            <View key={group.groupKey} style={styles.groupSection}>
+              <View style={styles.groupHeader}>
+                <Text
+                  style={[styles.groupHeaderTitle, styles.fontWeightMedium]}
+                >
+                  {reportOrganizationType ===
+                  ReportOrganizationType.BY_PUBLICATION
+                    ? getTitlePublicationHeader(group.post?.publishedAt)
+                    : group.comments[0]?.author.name || "Auteur inconnu"}
+                </Text>
+                {reportOrganizationType ===
+                  ReportOrganizationType.BY_PUBLICATION && (
+                  <>
+                    <Text style={styles.groupHeaderContent}>
+                      {group.post?.title}
                     </Text>
-                      <Text style={styles.postTitle}>{post.title}</Text>
-                    <Text style={styles.postMeta}>URL : {post.url}</Text>
-                </View>
-
-                <View style={styles.commentsTable}>
-                  <View style={styles.tableHeaderRow}>
-                    <Text
-                      style={[styles.tableHeaderCell, styles.colCommentAuthor]}
-                    >
-                      Auteur
+                    <Text style={styles.groupHeaderContent}>
+                      {LABEL_URL}
+                      {group.post?.url}
                     </Text>
-                    <Text
-                      style={[
-                        styles.tableHeaderCell,
-                        styles.colCommentScreenshot,
-                      ]}
-                    >
-                      Capture du commentaire
-                    </Text>
-                    <Text
-                      style={[styles.tableHeaderCell, styles.colCommentDate]}
-                    >
-                      Date
-                    </Text>
-                  </View>
-                  {commentList?.map((comment) => (
-                    <View key={comment.id} style={styles.tableDataRow}>
-                      <Text style={[styles.tableCell, styles.colCommentAuthor]}>
-                        {comment.author.name}
-                      </Text>
-                      <View style={styles.colCommentScreenshot}>
-                        {comment.screenshotData ? (
-                          <Image
-                            src={buildDataUrl(
-                              comment.screenshotData,
-                              PNG_MIME_TYPE,
-                            )}
-                            style={styles.screenshotImage}
-                          />
-                        ) : (
-                          <Text style={[styles.tableCell, styles.naText]}>
-                            N/A
+                  </>
+                )}
+                {reportOrganizationType ===
+                  ReportOrganizationType.BY_AUTHOR && (
+                  <Text style={styles.groupHeaderContent}>
+                    {getSecondTextAuthorHeader(group.comments.length)}
+                  </Text>
+                )}
+              </View>
+              <View style={styles.commentsList}>
+                {group.comments.map((comment) => (
+                  <View key={comment.id} style={styles.commentCard}>
+                    <View style={styles.commentRow}>
+                      <View>
+                        {comment.classification?.map((label) => (
+                          <Text
+                            key={label}
+                            style={[styles.commentBadgeClassification]}
+                          >
+                            {label}
                           </Text>
-                        )}
+                        ))}
                       </View>
-                      <Text style={[styles.tableCell, styles.colCommentDate]}>
-                        {formatPublicationDate(comment.publishedAt)}
+                      <Text
+                        style={[
+                          styles.commentContent,
+                          styles.fontWeightSemiBold,
+                        ]}
+                      >
+                        {LABEL_SCORE_JURIDIQUE}
                       </Text>
                     </View>
-                  ))}
-                </View>
-
-                <Text style={styles.pagination}>
-                  {index + 1}/{reportQueryData.postIdList.length} publications
-                </Text>
+                    <View style={styles.commentRow}>
+                      <Image
+                        src={buildDataUrl(
+                          comment.screenshotData,
+                          PNG_MIME_TYPE,
+                        )}
+                        style={styles.screenshotImage}
+                      />
+                      <View style={styles.commentRightBlock}>
+                        <Text style={[styles.commentContent]}>
+                          {getLabelPublishedComment(comment.publishedAt)}
+                        </Text>
+                        <Text style={[styles.commentContent]}>
+                          {getLabelAnalysisComment(
+                            group.post?.latestAnalysisDate,
+                          )}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.commentContent}>
+                      {reportQueryData.reportOrganizationType ===
+                      ReportOrganizationType.BY_AUTHOR ? (
+                        <>
+                          {LABEL_URL} {group.post?.url}
+                          {"  "}•{" "}
+                          {getTitlePublicationHeader(group.post?.publishedAt)} :
+                          &quot;
+                          {group.post?.title}&quot;
+                        </>
+                      ) : (
+                        <>
+                          {LABEL_PSEUDO_AUTEUR}
+                          {comment.author.name}
+                        </>
+                      )}
+                    </Text>
+                  </View>
+                ))}
               </View>
-            );
-          })}
+            </View>
+          );
+        })}
       </Page>
       <Page wrap>
         <FixedContent />
 
         <View style={styles.noticeCard}>
-          <Text style={styles.noticeTitle}>
+          <Text style={[styles.noticeTitle, styles.fontWeightMedium]}>
             {NOTICE_UTILISATION_DATA.mainTitle}
           </Text>
           {NOTICE_UTILISATION_DATA.sections.map((section) => (
             <View key={section.title}>
-              <Text style={styles.noticeSubtitle}>{section.title}</Text>
+              <Text style={[styles.noticeSubtitle, styles.fontWeightMedium]}>
+                {section.title}
+              </Text>
               {section.items.map((item) => (
                 <Text key={item.text} style={styles.noticeContent}>
                   • {item.text}

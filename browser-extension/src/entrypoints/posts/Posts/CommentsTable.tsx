@@ -63,8 +63,9 @@ import { useNavigate } from "react-router";
  */
 export type PostCommentWithId = PostComment & {
   id: string;
-  postKey: string;
+  postId: string;
   socialNetwork: string;
+  postKey: string;
 };
 
 export default function CommentsTable({
@@ -377,7 +378,7 @@ export default function CommentsTable({
                 void navigate("/build-report", {
                   state: {
                     socialNetworkFilter: [commentList[0].socialNetwork],
-                    selectedPostIds: [commentList[0].id],
+                    selectedPostIds: [commentList[0].postId],
                     selectedCommentList: commentList.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),
