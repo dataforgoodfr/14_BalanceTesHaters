@@ -6,7 +6,11 @@ import { useQuery } from "@tanstack/react-query";
 import { MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
-import { formatAnalysisDate, isCommentHateful } from "@/shared/utils/post-util";
+import {
+  formatAnalysisDate,
+  isCommentHateful,
+  buildPostKey,
+} from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
 import CommentsTable, { PostCommentWithId } from "./CommentsTable";
@@ -28,15 +32,18 @@ function PostDetailPage() {
   });
 
   const allComments = post?.comments || [];
-  const hatefulComments = allComments
-    .filter((c) => isCommentHateful(c))
-    .map((comment, i) => {
-      return {
-        ...comment,
-        id: i.toString(),
-        postKey: `${post?.postId}|${post?.socialNetwork}`,
-      } as PostCommentWithId;
-    });
+  const hatefulComments = post
+    ? allComments
+        .filter((c) => isCommentHateful(c))
+        .map((comment, i) => {
+          return {
+            ...comment,
+            id: i.toString(),
+            postKey: buildPostKey(post.postId, post.socialNetwork),
+            socialNetwork: post?.socialNetwork,
+          } as PostCommentWithId;
+        })
+    : [];
 
   const numberOfHatefulComments = hatefulComments.length;
 

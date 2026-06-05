@@ -2,7 +2,7 @@ import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { ReportQueryData, useStepper } from "./BuildReport";
 import { useQuery } from "@tanstack/react-query";
 import CommentsTable, { PostCommentWithId } from "../Posts/CommentsTable";
-import { isCommentHateful } from "@/shared/utils/post-util";
+import { isCommentHateful, buildPostKey } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
 import { getFormId } from "./StepperComponents";
@@ -34,7 +34,8 @@ function Step3Comments({
           (comment) =>
             ({
               ...comment,
-              postKey: `${p.postId}-${p.socialNetwork}`,
+              postKey: buildPostKey(p.postId, p.socialNetwork),
+              socialNetwork: p.socialNetwork,
             }) as PostCommentWithId,
         );
       })
