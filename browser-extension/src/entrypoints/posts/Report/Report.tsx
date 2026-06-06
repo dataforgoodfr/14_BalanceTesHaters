@@ -5,7 +5,7 @@ import {
   formatAnalysisDate,
   getSocialNetworkName,
 } from "@/shared/utils/post-util";
-import { ReportQueryData } from "./BuildReport";
+import { ReportQueryData } from "./Stepper/BuildReport";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { useMemo, useState } from "react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
@@ -16,8 +16,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Packer } from "docx";
-import { buildReportCsv } from "./reportCsv";
-import { buildReportDocx } from "./reportDocx";
+import { buildReportCsv } from "./Exports/reportCsv";
+import { buildReportDocx } from "./Exports/reportDocx";
 import { ReportContent } from "./ReportContent";
 import { useReportPosts } from "@/shared/utils/report-data";
 import { DownloadPdfButton } from "./DownloadPdfButton";

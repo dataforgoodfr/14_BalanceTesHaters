@@ -1,5 +1,5 @@
 import { Post } from "@/shared/model/post/Post";
-import { ReportOrganizationType } from "./BuildReport";
+import { ReportOrganizationType } from "../Stepper/BuildReport";
 
 export function reportOrganizationTypeToText(
   type: ReportOrganizationType,

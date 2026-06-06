@@ -1,8 +1,12 @@
 import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
-import { PublicationDate } from "@/shared/model/PublicationDate";
 import React from "react";
-import { ReportOrganizationType } from "./BuildReport";
+import { ReportOrganizationType } from "./Stepper/BuildReport";
+import {
+  getSecondTextAuthorHeader,
+  getTitlePublicationHeader,
+  LABEL_URL,
+} from "./reportData";
 import { buildPostKey } from "@/shared/utils/post-util";
 
 export interface GroupedData {
@@ -15,17 +19,6 @@ export interface GroupedData {
   commentPostMap?: Map<string, Post>;
 }
 
-function getPostDisplayDate(date: PublicationDate): string {
-  if (date.type === "absolute") {
-    return new Date(date.date).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  }
-  return "Date inconnue";
-}
-
 const HeaderContainer = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col gap-2 items-start">{children}</div>
 );
@@ -33,11 +26,11 @@ const HeaderContainer = ({ children }: { children: React.ReactNode }) => (
 const createPublicationHeader = (post: Post): React.ReactNode => (
   <HeaderContainer>
     <span className="text-lg font-semibold">
-      Publication du {getPostDisplayDate(post.publishedAt)}
+      {getTitlePublicationHeader(post.publishedAt)}
     </span>
     <span>{post.title}</span>
     <span>
-      URL :{" "}
+      {LABEL_URL}
       <a href={post.url} target="_blank" rel="noopener noreferrer">
         {post.url}
       </a>
@@ -52,8 +45,7 @@ const createAuthorHeader = (
   <HeaderContainer>
     <span className="text-lg font-semibold">{authorName}</span>
     <span className="text-sm text-muted-foreground">
-      {commentCount} commentaire{commentCount > 1 ? "s" : ""} • Score juridique
-      moyen : N/A
+      {getSecondTextAuthorHeader(commentCount)}
     </span>
   </HeaderContainer>
 );
@@ -90,9 +82,10 @@ export const getAuthorGroups = (
     }
     grouped.get(authorKey)!.push(comment);
 
+    let post: Post | undefined = undefined;
     // Map comment to its post for later retrieval
     if (posts) {
-      const post = posts.find(
+      post = posts.find(
         (p) => buildPostKey(p.postId, p.socialNetwork) === comment.postKey,
       );
       if (post) {
@@ -107,6 +100,7 @@ export const getAuthorGroups = (
     headerContent: createAuthorHeader(authorName, commentList.length),
     postLatestAnalysisDate: latestAnalysisDate,
     reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
+    post: commentPostMap.get(commentList[0].id),
     commentPostMap,
   }));
 };

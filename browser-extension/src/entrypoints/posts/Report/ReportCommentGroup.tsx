@@ -2,7 +2,7 @@ import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
 import { ReportComment } from "./ReportComment";
 import React from "react";
-import { ReportOrganizationType } from "./BuildReport";
+import { ReportOrganizationType } from "./Stepper/BuildReport";
 
 interface CommentGroupProps {
   groupKey: string;

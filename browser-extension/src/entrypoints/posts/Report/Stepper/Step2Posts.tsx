@@ -1,17 +1,17 @@
-import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
+import SearchSortFiltersPostList from "../../Shared/SearchSortFiltersPostList";
 import { ReportQueryData, useStepper } from "./BuildReport";
 
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import PostSummary from "../Shared/PostSummary";
+import PostSummary from "../../Shared/PostSummary";
 import { useForm } from "@tanstack/react-form";
 import { getFormId } from "./StepperComponents";
 import {
   formatAnalysisDate,
   PostSortingCategory,
 } from "@/shared/utils/post-util";
-import { useFilteredPostList } from "../Shared/useFilteredPostList";
+import { useFilteredPostList } from "../../Shared/useFilteredPostList";
 import React from "react";
 import { StepHeader } from "./StepHeader";
 import { Button } from "@/components/ui/button";

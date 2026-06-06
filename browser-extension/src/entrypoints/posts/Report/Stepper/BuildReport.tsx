@@ -4,10 +4,10 @@ import React from "react";
 import Step1Plateforme from "./Step1Plateforme";
 import Step2Posts from "./Step2Posts";
 import Step3Comments from "./Step3Comments";
-import { PostCommentWithId } from "../Posts/CommentsTable";
+import { PostCommentWithId } from "../../Posts/CommentsTable";
 import Step4Organization from "./Step4Organization";
 import { StepperActions, StepperBanner } from "./StepperComponents";
-import Report from "./Report";
+import Report from "../Report";
 import { FilePen, XIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,6 @@ export function BuildReport() {
     React.useState<ReportQueryData>();
 
   const [displayReport, setDisplayReport] = React.useState<boolean>(false);
-
   return (
     <main className="flex flex-col gap-6">
       {!displayReport && (
