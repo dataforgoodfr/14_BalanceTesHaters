@@ -1,8 +1,8 @@
-import { type TabScreenshotResult } from "../../entrypoints/background/screenshoting/screenshotSenderTab";
+import { type TabScreenshotResult } from "../../../entrypoints/background/screenshoting/screenshotSenderTab";
 import {
   TAB_SCREENSHOT_MSG,
   type TabScreenshotMessage,
-} from "../../entrypoints/background";
+} from "../../../entrypoints/background";
 
 /**
  * Request background script to capture screenshot of tab visible part.

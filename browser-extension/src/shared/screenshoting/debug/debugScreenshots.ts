@@ -1,9 +1,10 @@
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { Image, encodePng } from "image-js";
-import { logPrefix } from "./captureScrollableScreenshot";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
+import { createLogger } from "@/shared/utils/createLogger";
 
+const logger = createLogger("[Screenshoting Debug]");
 export async function setStoreDebugScreenshots(
   storeForDebug: boolean,
 ): Promise<void> {
@@ -18,16 +19,12 @@ export async function isStoreDebugScreenshots(): Promise<boolean> {
 }
 export async function maybeStoreDebugScreenshot(
   screenshot: Image,
-  type:
-    | "tab-image"
-    | "scrollable-fragment"
-    | "scrollable-full"
-    | "scrollable-cropped",
+  options: Omit<DebugScreenshot, "screenshotDataUrl" | "screenshotDate">,
 ) {
   if (!(await isStoreDebugScreenshots())) {
     return;
   }
-  console.info(logPrefix, "Storing screenshot for debugging purpose...");
+  logger.info("Storing screenshot for debugging purpose...");
   const dataUrl = buildDataUrl(
     uint8ArrayToBase64(encodePng(screenshot)),
     PNG_MIME_TYPE,
@@ -36,7 +33,7 @@ export async function maybeStoreDebugScreenshot(
   screenshots.push({
     screenshotDataUrl: dataUrl,
     screenshotDate: currentIsoDate(),
-    type,
+    ...options,
   });
   await browser.storage.local.set({
     [STORAGE_KEY_DEBUG_SCREENSHOTS]: screenshots,
@@ -46,7 +43,12 @@ export async function maybeStoreDebugScreenshot(
 export type DebugScreenshot = {
   screenshotDataUrl: string;
   screenshotDate: string;
-  type: string;
+  type:
+    | "tab-image"
+    | "scrollable-fragment"
+    | "scrollable-full"
+    | "scrollable-cropped";
+  desc?: string;
 };
 
 export async function getDebugScreenshots(): Promise<DebugScreenshot[]> {
