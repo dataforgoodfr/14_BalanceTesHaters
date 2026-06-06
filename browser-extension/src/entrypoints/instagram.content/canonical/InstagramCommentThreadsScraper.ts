@@ -1,18 +1,14 @@
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
 import { InstagramCommentsLoader } from "./InstagramCommentsLoader";
-import { CroppingParentElementScreenshotProvider } from "./screenshoting/SubElementScreenshotProvider";
-import {
-  ScrollableScreenshot,
-  captureHtmlElementScreenshot,
-} from "@/shared/screenshoting";
+
 import {
   InstagramCommentThread,
   InstagramLoadedCommentThreadsScraper,
 } from "./InstagramLoadedCommentThreadsScraper";
+import { createScreenshotProviderForScrollableDescendants } from "@/shared/screenshoting/provider/createScreenshotProviderForScrollableDescendants";
+import { ElementScreenshotProvider } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
 
-export const logger = createLogger("[CS - InstagramCommentThreadsScraper]");
 export class InstagramCommentThreadsScraper {
   public constructor(
     private scrapingSupport: ScrapingSupport,
@@ -52,20 +48,14 @@ export class InstagramCommentThreadsScraper {
       commentsContainer,
     ).loadCommentsAndReplies();
 
-    // SCreenshoting scrollable container
+    // Create screenshot provider by screenshoting scrollable container
     // Consider screenshoting to take 50% of time
-    const scrollableSectionScreenshot: ScrollableScreenshot =
-      await captureHtmlElementScreenshot(
+    const screenshotProvider: ElementScreenshotProvider =
+      await createScreenshotProviderForScrollableDescendants(
         scrollableSection,
         this.scrapingSupport,
         this.progressManager.subTaskProgressManager({ from: 50, to: 90 }),
       );
-
-    // Build a screenshot provider from larger screenshot
-    const screenshotProvider = new CroppingParentElementScreenshotProvider(
-      scrollableSection,
-      scrollableSectionScreenshot.image,
-    );
 
     return await new InstagramLoadedCommentThreadsScraper(
       commentsContainer,

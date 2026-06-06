@@ -9,15 +9,15 @@ import {
 } from "../InstagramLoadedCommentThreadsScraper";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { ElementScreenshotProvider } from "../screenshoting/ElementScreenshotProvider";
+import { ElementScreenshotProvider } from "../../../../shared/screenshoting/provider/ElementScreenshotProvider";
+import { Image } from "image-js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const dummyScreenshotData = "<dummy-screenshot-data>";
+const dummyScreenshotImage = new Image(5, 5);
 const dummyScreenshotProvider: ElementScreenshotProvider = {
-  captureElementScreenshotAsPngBase64: () =>
-    Promise.resolve(dummyScreenshotData),
+  buildElementScreenshot: () => Promise.resolve(dummyScreenshotImage),
 };
 
 async function scrapLoadedCommentThreads(

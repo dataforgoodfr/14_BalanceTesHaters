@@ -14,7 +14,7 @@ import {
 } from "../../shared/utils/base-64";
 import {
   ScrollableScreenshot,
-  captureHtmlPageScreenshot,
+  captureDocumentScreenshot,
   captureTabScreenshotAsDataUrl,
 } from "@/shared/screenshoting";
 import { Author } from "@/shared/model/Author";
@@ -564,7 +564,7 @@ export class YoutubePostNativeScrapper {
     await this.scrapingSupport.resumeHostPage();
 
     try {
-      return await captureHtmlPageScreenshot(
+      return await captureDocumentScreenshot(
         this.scrapingSupport,
         progressManager,
       );

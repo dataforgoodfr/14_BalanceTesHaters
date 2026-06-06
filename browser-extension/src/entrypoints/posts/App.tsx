@@ -1,7 +1,7 @@
 import { HashRouter, Route, Routes } from "react-router";
 import PostSnapshotListPage from "./Developer/PostSnapshotListPage";
 import PostSnapshotDetailPage from "./Developer/PostSnapshotDetailPage";
-import { DebugPage } from "./DebugPage";
+import { ScreenshotDebugPage } from "./Developer/screenshoting/ScreenshotDebugPage";
 import HomePage from "./Home/HomePage";
 import PostListPage from "./Posts/PostListPage";
 import PostDetailPage from "./Posts/PostDetailPage";
@@ -12,6 +12,8 @@ import HarrasementHelpPage from "./Help/HarrasementHelpPage";
 import PrivacyPolicyPage from "./Help/PrivacyPolicyPage";
 import ContactSupport from "./ContactSupport/ContactSupport";
 import LayoutWithSidePanel from "./LayoutWithSidePanel";
+import { DocumentScreenshotingTestPage } from "./Developer/screenshoting/DocumentScreenshotingTestPage";
+import { ElementScreenshotingTestPage } from "./Developer/screenshoting/ElementScreenshotingTestPage";
 
 export default function App() {
   return (
@@ -70,9 +72,14 @@ export default function App() {
           path="/post-snapshots/:snapshotId"
           element={<PostSnapshotDetailPage />}
         />
+        <Route path="/dev/screenshot-debug" element={<ScreenshotDebugPage />} />
         <Route
-          path="/debug"
-          element={<LayoutWithSidePanel page={<DebugPage />} />}
+          path="/dev/document-screenshot-test"
+          element={<DocumentScreenshotingTestPage />}
+        />
+        <Route
+          path="/dev/element-screenshot-test"
+          element={<ElementScreenshotingTestPage />}
         />
       </Routes>
     </HashRouter>
