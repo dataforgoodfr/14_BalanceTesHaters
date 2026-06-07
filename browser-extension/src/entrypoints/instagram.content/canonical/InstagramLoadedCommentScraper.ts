@@ -2,7 +2,7 @@ import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Author } from "@/shared/model/Author";
-import { ElementScreenshotProvider } from "../../../shared/screenshoting/provider/ElementScreenshotProvider";
+import { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   FB_COMMENTS_TEXT_REGEX,

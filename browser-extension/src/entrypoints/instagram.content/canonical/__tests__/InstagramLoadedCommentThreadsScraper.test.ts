@@ -9,7 +9,7 @@ import {
 } from "../InstagramLoadedCommentThreadsScraper";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { ElementScreenshotProvider } from "../../../../shared/screenshoting/provider/ElementScreenshotProvider";
+import { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { Image } from "image-js";
 
 const __filename = fileURLToPath(import.meta.url);
