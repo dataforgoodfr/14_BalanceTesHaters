@@ -6,7 +6,7 @@ import {
   InstagramCommentThread,
   InstagramLoadedCommentThreadsScraper,
 } from "./InstagramLoadedCommentThreadsScraper";
-import { createScreenshotProviderForScrollableDescendants } from "@/shared/screenshoting/provider/createScreenshotProviderForScrollableDescendants";
+import { createScreenshotProviderForScrollableDescendants } from "@/shared/screenshoting";
 import { ElementScreenshotProvider } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
 
 export class InstagramCommentThreadsScraper {

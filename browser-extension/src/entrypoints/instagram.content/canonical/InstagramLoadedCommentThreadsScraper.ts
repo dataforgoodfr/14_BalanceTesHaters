@@ -4,7 +4,7 @@ import {
   InstagramComment,
   InstagramLoadedCommentScraper,
 } from "./InstagramLoadedCommentScraper";
-import { ElementScreenshotProvider } from "../../../shared/screenshoting/provider/ElementScreenshotProvider";
+import { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { createLogger } from "@/shared/utils/createLogger";
 import { MASQUES_LES_COMMENTAIRES_BUTTON_REGEX } from "./instagramElementsTexts";
 
