@@ -165,6 +165,8 @@ jobs:
           CHROME_ASSET_DOWNLOAD_URL=$(curl $RELEASE_ASSETS_URL | jq -r '.[] | select(.browser_download_url|test(".*chrome.zip")) | .browser_download_url')
           echo "CHROME_ASSET_DOWNLOAD_URL: $CHROME_ASSET_DOWNLOAD_URL"
           curl -o chrome-extension.zip $CHROME_ASSET_DOWNLOAD_URL
+          echo "Check zip integrity"
+          unzip -t chrome-extension.zip
       - name: "Submit to Chrome Web Store"
         env:
           CHROME_EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
