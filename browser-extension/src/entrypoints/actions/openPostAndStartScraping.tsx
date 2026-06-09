@@ -1,5 +1,8 @@
 import { openSidePanel } from "@/entrypoints/actions/openSidePanel";
-import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
+import {
+  CONTENT_SCRIPT_LOADING,
+  ScrapingContentScriptClient,
+} from "@/shared/scraping-content-script/ScrapingContentScriptClient";
 import { StartScrapingResult } from "@/shared/scraping-content-script/StartScrapingResult";
 import { sleep } from "@/shared/utils/sleep";
 
@@ -16,6 +19,10 @@ export async function openPostAndStartScraping(
   const start = Date.now();
   for (;;) {
     const pageInfo = await client.getTabSocialNetworkPageInfo();
+    if (pageInfo === CONTENT_SCRIPT_LOADING) {
+      await sleep(200);
+      continue;
+    }
     if (pageInfo.isScrapablePost) {
       const scrapingPromise = client.startScraping();
       await openSidePanel(newTab.id);

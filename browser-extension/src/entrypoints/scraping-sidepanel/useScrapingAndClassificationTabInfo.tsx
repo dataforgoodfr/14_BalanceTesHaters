@@ -1,6 +1,9 @@
 import { Post } from "@/shared/model/post/Post";
 import { PostSnapshot } from "@/shared/model/PostSnapshot";
-import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
+import {
+  CONTENT_SCRIPT_LOADING,
+  ScrapingContentScriptClient,
+} from "@/shared/scraping-content-script/ScrapingContentScriptClient";
 import {
   ScrapingCanceled,
   ScrapingCanceling,
@@ -27,6 +30,7 @@ import {
  */
 export enum ScrapingAndClassificationTabInfoType {
   NO_TAB = "no-tab",
+  CONTENT_SCRIPT_LOADING = "content-script-loading",
   NOT_SCRAPABLE = "not-scrapable",
   SCRAPING_NOT_STARTED = "scraping-not-started",
   SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT = "scraping-not-started-with-existing-snapshot",
@@ -81,6 +85,7 @@ export function scrapingAndClassificationTabInfoQueryKey(
 
 export type ScrapingAndClassificationTabInfo =
   | NoTabInfo
+  | ContentScriptLoadingInfo
   | TabInfoNotScrapableTab
   | TabInfoScrapingNotStarted
   | TabInfoScrapingNotStartedWithExistingSnapshot
@@ -93,6 +98,11 @@ export type ScrapingAndClassificationTabInfo =
 
 export type NoTabInfo = {
   type: ScrapingAndClassificationTabInfoType.NO_TAB;
+};
+
+export type ContentScriptLoadingInfo = {
+  type: ScrapingAndClassificationTabInfoType.CONTENT_SCRIPT_LOADING;
+  tabId: number;
 };
 
 export type TabInfoNotScrapableTab = {
@@ -167,6 +177,12 @@ export async function queryScrapingAndClassificationTabInfo(
   }
   const client = new ScrapingContentScriptClient(tabId);
   const pageInfo = await client.getTabSocialNetworkPageInfo();
+  if (pageInfo === CONTENT_SCRIPT_LOADING) {
+    return {
+      type: ScrapingAndClassificationTabInfoType.CONTENT_SCRIPT_LOADING,
+      tabId,
+    };
+  }
 
   if (!pageInfo.isScrapablePost) {
     return { type: ScrapingAndClassificationTabInfoType.NOT_SCRAPABLE, tabId };

@@ -55,7 +55,8 @@ export function SidePanel() {
   }
   if (
     isPending ||
-    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB
+    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB ||
+    tabInfo.type === ScrapingAndClassificationTabInfoType.CONTENT_SCRIPT_LOADING
   ) {
     return (
       <SidePanelLayout>
