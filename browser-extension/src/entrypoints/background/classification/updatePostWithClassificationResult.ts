@@ -4,6 +4,8 @@ import {
 } from "@/shared/storage/post-snapshot-storage";
 import type { ClassificationResult } from "./api/getClassificationResult";
 import { getClassificationResult } from "./api/getClassificationResult";
+import type { ClassificationResultStatus } from "./api/getClassificationResult";
+import { ClassificationApiError } from "./api/ClassificationApiError";
 import { mergeClassificationResultIntoPost } from "./mapping/mergeClassificationResultIntoPost";
 import { createLogger } from "@/shared/utils/createLogger";
 
@@ -28,8 +30,29 @@ export async function updatePostWithClassificationResult(
   }
 
   logger.debug("Getting ClassificationResult from backend");
-  const classificationResult =
-    await getClassificationResult(classificationJobId);
+  let classificationResult: ClassificationResult;
+  try {
+    classificationResult = await getClassificationResult(classificationJobId);
+  } catch (error) {
+    if (
+      error instanceof ClassificationApiError &&
+      error.responseStatus === 404
+    ) {
+      console.warn(
+        "updatePostWithClassificationResult - Classification job not found on backend for jobId:",
+        classificationJobId,
+        ". Marking as JOB_NOT_FOUND.",
+      );
+      post.classificationStatus = "JOB_NOT_FOUND";
+      await updatePostSnapshot(post);
+      return {
+        id: classificationJobId,
+        status: "FAILED" as ClassificationResultStatus,
+        comments: null,
+      };
+    }
+    throw error;
+  }
 
   logger.debug("Merging ClassificationResult into PostSnapshot");
   const updatedPost = mergeClassificationResultIntoPost(

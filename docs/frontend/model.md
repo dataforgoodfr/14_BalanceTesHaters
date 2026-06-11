@@ -61,6 +61,7 @@ classDiagram
         IN_PROGRESS
         COMPLETED
         FAILED
+        JOB_NOT_FOUND
     }
 
     class SocialNetworkName {

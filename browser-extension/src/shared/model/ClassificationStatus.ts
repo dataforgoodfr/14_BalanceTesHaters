@@ -7,6 +7,7 @@ export const ClassificationStatusSchema = z.enum([
   "IN_PROGRESS",
   "COMPLETED",
   "FAILED",
+  "JOB_NOT_FOUND",
 ]);
 
 export function isRunningClassificationStatus(
