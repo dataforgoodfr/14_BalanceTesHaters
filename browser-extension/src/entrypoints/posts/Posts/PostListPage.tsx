@@ -39,7 +39,7 @@ function PostListPage() {
   const navigate = useNavigate();
 
   return (
-    <main className="flex flex-col gap-6  items-start">
+    <main className="flex flex-col gap-4  items-start">
       <PageHeader title="Publications analysées" />
       <SocialNetworkSelector
         value={socialNetworkFilter}

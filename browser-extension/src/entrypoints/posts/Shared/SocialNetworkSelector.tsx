@@ -25,7 +25,7 @@ function SocialNetworkSelector({
   return (
     <div
       aria-label="Réseau social"
-      className="bg-accent inline-flex rounded-md border border-input p-1 gap-1"
+      className="bg-accent inline-flex rounded-md p-0.75 gap-1"
     >
       <SocialNetworkOption
         label="YouTube"
@@ -75,8 +75,8 @@ function SocialNetworkOption({
       type="button"
       variant="ghost"
       className={cn(
-        selectedNetworks.includes(socialNetwork) ? "bg-background" : "",
-        "rounded-md",
+        selectedNetworks.includes(socialNetwork) ? "bg-background shadow-2xs" : "",
+        "rounded-lg h-7",
       )}
       size="sm"
       aria-pressed={selectedNetworks.includes(socialNetwork)}
