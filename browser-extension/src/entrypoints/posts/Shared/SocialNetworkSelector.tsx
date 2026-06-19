@@ -75,7 +75,9 @@ function SocialNetworkOption({
       type="button"
       variant="ghost"
       className={cn(
-        selectedNetworks.includes(socialNetwork) ? "bg-background shadow-2xs" : "",
+        selectedNetworks.includes(socialNetwork)
+          ? "bg-background shadow-2xs"
+          : "",
         "rounded-lg h-7",
       )}
       size="sm"
