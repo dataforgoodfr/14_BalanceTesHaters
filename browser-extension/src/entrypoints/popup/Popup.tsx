@@ -54,7 +54,8 @@ function PopupContent() {
 
   if (
     isPending ||
-    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB
+    tabInfo.type === ScrapingAndClassificationTabInfoType.NO_TAB ||
+    tabInfo.type === ScrapingAndClassificationTabInfoType.CONTENT_SCRIPT_LOADING
   ) {
     return <Spinner className="size-16 m-auto" />;
   }
