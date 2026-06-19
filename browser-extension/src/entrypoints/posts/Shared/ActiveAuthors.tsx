@@ -13,7 +13,6 @@ import {
   Bar,
   BarChart,
   BarShapeProps,
-  LabelList,
   Rectangle,
   XAxis,
   YAxis,
@@ -86,13 +85,7 @@ function ActiveAuthors({
                 fill="var(--primary)"
                 radius={4}
                 shape={ColoredRectangle}
-              >
-                <LabelList
-                  dataKey="hatefulContributionPercentageLabel"
-                  position="insideRight"
-                  fill="var(--primary-foreground)"
-                />
-              </Bar>
+              ></Bar>
               <ChartTooltip
                 content={<ChartTooltipContent indicator="line" />}
               />
