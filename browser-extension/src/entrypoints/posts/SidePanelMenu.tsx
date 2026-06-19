@@ -14,7 +14,7 @@ import { Logo } from "@/components/shared/Logo";
 
 function SidePanelMenu() {
   return (
-    <div className="flex flex-col p-3 h-full">
+    <div className="flex flex-col ps-4 h-full">
       <Logo className="mx-auto mt-4 mb-8" />
       <Button roundness="round" className="text-xs mb-6">
         <Plus />
