@@ -1,0 +1,16 @@
+Classifie ce commentaire selon une des catégories suivantes.
+Réponds UNIQUEMENT par un chiffre entre 0 et 9, sans aucun autre texte.
+
+0 = Absence de cyberharcèlement
+1 = Cyberharcèlement général
+2 = Cyberharcèlement à caractère sexuel
+3 = Menaces
+4 = Incitation au suicide
+5 = Injure
+6 = Diffamation
+7 = Injure et diffamation publique
+8 = Doxxing
+9 = Incitation à la haine
+
+Sois attentif au sarcasme et aux emojis péjoratifs.
+Commentaire à classifier :
