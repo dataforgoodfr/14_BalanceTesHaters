@@ -20,35 +20,42 @@ export class YoutubeScraper implements SocialNetworkScraper {
     abortSignal: AbortSignal,
     progressManager: ProgressManager,
   ): Promise<ScrapPagePostResult> {
-    const documentUrlPageInfo = youtubePageInfo(document.URL);
-    if (!documentUrlPageInfo.isScrapablePost) {
-      throw new Error("Not scrapable");
-    }
     const scrapingSupport = new ScrapingSupport(abortSignal);
-    const ogUrl = scrapingSupport.selectOrThrow(
+    const ogUrl = scrapingSupport.select(
       document,
       "meta[property='og:url']",
       HTMLMetaElement,
-    ).content;
-    const ogPageInfo = youtubePageInfo(ogUrl);
+    )?.content;
 
-    // Scraper uses og: meta information which are only loaded on page load not on navigation
-    // Detect if out of sync by comparing ogUrl postId with current url postId
-    if (
-      !ogPageInfo.isScrapablePost ||
-      ogPageInfo.postId !== documentUrlPageInfo.postId
-    ) {
+    if (!ogUrl) {
+      // This happens in E2E test when not logged in and youtube suspects bot.
+      logger.warn(
+        "Failed to find og:url no way to check if og:metadata is out of sync.",
+      );
+    } else if (isOutdatedOgMeta(ogUrl, document.URL)) {
+      // Scraper uses og: meta information which are only loaded on page load not on navigation
+      // Detect if out of sync by comparing ogUrl postId with current url postId
       logger.info("og metadata out of sync reloading page");
       return {
         redirectUrl: document.URL,
       };
     }
 
-    // Note by @sarod:
-    // Code delegates to YoutubePostNativeScrapper rather than merge them in a single class
-    // to minimize merge conflicts but these could be merged later
     return new YoutubePostNativeScrapper(scrapingSupport).scrapPost(
       progressManager,
     );
   }
+}
+
+function isOutdatedOgMeta(ogUrl: string, documentUrl: string): boolean {
+  const documentUrlPageInfo = youtubePageInfo(documentUrl);
+  if (!documentUrlPageInfo.isScrapablePost) {
+    throw new Error("Document URL Not scrapable");
+  }
+  const ogPageInfo = youtubePageInfo(ogUrl);
+
+  return (
+    !ogPageInfo.isScrapablePost ||
+    ogPageInfo.postId !== documentUrlPageInfo.postId
+  );
 }
