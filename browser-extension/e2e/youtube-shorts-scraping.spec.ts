@@ -1,10 +1,8 @@
 import { test, expect } from "./fixtures";
-import { waitForPostStored } from "./utils/waitForPostStored";
-import {
-  triggerYoutubeScrapingForUrl,
-  youtubeShortUrl,
-} from "./utils/youtube/triggerYoutubeVideoScraping";
-import { flattenComments } from "./flattenComments";
+import { youtubeShortUrl } from "./scraping/youtube/youtubeShortUrl";
+import { flattenComments } from "./utils/flattenComments";
+import { e2eScrapPost, E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import { openAndPrepareYoutubeShortsPage } from "./scraping/youtube/openAndPrepareYoutubeShortsPage";
 
 test.describe("Youtube Shorts Scraping", () => {
   test.use({ locale: "fr-FR" });
@@ -12,30 +10,25 @@ test.describe("Youtube Shorts Scraping", () => {
   test("Test scraping short public without authentication", async ({
     extensionId,
     context,
-  }) => {
-    test.skip(!!process.env.CI, "Skipped in CI because bloqued by youtube");
-    test.setTimeout(60_000);
+  }, testInfo) => {
+    test.skip(
+      !!process.env.CI,
+      "Skipped in CI because blocked by youtube in CI",
+    );
 
     const youtubeShortId = "WPpURgqzXZ4";
     const postUrl = youtubeShortUrl(youtubeShortId);
 
-    const triggerResult = await triggerYoutubeScrapingForUrl(
-      extensionId,
-      context,
+    const { postSnapshot: post }: E2EScrapPostResult = await e2eScrapPost({
       postUrl,
-    );
-
-    expect(triggerResult.postUrl).toEqual(postUrl);
-    expect(triggerResult.scrapingStarted).toBeTruthy();
-
-    // Wait for analysis to end
-    const scrapTimeout = 60 * 1000;
-    test.setTimeout(scrapTimeout);
-
-    const post = await waitForPostStored(context, youtubeShortId, scrapTimeout);
+      openAndPreparePage: openAndPrepareYoutubeShortsPage,
+      context,
+      extensionId,
+      testInfo,
+    });
 
     expect(post.postId).toEqual(youtubeShortId);
-    expect(post.url).toEqual(triggerResult.postUrl);
+    expect(post.url).toEqual(postUrl);
     expect(post.publishedAt).toEqual({
       type: "absolute",
       date: "2025-02-19T17:00:41.000Z",
