@@ -1,10 +1,9 @@
 import { test, expect } from "./fixtures";
-import { flattenComments } from "./flattenComments";
-import {
-  instagramReelUrl,
-  triggerInstagramScrapingForUrl,
-} from "./utils/instagram/triggerInstagramScrapingForUrl";
-import { waitForPostStored } from "./utils/waitForPostStored";
+import { flattenComments } from "./utils/flattenComments";
+import { instagramReelUrl } from "./scraping/instagram/instagramReelUrl";
+import { e2eScrapPost, E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import { openAndPrepareInstagramPage } from "./scraping/instagram/openAndPrepareInstagramPage";
+import { isInstagramPageAuthenticated } from "./scraping/instagram/isInstagramPageAuthenticated";
 
 ["en-US", "fr-FR"].forEach((locale) => {
   test.describe("Scraping reel with Locale:" + locale, () => {
@@ -13,36 +12,23 @@ import { waitForPostStored } from "./utils/waitForPostStored";
     test(`Test scraping reel smoke test locale:${locale}`, async ({
       extensionId,
       context,
-    }) => {
-      const emptyPage = await context.newPage();
-      const navLanguage = await emptyPage.evaluate(() => {
-        console.log("language: " + navigator.language);
-        return navigator.language;
-      });
-      expect(navLanguage).toBe(locale);
-
+    }, testInfo) => {
       const reelId = "DX9g-fpCIbF";
-      // Note: the scraping part (until the waitForPostStored)
-      // should ideally be moved to a beforeAll
-      // However this requires to figure out how to
-      //  install extension before the beforeAll...
+      const postUrl = instagramReelUrl("feministsinthecity", reelId);
 
-      const url = instagramReelUrl("feministsinthecity", reelId);
-
-      const triggerResult = await triggerInstagramScrapingForUrl(
-        extensionId,
-        context,
-        url,
-      );
-
-      // Wait for analysis to end
-      const scrapTimeout = 8 * 60 * 1000;
-      test.setTimeout(scrapTimeout);
-      const post = await waitForPostStored(context, reelId, scrapTimeout);
+      const { postSnapshot: post, authenticated }: E2EScrapPostResult =
+        await e2eScrapPost({
+          postUrl,
+          openAndPreparePage: openAndPrepareInstagramPage,
+          detectAuthenticated: isInstagramPageAuthenticated,
+          context,
+          extensionId,
+          testInfo,
+        });
 
       // Test post values
       expect(post.postId).toEqual(reelId);
-      expect(post.url).toEqual(triggerResult.postUrl);
+      expect(post.url).toEqual(postUrl);
       expect(post.publishedAt).toEqual({
         type: "absolute",
         date: "2026-05-05T00:00:00.000Z",
@@ -77,7 +63,7 @@ import { waitForPostStored } from "./utils/waitForPostStored";
         allComments.some((comment) => comment.textContent.length > 0),
       ).toBe(true);
 
-      if (triggerResult.authenticated) {
+      if (authenticated) {
         // Replies are only present in instagram if authenticated
         // TODO: document how to use a chrome profile with an authenticated session for local test
         const firstLevelReplies = topLevelComments.flatMap((c) => c.replies);

@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
-import { openAndPrepareYoutubeVideoPage } from "./utils/youtube/openAndPrepareYoutubePage";
-import { youtubeVideoUrl } from "./utils/youtube/triggerYoutubeVideoScraping";
+import { youtubeVideoUrl } from "./scraping/youtube/youtubeVideoUrl";
 import { PopupPageObject } from "./po/PopupPageObject";
+import { openAndPrepareYoutubeVideoPage } from "./scraping/youtube/openAndPrepareYoutubeVideoPage";
 
 test.describe("Test popup content", () => {
   test("Test Popup when not linked to a social network  tab", async ({
@@ -23,7 +23,7 @@ test.describe("Test popup content", () => {
     extensionId,
   }) => {
     const videoUrl = youtubeVideoUrl("Gp15Y_KlBPY");
-    await openAndPrepareYoutubeVideoPage(context, videoUrl);
+    await openAndPrepareYoutubeVideoPage(videoUrl, context);
 
     // Open popup linked to youtube Page
     const popupPage = await PopupPageObject.openLinkedToUrl(

@@ -25,8 +25,7 @@ import { createLogger } from "../utils/createLogger";
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
 const logger = createLogger("[CS - SCS]");
-export const START_SCRAPING_LOG =
-  "Received start scraping message - start scraping";
+const START_SCRAPING_LOG = "Received start scraping message - start scraping";
 export class ScrapingContentScript {
   private scrapingStatus: ScrapingStatus = { type: "not-started" };
   private scrapAbortController: AbortController | null = null;

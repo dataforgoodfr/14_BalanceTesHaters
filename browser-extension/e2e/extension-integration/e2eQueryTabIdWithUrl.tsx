@@ -1,11 +1,11 @@
 import { BrowserContext } from "@playwright/test";
-import { evaluateInBackgroundWorker } from "./evaluateInBackgroundWorker";
+import { evaluateInBackgroundWorker } from "./evaluate/evaluateInBackgroundWorker";
 
-export async function queryTabWithUrl(
+export async function e2eQueryTabIdWithUrl(
   tabUrl: string,
   context: BrowserContext,
-): Promise<Browser.tabs.Tab> {
-  return await evaluateInBackgroundWorker<Browser.tabs.Tab>(
+): Promise<number> {
+  const linkedTab = await evaluateInBackgroundWorker<Browser.tabs.Tab>(
     context,
     async (tabUrl: string) => {
       console.log("Popup - Querying to tab with url " + tabUrl);
@@ -23,4 +23,12 @@ export async function queryTabWithUrl(
     },
     tabUrl,
   );
+
+  const linkedTabId = linkedTab?.id;
+  if (!linkedTabId) {
+    throw new Error("[E2E] Failed to find a tab for url:" + tabUrl);
+  } else {
+    console.log("[E2E] Tab id for url:", tabUrl, " is ", linkedTabId);
+    return linkedTabId;
+  }
 }

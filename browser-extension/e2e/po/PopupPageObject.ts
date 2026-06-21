@@ -1,6 +1,5 @@
 import { Page, BrowserContext, Locator } from "@playwright/test";
-import { popupUrlLinkedToTabId, popupUrl } from "../utils/popupUrl";
-import { queryTabWithUrl } from "../utils/queryTabWithUrl";
+import { e2eQueryTabIdWithUrl } from "../extension-integration/e2eQueryTabIdWithUrl";
 
 export class PopupPageObject {
   constructor(public readonly page: Page) {}
@@ -25,15 +24,8 @@ export class PopupPageObject {
     context: BrowserContext,
     linkedTabUrl: string,
   ): Promise<PopupPageObject> {
-    const linkedTab = await queryTabWithUrl(linkedTabUrl, context);
+    const linkedTabId = await e2eQueryTabIdWithUrl(linkedTabUrl, context);
 
-    const linkedTabId = linkedTab?.id;
-    console.log("[E2E] postPage tabId :", linkedTab.id);
-    if (!linkedTabId) {
-      throw new Error(
-        "[E2E] Failed to find tab for linkedTabUrl:" + linkedTabUrl,
-      );
-    }
     return await PopupPageObject.open(extensionId, context, linkedTabId);
   }
 
@@ -44,4 +36,25 @@ export class PopupPageObject {
   startScrapingButton(): Locator {
     return this.page.getByTestId("start-scraping-button");
   }
+
+  async clickStartScrapingButton(): Promise<void> {
+    const startScrapingButton = this.startScrapingButton();
+    await startScrapingButton.waitFor({ state: "visible", timeout: 15000 });
+    if (!(await startScrapingButton.isEnabled())) {
+      throw new Error("Start scraping button is disabled.");
+    }
+    console.log("[E2E] PopupPageObject - Clicking start scraping button");
+    await startScrapingButton.click();
+  }
+}
+function popupUrl(extensionId: string): string {
+  return `chrome-extension://${extensionId}/popup.html`;
+}
+function popupUrlLinkedToTabId(extensionId: string, tabId: number): string {
+  const url = URL.parse(popupUrl(extensionId));
+  if (!url) {
+    throw new Error("Invalid url");
+  }
+  url.hash = "#" + tabId;
+  return url.toString();
 }

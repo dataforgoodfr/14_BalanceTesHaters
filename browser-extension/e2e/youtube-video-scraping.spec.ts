@@ -1,7 +1,8 @@
 import { test, expect } from "./fixtures";
-import { flattenComments } from "./flattenComments";
-import { waitForPostStored } from "./utils/waitForPostStored";
-import { triggerYoutubeVideoScraping } from "./utils/youtube/triggerYoutubeVideoScraping";
+import { flattenComments } from "./utils/flattenComments";
+import { youtubeVideoUrl } from "./scraping/youtube/youtubeVideoUrl";
+import { e2eScrapPost, E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import { openAndPrepareYoutubeVideoPage } from "./scraping/youtube/openAndPrepareYoutubeVideoPage";
 
 ["en-US", "fr-FR"].forEach((locale) => {
   test.describe("Youtube Video Scraping with Locale:" + locale, () => {
@@ -10,39 +11,26 @@ import { triggerYoutubeVideoScraping } from "./utils/youtube/triggerYoutubeVideo
     test(`Test scraping video locale:${locale}`, async ({
       extensionId,
       context,
-    }) => {
-      const emptyPage = await context.newPage();
-      const navLanguage = await emptyPage.evaluate(() => {
-        console.log("language: " + navigator.language);
-        return navigator.language;
-      });
-      expect(navLanguage).toBe(locale);
-
+    }, testInfo) => {
       // Note: the scraping part (until the waitForPostStored)
       // should ideally be moved to a beforeAll
       // However this requires to figure out how to
       //  install extension before the beforeAll...
       const youtubeVideoId = "bYnBcdxT7os";
+      const postUrl = youtubeVideoUrl(youtubeVideoId);
 
-      const triggerResult = await triggerYoutubeVideoScraping(
-        extensionId,
-        context,
-        youtubeVideoId,
-      );
-
-      // Wait for analysis to end
-      const scrapTimeout = 8 * 60 * 1000;
-      test.setTimeout(scrapTimeout);
-
-      const post = await waitForPostStored(
-        context,
-        youtubeVideoId,
-        scrapTimeout,
-      );
+      const { postSnapshot: post, postPage }: E2EScrapPostResult =
+        await e2eScrapPost({
+          postUrl,
+          openAndPreparePage: openAndPrepareYoutubeVideoPage,
+          context,
+          extensionId,
+          testInfo,
+        });
 
       // Test post values
       expect(post.postId).toEqual(youtubeVideoId);
-      expect(post.url).toEqual(triggerResult.postUrl);
+      expect(post.url).toEqual(postUrl);
       expect(post.publishedAt).toEqual({
         type: "absolute",
         date: "2025-07-22T00:00:00.000Z",
@@ -89,7 +77,7 @@ import { triggerYoutubeVideoScraping } from "./utils/youtube/triggerYoutubeVideo
       }
 
       // Test that total scraped comment count matches youtube displayed count
-      const commentCountElement = await triggerResult.postPage.$(
+      const commentCountElement = await postPage.$(
         "#comments #count span:nth-of-type(1)",
       );
       const text = (await commentCountElement?.innerText()) || "0";
