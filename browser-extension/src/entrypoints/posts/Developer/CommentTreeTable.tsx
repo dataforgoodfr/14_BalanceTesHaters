@@ -93,36 +93,42 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
               className="align-top h-full text-left"
             >
               <div>
-                {!row.getCanExpand() ? (
-                  <span className="pl-4" />
-                ) : row.getIsExpanded() ? (
-                  <ChevronDown
-                    className="h-4 w-4 cursor-pointer inline-block"
-                    onClick={row.getToggleExpandedHandler()}
-                  />
-                ) : (
-                  <ChevronRight
-                    className="h-4 w-4 cursor-pointer inline-block"
-                    onClick={row.getToggleExpandedHandler()}
-                  />
-                )}
-                <a
-                  href={author.accountHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium"
-                >
-                  {author.name}
-                </a>
-              </div>
-              <div>
-                <span className="pl-4" />
-                {row.original.publishedAt && (
-                  <span className="text-muted-foreground">
+                <div className="inline-block align-top">
+                  {!row.getCanExpand() ? (
+                    <span className="pl-4" />
+                  ) : row.getIsExpanded() ? (
+                    <ChevronDown
+                      className="h-4 w-4 cursor-pointer inline-block"
+                      onClick={row.getToggleExpandedHandler()}
+                    />
+                  ) : (
+                    <ChevronRight
+                      className="h-4 w-4 cursor-pointer inline-block"
+                      onClick={row.getToggleExpandedHandler()}
+                    />
+                  )}
+                </div>
+                <div className="inline-block">
+                  <div className="text-muted-foreground">
+                    Commentaire{" "}
+                    <a href={row.original.url}>{row.original.commentId}</a>
+                  </div>
+                  <div className="text-muted-foreground">
                     Publié le{" "}
                     <DisplayPublicationDate date={row.original.publishedAt} />
-                  </span>
-                )}
+                  </div>
+                  <div>
+                    Par{" "}
+                    <a
+                      href={author.accountHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium"
+                    >
+                      @{author.name}
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           );
