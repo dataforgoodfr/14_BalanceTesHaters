@@ -204,7 +204,10 @@ export type InstagramTextComment = {
 
 export type InstagramImageComment = {
   type: "image";
-  data: Omit<CommentSnapshot, "replies" | "publishedAt" | "textContent"> & {
+  data: Omit<
+    CommentSnapshot,
+    "replies" | "publishedAt" | "textContent" | "commentId"
+  > & {
     imageSrc: string;
   };
 };

@@ -25,6 +25,8 @@ export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
 }
 
 export async function insertPostSnapshot(postSnapshot: PostSnapshot) {
+  // Ensure we store valid data
+  PostSnapshotSchema.parse(postSnapshot);
   const existingPosts = await getPostSnapshots();
   if (existingPosts.find((p) => p.id === postSnapshot.id)) {
     throw new Error("Post already exists with id: " + postSnapshot.id);

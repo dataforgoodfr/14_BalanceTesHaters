@@ -80,6 +80,7 @@ describe("mergeClassificationResultIntoPost", () => {
     const post = createMockPost([
       {
         id: commentId,
+        commentId: commentId,
         textContent: "Parent comment",
         author: { name: "Author", accountHref: "https://example.com" },
         screenshotData: "data:image/png;base64,abc123",
@@ -88,6 +89,7 @@ describe("mergeClassificationResultIntoPost", () => {
         replies: [
           {
             id: replyId1,
+            commentId: replyId1,
             textContent: "First level reply",
             author: { name: "Author1", accountHref: "https://example.com/1" },
             screenshotData: "data:image/png;base64,reply1",
@@ -96,6 +98,7 @@ describe("mergeClassificationResultIntoPost", () => {
             replies: [
               {
                 id: replyId2,
+                commentId: replyId2,
                 textContent: "Second level reply",
                 author: {
                   name: "Author2",

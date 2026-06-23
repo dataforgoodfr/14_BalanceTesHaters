@@ -15,7 +15,7 @@ const NonRecursiveCommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
    * An id allowing to correlate the same comment across snapshots of the social network post.
    * Ideally this should be the id of the comment on the social network platform.
    */
-  commentId: z.string().optional(),
+  commentId: z.string(),
 
   /**
    * Based 64 encoded PNG data
@@ -27,12 +27,7 @@ const NonRecursiveCommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
   scrapedAt: z.iso.datetime(),
 
   nbLikes: z.int(),
-}).refine(
-  (val) => val.commentId != undefined || val.publishedAt.type === "absolute",
-  {
-    error: "Comment need either a commentId or an absolute date",
-  },
-);
+});
 
 // Use an intermediate CommentWithoutRepliesSchema Zod Schema to avoid typescript error
 // "replies' implicitly has return type 'any' because it does not have a return type annotation

@@ -16,7 +16,7 @@ export const PostSharedPropertiesSchema = z.object({
   /**
    * Url of the post. E.g. youtube video url
    */
-  url: z.string(),
+  url: z.url(),
 
   /**
    * Publication date as a string.

@@ -26,7 +26,7 @@ classDiagram
 
     class CommentSnapshot {
         id: UUID
-        commentId: string?
+        commentId: string
         url: string?
 
         publishedAt: PublicationDate
