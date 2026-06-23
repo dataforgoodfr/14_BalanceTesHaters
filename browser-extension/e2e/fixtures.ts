@@ -19,18 +19,23 @@ export const test = base.extend<ExtensionFixtures>({
       __dirname,
       process.env.PATH_TO_EXTENSION || CHROME_BUILD_PATH,
     );
-    const context = await chromium.launchPersistentContext("", {
-      headless: false, // Extensions require headed mode
-      args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
-        "--mute-audio",
-      ],
-      viewport: {
-        width: 1920,
-        height: 1080,
+    const pathToBrowserContext = process.env.PATH_TO_BROWSER_CONTEXT || "";
+    console.log("using pathToBrowserContext", pathToBrowserContext);
+    const context = await chromium.launchPersistentContext(
+      pathToBrowserContext,
+      {
+        headless: false, // Extensions require headed mode
+        args: [
+          `--disable-extensions-except=${pathToExtension}`,
+          `--load-extension=${pathToExtension}`,
+          "--mute-audio",
+        ],
+        viewport: {
+          width: 1920,
+          height: 1080,
+        },
       },
-    });
+    );
     await use(context);
     await context.close();
   },

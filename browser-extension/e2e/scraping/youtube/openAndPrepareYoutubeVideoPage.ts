@@ -1,10 +1,13 @@
 import { BrowserContext, Page } from "@playwright/test";
 import { closeYoutubeCookieDialogIfPresent as waitAndCloseYoutubeCookieDialogIfPresent } from "./closeYoutubeCookieDialogIfPresent";
+import { isYoutubeAuthenticated } from "./isYoutubeAuthenticated";
+import { OpenAndPrepareResult } from "../e2eScrapPost";
+import { isYoutubeSuspectingBot } from "./isYoutubeSuspectingBot";
 
 export async function openAndPrepareYoutubeVideoPage(
   postUrl: string,
   context: BrowserContext,
-): Promise<Page> {
+): Promise<OpenAndPrepareResult> {
   const postPage: Page = await context.newPage();
   await postPage.goto(postUrl, { waitUntil: "domcontentloaded" });
   console.info("[E2E] domcontentloaded.");
@@ -20,5 +23,12 @@ export async function openAndPrepareYoutubeVideoPage(
   });
 
   await waitAndCloseYoutubeCookieDialogIfPresent(postPage);
-  return postPage;
+  const authenticated = await isYoutubeAuthenticated(postPage);
+  const platformSuspectingBot = await isYoutubeSuspectingBot(postPage);
+
+  return {
+    postPage,
+    authenticated,
+    platformSuspectingBot,
+  };
 }

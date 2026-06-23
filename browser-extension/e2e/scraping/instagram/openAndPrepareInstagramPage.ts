@@ -1,10 +1,12 @@
 import { waitForCondition } from "@@/e2e/utils/waitForCondition";
 import { BrowserContext, Page } from "@playwright/test";
+import { isInstagramPageAuthenticated } from "./isInstagramPageAuthenticated";
+import { OpenAndPrepareResult } from "../e2eScrapPost";
 
 export async function openAndPrepareInstagramPage(
   postUrl: string,
   context: BrowserContext,
-): Promise<Page> {
+): Promise<OpenAndPrepareResult> {
   const postPage: Page = await context.newPage();
   await postPage.goto(postUrl, { waitUntil: "domcontentloaded" });
   console.info("[E2E] domcontentloaded.");
@@ -36,7 +38,13 @@ export async function openAndPrepareInstagramPage(
   } else {
     console.info("[E2E] Login dialog not found after timeout");
   }
-  return postPage;
+
+  const authenticated = await isInstagramPageAuthenticated(postPage);
+  return {
+    postPage,
+    authenticated,
+    platformSuspectingBot: false,
+  };
 }
 
 async function closeCookieDialogIfPresent(page: Page): Promise<boolean> {
