@@ -18,6 +18,12 @@ export const CommentSharedPropertiesSchema = z.object({
   classifiedAt: z.iso.datetime().optional(),
 
   screenshotData: z.base64(),
+
+  /**
+   * Permalink URL of the comment on the social network.
+   * E.g. https://www.youtube.com/watch?v=VIDEO_ID&lc=COMMENT_ID
+   */
+  url: z.url().optional(),
 });
 
 export type CommentSharedProperties = z.infer<

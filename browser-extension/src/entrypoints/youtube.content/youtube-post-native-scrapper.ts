@@ -831,6 +831,7 @@ export class YoutubePostNativeScrapper {
       id: crypto.randomUUID(),
       commentId,
       textContent: commentText,
+      url: commentHref,
       author: author,
       publishedAt: publishedAt,
       scrapedAt: scrapDate,

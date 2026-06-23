@@ -67,7 +67,9 @@ export class InstagramLoadedCommentScraper {
       };
     } else {
       // Text content
-      const commentId = this.scrapCommentId(commentCentralDiv);
+      const commentHref = this.scrapCommentHref(commentCentralDiv);
+      const commentId = extractCommentIdFromInstagramCommentHref(commentHref);
+
       const publishedAt: PublicationDate =
         this.scrapPublishedAt(commentCentralDiv);
       const textContent = this.scrapTextContent(commentCentralDiv);
@@ -78,6 +80,7 @@ export class InstagramLoadedCommentScraper {
           id,
           scrapedAt,
           commentId,
+          url: commentHref,
           nbLikes,
           author,
           textContent,
@@ -132,10 +135,9 @@ export class InstagramLoadedCommentScraper {
     return publishedAt;
   }
 
-  private scrapCommentId(commentCentralDiv: HTMLElement) {
+  private scrapCommentHref(commentCentralDiv: HTMLElement): string {
     const commentAnchorElement = this.scrapingSupport.selectOrThrow(
       commentCentralDiv,
-      // Comment anchor contains the time element
       ":scope a:has(time)",
       HTMLAnchorElement,
       {
@@ -143,10 +145,7 @@ export class InstagramLoadedCommentScraper {
         selectedElementDescriptor: "commentAnchorElement",
       },
     );
-    const commentId = extractCommentIdFromInstagramCommentHref(
-      commentAnchorElement.href,
-    );
-    return commentId;
+    return commentAnchorElement.href;
   }
 
   private scrapAuthor(commentCentralDiv: HTMLElement): Author {
