@@ -6,8 +6,9 @@ export default defineConfig({
   workers: 1, // Single worker for extension tests
   reporter: "html",
   use: {
-    trace: "on-first-retry",
-    video: "on-first-retry",
+    screenshot: "on",
+    trace: "on",
+    video: "on",
   },
   projects: [
     {
