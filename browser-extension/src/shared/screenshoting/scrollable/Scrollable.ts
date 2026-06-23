@@ -1,8 +1,5 @@
 import { Image } from "image-js";
-import { createLogger } from "../../utils/createLogger";
 import { Size } from "../Size";
-
-export const logger = createLogger("[Screenshoting scrollable]");
 
 /**
  * Abstraction around scrollable element. mostly to accomodate some quirks on client size returned on youtube
