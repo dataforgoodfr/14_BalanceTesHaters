@@ -7,11 +7,12 @@ import { checkPostSnapshotGenericExpectations } from "./utils/checkPostSnapshotG
 import { expectCommentsToMatchInvariants } from "./utils/expectCommentsToMatchInvariants";
 import { expectSomeCommentsToHaveEmojis } from "./utils/expectSomeCommentsToHaveEmojis";
 import { expectSomeCommentsToHaveLikes } from "./utils/expectSomeCommentsToHaveLikes";
+import { PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING } from "@/entrypoints/youtube.content/PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING";
 
 E2E_TESTED_LOCALES.forEach((locale) => {
   test.describe(`Youtube Shorts Scrapping (locale:${locale})`, () => {
-    test.use({ locale });
     test.describe.configure({ mode: "serial" });
+    test.use({ locale });
 
     const postId = "WPpURgqzXZ4";
     const postUrl = youtubeShortUrl(postId);
@@ -28,29 +29,30 @@ E2E_TESTED_LOCALES.forEach((locale) => {
     });
 
     test(`Check post metadata`, () => {
-      test.skip(scrappingResult === undefined);
       const { postSnapshot } = scrappingResult;
 
       checkPostSnapshotGenericExpectations(postSnapshot);
       expect(postSnapshot.postId).toEqual(postId);
       expect(postSnapshot.url).toEqual(postUrl);
-      expect(postSnapshot.publishedAt).toEqual({
-        type: "absolute",
-        date: "2025-02-19T17:00:41.000Z",
-      });
 
       if (scrappingResult.platformSuspectingBot) {
-        // When youtube suspect we are a bot it prevents shorts title scrapping
+        // When youtube suspect we are a bot it prevents og meta scrapping
         expect(postSnapshot.title).toBeUndefined();
+        expect(postSnapshot.publishedAt).toEqual(
+          PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING,
+        );
       } else {
         expect(postSnapshot.title).toContain(
           "Celles et ceux qui ne voulaient pas être ce qu’elles/ils étaient",
         );
+        expect(postSnapshot.publishedAt).toEqual({
+          type: "absolute",
+          date: "2025-02-19T17:00:41.000Z",
+        });
       }
     });
 
     test(`Check comments`, () => {
-      test.skip(scrappingResult === undefined);
       const { postSnapshot } = scrappingResult;
 
       // Check comments
@@ -66,7 +68,6 @@ E2E_TESTED_LOCALES.forEach((locale) => {
     });
 
     test(`Check first level replies`, () => {
-      test.skip(scrappingResult === undefined);
       const { postSnapshot } = scrappingResult;
 
       // Check comments

@@ -5,7 +5,10 @@ import { YoutubeScraper } from "./YoutubeScraper";
 export default defineContentScript({
   matches: YOUTUBE_SCRAPING_CONTENT_SCRIPT_MATCHES,
   main() {
-    const scraper = new YoutubeScraper();
+    const allowDegradedScrapping = Boolean(
+      import.meta.env.VITE_YT_ALLOW_DEGRADED_SCRAPPING,
+    );
+    const scraper = new YoutubeScraper(allowDegradedScrapping);
 
     new ScrapingContentScript(scraper).initialize();
   },

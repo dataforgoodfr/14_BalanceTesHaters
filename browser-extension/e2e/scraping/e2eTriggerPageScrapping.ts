@@ -29,7 +29,7 @@ export async function triggerPageScrappingAndWaitForRunning({
 
   await popupPage.clickStartScrapingButton();
   await postPage.bringToFront();
-  await e2eWaitForScrapingRunning(
+  await e2eWaitForScrapingStarted(
     waitForScrappingRunningTimeout,
     context,
     postTabId,
@@ -40,7 +40,7 @@ export async function triggerPageScrappingAndWaitForRunning({
   };
 }
 
-async function e2eWaitForScrapingRunning(
+async function e2eWaitForScrapingStarted(
   timeout: number,
   context: BrowserContext,
   scrapingTabId: number,
@@ -52,7 +52,7 @@ async function e2eWaitForScrapingRunning(
         context,
         scrapingTabId,
       );
-      return status !== undefined && status.type === "running";
+      return status !== undefined && status.type !== "not-started";
     },
   });
 }

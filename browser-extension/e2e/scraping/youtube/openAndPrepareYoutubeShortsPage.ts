@@ -30,6 +30,6 @@ export async function openAndPrepareYoutubeShortsPage(
   return {
     postPage,
     authenticated,
-    platformSuspectingBot: platformSuspectingBot,
+    platformSuspectingBot,
   };
 }

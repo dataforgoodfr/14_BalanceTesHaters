@@ -20,7 +20,9 @@ export const test = base.extend<ExtensionFixtures>({
       process.env.PATH_TO_EXTENSION || CHROME_BUILD_PATH,
     );
     const pathToBrowserContext = process.env.PATH_TO_BROWSER_CONTEXT || "";
-    console.log("using pathToBrowserContext", pathToBrowserContext);
+    if (pathToBrowserContext) {
+      console.log("[E2E] using pathToBrowserContext:", pathToBrowserContext);
+    }
     const context = await chromium.launchPersistentContext(
       pathToBrowserContext,
       {

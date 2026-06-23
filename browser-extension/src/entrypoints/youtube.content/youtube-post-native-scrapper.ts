@@ -27,6 +27,8 @@ import { withRetry } from "../../shared/utils/withRetry";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { parseCommentPublishedTime } from "./parseCommentPublishedTime";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
+import { createLogger } from "@/shared/utils/createLogger";
+import { PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING } from "./PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING";
 const LOG_PREFIX = "[CS - YoutubePostNativeScrapper] ";
 const YOUTUBE_SHORTS_PATH_SEGMENT = "/shorts/";
 const YOUTUBE_SHORTS_COMMENTS_PANEL_SELECTOR =
@@ -42,21 +44,15 @@ type CommentThread =
   | { scrapingStatus: "success"; comment: CommentSnapshot }
   | { scrapingStatus: "failure"; message: string };
 
+const logger = createLogger(LOG_PREFIX);
 export class YoutubePostNativeScrapper {
-  public constructor(private scrapingSupport: ScrapingSupport) {}
-
-  private debug(...data: unknown[]) {
-    console.debug(LOG_PREFIX, ...data);
-  }
-  private info(...data: unknown[]) {
-    console.info(LOG_PREFIX, ...data);
-  }
-  private warn(...data: unknown[]) {
-    console.warn(LOG_PREFIX, ...data);
-  }
+  public constructor(
+    private scrapingSupport: ScrapingSupport,
+    private allowDegradedScrapping: boolean,
+  ) {}
 
   async scrapPost(progressManager: ProgressManager): Promise<PostSnapshot> {
-    this.info("Start Scraping... ", document.URL);
+    logger.info("Start Scraping... ", document.URL);
     const url = document.URL;
     const pageInfo = youtubePageInfo(url);
     if (!pageInfo.isScrapablePost) {
@@ -66,7 +62,7 @@ export class YoutubePostNativeScrapper {
     const isShortsPost = this.isShortsPostUrl(url);
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
-    this.debug("Pause video...");
+    logger.debug("Pause video...");
     (
       await this.scrapingSupport.waitForSelectorOrThrow(
         document,
@@ -75,26 +71,26 @@ export class YoutubePostNativeScrapper {
       )
     ).pause();
 
-    this.debug("Scraping title...");
+    logger.debug("Scraping title...");
     const title = this.scrapPostTitle(isShortsPost);
-    this.debug(`title: ${title}`);
+    logger.debug(`title: ${title}`);
 
-    this.debug("Scraping author...");
+    logger.debug("Scraping author...");
     const author = await this.scrapPostAuthor(isShortsPost);
-    this.debug(`author.name: ${author.name}`);
+    logger.debug(`author.name: ${author.name}`);
 
-    this.debug("Scraping textContent...");
+    logger.debug("Scraping textContent...");
     const textConent = this.scrapPostTextContent(isShortsPost);
-    this.debug(`textContent: ${textConent.replaceAll("\n", "")}`);
+    logger.debug(`textContent: ${textConent.replaceAll("\n", "")}`);
 
-    this.debug("Scraping publishedAt...");
+    logger.debug("Scraping publishedAt...");
     const publishedAt = await this.scrapPostPublishedAt(isShortsPost);
-    this.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
+    logger.debug(`publishedAt: ${JSON.stringify(publishedAt)}`);
 
     // Init accounts for 1%
     progressManager.setProgress(1);
 
-    this.debug("Scraping comments...");
+    logger.debug("Scraping comments...");
     const comments: CommentSnapshot[] = await this.scrapPostComments(
       isShortsPost,
       // Scraping comments accounts for 99% of progress
@@ -115,7 +111,7 @@ export class YoutubePostNativeScrapper {
     };
   }
 
-  private scrapPostTitle(isShortsPost: boolean): string {
+  private scrapPostTitle(isShortsPost: boolean): string | undefined {
     if (!isShortsPost) {
       const titleElement = this.scrapingSupport.select(
         document,
@@ -132,7 +128,13 @@ export class YoutubePostNativeScrapper {
       return shortTitle;
     }
 
-    throw new Error("Failed to scrap post title");
+    const message =
+      "Failed to find og:title. Maybe youtube is considering we are a bot. Returning undefined";
+    if (this.allowDegradedScrapping) {
+      logger.warn(message);
+    } else {
+      throw new Error(message);
+    }
   }
 
   private scrapPostTextContent(isShortsPost: boolean): string {
@@ -189,7 +191,15 @@ export class YoutubePostNativeScrapper {
       'meta[itemprop="datePublished"]',
     );
     if (!rawPublishedDate) {
-      throw new Error("Failed to scrap post published date");
+      const errorMessage = "Failed to scrap post published date";
+      if (this.allowDegradedScrapping) {
+        logger.warn(errorMessage);
+
+        // Placeholder date
+        return PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING;
+      } else {
+        throw new Error(errorMessage);
+      }
     }
 
     const parsedDate = new Date(rawPublishedDate);
@@ -276,14 +286,14 @@ export class YoutubePostNativeScrapper {
       commentsSectionHandle.scrollIntoView();
     }
 
-    this.debug("Sorting comments by newest...");
+    logger.debug("Sorting comments by newest...");
     await this.sortCommentsByNewest(commentsSectionHandle, isShortsPost);
 
     const expectedCommentCount = this.extractExpectedCommentCount(
       commentsSectionHandle,
       isShortsPost,
     );
-    this.debug("Expecting ", expectedCommentCount, " comments");
+    logger.debug("Expecting ", expectedCommentCount, " comments");
 
     await this.loadAllComments(
       commentsSectionHandle,
@@ -298,7 +308,7 @@ export class YoutubePostNativeScrapper {
 
     const scrapedCommentCount = countAllComments(comments);
     if (expectedCommentCount !== scrapedCommentCount) {
-      this.warn(
+      logger.warn(
         "Total comments count mismatch: expected",
         expectedCommentCount,
         " scraped:",
@@ -380,18 +390,18 @@ export class YoutubePostNativeScrapper {
       maxAttempts: 10,
       retryOn: (e) => e instanceof WindowResizedSinceScreenshotError,
       beforeRetry: ({ remainingAttempts }) => {
-        this.warn(
+        logger.warn(
           "Window Resized - restarting scrapLoadedComments remainingAttempts:",
           remainingAttempts,
         );
       },
       retry: async () => {
-        this.info("Capturing full page screenshot");
+        logger.info("Capturing full page screenshot");
         const fullPageScreenshot = await this.capturePageScreenshot(
           progressManager.subTaskProgressManager({ from: 0, to: 95 }),
         );
 
-        this.info("Capturing comment threads...");
+        logger.info("Capturing comment threads...");
         const threadContainers = this.scrapingSupport.selectAll(
           commentsSectionHandle,
           "#contents > ytd-comment-thread-renderer",
@@ -403,7 +413,7 @@ export class YoutubePostNativeScrapper {
           new Set<string>(),
         );
         progressManager.setProgress(100);
-        this.debug("Comments metada:", comments);
+        logger.debug("Comments metada:", comments);
         return comments;
       },
     });
@@ -414,17 +424,17 @@ export class YoutubePostNativeScrapper {
     isShortsPost: boolean,
     progressManager: ProgressManager,
   ) {
-    this.info("Loading all comments...");
+    logger.info("Loading all comments...");
 
-    this.debug("Loading top level comments...");
+    logger.debug("Loading top level comments...");
     await this.loadAllTopLevelComments(commentsContainer, isShortsPost);
     progressManager.setProgress(50);
 
-    this.debug("Expanding all replies...");
+    logger.debug("Expanding all replies...");
     await this.loadAllReplies(commentsContainer, isShortsPost);
     progressManager.setProgress(75);
 
-    this.debug("Expanding long comments...");
+    logger.debug("Expanding long comments...");
     await this.expandLongComments(commentsContainer, isShortsPost);
     progressManager.setProgress(100);
   }
@@ -486,7 +496,7 @@ export class YoutubePostNativeScrapper {
       throw new Error("Unexpected undefined commentId");
     }
     if (collectedPostIds.has(comment.commentId)) {
-      this.warn(
+      logger.warn(
         "Ignoring duplicate comment from ",
         comment.author.name,
         " with id ",
@@ -588,7 +598,7 @@ export class YoutubePostNativeScrapper {
       HTMLElement,
     );
     if (!sortMenu || !this.scrapingSupport.isVisible(sortMenu)) {
-      this.warn("Sort menu not found");
+      logger.warn("Sort menu not found");
       return;
     }
     sortMenu.scrollIntoView();
@@ -656,7 +666,7 @@ export class YoutubePostNativeScrapper {
       const visibleCommentsCount = this.scrapingSupport
         .selectAll(commentsContainer, "#comment-container", HTMLElement)
         .filter((e) => this.scrapingSupport.isVisible(e)).length;
-      this.debug(
+      logger.debug(
         "loadAllTopLevelComments - ",
         visibleCommentsCount,
         " comments loaded",
@@ -686,7 +696,7 @@ export class YoutubePostNativeScrapper {
         HTMLElement,
       )
       .filter((e) => this.scrapingSupport.isVisible(e));
-    this.debug("Expanding ", repliesButton.length, " replies button...");
+    logger.debug("Expanding ", repliesButton.length, " replies button...");
     await this.expandReplies(repliesButton, commentsContainer, isShortsPost);
 
     // expand more replies button
@@ -708,7 +718,7 @@ export class YoutubePostNativeScrapper {
           clickedMoreRepliesButtons.has(b),
         );
       if (selectedButAlreadyClickedButSelected.length > 0) {
-        this.warn(
+        logger.warn(
           "Found ",
           selectedButAlreadyClickedButSelected.length,
           " more replies button for which click didn't work!! Ignoring them to avoid infinite loop.",
@@ -721,10 +731,12 @@ export class YoutubePostNativeScrapper {
       );
 
       if (selectedAndNotYetClicked.length === 0) {
-        this.debug("Found 0 more replies button - We're done loading replies.");
+        logger.debug(
+          "Found 0 more replies button - We're done loading replies.",
+        );
         return;
       } else {
-        this.debug(
+        logger.debug(
           "Found ",
           selectedAndNotYetClicked.length,
           " more replies buttons - Expanding them",
@@ -746,7 +758,7 @@ export class YoutubePostNativeScrapper {
     commentsContainer: HTMLElement,
     isShortsPost: boolean,
   ) {
-    this.debug("Loading ", repliesButton.length, " replies...");
+    logger.debug("Loading ", repliesButton.length, " replies...");
     for (const button of repliesButton) {
       if (!isShortsPost) {
         button.scrollIntoView();
@@ -757,7 +769,7 @@ export class YoutubePostNativeScrapper {
     // Wait for replies to load
     await this.waitForRepliesToLoad(commentsContainer, isShortsPost);
 
-    this.debug("All ", repliesButton.length, "replies loaded");
+    logger.debug("All ", repliesButton.length, "replies loaded");
   }
 
   private async expandLongComments(
@@ -767,7 +779,7 @@ export class YoutubePostNativeScrapper {
     const readMoreButton = this.scrapingSupport
       .selectAll(commentsContainer, "#more", HTMLElement)
       .filter((e) => this.scrapingSupport.isVisible(e));
-    this.debug("Expanding ", readMoreButton.length, " read more buttons...");
+    logger.debug("Expanding ", readMoreButton.length, " read more buttons...");
     for (const b of readMoreButton) {
       if (!isShortsPost) {
         b.scrollIntoView();
@@ -791,7 +803,7 @@ export class YoutubePostNativeScrapper {
     );
     const publishedTimeText = publishedTimeElement.innerText;
     const publishedAt = parseCommentPublishedTime(publishedTimeText);
-    this.debug(`publishedAtInfo: ${JSON.stringify(publishedAt)}`);
+    logger.debug(`publishedAtInfo: ${JSON.stringify(publishedAt)}`);
 
     const commentHref = this.scrapingSupport.selectOrThrow(
       publishedTimeElement,
@@ -883,7 +895,7 @@ export class YoutubePostNativeScrapper {
     const right = Math.min(imageWidth, originX + rawWidth);
     const bottom = Math.min(imageHeight, originY + rawHeight);
     if (right <= left || bottom <= top) {
-      this.warn("Skipping out-of-bounds comment screenshot", {
+      logger.warn("Skipping out-of-bounds comment screenshot", {
         originX,
         originY,
         rawWidth,
@@ -905,7 +917,7 @@ export class YoutubePostNativeScrapper {
       });
       return uint8ArrayToBase64(encodePng(screenshotImage));
     } catch (e) {
-      this.warn("Failed to crop comment screenshot", {
+      logger.warn("Failed to crop comment screenshot", {
         error: String(e),
         originX,
         originY,
@@ -951,7 +963,7 @@ export class YoutubePostNativeScrapper {
       }
       return uint8ArrayToBase64(encodePng(segment.image));
     } catch (e) {
-      this.warn("Failed to capture visible comment screenshot", String(e));
+      logger.warn("Failed to capture visible comment screenshot", String(e));
       return "";
     }
   }
@@ -1308,13 +1320,13 @@ export class YoutubePostNativeScrapper {
       if (remainingGhostSectionsCount === 0) {
         return remainingGhostSectionsCount;
       }
-      this.debug(
+      logger.debug(
         ` ${remainingGhostSectionsCount}/${initialGhostSectionsCount} still present after ${Date.now() - start}ms.`,
       );
       if (Date.now() > maxDate) {
         // Assuming we are facing broken replies loading.
         // See https://github.com/dataforgoodfr/14_BalanceTesHaters/issues/304
-        this.warn(
+        logger.warn(
           `Adaptive timeout reached after ${Date.now() - start}ms. Assuming broken replies loading.`,
         );
         return remainingGhostSectionsCount;
@@ -1411,7 +1423,7 @@ export class YoutubePostNativeScrapper {
 
     const commentsButton = this.selectShortsCommentsButton();
     if (!commentsButton) {
-      this.warn("Failed to find shorts comments button");
+      logger.warn("Failed to find shorts comments button");
       return undefined;
     }
 
@@ -1430,7 +1442,7 @@ export class YoutubePostNativeScrapper {
     if (panelSelectionResult.status === "success") {
       return panelSelectionResult.element;
     }
-    this.warn(
+    logger.warn(
       "Shorts comments panel not visible after clicking comment button",
     );
     return undefined;

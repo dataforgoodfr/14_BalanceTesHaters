@@ -11,6 +11,7 @@ import { expectSomeCommentsToHaveEmojis } from "./utils/expectSomeCommentsToHave
 
 E2E_TESTED_LOCALES.forEach((locale) => {
   test.describe(`Youtube Video Scrapping (locale:${locale})`, () => {
+    test.describe.configure({ mode: "serial" });
     test.use({ locale: locale });
     const postId = "bYnBcdxT7os";
 

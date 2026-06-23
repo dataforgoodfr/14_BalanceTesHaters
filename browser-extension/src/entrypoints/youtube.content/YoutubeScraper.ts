@@ -12,6 +12,12 @@ import { createLogger } from "@/shared/utils/createLogger";
 const logger = createLogger("[CS - YoutubeScraper]");
 
 export class YoutubeScraper implements SocialNetworkScraper {
+  /**
+   *
+   * @param allowDegradedScrapping try to still perform scrapping if youtube suspects bot at the risk of erroneous data. Usefull only for E2E test
+   */
+  constructor(private allowDegradedScrapping: boolean) {}
+
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
     return Promise.resolve(youtubePageInfo(document.URL));
   }
@@ -20,6 +26,9 @@ export class YoutubeScraper implements SocialNetworkScraper {
     abortSignal: AbortSignal,
     progressManager: ProgressManager,
   ): Promise<ScrapPagePostResult> {
+    if (this.allowDegradedScrapping) {
+      console.warn("allowDegradedScrapping=true. This is only for testing");
+    }
     const scrapingSupport = new ScrapingSupport(abortSignal);
     const ogUrl = scrapingSupport.select(
       document,
@@ -28,10 +37,13 @@ export class YoutubeScraper implements SocialNetworkScraper {
     )?.content;
 
     if (!ogUrl) {
-      // This happens in E2E test when not logged in and youtube suspects bot.
-      logger.warn(
-        "Failed to find og:url no way to check if og:metadata is out of sync.",
-      );
+      const message =
+        "Failed to find og:url no way to check if og:metadata is out of sync.";
+      if (this.allowDegradedScrapping) {
+        logger.warn(message);
+      } else {
+        throw new Error(message);
+      }
     } else if (isOutdatedOgMeta(ogUrl, document.URL)) {
       // Scraper uses og: meta information which are only loaded on page load not on navigation
       // Detect if out of sync by comparing ogUrl postId with current url postId
@@ -41,9 +53,10 @@ export class YoutubeScraper implements SocialNetworkScraper {
       };
     }
 
-    return new YoutubePostNativeScrapper(scrapingSupport).scrapPost(
-      progressManager,
-    );
+    return new YoutubePostNativeScrapper(
+      scrapingSupport,
+      this.allowDegradedScrapping,
+    ).scrapPost(progressManager);
   }
 }
 

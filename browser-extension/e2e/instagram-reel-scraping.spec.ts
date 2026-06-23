@@ -11,8 +11,8 @@ import { expectSomeCommentsToHaveEmojis } from "./utils/expectSomeCommentsToHave
 
 E2E_TESTED_LOCALES.forEach((locale) => {
   test.describe(`Instagram Reel Scrapping (locale:${locale})`, () => {
-    test.use({ locale: locale });
     test.describe.configure({ mode: "serial" });
+    test.use({ locale: locale });
 
     const reelId = "DX9g-fpCIbF";
     const account = "feministsinthecity";
@@ -30,7 +30,6 @@ E2E_TESTED_LOCALES.forEach((locale) => {
     });
 
     test(`Check post metadata`, () => {
-      test.skip(scrappingResult === undefined);
       const { postSnapshot } = scrappingResult;
 
       checkPostSnapshotGenericExpectations(postSnapshot);
@@ -47,7 +46,6 @@ E2E_TESTED_LOCALES.forEach((locale) => {
     });
 
     test(`Check top level comments`, () => {
-      test.skip(scrappingResult === undefined);
       // Check comments
       const topLevelComments = scrappingResult.postSnapshot.comments;
 
