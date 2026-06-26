@@ -16,7 +16,7 @@ function PostSnapshotDetailPage() {
   const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
 
-  const queryKey = ["posts", snapshotId];
+  const queryKey = ["postSnapshots", snapshotId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
     queryFn: () => getPostSnapshotById(snapshotId),

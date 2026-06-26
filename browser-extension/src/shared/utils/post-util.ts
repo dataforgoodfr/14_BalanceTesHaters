@@ -1,7 +1,9 @@
+import { PostCommentWithId } from "@/entrypoints/posts/Posts/CommentsTable";
 import { isCategoryHateful } from "../model/AnnotatedCategory";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
 import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
+import { PublicationDate } from "../model/PublicationDate";
 
 export enum NbHatefulCommentsOptions {
   ZERO_TEN = "0_10",
@@ -24,6 +26,15 @@ export enum PostSortingCategory {
   PUBLICATION_DATE_ASC = "publicationDateAsc",
 }
 
+export enum CommentSortingCategory {
+  SCORE_DESC = "scoreDesc",
+  SCORE_ASC = "scoreAsc",
+  COMMENT_DATE_DESC = "commentDateDesc",
+  COMMENT_DATE_ASC = "commentDateAsc",
+  PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
+  PSEUDO_AUTHOR_ASC = "pseudoAuthorAsc",
+}
+
 export type PostFilters = {
   date: DateFilterOptions | undefined;
   nbHatefulComments: NbHatefulCommentsOptions[];
@@ -35,6 +46,14 @@ export type PostFilters = {
   containsAuthor: string[];
 };
 
+export type CommentFilters = {
+  date: DateFilterOptions | undefined;
+  score: string[];
+  alert: string[];
+  status: string[];
+  pseudoAuthor: string[];
+};
+
 export const emptyPostFilters: PostFilters = {
   nbHatefulComments: [],
   date: undefined,
@@ -43,6 +62,14 @@ export const emptyPostFilters: PostFilters = {
   status: [],
   containsCategory: [],
   containsAuthor: [],
+};
+
+export const emptyCommentFilters: CommentFilters = {
+  date: undefined,
+  score: [],
+  alert: [],
+  status: [],
+  pseudoAuthor: [],
 };
 
 export function isCommentHateful(comment: PostComment): boolean {
@@ -212,7 +239,7 @@ export function filterPosts(
   });
 }
 
-export function sortPosts(
+export function sortPostList(
   posts: Post[],
   sortingCategory: PostSortingCategory,
 ): Post[] {
@@ -244,26 +271,87 @@ export function sortPosts(
     case PostSortingCategory.PUBLICATION_DATE_ASC:
       return [...posts].sort((a, b) => {
         return (
-          getPostDateForSorting(a).getTime() -
-          getPostDateForSorting(b).getTime()
+          getDateForSorting(a.publishedAt).getTime() -
+          getDateForSorting(b.publishedAt).getTime()
         );
       });
     case PostSortingCategory.PUBLICATION_DATE_DESC:
       return [...posts].sort((a, b) => {
         return (
-          getPostDateForSorting(b).getTime() -
-          getPostDateForSorting(a).getTime()
+          getDateForSorting(b.publishedAt).getTime() -
+          getDateForSorting(a.publishedAt).getTime()
         );
       });
   }
 }
 
-function getPostDateForSorting(post: Post): Date {
-  switch (post.publishedAt.type) {
+export function filterCommentList(
+  commentList: PostCommentWithId[],
+  searchTerm: string,
+  filters: CommentFilters,
+): PostCommentWithId[] {
+  let filteredCommentList = commentList;
+
+  if (filters.pseudoAuthor && filters.pseudoAuthor.length > 0) {
+    filteredCommentList = filteredCommentList.filter((comment) => {
+      const pseudoAuthor = comment.author.name;
+      return filters.pseudoAuthor.some((filterValue) =>
+        pseudoAuthor.includes(filterValue),
+      );
+    });
+  }
+
+  // Lastly, apply search term filtering
+  const searchValue = searchTerm.trim().toLowerCase();
+  return filteredCommentList.filter((comment) => {
+    const textContent = comment.textContent?.toLowerCase() ?? "";
+    return (
+      textContent.includes(searchValue) ||
+      comment.author.name.toLowerCase().includes(searchValue)
+    );
+  });
+}
+
+export function sortCommentList(
+  commentList: PostCommentWithId[],
+  sortingCategory: CommentSortingCategory,
+): PostCommentWithId[] {
+  switch (sortingCategory) {
+    case CommentSortingCategory.SCORE_ASC:
+    case CommentSortingCategory.SCORE_DESC:
+      // Score is not yet available
+      return commentList;
+    case CommentSortingCategory.COMMENT_DATE_ASC:
+      return [...commentList].sort((a, b) => {
+        return (
+          getDateForSorting(a.publishedAt).getTime() -
+          getDateForSorting(b.publishedAt).getTime()
+        );
+      });
+    case CommentSortingCategory.COMMENT_DATE_DESC:
+      return [...commentList].sort((a, b) => {
+        return (
+          getDateForSorting(b.publishedAt).getTime() -
+          getDateForSorting(a.publishedAt).getTime()
+        );
+      });
+    case CommentSortingCategory.PSEUDO_AUTHOR_ASC:
+      return [...commentList].sort((a, b) => {
+        return a.author.name.localeCompare(b.author.name);
+      });
+    case CommentSortingCategory.PSEUDO_AUTHOR_DESC:
+      return [...commentList].sort((a, b) => {
+        return b.author.name.localeCompare(a.author.name);
+      });
+  }
+}
+
+function getDateForSorting(date: PublicationDate): Date {
+  switch (date.type) {
     case "absolute":
-      return new Date(post.publishedAt.date);
+      return new Date(date.date);
     case "relative":
-      return new Date(post.publishedAt.resolvedDateRange.end);
+      return new Date(date.resolvedDateRange.end);
     default:
       // earliest possible date
       return new Date(0);

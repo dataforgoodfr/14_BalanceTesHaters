@@ -9,43 +9,40 @@ import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
   isCommentHateful,
-  buildPostKey,
+  CommentSortingCategory,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
-import CommentsTable, { PostCommentWithId } from "./CommentsTable";
+import CommentsTable from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
+import { useFilteredCommentList } from "../Shared/useFilteredCommentList";
+import React from "react";
 
 function PostDetailPage() {
   const params = useParams();
   const postId = params.postId || "";
   const socialNetworkName = params.socialNetworkName as SocialNetworkName;
 
-  const queryKey = ["posts", postId];
+  const queryKey = ["post", socialNetworkName, postId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  const allComments = post?.comments || [];
-  const hatefulComments = post
-    ? allComments
-        .filter((c) => isCommentHateful(c))
-        .map((comment, i) => {
-          return {
-            ...comment,
-            id: i.toString(),
-            postId: post.postId,
-            socialNetwork: post.socialNetwork,
-            postKey: buildPostKey(post.postId, post.socialNetwork),
-          } as PostCommentWithId;
-        })
-    : [];
+  const [commentSortingCategory, setCommentSortingCategory] =
+    React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
+  const { commentFilters, setCommentFilters, commentList } =
+    useFilteredCommentList(
+      postId === undefined ? [] : [postId],
+      commentSortingCategory,
+    );
+
+  const hatefulComments = commentList.filter((c) => isCommentHateful(c));
   const numberOfHatefulComments = hatefulComments.length;
 
   return (
@@ -105,12 +102,12 @@ function PostDetailPage() {
               <div className="flex gap-4 justify-between w-full">
                 <PercentageHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={allComments.length}
+                  numberOfComments={commentList.length}
                   isLoading={isLoading}
                 />
                 <NumberHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={allComments.length}
+                  numberOfComments={commentList.length}
                   isLoading={isLoading}
                 />
                 <SecurityAlert isLoading={isLoading}></SecurityAlert>
@@ -139,6 +136,10 @@ function PostDetailPage() {
               </span>
               <CommentsTable
                 commentList={hatefulComments}
+                commentFilters={commentFilters}
+                setCommentFilters={setCommentFilters}
+                commentSortingCategory={commentSortingCategory}
+                setCommentSortingCategory={setCommentSortingCategory}
                 defaultSelectedCommentIdList={[]}
                 formId=""
                 onSubmit={() => console.log("submitted")}

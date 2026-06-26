@@ -26,8 +26,9 @@ import {
   PostFilters,
   PostSortingCategory,
 } from "@/shared/utils/post-util";
+import { toggleFilterValue, isCategoryFiltered } from "@/shared/utils/filter-util";
 
-type FilterCategory =
+type PostsFilterCategory =
   | "date"
   | "score"
   | "alert"
@@ -114,13 +115,13 @@ function SearchSortFiltersPostList({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortingOpen, setSortingOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] =
-    useState<FilterCategory>("date");
+    useState<PostsFilterCategory>("date");
   const [selectedFilters, setSelectedFilters] =
     useState<PostFilters>(postFilters);
 
   const toggleFilter = (value: string) => {
     setSelectedFilters((prev) => {
-      return togglePostFiltersValue(prev, selectedCategory, value);
+      return toggleFilterValue(prev, selectedCategory, value);
     });
   };
 
@@ -170,7 +171,7 @@ function SearchSortFiltersPostList({
                     <Button
                       variant="ghost"
                       onClick={() =>
-                        setSelectedCategory(category.id as FilterCategory)
+                        setSelectedCategory(category.id as PostsFilterCategory)
                       }
                       disabled={category.isDisabled}
                       className={cn(
@@ -307,44 +308,7 @@ function isSelectedOption(
   }
 }
 
-function togglePostFiltersValue(
-  previousFilters: PostFilters,
-  filterCategory: keyof PostFilters,
-  selectedValue: string,
-): PostFilters {
-  const previousCategoryValue = previousFilters[filterCategory];
-  if (Array.isArray(previousCategoryValue)) {
-    // Multi category value
-    const newCategoryValue: string[] = (
-      previousCategoryValue as string[]
-    ).includes(selectedValue)
-      ? previousCategoryValue.filter((v) => v !== selectedValue)
-      : [...previousCategoryValue, selectedValue];
-    return {
-      ...previousFilters,
-      [filterCategory]: newCategoryValue,
-    };
-  } else {
-    // Single category value
-    // Set to undefined if clicking current value or replace value
-    const newCategoryValue: string | undefined =
-      (previousCategoryValue as string) === selectedValue
-        ? undefined
-        : selectedValue;
-    return {
-      ...previousFilters,
-      [filterCategory]: newCategoryValue,
-    };
-  }
-}
 
-function isCategoryFiltered(
-  categoryValue: string[] | string | undefined,
-): boolean {
-  return Array.isArray(categoryValue)
-    ? categoryValue.length > 0
-    : categoryValue !== undefined;
-}
 
 // Attention, Le texte ne correspond pas forcément à un ordre croissant ou décroissant au sens mathématique,
 // mais plutôt à une logique métier (ex: "de nouveau à ancien" est considéré comme descendant même si du point

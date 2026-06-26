@@ -14,7 +14,11 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
+  ArrowDown,
   ArrowDownUp,
+  ArrowUp,
+  Check,
+  ChevronRight,
   Eye,
   EyeOff,
   Funnel,
@@ -57,6 +61,33 @@ import {
 } from "@/components/ui/dialog";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { useNavigate } from "react-router";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  CommentFilters,
+  CommentSortingCategory,
+  emptyCommentFilters,
+} from "@/shared/utils/post-util";
+import {
+  toggleFilterValue,
+  isCategoryFiltered,
+  isSelectedOption,
+} from "@/shared/utils/filter-util";
+import { cn } from "@/lib/utils";
+import {
+  AnnotatedCategory,
+  getCategoryLabel,
+} from "@/shared/model/AnnotatedCategory";
+
+type CommentsFilterCategory =
+  | "date"
+  | "score"
+  | "alert"
+  | "pseudoAuthor"
+  | "status";
 
 /**
  * Merged view of Post Snapshot
@@ -66,10 +97,24 @@ export type PostCommentWithId = PostComment & {
   postId: string;
   socialNetwork: string;
   postKey: string;
+  isCommentHateful: boolean;
 };
+
+const categories = [
+  { id: "date", label: "Date", isDisabled: true },
+  { id: "score", label: "Score juridique", isDisabled: true },
+  { id: "alert", label: "Alerte sécurité", isDisabled: true },
+  { id: "category", label: "Catégorie", isDisabled: true },
+  { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
+  { id: "status", label: "Statut", isDisabled: true },
+] as const;
 
 export default function CommentsTable({
   commentList,
+  commentFilters,
+  setCommentFilters,
+  commentSortingCategory,
+  setCommentSortingCategory,
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
@@ -77,6 +122,10 @@ export default function CommentsTable({
   showScreenshotColumn = false,
 }: Readonly<{
   commentList: PostCommentWithId[];
+  commentFilters: CommentFilters;
+  setCommentFilters: (value: CommentFilters) => void;
+  commentSortingCategory: CommentSortingCategory;
+  setCommentSortingCategory: (value: CommentSortingCategory) => void;
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
@@ -85,6 +134,8 @@ export default function CommentsTable({
 }>) {
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [sortingOpen, setSortingOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     new Set(),
   );
@@ -103,6 +154,30 @@ export default function CommentsTable({
       onSubmit(form.state.values.commentIdList);
     },
   });
+
+  const [selectedCategory, setSelectedCategory] =
+    useState<CommentsFilterCategory>("date");
+  const [selectedFilters, setSelectedFilters] =
+    useState<CommentFilters>(commentFilters);
+
+  const toggleFilter = (value: string) => {
+    setSelectedFilters((prev) => {
+      return toggleFilterValue(prev, selectedCategory, value);
+    });
+  };
+
+  const handleFiltersOpenChange = (open: React.SetStateAction<boolean>) => {
+    setFiltersOpen(open);
+    // Lorsque la modale se ferme, les filtres sont réinitialisés à la valeur des filtres appliqués
+    if (!open) {
+      setSelectedFilters(commentFilters);
+    }
+  };
+
+  const handleSortingOpenChange = (open: React.SetStateAction<boolean>) => {
+    setSortingOpen(open);
+  };
+
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
@@ -326,6 +401,42 @@ export default function CommentsTable({
     }
   };
 
+  const nbSelectedFilters = Object.values(commentFilters).filter(
+    (categoryValue) => isCategoryFiltered(categoryValue),
+  ).length;
+
+  const filterOptions = {
+    date: [],
+
+    score: [
+      { label: "5/5", value: "5" },
+      { label: "4/5", value: "4" },
+      { label: "3/5", value: "3" },
+      { label: "2/5", value: "2" },
+      { label: "1/5", value: "1" },
+    ],
+    alert: [
+      { label: "Détectée", value: "detected" },
+      { label: "Non détectée", value: "not_detected" },
+    ],
+    containsCategory: Object.values(AnnotatedCategory).map((category) => ({
+      label: getCategoryLabel(category),
+      value: category,
+    })),
+
+    pseudoAuthor: [
+      ...new Set(filteredComments.map((comment) => comment.author)),
+    ].map((author) => ({
+      label: author.name,
+      value: author.name,
+    })),
+
+    status: [
+      { label: "Terminée", value: "done" },
+      { label: "Non terminée", value: "in_progress" },
+    ],
+  };
+
   const navigate = useNavigate();
 
   return (
@@ -377,9 +488,9 @@ export default function CommentsTable({
               onClick={() => {
                 void navigate("/build-report", {
                   state: {
-                    socialNetworkFilter: [commentList[0].socialNetwork],
-                    selectedPostIds: [commentList[0].postId],
-                    selectedCommentList: commentList.filter((comment) =>
+                    socialNetworkFilter: [filteredComments[0].socialNetwork],
+                    selectedPostIds: [filteredComments[0].postId],
+                    selectedCommentList: filteredComments.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),
                     skipToStep: "step-4",
@@ -396,12 +507,149 @@ export default function CommentsTable({
           >
             Tout sélectionner
           </Button>
-          <Button variant="outline" disabled>
-            Filtrer <Funnel />
-          </Button>
-          <Button variant="outline" disabled>
-            Trier <ArrowDownUp />
-          </Button>
+
+          <Popover open={filtersOpen} onOpenChange={handleFiltersOpenChange}>
+            <PopoverTrigger>
+              <Button variant="outline" onClick={() => setFiltersOpen(true)}>
+                <Funnel /> Filtrer{" "}
+                {nbSelectedFilters > 0 && `(${nbSelectedFilters})`}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-auto p-0">
+              <div>
+                <div className="flex rounded-lg ">
+                  {/* Left Column - Categories */}
+                  <div className="border-r ">
+                    {categories.map((category) => (
+                      <div key={category.id} className="p-1">
+                        <Button
+                          variant="ghost"
+                          onClick={() =>
+                            setSelectedCategory(
+                              category.id as CommentsFilterCategory,
+                            )
+                          }
+                          disabled={category.isDisabled}
+                          className={cn(
+                            "w-full text-left p-2 hover:bg-accent transition-colors flex items-center justify-between rounded-sm",
+                            selectedCategory === category.id
+                              ? "bg-accent-2"
+                              : "",
+                          )}
+                        >
+                          <span>{category.label}</span>
+                          <ChevronRight />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Right Column - Options */}
+                  <div className="min-w-64 p-2">
+                    <div className="flex flex-col gap-1 ">
+                      {filterOptions[selectedCategory].map((option) => {
+                        const isSelected = isSelectedOption(
+                          selectedFilters,
+                          selectedCategory,
+                          option.value,
+                        );
+                        return (
+                          <Button
+                            variant="ghost"
+                            key={option.value}
+                            onClick={() => toggleFilter(option.value)}
+                            className={cn(
+                              " p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm",
+                              isSelected ? "" : "ps-7",
+                            )}
+                          >
+                            {isSelected && <Check className="w-7 h-4" />}
+                            <span className={cn("text-sm")}>
+                              {option.label}
+                            </span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 p-2 border-t">
+                  <Button
+                    variant="outline"
+                    className="rounded-md"
+                    size="sm"
+                    onClick={() => setSelectedFilters(emptyCommentFilters)}
+                  >
+                    Réinitialiser
+                  </Button>
+                  <Button
+                    className="rounded-md"
+                    size="sm"
+                    onClick={() => {
+                      setCommentFilters(selectedFilters);
+                      setFiltersOpen(false);
+                    }}
+                  >
+                    Appliquer
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Popover open={sortingOpen} onOpenChange={handleSortingOpenChange}>
+            <PopoverTrigger>
+              <Button variant="outline" onClick={() => setSortingOpen(true)}>
+                <ArrowDownUp /> Trier
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              className="w-auto p-0 flex flex-col min-w-sm"
+            >
+              <div>
+                {Object.values(CommentSortingCategory).map((sortingCategory) => (
+                  <div key={sortingCategory} className="p-1">
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        setCommentSortingCategory(
+                          sortingCategory as CommentSortingCategory,
+                        );
+                        setSortingOpen(false);
+                      }}
+                      className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
+                    >
+                      {[
+                        CommentSortingCategory.SCORE_DESC,
+                        CommentSortingCategory.COMMENT_DATE_DESC,
+                        CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+                      ].includes(sortingCategory as CommentSortingCategory) && (
+                        <ArrowUp />
+                      )}
+                      {[
+                        CommentSortingCategory.SCORE_ASC,
+                        CommentSortingCategory.COMMENT_DATE_ASC,
+                        CommentSortingCategory.PSEUDO_AUTHOR_DESC,
+                      ].includes(sortingCategory as CommentSortingCategory) && (
+                        <ArrowDown />
+                      )}
+                      <span>
+                        {getSortingLabel(
+                          sortingCategory as CommentSortingCategory,
+                        )}
+                      </span>
+                      {commentSortingCategory ===
+                        (sortingCategory as CommentSortingCategory) && (
+                        <Check className="ms-auto" />
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
         <form.Field
           name="commentIdList"
@@ -532,3 +780,24 @@ const addOrRemoveValueToSet = (currentSet: Set<string>, id: string) => {
   }
   return next;
 };
+
+
+// Attention, Le texte ne correspond pas forcément à un ordre croissant ou décroissant au sens mathématique,
+// mais plutôt à une logique métier (ex: "de nouveau à ancien" est considéré comme descendant même si du point
+// de vue mathématique c'est un ordre croissant)
+function getSortingLabel(sortingCategory: CommentSortingCategory): string {
+  switch (sortingCategory) {
+    case CommentSortingCategory.SCORE_ASC:
+      return "Score juridique : d'élevé à faible";
+    case CommentSortingCategory.SCORE_DESC:
+      return "Score juridique : de faible à élevé";
+    case CommentSortingCategory.COMMENT_DATE_DESC:
+      return "Date commentaire : de nouveau à ancien";
+    case CommentSortingCategory.COMMENT_DATE_ASC:
+      return "Date commentaire : d’ancien à nouveau";
+    case CommentSortingCategory.PSEUDO_AUTHOR_ASC:
+      return "Pseudo auteur : de A à Z";
+    case CommentSortingCategory.PSEUDO_AUTHOR_DESC:
+      return "Pseudo auteur : de Z à A";
+  }
+}
