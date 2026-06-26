@@ -8,7 +8,6 @@ import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
-  isCommentHateful,
   CommentSortingCategory,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
@@ -36,7 +35,7 @@ function PostDetailPage() {
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
-  const { commentFilters, setCommentFilters, filteredCommentList } =
+  const { commentFilters, setCommentFilters, filteredCommentList, hatefulAuthorList } =
     useFilteredCommentList(
       postId === undefined ? [] : [postId],
       commentSortingCategory,
@@ -144,9 +143,7 @@ function PostDetailPage() {
                 formId=""
                 // We can't use filteredHatefulComments because we want to access all the hateful authors
                 // and not only the ones that are currently displayed in the table (because of the filters)
-                authorList={post.comments
-                  .filter((comment) => isCommentHateful(comment))
-                  .map((comment) => comment.author.name)}
+                authorList={hatefulAuthorList}
                 onSubmit={() => console.log("submitted")}
                 showCreateReportButton={true}
               />

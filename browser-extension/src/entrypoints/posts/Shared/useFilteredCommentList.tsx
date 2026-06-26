@@ -18,6 +18,7 @@ export type useFilteredCommentListData = {
   commentFilters: CommentFilters;
   setCommentFilters: (commentFilters: CommentFilters) => void;
   filteredCommentList: PostCommentWithId[];
+  hatefulAuthorList: string[];
   isLoading: boolean;
 };
 /**
@@ -43,37 +44,53 @@ export function useFilteredCommentList(
   });
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
   //  et une clé postKey pour différencier les commentaires issus de différents posts
-  const filteredCommentList: PostCommentWithId[] = React.useMemo(() => {
-    const allComments: PostCommentWithId[] = (data || [])
-      .flatMap((p) => {
-        return p.comments.map(
-          (comment) =>
-            ({
-              ...comment,
-              postId: p.postId,
-              socialNetwork: p.socialNetwork,
-              postKey: buildPostKey(p.postId, p.socialNetwork),
-              isCommentHateful: isCommentHateful(comment),
-            }) as PostCommentWithId,
-        );
-      })
-      .map((comment, i) => {
-        return { ...comment, id: i.toString() };
-      });
-    const filteredCommentList: PostCommentWithId[] = filterCommentList(
-      allComments,
-      searchTerm,
-      commentFilters,
-    );
-    return sortCommentList(filteredCommentList, commentSortingCategory);
-  }, [data, searchTerm, commentFilters]);
+  const {
+    filteredCommentList,
+    hatefulAuthorList,
+  }: { filteredCommentList: PostCommentWithId[]; hatefulAuthorList: string[] } =
+    React.useMemo(() => {
+      const allComments: PostCommentWithId[] = (data || [])
+        .flatMap((p) => {
+          return p.comments.map(
+            (comment) =>
+              ({
+                ...comment,
+                postId: p.postId,
+                socialNetwork: p.socialNetwork,
+                postKey: buildPostKey(p.postId, p.socialNetwork),
+                isCommentHateful: isCommentHateful(comment),
+              }) as PostCommentWithId,
+          );
+        })
+        .map((comment, i) => {
+          return { ...comment, id: i.toString() };
+        });
+
+      const hatefulAuthorList: string[] = allComments
+        .filter((comment) => comment.isCommentHateful)
+        .map((comment) => comment.author.name);
+
+      const filteredCommentList: PostCommentWithId[] = filterCommentList(
+        allComments,
+        searchTerm,
+        commentFilters,
+      );
+      return {
+        filteredCommentList: sortCommentList(
+          filteredCommentList,
+          commentSortingCategory,
+        ),
+        hatefulAuthorList,
+      };
+    }, [data, searchTerm, commentFilters]);
 
   return {
     searchTerm,
     setSearchTerm,
-     commentFilters,
+    commentFilters,
     setCommentFilters,
     filteredCommentList: filteredCommentList,
+    hatefulAuthorList,
     isLoading,
   };
 }

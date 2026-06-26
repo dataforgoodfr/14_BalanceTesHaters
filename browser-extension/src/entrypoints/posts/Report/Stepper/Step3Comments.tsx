@@ -17,7 +17,7 @@ function Step3Comments({
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
-  const { commentFilters, setCommentFilters, filteredCommentList: commentList, isLoading } =
+  const { commentFilters, setCommentFilters, filteredCommentList: commentList, hatefulAuthorList, isLoading } =
     useFilteredCommentList(
       reportQueryData?.postIdList ?? [],
       commentSortingCategory,
@@ -61,7 +61,7 @@ function Step3Comments({
             }
             onSubmit={handleSubmit}
             formId={getFormId(stepper.state.current.data.id)}
-            authorList={hatefulCommentList.map((comment) => comment.author.name)}
+            authorList={hatefulAuthorList}
             showScreenshotColumn={true}
             showCreateReportButton={false}
           />

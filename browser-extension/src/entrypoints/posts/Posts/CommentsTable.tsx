@@ -161,6 +161,13 @@ export default function CommentsTable({
     useState<CommentsFilterCategory>("date");
   const [selectedFilters, setSelectedFilters] =
     useState<CommentFilters>(commentFilters);
+  const [authorSearchTerm, setAuthorSearchTerm] = React.useState("");
+
+  React.useEffect(() => {
+    if (selectedCategory !== "pseudoAuthor" && authorSearchTerm !== "") {
+      setAuthorSearchTerm("");
+    }
+  }, [selectedCategory, authorSearchTerm]);
 
   const toggleFilter = (value: string) => {
     setSelectedFilters((prev) => {
@@ -438,6 +445,32 @@ export default function CommentsTable({
     ],
   };
 
+  const filteredPseudoAuthorOptions = React.useMemo(() => {
+    console.log("authorList", authorList);
+    console.log("filterOptions.pseudoAuthor", filterOptions.pseudoAuthor);
+    if (selectedCategory !== "pseudoAuthor") {
+      return filterOptions.pseudoAuthor;
+    }
+
+    const normalizedAuthorSearchTerm = authorSearchTerm.trim().toLowerCase();
+    const matchingOptions = filterOptions.pseudoAuthor.filter((option) =>
+      option.label.toLowerCase().includes(normalizedAuthorSearchTerm),
+    );
+
+    const selectedOptions = filterOptions.pseudoAuthor.filter(
+      (option) =>
+        selectedFilters.pseudoAuthor.includes(option.value) &&
+        !matchingOptions.some((matching) => matching.value === option.value),
+    );
+
+    return [...matchingOptions, ...selectedOptions];
+  }, [authorSearchTerm, filterOptions.pseudoAuthor, selectedCategory, selectedFilters.pseudoAuthor]);
+
+  const optionsToRender =
+    selectedCategory === "pseudoAuthor"
+      ? filteredPseudoAuthorOptions
+      : filterOptions[selectedCategory];
+
   const navigate = useNavigate();
 
   return (
@@ -547,8 +580,25 @@ export default function CommentsTable({
 
                   {/* Right Column - Options */}
                   <div className="min-w-64 p-2 overflow-y-auto">
+                    {selectedCategory === "pseudoAuthor" ? (
+                      <div className="pb-3">
+                        <InputGroup className="w-full">
+                          <InputGroupInput
+                            value={authorSearchTerm}
+                            onChange={(event) =>
+                              setAuthorSearchTerm(event.target.value)
+                            }
+                            placeholder="Rechercher"
+                            aria-label="Rechercher un auteur"
+                          />
+                          <InputGroupAddon>
+                            <SearchIcon />
+                          </InputGroupAddon>
+                        </InputGroup>
+                      </div>
+                    ) : null}
                     <div className="flex flex-col gap-1 ">
-                      {filterOptions[selectedCategory].map((option) => {
+                      {optionsToRender.map((option) => {
                         const isSelected = isSelectedOption(
                           selectedFilters,
                           selectedCategory,
