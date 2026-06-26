@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useReactTable,
   getPaginationRowModel,
@@ -18,10 +18,8 @@ import {
   ArrowDownUp,
   ArrowUp,
   Check,
-  ChevronRight,
   Eye,
   EyeOff,
-  Funnel,
   SearchIcon,
   UserRound,
 } from "lucide-react";
@@ -69,25 +67,8 @@ import {
 import {
   CommentFilters,
   CommentSortingCategory,
-  emptyCommentFilters,
 } from "@/shared/utils/post-util";
-import {
-  toggleFilterValue,
-  isCategoryFiltered,
-  isSelectedOption,
-} from "@/shared/utils/filter-util";
-import { cn } from "@/lib/utils";
-import {
-  AnnotatedCategory,
-  getCategoryLabel,
-} from "@/shared/model/AnnotatedCategory";
-
-type CommentsFilterCategory =
-  | "date"
-  | "score"
-  | "alert"
-  | "pseudoAuthor"
-  | "status";
+import CommentsFilterPopover from "./CommentsFilterPopover";
 
 /**
  * Merged view of Post Snapshot
@@ -99,15 +80,6 @@ export type PostCommentWithId = PostComment & {
   postKey: string;
   isCommentHateful: boolean;
 };
-
-const categories = [
-  { id: "date", label: "Date", isDisabled: true },
-  { id: "score", label: "Score juridique", isDisabled: true },
-  { id: "alert", label: "Alerte sécurité", isDisabled: true },
-  { id: "category", label: "Catégorie", isDisabled: true },
-  { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
-  { id: "status", label: "Statut du commentaire", isDisabled: true },
-] as const;
 
 export default function CommentsTable({
   commentList,
@@ -137,7 +109,6 @@ export default function CommentsTable({
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [sortingOpen, setSortingOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     new Set(),
   );
@@ -157,31 +128,6 @@ export default function CommentsTable({
     },
   });
 
-  const [selectedCategory, setSelectedCategory] =
-    useState<CommentsFilterCategory>("date");
-  const [selectedFilters, setSelectedFilters] =
-    useState<CommentFilters>(commentFilters);
-  const [authorSearchTerm, setAuthorSearchTerm] = React.useState("");
-
-  React.useEffect(() => {
-    if (selectedCategory !== "pseudoAuthor" && authorSearchTerm !== "") {
-      setAuthorSearchTerm("");
-    }
-  }, [selectedCategory, authorSearchTerm]);
-
-  const toggleFilter = (value: string) => {
-    setSelectedFilters((prev) => {
-      return toggleFilterValue(prev, selectedCategory, value);
-    });
-  };
-
-  const handleFiltersOpenChange = (open: React.SetStateAction<boolean>) => {
-    setFiltersOpen(open);
-    // Lorsque la modale se ferme, les filtres sont réinitialisés à la valeur des filtres appliqués
-    if (!open) {
-      setSelectedFilters(commentFilters);
-    }
-  };
 
   const handleSortingOpenChange = (open: React.SetStateAction<boolean>) => {
     setSortingOpen(open);
@@ -409,71 +355,6 @@ export default function CommentsTable({
     }
   };
 
-  const nbSelectedFilters = Object.values(commentFilters).filter(
-    (categoryValue) => isCategoryFiltered(categoryValue),
-  ).length;
-
-  const filterOptions = {
-    date: [],
-
-    score: [
-      { label: "5/5", value: "5" },
-      { label: "4/5", value: "4" },
-      { label: "3/5", value: "3" },
-      { label: "2/5", value: "2" },
-      { label: "1/5", value: "1" },
-    ],
-    alert: [
-      { label: "Détectée", value: "detected" },
-      { label: "Non détectée", value: "not_detected" },
-    ],
-    containsCategory: Object.values(AnnotatedCategory).map((category) => ({
-      label: getCategoryLabel(category),
-      value: category,
-    })),
-
-    pseudoAuthor: [...new Set(authorList)]
-      .map((author) => ({
-        label: author,
-        value: author,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label)),
-
-    status: [
-      { label: "Nouveau", value: "new" },
-      { label: "Supprimé", value: "deleted" },
-    ],
-  };
-
-  const filteredPseudoAuthorOptions = React.useMemo(() => {
-    if (selectedCategory !== "pseudoAuthor") {
-      return filterOptions.pseudoAuthor;
-    }
-
-    const normalizedAuthorSearchTerm = authorSearchTerm.trim().toLowerCase();
-    const matchingOptions = filterOptions.pseudoAuthor.filter((option) =>
-      option.label.toLowerCase().includes(normalizedAuthorSearchTerm),
-    );
-
-    const selectedOptions = filterOptions.pseudoAuthor.filter(
-      (option) =>
-        selectedFilters.pseudoAuthor.includes(option.value) &&
-        !matchingOptions.some((matching) => matching.value === option.value),
-    );
-
-    return [...matchingOptions, ...selectedOptions];
-  }, [
-    authorSearchTerm,
-    filterOptions.pseudoAuthor,
-    selectedCategory,
-    selectedFilters.pseudoAuthor,
-  ]);
-
-  const optionsToRender =
-    selectedCategory === "pseudoAuthor"
-      ? filteredPseudoAuthorOptions
-      : filterOptions[selectedCategory];
-
   const navigate = useNavigate();
 
   return (
@@ -545,112 +426,11 @@ export default function CommentsTable({
             Tout sélectionner
           </Button>
 
-          <Popover open={filtersOpen} onOpenChange={handleFiltersOpenChange}>
-            <PopoverTrigger>
-              <Button variant="outline" onClick={() => setFiltersOpen(true)}>
-                <Funnel /> Filtrer{" "}
-                {nbSelectedFilters > 0 && `(${nbSelectedFilters})`}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="start" className="w-auto p-0">
-              <div>
-                <div className="flex rounded-lg max-h-66">
-                  {/* Left Column - Categories */}
-                  <div className="border-r overflow-visible">
-                    {categories.map((category) => (
-                      <div key={category.id} className="p-1">
-                        <Button
-                          variant="ghost"
-                          onClick={() =>
-                            setSelectedCategory(
-                              category.id as CommentsFilterCategory,
-                            )
-                          }
-                          disabled={category.isDisabled}
-                          className={cn(
-                            "w-full text-left p-2 hover:bg-accent transition-colors flex items-center justify-between rounded-sm",
-                            selectedCategory === category.id
-                              ? "bg-accent-2"
-                              : "",
-                          )}
-                        >
-                          <span>{category.label}</span>
-                          <ChevronRight />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Right Column - Options */}
-                  <div className="min-w-64 p-2 overflow-y-auto">
-                    {selectedCategory === "pseudoAuthor" ? (
-                      <div className="pb-3">
-                        <InputGroup className="w-full">
-                          <InputGroupInput
-                            value={authorSearchTerm}
-                            onChange={(event) =>
-                              setAuthorSearchTerm(event.target.value)
-                            }
-                            placeholder="Rechercher"
-                            aria-label="Rechercher un auteur"
-                          />
-                          <InputGroupAddon>
-                            <SearchIcon />
-                          </InputGroupAddon>
-                        </InputGroup>
-                      </div>
-                    ) : null}
-                    <div className="flex flex-col gap-1 ">
-                      {optionsToRender.map((option) => {
-                        const isSelected = isSelectedOption(
-                          selectedFilters,
-                          selectedCategory,
-                          option.value,
-                        );
-                        return (
-                          <Button
-                            variant="ghost"
-                            key={option.value}
-                            onClick={() => toggleFilter(option.value)}
-                            className={cn(
-                              " p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm",
-                              isSelected ? "" : "ps-7",
-                            )}
-                          >
-                            {isSelected && <Check className="w-7 h-4" />}
-                            <span className={cn("text-sm")}>
-                              {option.label}
-                            </span>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-2 p-2 border-t">
-                  <Button
-                    variant="outline"
-                    className="rounded-md"
-                    size="sm"
-                    onClick={() => setSelectedFilters(emptyCommentFilters)}
-                  >
-                    Réinitialiser
-                  </Button>
-                  <Button
-                    className="rounded-md"
-                    size="sm"
-                    onClick={() => {
-                      setCommentFilters(selectedFilters);
-                      setFiltersOpen(false);
-                    }}
-                  >
-                    Appliquer
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <CommentsFilterPopover
+            authorList={authorList}
+            commentFilters={commentFilters}
+            onApplyFilters={setCommentFilters}
+          />
 
           <Popover open={sortingOpen} onOpenChange={handleSortingOpenChange}>
             <PopoverTrigger>

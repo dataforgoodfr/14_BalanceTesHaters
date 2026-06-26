@@ -50,6 +50,7 @@ export type CommentFilters = {
   date: DateFilterOptions | undefined;
   score: string[];
   alert: string[];
+  category: string[];
   status: string[];
   pseudoAuthor: string[];
 };
@@ -70,6 +71,7 @@ export const emptyCommentFilters: CommentFilters = {
   alert: [],
   status: [],
   pseudoAuthor: [],
+  category: [],
 };
 
 export function isCommentHateful(comment: PostComment): boolean {
