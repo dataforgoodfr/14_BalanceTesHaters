@@ -1,8 +1,6 @@
 import { ReportQueryData, useStepper } from "./BuildReport";
 import CommentsTable, { PostCommentWithId } from "../../Posts/CommentsTable";
-import {
-  CommentSortingCategory,
-} from "@/shared/utils/post-util";
+import { CommentSortingCategory } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
 import { getFormId } from "./StepperComponents";
@@ -19,19 +17,21 @@ function Step3Comments({
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
-  const { commentFilters, setCommentFilters, commentList, isLoading } =
+  const { commentFilters, setCommentFilters, filteredCommentList: commentList, isLoading } =
     useFilteredCommentList(
       reportQueryData?.postIdList ?? [],
       commentSortingCategory,
     );
 
-const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
+  const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
 
   const stepper = useStepper();
 
   const handleSubmit = (commentIdList: string[]) => {
     setCommentList(
-      hatefulCommentList.filter((comment) => commentIdList.includes(comment.id)),
+      hatefulCommentList.filter((comment) =>
+        commentIdList.includes(comment.id),
+      ),
     );
     void stepper.navigation.next();
   };
@@ -44,9 +44,10 @@ const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
       />
       <div className="flex flex-col gap-4 h-9/12 justify-center">
         {isLoading && <Spinner className="size-8" />}
-        {!isLoading && (!hatefulCommentList || hatefulCommentList.length === 0) && (
-          <p className="text-center">Aucun commentaire</p>
-        )}
+        {!isLoading &&
+          (!hatefulCommentList || hatefulCommentList.length === 0) && (
+            <p className="text-center">Aucun commentaire</p>
+          )}
         {!isLoading && hatefulCommentList.length > 0 && (
           <CommentsTable
             commentList={hatefulCommentList}
@@ -60,6 +61,7 @@ const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
             }
             onSubmit={handleSubmit}
             formId={getFormId(stepper.state.current.data.id)}
+            authorList={hatefulCommentList.map((comment) => comment.author.name)}
             showScreenshotColumn={true}
             showCreateReportButton={false}
           />

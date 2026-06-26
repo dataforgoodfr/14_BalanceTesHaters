@@ -106,7 +106,7 @@ const categories = [
   { id: "alert", label: "Alerte sécurité", isDisabled: true },
   { id: "category", label: "Catégorie", isDisabled: true },
   { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
-  { id: "status", label: "Statut", isDisabled: true },
+  { id: "status", label: "Statut du commentaire", isDisabled: true },
 ] as const;
 
 export default function CommentsTable({
@@ -118,6 +118,7 @@ export default function CommentsTable({
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
+  authorList,
   showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
@@ -129,6 +130,7 @@ export default function CommentsTable({
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
+  authorList: string[];
   showCreateReportButton: boolean;
   showScreenshotColumn?: boolean;
 }>) {
@@ -177,7 +179,6 @@ export default function CommentsTable({
   const handleSortingOpenChange = (open: React.SetStateAction<boolean>) => {
     setSortingOpen(open);
   };
-
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
@@ -424,12 +425,12 @@ export default function CommentsTable({
       value: category,
     })),
 
-    pseudoAuthor: [
-      ...new Set(filteredComments.map((comment) => comment.author)),
-    ].map((author) => ({
-      label: author.name,
-      value: author.name,
-    })),
+    pseudoAuthor: [...new Set(authorList)]
+      .map((author) => ({
+        label: author,
+        value: author,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
 
     status: [
       { label: "Terminée", value: "done" },
@@ -517,9 +518,9 @@ export default function CommentsTable({
             </PopoverTrigger>
             <PopoverContent align="start" className="w-auto p-0">
               <div>
-                <div className="flex rounded-lg ">
+                <div className="flex rounded-lg max-h-66">
                   {/* Left Column - Categories */}
-                  <div className="border-r ">
+                  <div className="border-r overflow-visible">
                     {categories.map((category) => (
                       <div key={category.id} className="p-1">
                         <Button
@@ -545,7 +546,7 @@ export default function CommentsTable({
                   </div>
 
                   {/* Right Column - Options */}
-                  <div className="min-w-64 p-2">
+                  <div className="min-w-64 p-2 overflow-y-auto">
                     <div className="flex flex-col gap-1 ">
                       {filterOptions[selectedCategory].map((option) => {
                         const isSelected = isSelectedOption(
@@ -609,44 +610,46 @@ export default function CommentsTable({
               className="w-auto p-0 flex flex-col min-w-sm"
             >
               <div>
-                {Object.values(CommentSortingCategory).map((sortingCategory) => (
-                  <div key={sortingCategory} className="p-1">
-                    <Button
-                      variant="ghost"
-                      onClick={() => {
-                        setCommentSortingCategory(
+                {Object.values(CommentSortingCategory).map(
+                  (sortingCategory) => (
+                    <div key={sortingCategory} className="p-1">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setCommentSortingCategory(
+                            sortingCategory as CommentSortingCategory,
+                          );
+                          setSortingOpen(false);
+                        }}
+                        className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
+                      >
+                        {[
+                          CommentSortingCategory.SCORE_DESC,
+                          CommentSortingCategory.COMMENT_DATE_DESC,
+                          CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+                        ].includes(
                           sortingCategory as CommentSortingCategory,
-                        );
-                        setSortingOpen(false);
-                      }}
-                      className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
-                    >
-                      {[
-                        CommentSortingCategory.SCORE_DESC,
-                        CommentSortingCategory.COMMENT_DATE_DESC,
-                        CommentSortingCategory.PSEUDO_AUTHOR_ASC,
-                      ].includes(sortingCategory as CommentSortingCategory) && (
-                        <ArrowUp />
-                      )}
-                      {[
-                        CommentSortingCategory.SCORE_ASC,
-                        CommentSortingCategory.COMMENT_DATE_ASC,
-                        CommentSortingCategory.PSEUDO_AUTHOR_DESC,
-                      ].includes(sortingCategory as CommentSortingCategory) && (
-                        <ArrowDown />
-                      )}
-                      <span>
-                        {getSortingLabel(
+                        ) && <ArrowUp />}
+                        {[
+                          CommentSortingCategory.SCORE_ASC,
+                          CommentSortingCategory.COMMENT_DATE_ASC,
+                          CommentSortingCategory.PSEUDO_AUTHOR_DESC,
+                        ].includes(
                           sortingCategory as CommentSortingCategory,
+                        ) && <ArrowDown />}
+                        <span>
+                          {getSortingLabel(
+                            sortingCategory as CommentSortingCategory,
+                          )}
+                        </span>
+                        {commentSortingCategory ===
+                          (sortingCategory as CommentSortingCategory) && (
+                          <Check className="ms-auto" />
                         )}
-                      </span>
-                      {commentSortingCategory ===
-                        (sortingCategory as CommentSortingCategory) && (
-                        <Check className="ms-auto" />
-                      )}
-                    </Button>
-                  </div>
-                ))}
+                      </Button>
+                    </div>
+                  ),
+                )}
               </div>
             </PopoverContent>
           </Popover>
@@ -780,7 +783,6 @@ const addOrRemoveValueToSet = (currentSet: Set<string>, id: string) => {
   }
   return next;
 };
-
 
 // Attention, Le texte ne correspond pas forcément à un ordre croissant ou décroissant au sens mathématique,
 // mais plutôt à une logique métier (ex: "de nouveau à ancien" est considéré comme descendant même si du point

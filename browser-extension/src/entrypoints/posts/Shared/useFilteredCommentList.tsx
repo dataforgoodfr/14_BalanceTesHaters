@@ -17,7 +17,7 @@ export type useFilteredCommentListData = {
   setSearchTerm: (searchTerm: string) => void;
   commentFilters: CommentFilters;
   setCommentFilters: (commentFilters: CommentFilters) => void;
-  commentList: PostCommentWithId[];
+  filteredCommentList: PostCommentWithId[];
   isLoading: boolean;
 };
 /**
@@ -43,7 +43,7 @@ export function useFilteredCommentList(
   });
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
   //  et une clé postKey pour différencier les commentaires issus de différents posts
-  const commentList: PostCommentWithId[] = React.useMemo(() => {
+  const filteredCommentList: PostCommentWithId[] = React.useMemo(() => {
     const allComments: PostCommentWithId[] = (data || [])
       .flatMap((p) => {
         return p.comments.map(
@@ -73,7 +73,7 @@ export function useFilteredCommentList(
     setSearchTerm,
      commentFilters,
     setCommentFilters,
-    commentList,
+    filteredCommentList: filteredCommentList,
     isLoading,
   };
 }

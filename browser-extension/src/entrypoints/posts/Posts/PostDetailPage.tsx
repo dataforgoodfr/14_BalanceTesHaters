@@ -36,14 +36,14 @@ function PostDetailPage() {
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
-  const { commentFilters, setCommentFilters, commentList } =
+  const { commentFilters, setCommentFilters, filteredCommentList } =
     useFilteredCommentList(
       postId === undefined ? [] : [postId],
       commentSortingCategory,
     );
 
-  const hatefulComments = commentList.filter((c) => isCommentHateful(c));
-  const numberOfHatefulComments = hatefulComments.length;
+  const filteredHatefulComments = filteredCommentList.filter((c) => c.isCommentHateful);
+  const numberOfHatefulComments = filteredHatefulComments.length;
 
   return (
     <main className="flex flex-col gap-6">
@@ -102,17 +102,17 @@ function PostDetailPage() {
               <div className="flex gap-4 justify-between w-full">
                 <PercentageHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={commentList.length}
+                  numberOfComments={filteredCommentList.length}
                   isLoading={isLoading}
                 />
                 <NumberHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={commentList.length}
+                  numberOfComments={filteredCommentList.length}
                   isLoading={isLoading}
                 />
                 <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 <NumberHatefulAuhorsKpiCard
-                  hatefulCommentList={hatefulComments}
+                  hatefulCommentList={filteredHatefulComments}
                   isLoading={isLoading}
                 />
               </div>
@@ -135,13 +135,18 @@ function PostDetailPage() {
                 un rapport”.
               </span>
               <CommentsTable
-                commentList={hatefulComments}
+                commentList={filteredHatefulComments}
                 commentFilters={commentFilters}
                 setCommentFilters={setCommentFilters}
                 commentSortingCategory={commentSortingCategory}
                 setCommentSortingCategory={setCommentSortingCategory}
                 defaultSelectedCommentIdList={[]}
                 formId=""
+                // We can't use filteredHatefulComments because we want to access all the hateful authors
+                // and not only the ones that are currently displayed in the table (because of the filters)
+                authorList={post.comments
+                  .filter((comment) => isCommentHateful(comment))
+                  .map((comment) => comment.author.name)}
                 onSubmit={() => console.log("submitted")}
                 showCreateReportButton={true}
               />
