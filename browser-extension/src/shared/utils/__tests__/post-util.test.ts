@@ -2,14 +2,20 @@ import { describe, it, expect } from "vitest";
 import {
   getEarliestPostDate,
   filterPosts,
+  filterCommentList,
+  sortCommentList,
   PostFilters,
+  CommentFilters,
   NbHatefulCommentsOptions,
+  CommentSortingCategory,
   emptyPostFilters,
+  emptyCommentFilters,
 } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Post, PostComment } from "@/shared/model/post/Post";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
+import { PostCommentWithId } from "@/entrypoints/posts/Posts/CommentsTable";
 
 /**
  * Helper function to create a dummy Post list with a specific publication date
@@ -66,6 +72,29 @@ function createHatefulComment(
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     isNew: false,
     isDeleted: false,
+  };
+}
+
+function createDummyCommentWithId(
+  overrides: Partial<PostCommentWithId> = {},
+): PostCommentWithId {
+  return {
+    id: "comment-1",
+    postId: "post-1",
+    socialNetwork: "youtube",
+    postKey: "post-1|youtube",
+    isCommentHateful: false,
+    author: { name: "Author", accountHref: "https://example.com" },
+    textContent: "Test comment",
+    publishedAt: {
+      type: "absolute",
+      date: new Date("2026-01-01T12:00:00Z").toISOString(),
+    },
+    screenshotData:
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    isNew: false,
+    isDeleted: false,
+    ...overrides,
   };
 }
 
@@ -289,6 +318,188 @@ describe("post utilities", () => {
         const result = filterPosts(posts, "script", emptyPostFilters);
 
         expect(result).toHaveLength(1);
+      });
+    });
+
+    describe("comment list filtering", () => {
+      it("should filter by pseudo author list", () => {
+        const comments = [
+          createDummyCommentWithId({
+            author: { name: "Alice", accountHref: "" },
+          }),
+          createDummyCommentWithId({
+            author: { name: "Bob", accountHref: "" },
+          }),
+          createDummyCommentWithId({
+            author: { name: "Charlie", accountHref: "" },
+          }),
+        ];
+
+        const filters: CommentFilters = {
+          ...emptyCommentFilters,
+          pseudoAuthor: ["Bob", "Charlie"],
+        };
+
+        const result = filterCommentList(comments, "", filters);
+
+        expect(result).toHaveLength(2);
+        expect(result.map((comment) => comment.author.name)).toEqual([
+          "Bob",
+          "Charlie",
+        ]);
+      });
+
+      it("should filter by search term against text and author name", () => {
+        const comments = [
+          createDummyCommentWithId({
+            author: { name: "Diane", accountHref: "" },
+            textContent: "First comment",
+          }),
+          createDummyCommentWithId({
+            author: { name: "Eve", accountHref: "" },
+            textContent: "Another note",
+          }),
+          createDummyCommentWithId({
+            author: { name: "Frank", accountHref: "" },
+            textContent: "Some other text",
+          }),
+        ];
+
+        const result = filterCommentList(
+          comments,
+          "diane",
+          emptyCommentFilters,
+        );
+        expect(result).toHaveLength(1);
+        expect(result[0].author.name).toBe("Diane");
+
+        const resultByText = filterCommentList(
+          comments,
+          "another",
+          emptyCommentFilters,
+        );
+        expect(resultByText).toHaveLength(1);
+        expect(resultByText[0].textContent).toBe("Another note");
+      });
+
+      it("should be case-insensitive for search terms", () => {
+        const comments = [
+          createDummyCommentWithId({
+            author: { name: "Grace", accountHref: "" },
+            textContent: "Example comment",
+          }),
+        ];
+
+        const result = filterCommentList(
+          comments,
+          "grace",
+          emptyCommentFilters,
+        );
+        expect(result).toHaveLength(1);
+
+        const resultUpper = filterCommentList(
+          comments,
+          "GRACE",
+          emptyCommentFilters,
+        );
+        expect(resultUpper).toHaveLength(1);
+      });
+    });
+
+    describe("comment list sorting", () => {
+      it("should return the original array for score sorting categories", () => {
+        const comments = [
+          createDummyCommentWithId({ id: "1" }),
+          createDummyCommentWithId({ id: "2" }),
+        ];
+
+        const resultAsc = sortCommentList(
+          comments,
+          CommentSortingCategory.SCORE_ASC,
+        );
+        const resultDesc = sortCommentList(
+          comments,
+          CommentSortingCategory.SCORE_DESC,
+        );
+
+        expect(resultAsc).toBe(comments);
+        expect(resultDesc).toBe(comments);
+      });
+
+      it("should sort by comment date for COMMENT_DATE_ASC and COMMENT_DATE_DESC", () => {
+        const comments = [
+          createDummyCommentWithId({
+            id: "1",
+            publishedAt: {
+              type: "absolute",
+              date: new Date("2026-01-01T09:00:00Z").toISOString(),
+            },
+          }),
+          createDummyCommentWithId({
+            id: "2",
+            publishedAt: {
+              type: "absolute",
+              date: new Date("2026-01-01T12:00:00Z").toISOString(),
+            },
+          }),
+          createDummyCommentWithId({
+            id: "3",
+            publishedAt: {
+              type: "absolute",
+              date: new Date("2026-01-01T15:00:00Z").toISOString(),
+            },
+          }),
+        ];
+
+        const ascResult = sortCommentList(
+          comments,
+          CommentSortingCategory.COMMENT_DATE_ASC,
+        );
+        expect(ascResult.map((comment) => comment.id)).toEqual(["3", "2", "1"]);
+
+        const descResult = sortCommentList(
+          comments,
+          CommentSortingCategory.COMMENT_DATE_DESC,
+        );
+        expect(descResult.map((comment) => comment.id)).toEqual([
+          "1",
+          "2",
+          "3",
+        ]);
+      });
+
+      it("should sort by author name for pseudo author categories", () => {
+        const comments = [
+          createDummyCommentWithId({
+            author: { name: "Zoe", accountHref: "" },
+          }),
+          createDummyCommentWithId({
+            author: { name: "Aaron", accountHref: "" },
+          }),
+          createDummyCommentWithId({
+            author: { name: "Mia", accountHref: "" },
+          }),
+        ];
+
+        const ascResult = sortCommentList(
+          comments,
+          CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+        );
+        expect(ascResult.map((comment) => comment.author.name)).toEqual([
+          "Aaron",
+          "Mia",
+          "Zoe",
+        ]);
+
+        const descResult = sortCommentList(
+          comments,
+          CommentSortingCategory.PSEUDO_AUTHOR_DESC,
+        );
+        expect(descResult.map((comment) => comment.author.name)).toEqual([
+          "Zoe",
+          "Mia",
+          "Aaron",
+        ]);
       });
     });
 
