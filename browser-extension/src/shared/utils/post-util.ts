@@ -27,12 +27,12 @@ export enum PostSortingCategory {
 }
 
 export enum CommentSortingCategory {
-  SCORE_DESC = "scoreDesc",
   SCORE_ASC = "scoreAsc",
-  COMMENT_DATE_DESC = "commentDateDesc",
+  SCORE_DESC = "scoreDesc",
   COMMENT_DATE_ASC = "commentDateAsc",
-  PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
+  COMMENT_DATE_DESC = "commentDateDesc",
   PSEUDO_AUTHOR_ASC = "pseudoAuthorAsc",
+  PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
 
 export type PostFilters = {
@@ -324,15 +324,15 @@ export function sortCommentList(
     case CommentSortingCategory.COMMENT_DATE_ASC:
       return [...commentList].sort((a, b) => {
         return (
-          getDateForSorting(a.publishedAt).getTime() -
-          getDateForSorting(b.publishedAt).getTime()
+          getDateForSorting(b.publishedAt).getTime() -
+          getDateForSorting(a.publishedAt).getTime()
         );
       });
     case CommentSortingCategory.COMMENT_DATE_DESC:
       return [...commentList].sort((a, b) => {
         return (
-          getDateForSorting(b.publishedAt).getTime() -
-          getDateForSorting(a.publishedAt).getTime()
+          getDateForSorting(a.publishedAt).getTime() -
+          getDateForSorting(b.publishedAt).getTime()
         );
       });
     case CommentSortingCategory.PSEUDO_AUTHOR_ASC:

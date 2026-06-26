@@ -33,15 +33,23 @@ function PostDetailPage() {
   });
 
   const [commentSortingCategory, setCommentSortingCategory] =
-    React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
-
-  const { commentFilters, setCommentFilters, filteredCommentList, hatefulAuthorList } =
-    useFilteredCommentList(
-      postId === undefined ? [] : [postId],
-      commentSortingCategory,
+    React.useState<CommentSortingCategory>(
+      CommentSortingCategory.PSEUDO_AUTHOR_ASC,
     );
 
-  const filteredHatefulComments = filteredCommentList.filter((c) => c.isCommentHateful);
+  const {
+    commentFilters,
+    setCommentFilters,
+    filteredCommentList,
+    hatefulAuthorList,
+  } = useFilteredCommentList(
+    postId === undefined ? [] : [postId],
+    commentSortingCategory,
+  );
+
+  const filteredHatefulComments = filteredCommentList.filter(
+    (c) => c.isCommentHateful,
+  );
   const numberOfHatefulComments = filteredHatefulComments.length;
 
   return (

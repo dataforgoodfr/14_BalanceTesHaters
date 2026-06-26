@@ -440,14 +440,12 @@ export default function CommentsTable({
       .sort((a, b) => a.label.localeCompare(b.label)),
 
     status: [
-      { label: "Terminée", value: "done" },
-      { label: "Non terminée", value: "in_progress" },
+      { label: "Nouveau", value: "new" },
+      { label: "Supprimé", value: "deleted" },
     ],
   };
 
   const filteredPseudoAuthorOptions = React.useMemo(() => {
-    console.log("authorList", authorList);
-    console.log("filterOptions.pseudoAuthor", filterOptions.pseudoAuthor);
     if (selectedCategory !== "pseudoAuthor") {
       return filterOptions.pseudoAuthor;
     }
@@ -464,7 +462,12 @@ export default function CommentsTable({
     );
 
     return [...matchingOptions, ...selectedOptions];
-  }, [authorSearchTerm, filterOptions.pseudoAuthor, selectedCategory, selectedFilters.pseudoAuthor]);
+  }, [
+    authorSearchTerm,
+    filterOptions.pseudoAuthor,
+    selectedCategory,
+    selectedFilters.pseudoAuthor,
+  ]);
 
   const optionsToRender =
     selectedCategory === "pseudoAuthor"
@@ -665,35 +668,29 @@ export default function CommentsTable({
                     <div key={sortingCategory} className="p-1">
                       <Button
                         variant="ghost"
+                        disabled={
+                          sortingCategory ===
+                            CommentSortingCategory.SCORE_DESC ||
+                          sortingCategory === CommentSortingCategory.SCORE_ASC
+                        }
                         onClick={() => {
-                          setCommentSortingCategory(
-                            sortingCategory as CommentSortingCategory,
-                          );
+                          setCommentSortingCategory(sortingCategory);
                           setSortingOpen(false);
                         }}
                         className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
                       >
                         {[
-                          CommentSortingCategory.SCORE_DESC,
-                          CommentSortingCategory.COMMENT_DATE_DESC,
-                          CommentSortingCategory.PSEUDO_AUTHOR_ASC,
-                        ].includes(
-                          sortingCategory as CommentSortingCategory,
-                        ) && <ArrowUp />}
-                        {[
                           CommentSortingCategory.SCORE_ASC,
                           CommentSortingCategory.COMMENT_DATE_ASC,
+                          CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+                        ].includes(sortingCategory) && <ArrowUp />}
+                        {[
+                          CommentSortingCategory.SCORE_DESC,
+                          CommentSortingCategory.COMMENT_DATE_DESC,
                           CommentSortingCategory.PSEUDO_AUTHOR_DESC,
-                        ].includes(
-                          sortingCategory as CommentSortingCategory,
-                        ) && <ArrowDown />}
-                        <span>
-                          {getSortingLabel(
-                            sortingCategory as CommentSortingCategory,
-                          )}
-                        </span>
-                        {commentSortingCategory ===
-                          (sortingCategory as CommentSortingCategory) && (
+                        ].includes(sortingCategory) && <ArrowDown />}
+                        <span>{getSortingLabel(sortingCategory)}</span>
+                        {commentSortingCategory === sortingCategory && (
                           <Check className="ms-auto" />
                         )}
                       </Button>
@@ -844,9 +841,9 @@ function getSortingLabel(sortingCategory: CommentSortingCategory): string {
     case CommentSortingCategory.SCORE_DESC:
       return "Score juridique : de faible à élevé";
     case CommentSortingCategory.COMMENT_DATE_DESC:
-      return "Date commentaire : de nouveau à ancien";
-    case CommentSortingCategory.COMMENT_DATE_ASC:
       return "Date commentaire : d’ancien à nouveau";
+      case CommentSortingCategory.COMMENT_DATE_ASC:
+      return "Date commentaire : de nouveau à ancien";
     case CommentSortingCategory.PSEUDO_AUTHOR_ASC:
       return "Pseudo auteur : de A à Z";
     case CommentSortingCategory.PSEUDO_AUTHOR_DESC:

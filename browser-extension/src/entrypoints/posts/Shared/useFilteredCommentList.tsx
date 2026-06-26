@@ -82,7 +82,7 @@ export function useFilteredCommentList(
         ),
         hatefulAuthorList,
       };
-    }, [data, searchTerm, commentFilters]);
+    }, [data, searchTerm, commentFilters, commentSortingCategory]);
 
   return {
     searchTerm,
