@@ -19,7 +19,7 @@ export type UseFilteredPostListData = {
   setPostFilters: (postFilters: PostFilters) => void;
   filteredPosts: Post[];
   isLoading: boolean;
-  deletePost: (post: Post) => Promise<void>;
+  deletePosts: (posts: Post[]) => Promise<void>;
 };
 /**
  * React hook for querying and filtering a post list
@@ -71,23 +71,27 @@ export function useFilteredPostList(
     postSortingCategory,
   ]);
 
-  const deletePost = async (post: Post): Promise<void> => {
-    const postUniqueId = uniqueId(post);
-    setPostsPendingDeletion((prev) => {
-      return new Set([...prev, postUniqueId]);
-    });
+  const deletePosts = async (posts: Post[]): Promise<void> => {
+    if (posts.length === 0) return;
+
+    const postUniqueIds = posts.map(uniqueId);
+    setPostsPendingDeletion((prev) => new Set([...prev, ...postUniqueIds]));
 
     try {
-      await deletePostFromStorage(post.socialNetwork, post.postId);
+      await deletePostFromStorage(
+        posts.map((post) => ({
+          socialNetwork: post.socialNetwork,
+          postId: post.postId,
+        })),
+      );
       await queryClient.invalidateQueries({ queryKey });
     } finally {
       setPostsPendingDeletion((prev) => {
         const copy = new Set(prev);
-        copy.delete(postUniqueId);
+        postUniqueIds.forEach((id) => copy.delete(id));
         return copy;
       });
     }
-    return;
   };
 
   return {
@@ -97,7 +101,7 @@ export function useFilteredPostList(
     setPostFilters,
     filteredPosts,
     isLoading,
-    deletePost,
+    deletePosts,
   };
 }
 
