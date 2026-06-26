@@ -8,45 +8,49 @@ import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
-  isCommentHateful,
-  buildPostKey,
+  CommentSortingCategory,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
-import CommentsTable, { PostCommentWithId } from "./CommentsTable";
+import CommentsTable from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
+import { useFilteredCommentList } from "../Shared/useFilteredCommentList";
+import React from "react";
 
 function PostDetailPage() {
   const params = useParams();
   const postId = params.postId || "";
   const socialNetworkName = params.socialNetworkName as SocialNetworkName;
 
-  const queryKey = ["posts", postId];
+  const queryKey = ["post", socialNetworkName, postId];
   const { data: post, isLoading } = useQuery({
     queryKey: queryKey,
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  const allComments = post?.comments || [];
-  const hatefulComments = post
-    ? allComments
-        .filter((c) => isCommentHateful(c))
-        .map((comment, i) => {
-          return {
-            ...comment,
-            id: i.toString(),
-            postId: post.postId,
-            socialNetwork: post.socialNetwork,
-            postKey: buildPostKey(post.postId, post.socialNetwork),
-          } as PostCommentWithId;
-        })
-    : [];
+  const [commentSortingCategory, setCommentSortingCategory] =
+    React.useState<CommentSortingCategory>(
+      CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+    );
 
-  const numberOfHatefulComments = hatefulComments.length;
+  const {
+    commentFilters,
+    setCommentFilters,
+    filteredCommentList,
+    hatefulAuthorList,
+  } = useFilteredCommentList(
+    postId === undefined ? [] : [postId],
+    commentSortingCategory,
+  );
+
+  const filteredHatefulComments = filteredCommentList.filter(
+    (c) => c.isCommentHateful,
+  );
+  const numberOfHatefulComments = filteredHatefulComments.length;
 
   return (
     <main className="flex flex-col gap-6">
@@ -105,17 +109,17 @@ function PostDetailPage() {
               <div className="flex gap-4 justify-between w-full">
                 <PercentageHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={allComments.length}
+                  numberOfComments={filteredCommentList.length}
                   isLoading={isLoading}
                 />
                 <NumberHatefulCommentsKpiCard
                   numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={allComments.length}
+                  numberOfComments={filteredCommentList.length}
                   isLoading={isLoading}
                 />
                 <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 <NumberHatefulAuhorsKpiCard
-                  hatefulCommentList={hatefulComments}
+                  hatefulCommentList={filteredHatefulComments}
                   isLoading={isLoading}
                 />
               </div>
@@ -138,9 +142,16 @@ function PostDetailPage() {
                 un rapport”.
               </span>
               <CommentsTable
-                commentList={hatefulComments}
+                commentList={filteredHatefulComments}
+                commentFilters={commentFilters}
+                setCommentFilters={setCommentFilters}
+                commentSortingCategory={commentSortingCategory}
+                setCommentSortingCategory={setCommentSortingCategory}
                 defaultSelectedCommentIdList={[]}
                 formId=""
+                // We can't use filteredHatefulComments because we want to access all the hateful authors
+                // and not only the ones that are currently displayed in the table (because of the filters)
+                authorList={hatefulAuthorList}
                 onSubmit={() => console.log("submitted")}
                 showCreateReportButton={true}
               />

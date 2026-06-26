@@ -5,7 +5,7 @@ import {
   filterPosts,
   PostFilters,
   PostSortingCategory,
-  sortPosts,
+  sortPostList,
 } from "@/shared/utils/post-util";
 import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -33,7 +33,11 @@ export function useFilteredPostList(
   const [searchTerm, setSearchTerm] = React.useState("");
   const [postFilters, setPostFilters] = React.useState(emptyPostFilters);
   const queryClient = useQueryClient();
-  const queryKey = ["posts", socialNetworkFilter, postFilters.date];
+  const queryKey = [
+    "postsSearchSocialNetworkAndPeriod",
+    socialNetworkFilter,
+    postFilters.date,
+  ];
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
@@ -62,7 +66,7 @@ export function useFilteredPostList(
       searchTerm,
       postFilters,
     );
-    return sortPosts(filteredPostList, postSortingCategory);
+    return sortPostList(filteredPostList, postSortingCategory);
   }, [
     data,
     postsPendingDeletion,
