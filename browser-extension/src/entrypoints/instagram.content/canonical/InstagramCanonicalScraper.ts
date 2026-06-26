@@ -40,7 +40,7 @@ export class InstagramCanonicalScraper {
 
     logger.debug("Extracting og info... ");
 
-    const coverImageUrl = ogImageUrl(this.scrapingSupport);
+    const coverImageUrl = await ogImageUrl(this.scrapingSupport);
 
     const {
       publishedAt,
