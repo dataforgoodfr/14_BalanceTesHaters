@@ -251,6 +251,7 @@ export async function buildClassificationStatus(
         post: (await getPostByPostId(snapshot.socialNetwork, snapshot.postId))!,
       };
     case "FAILED":
+    case "JOB_NOT_FOUND":
       return {
         type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_FAILED,
         tabId,
