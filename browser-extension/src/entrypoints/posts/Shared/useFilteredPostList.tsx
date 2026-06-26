@@ -33,7 +33,11 @@ export function useFilteredPostList(
   const [searchTerm, setSearchTerm] = React.useState("");
   const [postFilters, setPostFilters] = React.useState(emptyPostFilters);
   const queryClient = useQueryClient();
-  const queryKey = ["postsSearchSocialNetworkAndPeriod", socialNetworkFilter, postFilters.date];
+  const queryKey = [
+    "postsSearchSocialNetworkAndPeriod",
+    socialNetworkFilter,
+    postFilters.date,
+  ];
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>

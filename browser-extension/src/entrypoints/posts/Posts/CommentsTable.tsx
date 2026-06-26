@@ -13,12 +13,7 @@ import {
   Table,
   TableCell,
 } from "@/components/ui/table";
-import {
-  Eye,
-  EyeOff,
-  SearchIcon,
-  UserRound,
-} from "lucide-react";
+import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
 import { PostComment } from "@/shared/model/post/Post";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
@@ -118,8 +113,6 @@ export default function CommentsTable({
       onSubmit(form.state.values.commentIdList);
     },
   });
-
-
 
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set

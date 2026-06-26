@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ArrowDown, ArrowDownUp, ArrowUp, Check } from "lucide-react";
 import { CommentSortingCategory } from "@/shared/utils/post-util";
 

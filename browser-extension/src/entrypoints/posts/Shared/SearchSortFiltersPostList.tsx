@@ -26,7 +26,10 @@ import {
   PostFilters,
   PostSortingCategory,
 } from "@/shared/utils/post-util";
-import { toggleFilterValue, isCategoryFiltered } from "@/shared/utils/filter-util";
+import {
+  toggleFilterValue,
+  isCategoryFiltered,
+} from "@/shared/utils/filter-util";
 
 type PostsFilterCategory =
   | "date"
@@ -307,8 +310,6 @@ function isSelectedOption(
     return (selectedFilters[selectedCategory] as string) === optionValue;
   }
 }
-
-
 
 // Attention, Le texte ne correspond pas forcément à un ordre croissant ou décroissant au sens mathématique,
 // mais plutôt à une logique métier (ex: "de nouveau à ancien" est considéré comme descendant même si du point

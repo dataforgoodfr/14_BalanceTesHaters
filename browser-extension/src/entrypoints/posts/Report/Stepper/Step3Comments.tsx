@@ -17,11 +17,16 @@ function Step3Comments({
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
 
-  const { commentFilters, setCommentFilters, filteredCommentList: commentList, hatefulAuthorList, isLoading } =
-    useFilteredCommentList(
-      reportQueryData?.postIdList ?? [],
-      commentSortingCategory,
-    );
+  const {
+    commentFilters,
+    setCommentFilters,
+    filteredCommentList: commentList,
+    hatefulAuthorList,
+    isLoading,
+  } = useFilteredCommentList(
+    reportQueryData?.postIdList ?? [],
+    commentSortingCategory,
+  );
 
   const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
 
