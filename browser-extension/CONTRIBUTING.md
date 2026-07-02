@@ -22,9 +22,13 @@ Vérifier le formatage et le lint de code:
 
 - Lancer les tests unitaires (vitest): `pnpm test`
 - Lancer les tests end 2 end (playwright):
-  - **Necessite que `pnpm dev` soit lancé à coté**
+  - **Nécessite que `pnpm dev` soit lancé à coté**
   - `pnpm test:e2e` execute les tests et affiche le rapport.
   - `pnpm test:e2e:ui` lance les tests end-to-end avec Playwright UI.
+  - Optionnel: Lancer les tests en étant authentifié sur les plateformes de réseau
+    - Démarrer chromium et s'authentifier à Instagram & Youtube
+    - Définir la variable d'environnement `PATH_TO_BROWSER_CONTEXT` pour pointer vers le profile chrome existant
+    - Lancer la commande de test e2e de sont choix: e.g. `PATH_TO_BROWSER_CONTEXT=~/.config/chromium/ pnpm test:e2e:ui`
 
 # Configurer l'extension pour pointer vers le backend de classification locale
 

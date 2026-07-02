@@ -199,6 +199,9 @@ jobs:
         run: pnpm exec playwright install chromium
       - name: Build extension
         run: pnpm build
+        env:
+          # Enable degraded scrapping to still scrap even if some data is missing due to bot suspicieon
+          VITE_YT_ALLOW_DEGRADED_SCRAPPING: true
 
       - name: Install xvfb
         run: sudo apt-get install xvfb

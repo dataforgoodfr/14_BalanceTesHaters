@@ -1,10 +1,13 @@
 import { BrowserContext, Page } from "@playwright/test";
 import { closeYoutubeCookieDialogIfPresent } from "./closeYoutubeCookieDialogIfPresent";
+import { OpenAndPrepareResult } from "../e2eScrapPost";
+import { isYoutubeSuspectingBot } from "./isYoutubeSuspectingBot";
+import { isYoutubeAuthenticated } from "./isYoutubeAuthenticated";
 
 export async function openAndPrepareYoutubeShortsPage(
   postUrl: string,
   context: BrowserContext,
-): Promise<Page> {
+): Promise<OpenAndPrepareResult> {
   const postPage: Page = await context.newPage();
   await postPage.goto(postUrl, { waitUntil: "domcontentloaded" });
   console.info("[E2E] domcontentloaded.");
@@ -21,5 +24,12 @@ export async function openAndPrepareYoutubeShortsPage(
     timeout: 15000,
   });
 
-  return postPage;
+  const authenticated = await isYoutubeAuthenticated(postPage);
+  const platformSuspectingBot = await isYoutubeSuspectingBot(postPage);
+
+  return {
+    postPage,
+    authenticated,
+    platformSuspectingBot,
+  };
 }

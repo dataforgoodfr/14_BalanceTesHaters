@@ -7,6 +7,9 @@ export async function evaluateInBackgroundWorker<T>(
   // eslint-disable-next-line
   arg?: any,
 ): Promise<T> {
+  if (context.isClosed()) {
+    throw new Error("Context closed");
+  }
   const backgroundWorker = context.serviceWorkers()[0];
   if (!backgroundWorker) {
     throw new NoBackgroundWorker();

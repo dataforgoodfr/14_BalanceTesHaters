@@ -3,12 +3,14 @@ import { ScrapingSucceeded } from "@/shared/scraping-content-script/ScrapingStat
 import { BrowserContext, Page, TestInfo } from "@playwright/test";
 import { e2eWaitForScrapingSuccess } from "./e2eWaitForScrapingSuccess";
 import { triggerPageScrappingAndWaitForRunning } from "./e2eTriggerPageScrapping";
+import { e2eDeleteAllPostSnapshots } from "../extension-integration/storage/e2eDeleteAllPostSnapshots";
 
 export type E2EScrapPostResult = {
   postUrl: string;
   postPage: Page;
   postTabId: number;
-  authenticated?: boolean;
+  authenticated: boolean;
+  platformSuspectingBot: boolean;
   scrapingStatus: ScrapingSucceeded;
   postSnapshot: PostSnapshot;
 };
@@ -16,7 +18,6 @@ export type E2EScrapPostResult = {
 export async function e2eScrapPost({
   postUrl,
   openAndPreparePage,
-  detectAuthenticated,
   context,
   extensionId,
   testInfo,
@@ -26,18 +27,12 @@ export async function e2eScrapPost({
 }: {
   postUrl: string;
   /**
-   * Prepare page after open (ensure loading, close cookie dialog)
-   * @param page
-   * @returns
+   * Open and prepare page for scrapping (ensure loading, close cookie dialog, detect logged in)
    */
   openAndPreparePage: (
     postUrl: string,
     context: BrowserContext,
-  ) => Promise<Page>;
-  detectAuthenticated?: (
-    page: Page,
-    context: BrowserContext,
-  ) => Promise<boolean>;
+  ) => Promise<OpenAndPrepareResult>;
 
   extensionId: string;
   testInfo: TestInfo;
@@ -56,16 +51,16 @@ export async function e2eScrapPost({
   testInfo.setTimeout(pageSetupTimeout);
 
   console.info("[E2E] Opening and preparing page (url " + postUrl + ") ...");
-  const postPage: Page = await openAndPreparePage(postUrl, context);
-  console.info("[E2E] Post page ready.");
-
-  const authenticated = detectAuthenticated
-    ? await detectAuthenticated(postPage, context)
-    : undefined;
-  console.info("[E2E] Post page authenticated:", authenticated);
+  const { postPage, authenticated, platformSuspectingBot } =
+    await openAndPreparePage(postUrl, context);
+  console.info(
+    "[E2E] Post page prepared:",
+    JSON.stringify({ authenticated, platformSuspectingBot }),
+  );
 
   const pageScrappingStart = Date.now();
   testInfo.setTimeout(pageScrappingStart - start + scrapingTimeout);
+  await e2eDeleteAllPostSnapshots(context);
   const triggerResult = await triggerPageScrappingAndWaitForRunning({
     postPage,
     context,
@@ -88,7 +83,14 @@ export async function e2eScrapPost({
     postPage,
     postTabId: triggerResult.postTabId,
     authenticated,
+    platformSuspectingBot,
     scrapingStatus: scrapingSuccess.status,
     postSnapshot: scrapingSuccess.postSnapshot,
   };
 }
+
+export type OpenAndPrepareResult = {
+  postPage: Page;
+  authenticated: boolean;
+  platformSuspectingBot: boolean;
+};
