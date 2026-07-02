@@ -3,6 +3,10 @@ import { PopupPageObject } from "../po/PopupPageObject";
 import { e2eQueryTabIdWithUrl } from "../extension-integration/e2eQueryTabIdWithUrl";
 import { waitForConditionOrThrow } from "../utils/waitForCondition";
 import { e2eGetScrapingStatusOrUndefinedIfNoCS } from "../extension-integration/cs/e2eGetScrapingStatus";
+import {
+  isScrapingInProgress,
+  isScrapingCompleted,
+} from "@/shared/scraping-content-script/ScrapingStatus";
 
 export type TriggerScrapingResult = {
   popupPage: PopupPageObject;
@@ -52,7 +56,10 @@ async function e2eWaitForScrapingStarted(
         context,
         scrapingTabId,
       );
-      return status !== undefined && status.type !== "not-started";
+      return (
+        status !== undefined &&
+        (isScrapingInProgress(status) || isScrapingCompleted(status))
+      );
     },
   });
 }

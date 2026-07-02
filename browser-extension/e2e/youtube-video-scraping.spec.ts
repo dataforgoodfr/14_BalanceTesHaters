@@ -9,6 +9,8 @@ import { expectCommentsToMatchInvariants } from "./utils/expectCommentsToMatchIn
 import { expectSomeCommentsToHaveLikes } from "./utils/expectSomeCommentsToHaveLikes";
 import { expectSomeCommentsToHaveEmojis } from "./utils/expectSomeCommentsToHaveEmojis";
 
+const EXPECTED_MINIMUM_COMMENT_RATIO = 0.7;
+
 E2E_TESTED_LOCALES.forEach((locale) => {
   test.describe(`Youtube Video Scrapping (locale:${locale})`, () => {
     test.describe.configure({ mode: "serial" });
@@ -80,7 +82,7 @@ E2E_TESTED_LOCALES.forEach((locale) => {
 
       expect(allComments.length).toBeLessThanOrEqual(expectedCommentCount);
       expect(allComments.length).toBeGreaterThanOrEqual(
-        Math.floor(expectedCommentCount * 0.7),
+        Math.floor(expectedCommentCount * EXPECTED_MINIMUM_COMMENT_RATIO),
       );
     });
 
