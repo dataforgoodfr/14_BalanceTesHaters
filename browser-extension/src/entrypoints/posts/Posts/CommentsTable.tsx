@@ -13,15 +13,7 @@ import {
   Table,
   TableCell,
 } from "@/components/ui/table";
-import {
-  ArrowDownUp,
-  Eye,
-  EyeOff,
-  Funnel,
-  SearchIcon,
-  UserRound,
-} from "lucide-react";
-import { PostComment } from "@/shared/model/post/Post";
+import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
@@ -57,29 +49,36 @@ import {
 } from "@/components/ui/dialog";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { useNavigate } from "react-router";
-
-/**
- * Merged view of Post Snapshot
- */
-export type PostCommentWithId = PostComment & {
-  id: string;
-  postId: string;
-  socialNetwork: string;
-  postKey: string;
-};
+import {
+  CommentFilters,
+  CommentSortingCategory,
+  PostCommentWithId,
+} from "@/shared/utils/post-util";
+import CommentsFilterPopover from "./CommentsFilterPopover";
+import CommentsSortingPopover from "./CommentsSortingPopover";
 
 export default function CommentsTable({
   commentList,
+  commentFilters,
+  setCommentFilters,
+  commentSortingCategory,
+  setCommentSortingCategory,
   defaultSelectedCommentIdList,
   onSubmit,
   formId,
+  authorList,
   showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
   commentList: PostCommentWithId[];
+  commentFilters: CommentFilters;
+  setCommentFilters: (value: CommentFilters) => void;
+  commentSortingCategory: CommentSortingCategory;
+  setCommentSortingCategory: (value: CommentSortingCategory) => void;
   defaultSelectedCommentIdList: string[];
   onSubmit: (commentIdList: string[]) => void;
   formId: string;
+  authorList: string[];
   showCreateReportButton: boolean;
   showScreenshotColumn?: boolean;
 }>) {
@@ -377,9 +376,9 @@ export default function CommentsTable({
               onClick={() => {
                 void navigate("/build-report", {
                   state: {
-                    socialNetworkFilter: [commentList[0].socialNetwork],
-                    selectedPostIds: [commentList[0].postId],
-                    selectedCommentList: commentList.filter((comment) =>
+                    socialNetworkFilter: [filteredComments[0].socialNetwork],
+                    selectedPostIds: [filteredComments[0].postId],
+                    selectedCommentList: filteredComments.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),
                     skipToStep: "step-4",
@@ -396,12 +395,17 @@ export default function CommentsTable({
           >
             Tout sélectionner
           </Button>
-          <Button variant="outline" disabled>
-            Filtrer <Funnel />
-          </Button>
-          <Button variant="outline" disabled>
-            Trier <ArrowDownUp />
-          </Button>
+
+          <CommentsFilterPopover
+            authorList={authorList}
+            commentFilters={commentFilters}
+            onApplyFilters={setCommentFilters}
+          />
+
+          <CommentsSortingPopover
+            commentSortingCategory={commentSortingCategory}
+            onChange={setCommentSortingCategory}
+          />
         </div>
         <form.Field
           name="commentIdList"

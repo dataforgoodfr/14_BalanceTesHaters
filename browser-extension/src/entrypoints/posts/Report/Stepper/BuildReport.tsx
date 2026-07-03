@@ -4,13 +4,13 @@ import React from "react";
 import Step1Plateforme from "./Step1Plateforme";
 import Step2Posts from "./Step2Posts";
 import Step3Comments from "./Step3Comments";
-import { PostCommentWithId } from "../../Posts/CommentsTable";
 import Step4Organization from "./Step4Organization";
 import { StepperActions, StepperBanner } from "./StepperComponents";
 import Report from "../Report";
 import { FilePen, XIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
+import { PostCommentWithId } from "@/shared/utils/post-util";
 
 export enum ReportOrganizationType {
   BY_PUBLICATION = "BY_PUBLICATION",
