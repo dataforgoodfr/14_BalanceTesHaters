@@ -4,7 +4,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Link, useNavigate } from "react-router";
+import { Post } from "@/shared/model/post/Post";
 import PostSummary from "../Shared/PostSummary";
 import SearchSortFiltersPostList from "../Shared/SearchSortFiltersPostList";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
@@ -33,10 +41,34 @@ function PostListPage() {
     setPostFilters,
     isLoading,
     filteredPosts,
-    deletePost,
+    deletePosts,
   } = useFilteredPostList(socialNetworkFilter, postSortingCategory);
 
   const navigate = useNavigate();
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] =
+    React.useState(false);
+  const [postsToDelete, setPostsToDelete] = React.useState<Post[] | null>(null);
+
+  const openDeleteConfirmation = (posts: Post[]) => {
+    if (posts.length === 0) {
+      return;
+    }
+    setPostsToDelete(posts);
+    setDeleteConfirmationOpen(true);
+  };
+
+  const handleDeleteConfirmed = async () => {
+    if (!postsToDelete || postsToDelete.length === 0) {
+      setDeleteConfirmationOpen(false);
+      setPostsToDelete(null);
+      return;
+    }
+
+    await deletePosts(postsToDelete);
+    setSelectedPostIds([]);
+    setDeleteConfirmationOpen(false);
+    setPostsToDelete(null);
+  };
 
   return (
     <main className="flex flex-col gap-4  items-start">
@@ -79,6 +111,17 @@ function PostListPage() {
           >
             Créer un rapport
           </Button>
+          <Button
+            onClick={() => {
+              openDeleteConfirmation(
+                filteredPosts.filter((post) =>
+                  selectedPostIds.includes(post.postId),
+                ),
+              );
+            }}
+          >
+            Supprimer
+          </Button>
         </div>
       )}
 
@@ -109,6 +152,7 @@ function PostListPage() {
                   <Checkbox
                     className="mr-2"
                     checked={selectedPostIds.includes(post.postId)}
+                    disabled={post.latestAnalysisStatus !== "COMPLETED"}
                     onCheckedChange={(checked) => {
                       if (checked) {
                         setSelectedPostIds([...selectedPostIds, post.postId]);
@@ -138,7 +182,7 @@ function PostListPage() {
                           size="sm"
                           disabled={post.latestAnalysisStatus !== "COMPLETED"}
                           onClick={() => {
-                            void deletePost(post);
+                            openDeleteConfirmation([post]);
                           }}
                         >
                           <Trash2Icon /> Supprimer
@@ -178,6 +222,45 @@ function PostListPage() {
             </label>
           ))}
       </div>
+
+      <Dialog
+        open={deleteConfirmationOpen}
+        onOpenChange={(open) => {
+          setDeleteConfirmationOpen(open);
+          if (!open) {
+            setPostsToDelete(null);
+          }
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            <p>
+              Êtes-vous sûr(e) de vouloir supprimer
+              {postsToDelete && postsToDelete.length > 1
+                ? ` ${postsToDelete.length} publications`
+                : " cette publication"}
+              ?
+            </p>
+          </div>
+          <DialogFooter className="mt-4 justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirmationOpen(false);
+                setPostsToDelete(null);
+              }}
+            >
+              Annuler
+            </Button>
+            <Button onClick={() => void handleDeleteConfirmed()}>
+              Supprimer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }

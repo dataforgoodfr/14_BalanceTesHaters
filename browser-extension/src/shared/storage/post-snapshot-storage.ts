@@ -52,18 +52,29 @@ export async function deletePostSnapshot(postSnapshotId: string) {
 }
 
 export async function deletePost(
-  socialNetwork: SocialNetworkName,
-  postId: string,
+  postsToDelete: Array<{ socialNetwork: SocialNetworkName; postId: string }>,
 ) {
+  if (postsToDelete.length === 0) {
+    return;
+  }
+
   const posts = await getPostSnapshots();
-  const filtered = posts.filter(
-    (p) => !(p.socialNetwork === socialNetwork && p.postId === postId),
+  const deleteKeys = new Set(
+    postsToDelete.map((post) => `${post.socialNetwork}-${post.postId}`),
   );
+  const filtered = posts.filter(
+    (post) => !deleteKeys.has(`${post.socialNetwork}-${post.postId}`),
+  );
+
   if (filtered.length === posts.length) {
+    const missingIds = postsToDelete
+      .map((post) => `${post.socialNetwork}-${post.postId}`)
+      .join(", ");
     throw new Error(
-      "Cannot find an existing Post with id: " + socialNetwork + "-" + postId,
+      `Cannot find any matching posts to delete for the provided list: ${missingIds}`,
     );
   }
+
   await writePostSnapshotsLists(filtered);
 }
 
