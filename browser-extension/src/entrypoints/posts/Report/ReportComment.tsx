@@ -1,4 +1,3 @@
-import { PostCommentWithId } from "../Posts/CommentsTable";
 import { Post } from "@/shared/model/post/Post";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { cn } from "@/lib/utils";
@@ -12,6 +11,7 @@ import {
   LABEL_SCORE_JURIDIQUE,
   LABEL_URL,
 } from "./reportData";
+import { PostCommentWithId } from "@/shared/utils/post-util";
 
 interface ReportCommentProps {
   comment: PostCommentWithId;

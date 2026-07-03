@@ -9,6 +9,7 @@ import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
   CommentSortingCategory,
+  isCommentHateful,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
@@ -32,6 +33,11 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
+  const nbComments = post?.comments.length ?? 0;
+  const hatefulComments =
+    post?.comments.filter((c) => isCommentHateful(c)) ?? [];
+  const nbHatefulComments = hatefulComments.length;
+
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
       CommentSortingCategory.PSEUDO_AUTHOR_ASC,
@@ -50,7 +56,6 @@ function PostDetailPage() {
   const filteredHatefulComments = filteredCommentList.filter(
     (c) => c.isCommentHateful,
   );
-  const numberOfHatefulComments = filteredHatefulComments.length;
 
   return (
     <main className="flex flex-col gap-6">
@@ -108,18 +113,18 @@ function PostDetailPage() {
             <div className="flex flex-col gap-3">
               <div className="flex gap-4 justify-between w-full">
                 <PercentageHatefulCommentsKpiCard
-                  numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={filteredCommentList.length}
+                  numberOfHatefulComments={nbHatefulComments}
+                  numberOfComments={nbComments}
                   isLoading={isLoading}
                 />
                 <NumberHatefulCommentsKpiCard
-                  numberOfHatefulComments={numberOfHatefulComments}
-                  numberOfComments={filteredCommentList.length}
+                  numberOfHatefulComments={nbHatefulComments}
+                  numberOfComments={nbComments}
                   isLoading={isLoading}
                 />
                 <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 <NumberHatefulAuhorsKpiCard
-                  hatefulCommentList={filteredHatefulComments}
+                  hatefulCommentList={hatefulComments}
                   isLoading={isLoading}
                 />
               </div>

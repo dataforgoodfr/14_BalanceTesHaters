@@ -10,12 +10,12 @@ import {
   CommentSortingCategory,
   emptyPostFilters,
   emptyCommentFilters,
+  PostCommentWithId,
 } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { PublicationDate } from "@/shared/model/PublicationDate";
 import { Post, PostComment } from "@/shared/model/post/Post";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
-import { PostCommentWithId } from "@/entrypoints/posts/Posts/CommentsTable";
 
 /**
  * Helper function to create a dummy Post list with a specific publication date

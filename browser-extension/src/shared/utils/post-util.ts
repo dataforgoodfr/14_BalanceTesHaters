@@ -1,4 +1,3 @@
-import { PostCommentWithId } from "@/entrypoints/posts/Posts/CommentsTable";
 import { isCategoryHateful } from "../model/AnnotatedCategory";
 import { Post, PostComment } from "../model/post/Post";
 import { PostSnapshot } from "../model/PostSnapshot";
@@ -34,6 +33,14 @@ export enum CommentSortingCategory {
   PSEUDO_AUTHOR_ASC = "pseudoAuthorAsc",
   PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
+
+export type PostCommentWithId = PostComment & {
+  id: string;
+  postId: string;
+  socialNetwork: string;
+  postKey: string;
+  isCommentHateful: boolean;
+};
 
 export type PostFilters = {
   date: DateFilterOptions | undefined;
@@ -296,10 +303,7 @@ export function filterCommentList(
 
   if (filters.pseudoAuthor && filters.pseudoAuthor.length > 0) {
     filteredCommentList = filteredCommentList.filter((comment) => {
-      const pseudoAuthor = comment.author.name;
-      return filters.pseudoAuthor.some((filterValue) =>
-        pseudoAuthor.includes(filterValue),
-      );
+      return filters.pseudoAuthor.includes(comment.author.name);
     });
   }
 

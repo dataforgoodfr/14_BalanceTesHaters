@@ -5,12 +5,12 @@ import {
   emptyCommentFilters,
   filterCommentList,
   isCommentHateful,
+  PostCommentWithId,
   sortCommentList,
 } from "@/shared/utils/post-util";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
-import { PostCommentWithId } from "../Posts/CommentsTable";
 
 export type useFilteredCommentListData = {
   searchTerm: string;

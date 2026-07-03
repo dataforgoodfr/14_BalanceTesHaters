@@ -14,7 +14,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
-import { PostComment } from "@/shared/model/post/Post";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ColumnDef } from "@tanstack/react-table";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
@@ -53,20 +52,10 @@ import { useNavigate } from "react-router";
 import {
   CommentFilters,
   CommentSortingCategory,
+  PostCommentWithId,
 } from "@/shared/utils/post-util";
 import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
-
-/**
- * Merged view of Post Snapshot
- */
-export type PostCommentWithId = PostComment & {
-  id: string;
-  postId: string;
-  socialNetwork: string;
-  postKey: string;
-  isCommentHateful: boolean;
-};
 
 export default function CommentsTable({
   commentList,
