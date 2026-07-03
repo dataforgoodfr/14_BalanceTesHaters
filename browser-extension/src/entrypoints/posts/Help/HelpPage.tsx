@@ -1,12 +1,13 @@
 /* eslint-disable react/no-unescaped-entities */
 import { Link } from "react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ComponentType, ReactNode } from "react";
+import { Card, CardContent} from "@/components/ui/card";
 import PageHeader from "../Shared/PageHeader";
 import {
   BookOpenTextIcon,
-  HandHeartIcon,
+  FileUser,
   SearchIcon,
-  ShieldCheckIcon,
+  ShieldCheck,
 } from "lucide-react";
 import helpGradientUrl from "~/assets/help-gradient.png";
 import {
@@ -14,6 +15,25 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+
+type HelpLinkProps = {
+  to: string;
+  Icon: ComponentType<React.SVGProps<SVGSVGElement>>;
+  title: string;
+  children?: ReactNode;
+};
+
+const HelpLink = ({ to, Icon, title, children }: HelpLinkProps) => (
+  <Link to={to} className="block w-1/3">
+    <Card className="h-full hover:bg-selected hover:border-selected-accent dark:hover:bg-gray-700 cursor-pointer transition-colors">
+      <CardContent className="flex flex-col items-center text-center gap-1 py-2">
+        <Icon className="text-center w-full size-5 text-muted-foreground" />
+        <span className="font-semibold text-sm">{title}</span>
+        <span className="text-sm text-muted-foreground dark:text-gray-400">{children}</span>
+      </CardContent>
+    </Card>
+  </Link>
+);
 
 function HelpPage() {
   return (
@@ -41,55 +61,18 @@ function HelpPage() {
       </div>
       {/* <div className="bg-[url(/src/assets/help-gradient.png)] w-full h-49 bg-contain "></div> */}
 
-      <div className="grid gap-4 md:grid-cols-3 w-full">
-        <Link to="/help/product" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <BookOpenTextIcon className="text-center w-full size-10" />
-              <CardTitle>Utiliser Balance tes Haters</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                À propos de l'outil, comment ça marche, compléter le dossier,
-                périmètre et limites, comprendre les notions.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+      <div className="flex gap-3">
+        <HelpLink to="/help/product" Icon={BookOpenTextIcon} title="Utiliser Balance tes Haters">
+          Informations sur l’outil et guide d’utilisation
+        </HelpLink>
 
-        <Link to="/help/harrasement" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <HandHeartIcon className="text-center w-full size-10" />
-              <CardTitle>Cyberharcèlement & actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Premières actions, se protéger en ligne, porter plainte et se
-                faire accompagner, accompagner juridique, identifier le
-                cyberharcèlement.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <HelpLink to="/help/harrasement" Icon={ShieldCheck} title="Cyberharcèlement et actions">
+          Ressources, conseils et démarches pour agir et se faire accompagner
+        </HelpLink>
 
-        <Link to="/help/privacy-policy" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <ShieldCheckIcon className="text-center w-full size-10" />
-              <CardTitle>
-                Données personnelles et politique de confidentialité
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Données collectées, utilisation des données, partage des
-                données, localisation & conservation, vos droits, sécurité,
-                contact.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <HelpLink to="/help/privacy-policy" Icon={FileUser} title="Données personnelles">
+          Informations sur la collecte, l’usage et la sécurité des données
+        </HelpLink>
       </div>
     </main>
   );
