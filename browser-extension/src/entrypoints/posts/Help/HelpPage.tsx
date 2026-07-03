@@ -16,6 +16,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { main } from "../Menu";
 
 type HelpLinkProps = {
   to: string;
@@ -55,7 +56,7 @@ const HelpTelNumber = ({ number, children }: HelpTelNumberProps) => (
 function HelpPage() {
   return (
     <main className="flex flex-col gap-6 items-start">
-      <PageHeader title="Aide et ressources" />
+      <PageHeader menuEntry={main.menuEntries.Help} />
 
       <div className="relative ">
         <img src={helpGradientUrl} className="w-full " alt="" />

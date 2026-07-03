@@ -1,9 +1,23 @@
 import { Separator } from "@base-ui/react";
+import { MenuEntry } from "../Menu";
+import { NavLink } from "react-router";
 
-function PageHeader({ title }: Readonly<{ title: string }>) {
+function PageHeader({
+  menuEntry,
+  title,
+}: Readonly<{ menuEntry?: MenuEntry; title?: string }>) {
   return (
     <div className="w-full relative">
-      <h4 className="text-left w-full mb-3">{title}</h4>
+      <h4 className="text-left w-full mb-3">
+        {menuEntry?.parentMenu && (
+          <NavLink to={(menuEntry.parentMenu as MenuEntry).to} className="text-muted-foreground">
+            <span className="text-muted-foreground ">
+              {(menuEntry.parentMenu as MenuEntry).label} {"> "}
+            </span>
+          </NavLink>
+        )}
+        {menuEntry?.label ?? title}
+      </h4>
 
       {/* 
       PageHeader is meant to be used only inside a <main> tag
