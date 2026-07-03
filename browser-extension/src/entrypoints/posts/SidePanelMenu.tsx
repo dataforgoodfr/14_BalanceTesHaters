@@ -33,21 +33,21 @@ function SidePanelMenu() {
                 to={entry.to}
                 icon={entry.icon}
                 className={entry.className}
-                withSubMenu={(entry.subMenus as MenuEntry[]).length > 0}
+                withSubMenu={entry.subMenus.length > 0}
                 subMenuOpen={
-                  (entry.subMenus as MenuEntry[]).length > 0
+                  entry.subMenus.length > 0
                     ? aideMenuOpen
                     : false
                 }
                 onClick={
-                  (entry.subMenus as MenuEntry[]).length > 0
+                  entry.subMenus.length > 0
                     ? () => setaideMenuOpen((current) => !current)
                     : undefined
                 }
               />
-              {(entry.subMenus as MenuEntry[]).length > 0 && aideMenuOpen && (
+              {entry.subMenus.length > 0 && aideMenuOpen && (
                 <div className="flex flex-col gap-1 pl-6">
-                  {(entry.subMenus as MenuEntry[]).map((subEntry) => (
+                  {entry.subMenus.map((subEntry) => (
                     <SidePanelMenuItem
                       key={subEntry.to}
                       label={subEntry.label}

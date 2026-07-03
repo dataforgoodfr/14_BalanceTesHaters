@@ -11,11 +11,11 @@ function PageHeader({
       <h4 className="text-left w-full mb-3">
         {menuEntry?.parentMenu && (
           <NavLink
-            to={(menuEntry.parentMenu as MenuEntry).to}
+            to={menuEntry.parentMenu.to}
             className="text-muted-foreground"
           >
             <span className="text-muted-foreground ">
-              {(menuEntry.parentMenu as MenuEntry).label} {"> "}
+              {menuEntry.parentMenu.label} {"> "}
             </span>
           </NavLink>
         )}
