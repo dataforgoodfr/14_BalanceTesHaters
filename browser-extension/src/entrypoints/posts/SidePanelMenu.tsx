@@ -34,11 +34,7 @@ function SidePanelMenu() {
                 icon={entry.icon}
                 className={entry.className}
                 withSubMenu={entry.subMenus.length > 0}
-                subMenuOpen={
-                  entry.subMenus.length > 0
-                    ? aideMenuOpen
-                    : false
-                }
+                subMenuOpen={entry.subMenus.length > 0 ? aideMenuOpen : false}
                 onClick={
                   entry.subMenus.length > 0
                     ? () => setaideMenuOpen((current) => !current)
