@@ -8,17 +8,17 @@ Si la personne dont tu as sollicité l'aide tente de te culpabiliser, n'hésite 
 
 Tu n'as personne à proximité immédiate, tu as besoin d'un avis extérieur ou professionnel ? Tourne-toi vers :
 
-- Le 30 18 : un numéro gratuit, anonyme et confidentiel destiné aux **jeunes victimes** de cyberviolences. Il est aussi possible de télécharger l'application 3018 pour obtenir de l'aide.
+- Le **30 18** : un numéro gratuit, anonyme et confidentiel destiné aux jeunes victimes de cyberviolences. Il est aussi possible de télécharger l'application 3018 pour obtenir de l'aide.
 
-- Le 39 19 : le numéro national de référence d'écoute téléphonique et d'orientation à destination des femmes victimes de violences.
+- Le **39 19** : le numéro national de référence d'écoute téléphonique et d'orientation à destination des femmes victimes de violences.
 
-- Le 116 006 : le numéro d'aide aux victimes, réservé aux victimes d'une infraction (dont les atteintes aux personnes) qui permet un accompagnement par des professionnel·les. Gratuit et anonyme 7j/7.
+- Le **116 006** : le numéro d'aide aux victimes, réservé aux victimes d'une infraction (dont les atteintes aux personnes) qui permet un accompagnement par des professionnel·les. Gratuit et anonyme 7j/7.
 
-- Le tchat de la plateforme "Comment on s'aime" de l'association En avant toute(s), qui propose un accompagnement aux jeunes femmes victimes de violences et de cyberviolences au sein du couple. <https://commentonsaime.fr/>
+- Le tchat de la plateforme "**Comment on s'aime**" de l'association En avant toute(s), qui propose un accompagnement aux jeunes femmes victimes de violences et de cyberviolences au sein du couple. <https://commentonsaime.fr/>
 
-- L'association #StopFisha qui accompagne les victimes de cyberviolences sexistes et de diffusion non consentie de contenu intime, il est possible de les contacter par email : <help@stopfisha.org>
+- L'association **#StopFisha** qui accompagne les victimes de cyberviolences sexistes et de diffusion non consentie de contenu intime, il est possible de les contacter par email : <help@stopfisha.org>
 
-- **En cas d'urgence immédiate, appelez le 17 ou le 18.**
+- En cas d'urgence immédiate, appelez le **17** ou le **18**.
 
 ### Se protéger en ligne
 
@@ -38,7 +38,7 @@ Si tu constates que le cyberharcèlement se poursuit et empire, il est possible 
 
 ### Porter plainte et se faire accompagner
 
-**Attention, certains délits comme les injures ou la diffamation ont des délais de prescription très courts (de 3 mois à 1 an) ! Il faut donc que la plainte soit enregistrée avant ce délai.**
+Attention, certains délits comme les injures ou la diffamation ont des délais de prescription très courts (de 3 mois à 1 an) ! Il faut donc que la plainte soit enregistrée avant ce délai.
 
 #### Accompagnements juridiques
 
