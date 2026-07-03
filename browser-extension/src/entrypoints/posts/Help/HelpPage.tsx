@@ -2,12 +2,44 @@
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PageHeader from "../Shared/PageHeader";
-import { BookOpenTextIcon, HandHeartIcon, ShieldCheckIcon } from "lucide-react";
+import {
+  BookOpenTextIcon,
+  HandHeartIcon,
+  SearchIcon,
+  ShieldCheckIcon,
+} from "lucide-react";
+import helpGradientUrl from "~/assets/help-gradient.png";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 function HelpPage() {
   return (
     <main className="flex flex-col gap-6 items-start">
       <PageHeader title="Aide et ressources" />
+
+      <div className="relative ">
+        <img src={helpGradientUrl} className="w-full " alt="" />
+        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-8 p-4">
+          <p className="text-4xl font-semibold text-center">
+            Comment pouvons-nous t’aider ?
+          </p>
+          <InputGroup className="w-1/2 bg-background">
+            <InputGroupInput
+              // value={""}
+              // onChange={() => {return;}}
+              placeholder="Rechercher par mot-clé"
+              aria-label="Rechercher par mot-clé"
+            />
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
+      </div>
+      {/* <div className="bg-[url(/src/assets/help-gradient.png)] w-full h-49 bg-contain "></div> */}
 
       <div className="grid gap-4 md:grid-cols-3 w-full">
         <Link to="/help/product" className="block">
