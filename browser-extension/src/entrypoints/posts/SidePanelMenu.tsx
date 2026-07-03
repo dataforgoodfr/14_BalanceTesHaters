@@ -4,7 +4,7 @@ import { Link, NavLink } from "react-router";
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/Logo";
-import { main, MenuEntry } from "./Menu";
+import { main } from "./Menu";
 
 const menuEntries = Object.values(main.menuEntries);
 const topEntries = menuEntries.filter(
