@@ -23,7 +23,7 @@ export function HelpSearchBar() {
         setResults([]);
         setIsOpen(false);
       }
-    }, 150); // Small debounce 
+    }, 150); // Small debounce
 
     return () => clearTimeout(delayDebounce);
   }, [query]);
@@ -80,14 +80,14 @@ export function HelpSearchBar() {
             className=""
           />
 
-        {query && (
-          <button
-            onClick={() => setQuery("")}
-            className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
-          >
-            ✕
-          </button>
-        )}
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
+          )}
           <InputGroupAddon>
             <SearchIcon />
           </InputGroupAddon>

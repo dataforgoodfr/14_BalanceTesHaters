@@ -29,7 +29,8 @@ export function HelpPageContent({ mdContent }: { mdContent: string }) {
 
     // Listen for changes if the user searches and clicks a new section while remaining on the same page
     globalThis.addEventListener("hashchange", handleScrollToAnchor);
-    return () => globalThis.removeEventListener("hashchange", handleScrollToAnchor);
+    return () =>
+      globalThis.removeEventListener("hashchange", handleScrollToAnchor);
   }, [mdContent]); // Re-run if content changes
 
   return (

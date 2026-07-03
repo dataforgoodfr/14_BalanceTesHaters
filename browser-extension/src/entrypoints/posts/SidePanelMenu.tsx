@@ -1,9 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {
-  ChevronDown,
-  ChevronUp,
-  Plus,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Plus } from "lucide-react";
 import { Link, NavLink } from "react-router";
 import React, { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -11,7 +7,9 @@ import { Logo } from "@/components/shared/Logo";
 import { main, MenuEntry } from "./Menu";
 
 const menuEntries = Object.values(main.menuEntries);
-const topEntries = menuEntries.filter((entry) => entry.section !== "bottom" && entry.parentMenu === undefined);
+const topEntries = menuEntries.filter(
+  (entry) => entry.section !== "bottom" && entry.parentMenu === undefined,
+);
 const bottomEntries = menuEntries.filter((entry) => entry.section === "bottom");
 
 function SidePanelMenu() {
@@ -34,28 +32,33 @@ function SidePanelMenu() {
                 label={entry.label}
                 to={entry.to}
                 icon={entry.icon}
-              className={entry.className}
-              withSubMenu={(entry.subMenus as MenuEntry[]).length > 0}
-              subMenuOpen={(entry.subMenus as MenuEntry[]).length > 0 ? aideMenuOpen : false}
-              onClick={
-                (entry.subMenus as MenuEntry[]).length > 0
-                  ? () => setaideMenuOpen((current) => !current)
-                  : undefined
-              }
-            />
-            {(entry.subMenus as MenuEntry[]).length > 0 && aideMenuOpen && (
-              <div className="flex flex-col gap-1 pl-6">
-                {(entry.subMenus as MenuEntry[]).map((subEntry) => (
-                  <SidePanelMenuItem
-                    key={subEntry.to}
-                    label={subEntry.label}
-                    to={subEntry.to}
-                  />
-                ))}
-              </div>
-            )}
-          </React.Fragment>
-        )})}
+                className={entry.className}
+                withSubMenu={(entry.subMenus as MenuEntry[]).length > 0}
+                subMenuOpen={
+                  (entry.subMenus as MenuEntry[]).length > 0
+                    ? aideMenuOpen
+                    : false
+                }
+                onClick={
+                  (entry.subMenus as MenuEntry[]).length > 0
+                    ? () => setaideMenuOpen((current) => !current)
+                    : undefined
+                }
+              />
+              {(entry.subMenus as MenuEntry[]).length > 0 && aideMenuOpen && (
+                <div className="flex flex-col gap-1 pl-6">
+                  {(entry.subMenus as MenuEntry[]).map((subEntry) => (
+                    <SidePanelMenuItem
+                      key={subEntry.to}
+                      label={subEntry.label}
+                      to={subEntry.to}
+                    />
+                  ))}
+                </div>
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       <div className="grow" />

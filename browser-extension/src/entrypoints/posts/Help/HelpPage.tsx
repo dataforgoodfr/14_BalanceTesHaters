@@ -3,12 +3,7 @@ import { Link } from "react-router";
 import type { ComponentType, ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import PageHeader from "../Shared/PageHeader";
-import {
-  BookOpenTextIcon,
-  FileUser,
-  Phone,
-  ShieldCheck,
-} from "lucide-react";
+import { BookOpenTextIcon, FileUser, Phone, ShieldCheck } from "lucide-react";
 import helpGradientUrl from "~/assets/help-gradient.png";
 import { main } from "../Menu";
 import { HelpSearchBar } from "./HelpSearchBar";
@@ -40,11 +35,11 @@ type HelpTelNumberProps = {
 };
 const HelpTelNumber = ({ number, children }: HelpTelNumberProps) => (
   <div className="w-1/2 bg-gray-50 shadow border-none flex items-center text-center rounded-lg py-2 px-6">
-      <Phone className="text-primary me-1 size-4" />
-      <span className="text-primary text-[20px] font-semibold me-3">
-        {number}
-      </span>
-      <span className="text-sm text-muted-foreground ">{children}</span>
+    <Phone className="text-primary me-1 size-4" />
+    <span className="text-primary text-[20px] font-semibold me-3">
+      {number}
+    </span>
+    <span className="text-sm text-muted-foreground ">{children}</span>
   </div>
 );
 

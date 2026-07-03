@@ -9,7 +9,7 @@ interface HelpPageRegistry {
   route: string;
   rawContent: string;
 }
-const basePostUrl = "/posts.html#"; 
+const basePostUrl = "/posts.html#";
 
 const HELP_PAGES: HelpPageRegistry[] = [
   {
@@ -33,7 +33,7 @@ const HELP_PAGES: HelpPageRegistry[] = [
 export interface SearchResult {
   pageTitle: string;
   sectionTitle: string;
-  url: string; 
+  url: string;
   snippet: string;
 }
 
@@ -90,8 +90,8 @@ export function searchHelpPages(query: string): SearchResult[] {
         if (end < cleanText.length) snippet = snippet + "...";
 
         const searchParam = `&search=${encodeURIComponent(query)}`;
-        const finalUrl = slug 
-          ? `${page.route}?anchor=${slug}${searchParam}` 
+        const finalUrl = slug
+          ? `${page.route}?anchor=${slug}${searchParam}`
           : `${page.route}?search=${searchParam}`;
 
         results.push({
