@@ -7,16 +7,11 @@ import {
   BookOpenTextIcon,
   FileUser,
   Phone,
-  SearchIcon,
   ShieldCheck,
 } from "lucide-react";
 import helpGradientUrl from "~/assets/help-gradient.png";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
 import { main } from "../Menu";
+import { HelpSearchBar } from "./HelpSearchBar";
 
 type HelpLinkProps = {
   to: string;
@@ -64,17 +59,7 @@ function HelpPage() {
           <p className="text-4xl font-semibold text-center">
             Comment pouvons-nous t’aider ?
           </p>
-          <InputGroup className="w-1/2 bg-background">
-            <InputGroupInput
-              // value={""}
-              // onChange={() => {return;}}
-              placeholder="Rechercher par mot-clé"
-              aria-label="Rechercher par mot-clé"
-            />
-            <InputGroupAddon>
-              <SearchIcon />
-            </InputGroupAddon>
-          </InputGroup>
+          <HelpSearchBar />
         </div>
       </div>
       {/* <div className="bg-[url(/src/assets/help-gradient.png)] w-full h-49 bg-contain "></div> */}
