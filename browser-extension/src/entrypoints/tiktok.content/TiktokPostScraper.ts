@@ -15,6 +15,7 @@ import { TOGGLE_COMMENTS_BUTTON_ARIA_LABEL } from "./tiktokElementsTexts";
 import { hasClassNameWithSuffix } from "./dom/hasClassNameWithSuffix";
 import { fetchUrlContentAsDataUrl } from "@/shared/scraping/fetchUrlContentAsDataUrl";
 import { TiktokCommentsLoader } from "./comments/TiktokCommentsLoader";
+import { extractCreationDateFromTiktokVideoId } from "./extractCreationDateFromTiktokVideoId";
 
 const logger = createLogger("[CS - TiktokPostScraper]");
 
@@ -27,15 +28,6 @@ export class TiktokPostScraper {
   async scrapPost(): Promise<PostSnapshot> {
     logger.debug("Start Scraping... ", document.URL);
 
-    const url = document.URL;
-    const result = parseTiktokVideoUrl(url);
-    if (result === INVALID_TT_VIDEOURL) {
-      throw new Error(INVALID_TT_VIDEOURL);
-    }
-    const scrapedAt = currentIsoDate();
-    const id = crypto.randomUUID();
-    const postId = result.postId;
-
     const videoContainer = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
       "article#one-column-item-0",
@@ -47,7 +39,16 @@ export class TiktokPostScraper {
       "video",
       HTMLVideoElement,
     );
+
     video.pause();
+    const url = document.URL;
+    const result = parseTiktokVideoUrl(url);
+    if (result === INVALID_TT_VIDEOURL) {
+      throw new Error(INVALID_TT_VIDEOURL);
+    }
+    const scrapedAt = currentIsoDate();
+    const id = crypto.randomUUID();
+    const postId = result.postId;
 
     const coverImageUrl = await this.scrapCoverImage(videoContainer);
 
@@ -64,11 +65,8 @@ export class TiktokPostScraper {
       )
     ).content;
 
-    // TODO find a way to get publishedAt.
-    const publishedAt: PublicationDate = {
-      type: "absolute",
-      date: currentIsoDate(),
-    };
+    const publishedAt: PublicationDate =
+      extractCreationDateFromTiktokVideoId(postId);
     logger.debug("Post info extracted:", {
       coverImageUrl,
       author,
