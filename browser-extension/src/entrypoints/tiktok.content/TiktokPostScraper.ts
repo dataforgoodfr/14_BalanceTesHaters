@@ -14,6 +14,7 @@ import { PublicationDate } from "@/shared/model/PublicationDate";
 import { TOGGLE_COMMENTS_BUTTON_ARIA_LABEL } from "./tiktokElementsTexts";
 import { hasClassNameWithSuffix } from "./dom/hasClassNameWithSuffix";
 import { fetchUrlContentAsDataUrl } from "@/shared/scraping/fetchUrlContentAsDataUrl";
+import { TiktokCommentsLoader } from "./comments/TiktokCommentsLoader";
 
 const logger = createLogger("[CS - TiktokPostScraper]");
 
@@ -107,11 +108,17 @@ export class TiktokPostScraper {
     const commentsContainer =
       await this.openCommentsSideNavAndFindCommentsContainer(videoContainer);
 
-    // TODO load comments
-    // List comments
-    // Scrap comments
+    const expectedCommentsCount =
+      await this.scrapExpectedCommentsCount(commentsContainer);
 
-    const commentElements = this.scrapingSupport.selectAll(
+    await new TiktokCommentsLoader(
+      this.scrapingSupport,
+      this.progressManager,
+      commentsContainer,
+      expectedCommentsCount,
+    ).loadCommentsAndReplies();
+
+    const commentThreadElements = this.scrapingSupport.selectAll(
       commentsContainer,
       "div",
       HTMLDivElement,
@@ -119,9 +126,28 @@ export class TiktokPostScraper {
         predicate: (e) => hasClassNameWithSuffix(e, "DivCommentObjectWrapper"),
       },
     );
-    console.log(commentsContainer, commentElements.length);
+    const commentElements = this.scrapingSupport.selectAll(
+      commentsContainer,
+      "div",
+      HTMLDivElement,
+      {
+        predicate: (e) => hasClassNameWithSuffix(e, "DivCommentItemWrapper"),
+      },
+    );
+    console.log(
+      commentsContainer,
+      commentThreadElements.length,
+      commentElements.length,
+    );
 
-    return [];
+    // List comments
+    //
+    throw new Error(
+      "TODO finish scraping  expected:" +
+        expectedCommentsCount +
+        ", loaded:" +
+        commentElements.length,
+    );
   }
 
   async openCommentsSideNavAndFindCommentsContainer(
@@ -149,7 +175,7 @@ export class TiktokPostScraper {
     }
 
     const commentsContainerPredicate = (b: HTMLElement) =>
-      hasClassNameWithSuffix(b, "DivCommentListContainer");
+      hasClassNameWithSuffix(b, "DivCommentMainWithoutScroll");
     let commentsContainer = this.scrapingSupport.select(
       document,
       "div",
@@ -183,5 +209,30 @@ export class TiktokPostScraper {
           TOGGLE_COMMENTS_BUTTON_ARIA_LABEL.test(b.ariaLabel),
       },
     );
+  }
+
+  async scrapExpectedCommentsCount(
+    commentsContainer: HTMLElement,
+  ): Promise<number> {
+    const commentCountContainer =
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        commentsContainer,
+        "div",
+        HTMLDivElement,
+        {
+          predicate: (e) =>
+            hasClassNameWithSuffix(e, "DivCommentCountContainer"),
+        },
+      );
+
+    const commentCountContainerText = commentCountContainer.innerText;
+
+    const COMMENTS_COUNT_REGEX = /(\d+) commentaires/;
+    const matchResult = commentCountContainerText.match(COMMENTS_COUNT_REGEX);
+
+    if (!matchResult || matchResult.length !== 2) {
+      throw new Error("Failed to extract expected comment counts");
+    }
+    return Number.parseInt(matchResult[1]);
   }
 }
