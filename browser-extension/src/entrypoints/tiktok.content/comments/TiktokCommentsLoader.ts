@@ -87,7 +87,7 @@ export class TiktokCommentsLoader {
   private updateLoadingProgress() {
     const loadedCount = this.scrapingSupport.selectAll(
       this.commentsScrollableContainer,
-      ":scope > div",
+      "div",
       HTMLElement,
       {
         predicate: (e) => hasClassNameWithSuffix(e, "DivCommentItemWrapper"),
