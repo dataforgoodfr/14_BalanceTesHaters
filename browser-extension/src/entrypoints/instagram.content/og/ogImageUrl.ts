@@ -3,12 +3,8 @@ import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 export async function ogImageUrl(
   scrapingSupport: ScrapingSupport,
 ): Promise<string | undefined> {
-  const element = scrapingSupport.select(
-    document,
-    "meta[property='og:image']",
-    HTMLElement,
-  );
-  const url = element?.getAttribute("content");
+  const url = scrapingSupport.selectMetaPropertyContent("og:image");
+
   if (!url) return undefined;
 
   return fetchAsDataUrl(url);
