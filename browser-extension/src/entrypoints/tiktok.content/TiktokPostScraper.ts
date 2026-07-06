@@ -15,7 +15,12 @@ import { TOGGLE_COMMENTS_BUTTON_ARIA_LABEL } from "./tiktokElementsTexts";
 import { hasClassNameWithSuffix } from "./dom/hasClassNameWithSuffix";
 import { fetchUrlContentAsDataUrl } from "@/shared/scraping/fetchUrlContentAsDataUrl";
 import { TiktokCommentsLoader } from "./comments/TiktokCommentsLoader";
+import { TiktokLoadedCommentScraper } from "./comments/TiktokLoadedCommentScraper";
 import { extractCreationDateFromTiktokVideoId } from "./extractCreationDateFromTiktokVideoId";
+import {
+  createScreenshotProviderForScrollableDescendants,
+  ElementScreenshotProvider,
+} from "@/shared/screenshoting";
 
 const logger = createLogger("[CS - TiktokPostScraper]");
 
@@ -102,53 +107,58 @@ export class TiktokPostScraper {
     return await fetchUrlContentAsDataUrl(imageSrc);
   }
 
-  async scrapComments(videoContainer: HTMLElement): Promise<CommentSnapshot[]> {
+  private async scrapComments(
+    videoContainer: HTMLElement,
+  ): Promise<CommentSnapshot[]> {
     const commentsContainer =
       await this.openCommentsSideNavAndFindCommentsContainer(videoContainer);
 
     const expectedCommentsCount =
       await this.scrapExpectedCommentsCount(commentsContainer);
 
+    const loadCommentsProgressMgr = this.progressManager.subTaskProgressManager(
+      {
+        from: 0,
+        to: 45,
+      },
+    );
+    const captureScreenshotsProgressMgr =
+      this.progressManager.subTaskProgressManager({
+        from: 45,
+        to: 90,
+      });
+    const scrapContentProgressMgr = this.progressManager.subTaskProgressManager(
+      {
+        from: 90,
+        to: 100,
+      },
+    );
+
     await new TiktokCommentsLoader(
       this.scrapingSupport,
-      this.progressManager,
+      loadCommentsProgressMgr,
       commentsContainer,
       expectedCommentsCount,
     ).loadCommentsAndReplies();
 
-    const commentThreadElements = this.scrapingSupport.selectAll(
-      commentsContainer,
-      "div",
-      HTMLDivElement,
-      {
-        predicate: (e) => hasClassNameWithSuffix(e, "DivCommentObjectWrapper"),
-      },
-    );
-    const commentElements = this.scrapingSupport.selectAll(
-      commentsContainer,
-      "div",
-      HTMLDivElement,
-      {
-        predicate: (e) => hasClassNameWithSuffix(e, "DivCommentItemWrapper"),
-      },
-    );
-    console.log(
-      commentsContainer,
-      commentThreadElements.length,
-      commentElements.length,
-    );
+    // Force position relative so that Element position works for createScreenshotProviderForScrollableDescendants
+    commentsContainer.style.position = "relative";
 
-    // List comments
-    //
-    throw new Error(
-      "TODO finish scraping  expected:" +
-        expectedCommentsCount +
-        ", loaded:" +
-        commentElements.length,
+    const screenshotProvider: ElementScreenshotProvider =
+      await createScreenshotProviderForScrollableDescendants(
+        commentsContainer,
+        this.scrapingSupport,
+        captureScreenshotsProgressMgr,
+      );
+
+    return await this.scrapCommentsContent(
+      commentsContainer,
+      scrapContentProgressMgr,
+      screenshotProvider,
     );
   }
 
-  async openCommentsSideNavAndFindCommentsContainer(
+  private async openCommentsSideNavAndFindCommentsContainer(
     videoContainer: HTMLElement,
   ): Promise<HTMLElement> {
     const commentsToggleButton =
@@ -194,7 +204,7 @@ export class TiktokPostScraper {
     return commentsContainer;
   }
 
-  async findToggleCommentsButton(
+  private async findToggleCommentsButton(
     videoContainer: HTMLElement,
   ): Promise<HTMLElement> {
     return this.scrapingSupport.waitForSelectorOrThrow(
@@ -209,7 +219,7 @@ export class TiktokPostScraper {
     );
   }
 
-  async scrapExpectedCommentsCount(
+  private async scrapExpectedCommentsCount(
     commentsContainer: HTMLElement,
   ): Promise<number> {
     const commentCountContainer =
@@ -232,5 +242,86 @@ export class TiktokPostScraper {
       throw new Error("Failed to extract expected comment counts");
     }
     return Number.parseInt(matchResult[1]);
+  }
+
+  private async scrapCommentsContent(
+    commentsContainer: HTMLElement,
+    progressMgr: ProgressManager,
+    screenshotProvider: ElementScreenshotProvider,
+  ): Promise<CommentSnapshot[]> {
+    const commentThreadElements = this.scrapingSupport.selectAll(
+      commentsContainer,
+      "div",
+      HTMLDivElement,
+      {
+        predicate: (e) => hasClassNameWithSuffix(e, "DivCommentObjectWrapper"),
+      },
+    );
+
+    const commentThreads: CommentSnapshot[] = [];
+
+    for (const commentThreadElement of commentThreadElements) {
+      progressMgr.setProgress(
+        (commentThreads.length / commentThreadElements.length) * 100,
+      );
+      const rootCommentElement = this.scrapingSupport.selectOrThrow(
+        commentThreadElement,
+        ":scope > div",
+        HTMLDivElement,
+        {
+          predicate: (e) => hasClassNameWithSuffix(e, "DivCommentItemWrapper"),
+        },
+      );
+
+      const rootComment = await new TiktokLoadedCommentScraper(
+        rootCommentElement,
+        screenshotProvider,
+        this.scrapingSupport,
+      ).scrapLoadedComment();
+
+      const replies: CommentSnapshot[] = await this.scrapReplies(
+        commentThreadElement,
+        screenshotProvider,
+      );
+      commentThreads.push({ ...rootComment, replies: replies });
+    }
+
+    return commentThreads;
+  }
+
+  private async scrapReplies(
+    threadElement: HTMLDivElement,
+    screenshotProvider: ElementScreenshotProvider,
+  ): Promise<CommentSnapshot[]> {
+    const replyContainer = this.scrapingSupport.select(
+      threadElement,
+      ":scope > div",
+      HTMLDivElement,
+      {
+        predicate: (e) => hasClassNameWithSuffix(e, "DivReplyContainer"),
+      },
+    );
+
+    const replies: CommentSnapshot[] = [];
+    if (replyContainer) {
+      const replyElements = this.scrapingSupport.selectAll(
+        replyContainer,
+        ":scope > div",
+        HTMLDivElement,
+        {
+          predicate: (e) => hasClassNameWithSuffix(e, "DivCommentItemWrapper"),
+        },
+      );
+
+      for (const replyElement of replyElements) {
+        const reply = await new TiktokLoadedCommentScraper(
+          replyElement,
+          screenshotProvider,
+          this.scrapingSupport,
+        ).scrapLoadedComment();
+        replies.push({ ...reply, replies: [] });
+      }
+    }
+    return replies;
   }
 }
