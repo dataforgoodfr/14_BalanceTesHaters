@@ -6,9 +6,14 @@ export const YOUTUBE_SCRAPING_CONTENT_SCRIPT_MATCHES = [
   "https://www.youtube.com/*",
 ];
 
+export const TIKTOK_SCRAPING_CONTENT_SCRIPT_MATCHES = [
+  "https://www.tiktok.com/*",
+];
+
 export const SCRAPING_CONTENT_SCRIPT_MATCHES = [
   ...INSTAGRAM_SCRAPING_CONTENT_SCRIPT_MATCHES,
   ...YOUTUBE_SCRAPING_CONTENT_SCRIPT_MATCHES,
+  ...TIKTOK_SCRAPING_CONTENT_SCRIPT_MATCHES,
 ];
 
 export function matchesScrapingContentScriptUrl(url: string | undefined) {

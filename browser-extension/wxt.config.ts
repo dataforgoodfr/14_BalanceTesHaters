@@ -46,6 +46,7 @@ export default defineConfig({
       "https://balanceteshaters-app.services.d4g.fr/*",
       // Allow access to scraped pages content
       "https://www.instagram.com/*",
+      "https://www.tiktok.com/*",
       "https://www.youtube.com/*",
       // <all_urls> required for captureVisibleTab when scrap started outside of "activeTab" scope that is from "Relance analyse"
       "<all_urls>",
