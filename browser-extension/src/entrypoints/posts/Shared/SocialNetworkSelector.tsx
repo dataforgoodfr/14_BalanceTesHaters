@@ -10,6 +10,7 @@ type SocialNetworkSelectorProps = Readonly<{
 const SOCIAL_NETWORK_OPTIONS = [
   SocialNetwork.YouTube,
   SocialNetwork.Instagram,
+  SocialNetwork.TikTok,
 ] as const;
 
 function SocialNetworkSelector({
@@ -36,6 +37,12 @@ function SocialNetworkSelector({
       <SocialNetworkOption
         label="Instagram"
         socialNetwork={SocialNetwork.Instagram}
+        selectedNetworks={selectedNetworks}
+        onChange={onChange}
+      />
+      <SocialNetworkOption
+        label="Tiktok"
+        socialNetwork={SocialNetwork.TikTok}
         selectedNetworks={selectedNetworks}
         onChange={onChange}
       />
