@@ -11,6 +11,9 @@ import {
 import { Author } from "@/shared/model/Author";
 import { tiktokAccountHref } from "./url/tiktokAccountHref";
 import { PublicationDate } from "@/shared/model/PublicationDate";
+import { TOGGLE_COMMENTS_BUTTON_ARIA_LABEL } from "./tiktokElementsTexts";
+import { hasClassNameWithSuffix } from "./dom/hasClassNameWithSuffix";
+import { fetchUrlContentAsDataUrl } from "@/shared/scraping/fetchUrlContentAsDataUrl";
 
 const logger = createLogger("[CS - TiktokPostScraper]");
 
@@ -32,16 +35,33 @@ export class TiktokPostScraper {
     const id = crypto.randomUUID();
     const postId = result.postId;
 
-    // TODO og:image is empty in tiktok find another way to get cover image
-    const coverImageUrl = undefined;
+    const videoContainer = await this.scrapingSupport.waitForSelectorOrThrow(
+      document,
+      "article#one-column-item-0",
+      HTMLElement,
+    );
+
+    const video = await this.scrapingSupport.waitForSelectorOrThrow(
+      videoContainer,
+      "video",
+      HTMLVideoElement,
+    );
+    video.pause();
+
+    const coverImageUrl = await this.scrapCoverImage(videoContainer);
 
     const author: Author = {
       name: result.accountId,
       accountHref: tiktokAccountHref(result.accountId),
     };
 
-    const textContent =
-      this.scrapingSupport.selectOrThrowMetaPropertyContent("og:description");
+    const textContent = (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "meta[property='og:description']",
+        HTMLMetaElement,
+      )
+    ).content;
 
     // TODO find a way to get publishedAt.
     const publishedAt: PublicationDate = {
@@ -54,7 +74,8 @@ export class TiktokPostScraper {
       textContent,
       publishedAt,
     });
-    const comments: CommentSnapshot[] = await Promise.resolve([]);
+    const comments: CommentSnapshot[] =
+      await this.scrapComments(videoContainer);
 
     return {
       id,
@@ -68,5 +89,99 @@ export class TiktokPostScraper {
       coverImageUrl,
       comments,
     };
+  }
+
+  private async scrapCoverImage(videoContainer: HTMLElement) {
+    const imageSrc = (
+      await this.scrapingSupport.waitForSelectorOrThrow(
+        videoContainer,
+        "picture img",
+        HTMLImageElement,
+      )
+    ).src;
+    // Convert to data url to avoid url expiry
+    return await fetchUrlContentAsDataUrl(imageSrc);
+  }
+
+  async scrapComments(videoContainer: HTMLElement): Promise<CommentSnapshot[]> {
+    const commentsContainer =
+      await this.openCommentsSideNavAndFindCommentsContainer(videoContainer);
+
+    // TODO load comments
+    // List comments
+    // Scrap comments
+
+    const commentElements = this.scrapingSupport.selectAll(
+      commentsContainer,
+      "div",
+      HTMLDivElement,
+      {
+        predicate: (e) => hasClassNameWithSuffix(e, "DivCommentObjectWrapper"),
+      },
+    );
+    console.log(commentsContainer, commentElements.length);
+
+    return [];
+  }
+
+  async openCommentsSideNavAndFindCommentsContainer(
+    videoContainer: HTMLElement,
+  ): Promise<HTMLElement> {
+    const commentsToggleButton =
+      await this.findToggleCommentsButton(videoContainer);
+    const sidePanelPredicate = (b: HTMLElement) =>
+      hasClassNameWithSuffix(b, "DivVideoListTabBarWrapper");
+    let sidePanel = this.scrapingSupport.select(
+      document,
+      "div",
+      HTMLDivElement,
+      { predicate: sidePanelPredicate },
+    );
+    if (!sidePanel) {
+      // First click opens side panel
+      await this.scrapingSupport.click(commentsToggleButton);
+      sidePanel = await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "div",
+        HTMLDivElement,
+        { predicate: sidePanelPredicate },
+      );
+    }
+
+    const commentsContainerPredicate = (b: HTMLElement) =>
+      hasClassNameWithSuffix(b, "DivCommentListContainer");
+    let commentsContainer = this.scrapingSupport.select(
+      document,
+      "div",
+      HTMLDivElement,
+      { predicate: commentsContainerPredicate },
+    );
+    if (!commentsContainer) {
+      // Second click toggle the  side panel tab
+      await this.scrapingSupport.click(commentsToggleButton);
+      commentsContainer = await this.scrapingSupport.waitForSelectorOrThrow(
+        document,
+        "div",
+        HTMLDivElement,
+        { predicate: commentsContainerPredicate },
+      );
+    }
+
+    return commentsContainer;
+  }
+
+  async findToggleCommentsButton(
+    videoContainer: HTMLElement,
+  ): Promise<HTMLElement> {
+    return this.scrapingSupport.waitForSelectorOrThrow(
+      videoContainer,
+      "[role='button']",
+      HTMLElement,
+      {
+        predicate: (b) =>
+          b.ariaLabel !== null &&
+          TOGGLE_COMMENTS_BUTTON_ARIA_LABEL.test(b.ariaLabel),
+      },
+    );
   }
 }
