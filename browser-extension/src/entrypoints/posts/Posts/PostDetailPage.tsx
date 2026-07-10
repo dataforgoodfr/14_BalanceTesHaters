@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
-import { MoveLeft, RotateCwIcon } from "lucide-react";
+import { HandHeart, MoveLeft, RotateCwIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
 import PostSummary from "../Shared/PostSummary";
 import {
@@ -21,6 +21,8 @@ import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStart
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 import { useFilteredCommentList } from "../Shared/useFilteredCommentList";
 import React from "react";
+import ClosableAlert from "../Shared/ClosableAlert";
+import { main } from "../Menu";
 
 function PostDetailPage() {
   const params = useParams();
@@ -146,6 +148,21 @@ function PostDetailPage() {
                 commentaires (ou “Tout sélectionner”), puis cliquer sur “Créer
                 un rapport”.
               </span>
+
+              <ClosableAlert
+                title="Rappel"
+                icon={<HandHeart />}
+                className="my-3"
+                variant="support"
+              >
+                Le contenu des commentaires peut être sensible. Ces commentaires
+                sont inacceptables, et des actions sont possibles (voir “
+                <Link to={main.menuEntries.Help.to}>
+                  {main.menuEntries.Help.label}
+                </Link>
+                ”)
+              </ClosableAlert>
+
               <CommentsTable
                 commentList={filteredHatefulComments}
                 commentFilters={commentFilters}
