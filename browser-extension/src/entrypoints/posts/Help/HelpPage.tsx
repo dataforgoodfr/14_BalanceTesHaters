@@ -57,29 +57,28 @@ function HelpPage() {
           <HelpSearchBar />
         </div>
       </div>
-      {/* <div className="bg-[url(/src/assets/help-gradient.png)] w-full h-49 bg-contain "></div> */}
 
       <div className="flex gap-3 w-full">
         <HelpMenuLink
-          to="/help/product"
+          to={main.menuEntries.Product.to}
           Icon={BookOpenTextIcon}
-          title="Utiliser Balance tes Haters"
+          title={main.menuEntries.Product.label}
         >
           Informations sur l’outil et guide d’utilisation
         </HelpMenuLink>
 
         <HelpMenuLink
-          to="/help/harrasement"
+          to={main.menuEntries.Harrasement.to}
           Icon={ShieldCheck}
-          title="Cyberharcèlement et actions"
+          title={main.menuEntries.Harrasement.label}
         >
           Ressources, conseils et démarches pour agir et se faire accompagner
         </HelpMenuLink>
 
         <HelpMenuLink
-          to="/help/privacy-policy"
+          to={main.menuEntries.Privacy.to}
           Icon={FileUser}
-          title="Données personnelles"
+          title={main.menuEntries.Privacy.label}
         >
           Informations sur la collecte, l’usage et la sécurité des données
         </HelpMenuLink>
