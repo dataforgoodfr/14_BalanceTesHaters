@@ -86,19 +86,26 @@ export const ReportComment = ({
         </div>
       </div>
       <div className="text-muted-foreground self-start">
-        {reportOrganizationType === ReportOrganizationType.BY_AUTHOR && post ? (
+        {LABEL_URL}
+        <a href={comment.url} target="_blank" rel="noopener noreferrer">
+          {comment.url}
+        </a>
+        {" • "}
+        {reportOrganizationType === ReportOrganizationType.BY_AUTHOR ? (
           <>
-            {LABEL_URL}
-            <a href={post.url} target="_blank" rel="noopener noreferrer">
-              {post.url}
-            </a>
-            {"  "}• {getTitlePublicationHeader(post.publishedAt)} : &quot;
-            {post.title}&quot;
+            {getTitlePublicationHeader(post?.publishedAt)} : &quot;
+            {post?.title}&quot;
           </>
         ) : (
           <>
             {LABEL_PSEUDO_AUTEUR}
-            {comment.author.name}
+            <a
+              href={comment.author.accountHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {comment.author.name}
+            </a>
           </>
         )}
       </div>

@@ -1,3 +1,4 @@
+import { Author } from "@/shared/model/Author";
 import { Post } from "@/shared/model/post/Post";
 import React from "react";
 import { ReportOrganizationType } from "./Stepper/BuildReport";
@@ -16,6 +17,7 @@ export interface GroupedData {
   post?: Post;
   reportOrganizationType: ReportOrganizationType;
   commentPostMap?: Map<string, Post>;
+  author?: Author;
 }
 
 const HeaderContainer = ({ children }: { children: React.ReactNode }) => (
@@ -38,11 +40,18 @@ const createPublicationHeader = (post: Post): React.ReactNode => (
 );
 
 const createAuthorHeader = (
-  authorName: string,
+  author: Author,
   commentCount: number,
 ): React.ReactNode => (
   <HeaderContainer>
-    <span className="text-lg font-semibold">{authorName}</span>
+    <a
+      className="text-lg font-semibold"
+      href={author.accountHref}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {author.name}
+    </a>
     <span className="text-sm text-muted-foreground">
       {getSecondTextAuthorHeader(commentCount)}
     </span>
@@ -63,6 +72,7 @@ export const getPublicationGroups = (
     postLatestAnalysisDate: new Date(post.latestAnalysisDate),
     post,
     reportOrganizationType: ReportOrganizationType.BY_PUBLICATION,
+    commentPostMap: getCommentPostMap(comments, posts),
   }));
 };
 
@@ -72,15 +82,40 @@ export const getAuthorGroups = (
   posts: Post[] | undefined,
 ): GroupedData[] => {
   const grouped = new Map<string, PostCommentWithId[]>();
-  const commentPostMap = new Map<string, Post>();
+  const authorMap = new Map<string, Author>();
+  const commentPostMap : Map<string, Post> = getCommentPostMap(comments, posts);
 
   comments.forEach((comment) => {
     const authorKey = comment.author.name;
     if (!grouped.has(authorKey)) {
       grouped.set(authorKey, []);
+      authorMap.set(authorKey, comment.author);
     }
     grouped.get(authorKey)!.push(comment);
+  });
 
+  return Array.from(grouped.entries()).map(([authorName, commentList]) => ({
+    groupKey: authorName,
+    comments: commentList,
+    headerContent: createAuthorHeader(
+      authorMap.get(authorName) ?? { name: authorName, accountHref: "/" },
+      commentList.length,
+    ),
+    postLatestAnalysisDate: latestAnalysisDate,
+    reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
+    post: commentPostMap.get(commentList[0].id),
+    commentPostMap: commentPostMap,
+    author: authorMap.get(authorName),
+  }));
+};
+
+function getCommentPostMap(
+  comments: PostCommentWithId[],
+  posts: Post[] | undefined,
+): Map<string, Post> {
+  const commentPostMap = new Map<string, Post>();
+
+  comments.forEach((comment) => {
     let post: Post | undefined = undefined;
     // Map comment to its post for later retrieval
     if (posts) {
@@ -93,13 +128,5 @@ export const getAuthorGroups = (
     }
   });
 
-  return Array.from(grouped.entries()).map(([authorName, commentList]) => ({
-    groupKey: authorName,
-    comments: commentList,
-    headerContent: createAuthorHeader(authorName, commentList.length),
-    postLatestAnalysisDate: latestAnalysisDate,
-    reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
-    post: commentPostMap.get(commentList[0].id),
-    commentPostMap,
-  }));
-};
+  return commentPostMap;
+}

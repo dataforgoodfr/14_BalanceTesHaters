@@ -2,6 +2,7 @@ import {
   Document,
   Font,
   Image,
+  Link,
   Page,
   StyleSheet,
   Text,
@@ -148,6 +149,7 @@ const styles = StyleSheet.create({
   groupHeaderTitle: {
     fontSize: pxToPt(25),
     color: GENERAL_SECONDARY_FOREGROUND,
+    textDecoration: "none",
   },
   groupHeaderContent: {
     fontSize: pxToPt(20),
@@ -177,7 +179,11 @@ const styles = StyleSheet.create({
     fontSize: pxToPt(15),
     marginBottom: pxToPt(20),
   },
-  commentContent: { fontSize: pxToPt(15), color: UNOFFICIAL_FOREGROUND_ALT },
+  commentContent: {
+    fontSize: pxToPt(15),
+    color: UNOFFICIAL_FOREGROUND_ALT,
+    textDecoration: "none",
+  },
   commentRightBlock: {
     flexDirection: "column",
     alignItems: "flex-end",
@@ -319,9 +325,16 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                   style={[styles.groupHeaderTitle, styles.fontWeightMedium]}
                 >
                   {reportOrganizationType ===
-                  ReportOrganizationType.BY_PUBLICATION
-                    ? getTitlePublicationHeader(group.post?.publishedAt)
-                    : group.comments[0]?.author.name || "Auteur inconnu"}
+                  ReportOrganizationType.BY_PUBLICATION ? (
+                    getTitlePublicationHeader(group.post?.publishedAt)
+                  ) : (
+                    <Link
+                      href={group.comments[0]?.author.accountHref}
+                      style={[styles.groupHeaderTitle, styles.fontWeightMedium]}
+                    >
+                      {group.comments[0]?.author.name || "Auteur inconnu"}
+                    </Link>
+                  )}
                 </Text>
                 {reportOrganizationType ===
                   ReportOrganizationType.BY_PUBLICATION && (
@@ -390,11 +403,17 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                       </View>
                     </View>
                     <Text style={styles.commentContent}>
+                      {LABEL_URL}{" "}
+                      <Link
+                        style={styles.commentContent}
+                        href={comment.url}
+                      >
+                        {comment.url}
+                      </Link>
+                      {" • "}
                       {reportQueryData.reportOrganizationType ===
                       ReportOrganizationType.BY_AUTHOR ? (
                         <>
-                          {LABEL_URL} {group.post?.url}
-                          {"  "}•{" "}
                           {getTitlePublicationHeader(group.post?.publishedAt)} :
                           &quot;
                           {group.post?.title}&quot;
@@ -402,7 +421,12 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                       ) : (
                         <>
                           {LABEL_PSEUDO_AUTEUR}
-                          {comment.author.name}
+                          <Link
+                            style={styles.commentContent}
+                            href={comment.author.accountHref}
+                          >
+                            {comment.author.name}
+                          </Link>
                         </>
                       )}
                     </Text>
