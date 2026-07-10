@@ -40,7 +40,7 @@ const StepperTitleWrapper = ({ title }: { title: string }) => {
       render={(domProps) => (
         <h4
           data-status={item.status}
-          className="text-sm font-medium data-[status=success]:opacity-50"
+          className="text-sm font-medium opacity-50 data-[status=active]:opacity-100"
           {...domProps}
         >
           {title}
@@ -60,7 +60,7 @@ const StepperSeparatorWithLabelOrientation = ({
   return (
     <Stepper.Separator
       orientation="horizontal"
-      className="absolute left-[calc(80%+10px)] right-[calc(-20%+10px)] top-5 block  bg-muted h-0.5"
+      className="absolute max-lg:hidden lg:left-[calc(90%+10px)] lg:right-[calc(-10%+10px)] xl:left-[calc(85%+10px)] xl:right-[calc(-15%+10px)] 2xl:left-[calc(80%+10px)] 2xl:right-[calc(-20%+10px)] top-5 block  bg-muted h-0.5"
     />
   );
 };
@@ -69,7 +69,7 @@ export const StepperBanner = () => {
   const stepper = useStepper();
 
   return (
-    <Stepper.List className="flex list-none gap-2 flex-row items-center justify-between">
+    <Stepper.List className="flex list-none flex-row items-center justify-between max-w-3/4 mx-auto">
       {stepper.state.all.map((stepData, index) => {
         const isLast = index === stepper.state.all.length - 1;
         const data = stepData as {
@@ -98,7 +98,7 @@ export const StepperBanner = () => {
 export const StepperActions = () => {
   const stepper = useStepper();
   return (
-    <div className="sticky bottom-0 border-t py-4 bg-background">
+    <div className="sticky border-t py-4 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">
         {stepper.state.isFirst ? (
           <Button
