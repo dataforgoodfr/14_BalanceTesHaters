@@ -83,7 +83,7 @@ export const getAuthorGroups = (
 ): GroupedData[] => {
   const grouped = new Map<string, PostCommentWithId[]>();
   const authorMap = new Map<string, Author>();
-  const commentPostMap : Map<string, Post> = getCommentPostMap(comments, posts);
+  const commentPostMap: Map<string, Post> = getCommentPostMap(comments, posts);
 
   comments.forEach((comment) => {
     const authorKey = comment.author.name;

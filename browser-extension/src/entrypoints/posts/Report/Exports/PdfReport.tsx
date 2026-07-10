@@ -404,10 +404,7 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                     </View>
                     <Text style={styles.commentContent}>
                       {LABEL_URL}{" "}
-                      <Link
-                        style={styles.commentContent}
-                        href={comment.url}
-                      >
+                      <Link style={styles.commentContent} href={comment.url}>
                         {comment.url}
                       </Link>
                       {" • "}
