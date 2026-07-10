@@ -98,7 +98,7 @@ export const StepperBanner = () => {
 export const StepperActions = () => {
   const stepper = useStepper();
   return (
-    <div className="sticky border-t py-4 bg-background">
+    <div className="fixed bottom-0 w-full border-t py-8 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">
         {stepper.state.isFirst ? (
           <Button
