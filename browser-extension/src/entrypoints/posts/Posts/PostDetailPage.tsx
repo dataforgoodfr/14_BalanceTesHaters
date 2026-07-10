@@ -23,6 +23,9 @@ import { useFilteredCommentList } from "../Shared/useFilteredCommentList";
 import React from "react";
 import ClosableAlert from "../Shared/ClosableAlert";
 import { main } from "../Menu";
+import { buildPostDetailCsv } from "./postDetailCsv";
+
+
 
 function PostDetailPage() {
   const params = useParams();
@@ -59,6 +62,22 @@ function PostDetailPage() {
     (c) => c.isCommentHateful,
   );
 
+    const postExportCsv = () => {
+      if (!post) {
+        return;
+      }
+      const csvContent = buildPostDetailCsv(post, filteredCommentList);
+      const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
+  
+      void browser.downloads.download({
+        url:
+          "data:text/csv;charset=utf-8," +
+          encodeURIComponent("\uFEFF" + csvContent),
+        filename: `rapport-bth-${generatedAt}.csv`,
+        saveAs: true,
+      });
+    };
+
   return (
     <main className="flex flex-col gap-6">
       {isLoading && <div>Chargement...</div>}
@@ -84,7 +103,7 @@ function PostDetailPage() {
               >
                 <RotateCwIcon /> Relancer l&apos;analyse
               </Button>
-              <Button roundness="round" variant="default" disabled>
+              <Button roundness="round" variant="default" onClick={postExportCsv}>
                 Exporter les données en CSV
               </Button>
             </div>

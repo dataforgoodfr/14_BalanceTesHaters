@@ -1,6 +1,5 @@
-import { getSocialNetworkName } from "@/shared/utils/post-util";
+import { getSocialNetworkName, PostCommentWithId } from "@/shared/utils/post-util";
 import { Post } from "@/shared/model/post/Post";
-import { ReportQueryData } from "../Stepper/BuildReport";
 import {
   booleanToFrenchText,
   formatDateTimeForCsv,
@@ -8,58 +7,37 @@ import {
   publicationDateSourceText,
   publicationDateToCsvText,
   publicationDateTypeToText,
-  reportOrganizationTypeToText,
-} from "./reportExportShared";
+} from "../Report/Exports/reportExportShared";
 import { POST_DETAIL_CSV_COLUMNS } from "@/shared/utils/csv-util";
 
-const REPORT_CSV_COLUMNS = [
-  { key: "generated_at", label: "Date de génération du rapport" },
-  { key: "generated_at_raw_utc", label: "Date de génération (UTC brut)" },
-  {
-    key: "post_last_analysis_at",
-    label: "Date de dernière collecte de la publication",
-  },
-  {
-    key: "post_last_analysis_at_raw_utc",
-    label: "Date de dernière collecte (UTC brut)",
-  },
-  { key: "report_organization", label: "Organisation du rapport" },
-  { key: "report_organization_code", label: "Organisation du rapport (code)" },
-  ...POST_DETAIL_CSV_COLUMNS,
-] as const;
+type PostDetailCsvColumnKey = (typeof POST_DETAIL_CSV_COLUMNS)[number]["key"];
+type PostDetailCsvRow = Record<PostDetailCsvColumnKey, string>;
 
-type ReportCsvColumnKey = (typeof REPORT_CSV_COLUMNS)[number]["key"];
-type ReportCsvRow = Record<ReportCsvColumnKey, string>;
-
-export function buildReportCsv(
-  reportQueryData: ReportQueryData,
-  posts: Post[],
+export function buildPostDetailCsv(
+  post: Post,
+  filteredCommentList: PostCommentWithId[]
 ): string {
-  const rows = buildReportCsvRows(reportQueryData, posts);
+  const rows = buildPostDetailCsvRows(post, filteredCommentList);
   const dataRows = rows.map((row) =>
-    REPORT_CSV_COLUMNS.map((column) => escapeCsvCell(row[column.key])).join(
+    POST_DETAIL_CSV_COLUMNS.map((column) => escapeCsvCell(row[column.key])).join(
       ";",
     ),
   );
 
   return [
-    REPORT_CSV_COLUMNS.map((column) => column.label).join(";"),
+    POST_DETAIL_CSV_COLUMNS.map((column) => column.label).join(";"),
     ...dataRows,
   ].join("\n");
 }
 
-function buildReportCsvRows(
-  reportQueryData: ReportQueryData,
-  posts: Post[],
-): ReportCsvRow[] {
-  const postsByKey = new Map<string, Post>(
-    posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
-  );
+function buildPostDetailCsvRows(
+  post: Post,
+  filteredCommentList: PostCommentWithId[]
+): PostDetailCsvRow[] {
   const generatedAtRawUtc = new Date().toISOString();
   const generatedAt = formatDateTimeForCsv(generatedAtRawUtc);
 
-  return reportQueryData.postCommentList.map((comment) => {
-    const post = postsByKey.get(comment.postKey);
+  return filteredCommentList.map((comment) => {
     const postRawDateRange = post
       ? getPublicationDateRawRange(post.publishedAt)
       : null;
@@ -72,10 +50,6 @@ function buildReportCsvRows(
         ? formatDateTimeForCsv(post.latestAnalysisDate)
         : "",
       post_last_analysis_at_raw_utc: post?.latestAnalysisDate ?? "",
-      report_organization: reportOrganizationTypeToText(
-        reportQueryData.reportOrganizationType,
-      ),
-      report_organization_code: reportQueryData.reportOrganizationType,
       social_network: post ? getSocialNetworkName(post.socialNetwork) : "",
       social_network_code: post?.socialNetwork ?? "",
       post_id: post?.postId ?? "",
