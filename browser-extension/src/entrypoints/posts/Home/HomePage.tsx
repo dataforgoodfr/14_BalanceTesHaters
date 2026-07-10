@@ -11,6 +11,7 @@ import { type DateRange } from "react-day-picker";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getEarliestPostDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
+import { main } from "../Menu";
 import NoPost from "../Shared/NoPost";
 
 function HomePage() {
@@ -41,7 +42,7 @@ function HomePage() {
 
   return (
     <main className="flex flex-col gap-4">
-      <PageHeader title="Vue d'ensemble" />
+      <PageHeader menuEntry={main.menuEntries.Overview} />
       <div className="flex align-start">
         <SocialNetworkSelector
           value={socialNetworkFilter}

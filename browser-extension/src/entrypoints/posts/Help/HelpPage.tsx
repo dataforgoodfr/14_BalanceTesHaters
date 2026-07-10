@@ -1,63 +1,105 @@
 /* eslint-disable react/no-unescaped-entities */
 import { Link } from "react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ComponentType, ReactNode } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import PageHeader from "../Shared/PageHeader";
-import { BookOpenTextIcon, HandHeartIcon, ShieldCheckIcon } from "lucide-react";
+import { BookOpenTextIcon, FileUser, Phone, ShieldCheck } from "lucide-react";
+import helpGradientUrl from "~/assets/help-gradient.png";
+import { main } from "../Menu";
+import { HelpSearchBar } from "./HelpSearchBar";
+
+type HelpLinkProps = {
+  to: string;
+  Icon: ComponentType<React.SVGProps<SVGSVGElement>>;
+  title: string;
+  children?: ReactNode;
+};
+
+const HelpMenuLink = ({ to, Icon, title, children }: HelpLinkProps) => (
+  <Link to={to} className="block w-1/3">
+    <Card className="h-full hover:bg-selected hover:border-selected-accent dark:hover:bg-gray-700 cursor-pointer transition-colors">
+      <CardContent className="flex flex-col items-center text-center gap-1 py-2">
+        <Icon className="text-center w-full size-5 text-muted-foreground" />
+        <span className="font-semibold text-sm">{title}</span>
+        <span className="text-sm text-muted-foreground dark:text-gray-400">
+          {children}
+        </span>
+      </CardContent>
+    </Card>
+  </Link>
+);
+
+type HelpTelNumberProps = {
+  number: string;
+  children: ReactNode;
+};
+const HelpTelNumber = ({ number, children }: HelpTelNumberProps) => (
+  <div className="w-1/2 bg-gray-50 shadow border-none flex items-center text-center rounded-lg py-2 px-6">
+    <Phone className="text-primary me-1 size-4" />
+    <span className="text-primary text-[20px] font-semibold me-3">
+      {number}
+    </span>
+    <span className="text-sm text-muted-foreground ">{children}</span>
+  </div>
+);
 
 function HelpPage() {
   return (
     <main className="flex flex-col gap-6 items-start">
-      <PageHeader title="Aide et ressources" />
+      <PageHeader menuEntry={main.menuEntries.Help} />
 
-      <div className="grid gap-4 md:grid-cols-3 w-full">
-        <Link to="/help/product" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <BookOpenTextIcon className="text-center w-full size-10" />
-              <CardTitle>Utiliser Balance tes Haters</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                À propos de l'outil, comment ça marche, compléter le dossier,
-                périmètre et limites, comprendre les notions.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+      <div className="relative ">
+        <img src={helpGradientUrl} className="w-full " alt="" />
+        <div className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-8 p-4">
+          <p className="text-4xl font-semibold text-center">
+            Comment pouvons-nous t’aider ?
+          </p>
+          <HelpSearchBar />
+        </div>
+      </div>
 
-        <Link to="/help/harrasement" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <HandHeartIcon className="text-center w-full size-10" />
-              <CardTitle>Cyberharcèlement & actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Premières actions, se protéger en ligne, porter plainte et se
-                faire accompagner, accompagner juridique, identifier le
-                cyberharcèlement.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+      <div className="flex gap-3 w-full">
+        <HelpMenuLink
+          to={main.menuEntries.Product.to}
+          Icon={BookOpenTextIcon}
+          title={main.menuEntries.Product.label}
+        >
+          Informations sur l’outil et guide d’utilisation
+        </HelpMenuLink>
 
-        <Link to="/help/privacy-policy" className="block">
-          <Card className="h-full hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors">
-            <CardHeader>
-              <ShieldCheckIcon className="text-center w-full size-10" />
-              <CardTitle>
-                Données personnelles et politique de confidentialité
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Données collectées, utilisation des données, partage des
-                données, localisation & conservation, vos droits, sécurité,
-                contact.
-              </p>
-            </CardContent>
-          </Card>
-        </Link>
+        <HelpMenuLink
+          to={main.menuEntries.Harrasement.to}
+          Icon={ShieldCheck}
+          title={main.menuEntries.Harrasement.label}
+        >
+          Ressources, conseils et démarches pour agir et se faire accompagner
+        </HelpMenuLink>
+
+        <HelpMenuLink
+          to={main.menuEntries.Privacy.to}
+          Icon={FileUser}
+          title={main.menuEntries.Privacy.label}
+        >
+          Informations sur la collecte, l’usage et la sécurité des données
+        </HelpMenuLink>
+      </div>
+
+      <p className="font-semibold text-lg">Contacts d'urgence</p>
+      <div className="flex flex-col w-full gap-2">
+        <div className="flex gap-3">
+          <HelpTelNumber number="17">Police Secours</HelpTelNumber>
+          <HelpTelNumber number="3018">
+            Aide aux victimes de cyberharcèlement
+          </HelpTelNumber>
+        </div>
+        <div className="flex gap-3">
+          <HelpTelNumber number="116006">
+            Aide aux victimes d'une infraction
+          </HelpTelNumber>
+          <HelpTelNumber number="3919">
+            Aide aux femmes victimes de violences
+          </HelpTelNumber>
+        </div>
       </div>
     </main>
   );

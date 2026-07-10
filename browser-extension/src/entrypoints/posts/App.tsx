@@ -14,6 +14,7 @@ import ContactSupport from "./ContactSupport/ContactSupport";
 import LayoutWithSidePanel from "./LayoutWithSidePanel";
 import { DocumentScreenshotingTestPage } from "./Developer/screenshoting/DocumentScreenshotingTestPage";
 import { ElementScreenshotingTestPage } from "./Developer/screenshoting/ElementScreenshotingTestPage";
+import { main } from "./Menu";
 
 export default function App() {
   return (
@@ -21,55 +22,55 @@ export default function App() {
       <Routes>
         <Route
           index
-          path="/"
+          path={main.menuEntries.Overview.to}
           element={<LayoutWithSidePanel page={<HomePage />} />}
         />
         <Route
           index
-          path="/posts"
+          path={main.menuEntries.Posts.to}
           element={<LayoutWithSidePanel page={<PostListPage />} />}
         />
         <Route
           index
-          path="/posts/:socialNetworkName/:postId"
+          path={main.menuEntries.Posts.to + "/:socialNetworkName/:postId"}
           element={<PostDetailPage />}
         />
         <Route
           index
-          path="/help"
+          path={main.menuEntries.Help.to}
           element={<LayoutWithSidePanel page={<HelpPage />} />}
         />
         <Route
           index
-          path="/help/product"
+          path={main.menuEntries.Product.to}
           element={<LayoutWithSidePanel page={<ProductHelpPage />} />}
         />
         <Route
           index
-          path="/help/harrasement"
+          path={main.menuEntries.Harrasement.to}
           element={<LayoutWithSidePanel page={<HarrasementHelpPage />} />}
         />
         <Route
           index
-          path="/help/privacy-policy"
+          path={main.menuEntries.Privacy.to}
           element={<LayoutWithSidePanel page={<PrivacyPolicyPage />} />}
         />
 
         <Route path="/build-report" element={<BuildReport />} />
 
         <Route
-          path="/contact-support"
+          path={main.menuEntries.ContactSupport.to}
           element={<LayoutWithSidePanel page={<ContactSupport />} />}
         />
 
         {/* Dev pages */}
         <Route
           index
-          path="/post-snapshots"
+          path={main.menuEntries.PostSnapshots.to}
           element={<LayoutWithSidePanel page={<PostSnapshotListPage />} />}
         />
         <Route
-          path="/post-snapshots/:snapshotId"
+          path={main.menuEntries.PostSnapshots.to + "/:snapshotId"}
           element={<PostSnapshotDetailPage />}
         />
         <Route path="/dev/screenshot-debug" element={<ScreenshotDebugPage />} />

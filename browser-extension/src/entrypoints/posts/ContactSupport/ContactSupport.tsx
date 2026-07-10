@@ -1,4 +1,5 @@
 import PageHeader from "../Shared/PageHeader";
+import { main } from "../Menu";
 import { AlertTriangleIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
@@ -36,7 +37,7 @@ function ContactSupport() {
 
   return (
     <main className="flex flex-col gap-6  items-start">
-      <PageHeader title="Signaler un problème" />
+      <PageHeader menuEntry={main.menuEntries.ContactSupport} />
       <Card>
         <CardTitle>Comment signaler mon problème</CardTitle>
         <CardContent>

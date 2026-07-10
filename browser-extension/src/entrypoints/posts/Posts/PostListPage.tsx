@@ -26,6 +26,7 @@ import PageHeader from "../Shared/PageHeader";
 import NoPost from "../Shared/NoPost";
 import { useFilteredPostList } from "../Shared/useFilteredPostList";
 import { cn } from "@/lib/utils";
+import { main } from "../Menu";
 
 function PostListPage() {
   const [socialNetworkFilter, setSocialNetworkFilter] = React.useState<
@@ -72,7 +73,7 @@ function PostListPage() {
 
   return (
     <main className="flex flex-col gap-4  items-start">
-      <PageHeader title="Publications analysées" />
+      <PageHeader menuEntry={main.menuEntries.Posts} />
       <SocialNetworkSelector
         value={socialNetworkFilter}
         onChange={setSocialNetworkFilter}
