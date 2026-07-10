@@ -9,6 +9,7 @@ import {
   escapeCsvCell,
   POST_DETAIL_CSV_COLUMNS,
 } from "@/shared/utils/post-csv-util";
+import { buildPostKey } from "@/shared/utils/post-util";
 
 const REPORT_CSV_COLUMNS = [
   { key: "generated_at", label: "Date de génération du rapport" },
@@ -43,14 +44,13 @@ function buildReportCsvRows(
   posts: Post[],
 ): ReportCsvRow[] {
   const postsByKey = new Map<string, Post>(
-    posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
+    posts.map((post) => [buildPostKey(post.postId, post.socialNetwork), post]),
   );
   const generatedAtRawUtc = new Date().toISOString();
   const generatedAt = formatDateTimeForCsv(generatedAtRawUtc);
 
   return reportQueryData.postCommentList.map((comment) => {
     const post = postsByKey.get(comment.postKey);
-    console.log("post", post);
     return {
       generated_at: generatedAt,
       generated_at_raw_utc: generatedAtRawUtc,
