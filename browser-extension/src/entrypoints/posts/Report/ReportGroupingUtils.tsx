@@ -1,12 +1,12 @@
 import { Post } from "@/shared/model/post/Post";
 import React from "react";
-import { ReportOrganizationType } from "./Stepper/BuildReport";
 import {
   getSecondTextAuthorHeader,
   getTitlePublicationHeader,
   LABEL_URL,
 } from "./reportData";
 import { buildPostKey, PostCommentWithId } from "@/shared/utils/post-util";
+import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 export interface GroupedData {
   groupKey: string;

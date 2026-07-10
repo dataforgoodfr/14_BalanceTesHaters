@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label";
 import {
   useStepper,
   ReportQueryData,
-  ReportOrganizationType,
 } from "./BuildReport"; // or wherever the export is
 import { useForm } from "@tanstack/react-form";
 import { RadioGroup } from "@base-ui/react";
@@ -10,6 +9,7 @@ import { RadioGroupItem } from "@/components/ui/radio-group";
 import { getFormId } from "./StepperComponents";
 import { StepHeader } from "./StepHeader";
 import { FileText, UserRound } from "lucide-react";
+import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 function Step4Organization({
   setReportOrganizationType,

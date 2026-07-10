@@ -73,7 +73,7 @@ function PostDetailPage() {
         url:
           "data:text/csv;charset=utf-8," +
           encodeURIComponent("\uFEFF" + csvContent),
-        filename: `rapport-bth-${generatedAt}.csv`,
+        filename: `publication-bth-${post.postId}-${generatedAt}.csv`,
         saveAs: true,
       });
     };
