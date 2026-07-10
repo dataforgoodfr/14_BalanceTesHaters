@@ -23,7 +23,7 @@ const closableAlertDescriptionVariants = cva("", {
   variants: {
     variant: {
       info: "text-text-info",
-      support: "text-text-support",
+      support: "text-fuchsia-900",
     },
   },
   defaultVariants: {
