@@ -1,4 +1,11 @@
-import { booleanToFrenchText, formatDateTimeForCsv, getPublicationDateRawRange, publicationDateSourceText, publicationDateToCsvText, publicationDateTypeToText } from "@/entrypoints/posts/Report/Exports/reportExportShared";
+import {
+  booleanToFrenchText,
+  formatDateTimeForCsv,
+  getPublicationDateRawRange,
+  publicationDateSourceText,
+  publicationDateToCsvText,
+  publicationDateTypeToText,
+} from "@/entrypoints/posts/Report/Exports/reportExportShared";
 import { Post } from "../model/post/Post";
 import { getSocialNetworkName, PostCommentWithId } from "./post-util";
 
@@ -75,56 +82,59 @@ export const POST_DETAIL_CSV_COLUMNS = [
 type PostDetailCsvColumnKey = (typeof POST_DETAIL_CSV_COLUMNS)[number]["key"];
 export type PostDetailCsvRow = Record<PostDetailCsvColumnKey, string>;
 
-export function buildPostCommentRow(post: Post | undefined, comment: PostCommentWithId): PostDetailCsvRow {
-     const postRawDateRange = post
-       ? getPublicationDateRawRange(post.publishedAt)
-       : null;
-     const commentRawDateRange = getPublicationDateRawRange(comment.publishedAt);
- 
-    return {
-        post_last_analysis_at: post
-          ? formatDateTimeForCsv(post.latestAnalysisDate)
-          : "",
-        post_last_analysis_at_raw_utc: post?.latestAnalysisDate ?? "",
-        social_network: post ? getSocialNetworkName(post.socialNetwork) : "",
-        social_network_code: post?.socialNetwork ?? "",
-        post_id: post?.postId ?? "",
-        post_url: post?.url ?? "",
-        post_title: post?.title ?? "",
-        post_author: post?.author.name ?? "",
-        post_published_at: post ? publicationDateToCsvText(post.publishedAt) : "",
-        post_published_at_source_text: post
-          ? publicationDateSourceText(post.publishedAt)
-          : "",
-        post_published_at_type: post
-          ? publicationDateTypeToText(post.publishedAt.type)
-          : "",
-        post_published_at_raw_start_utc: postRawDateRange?.start ?? "",
-        post_published_at_raw_end_utc: postRawDateRange?.end ?? "",
-        comment_id: comment.id,
-        comment_author: comment.author.name,
-        comment_published_at: publicationDateToCsvText(comment.publishedAt),
-        comment_published_at_source_text: publicationDateSourceText(
-          comment.publishedAt,
-        ),
-        comment_published_at_type: publicationDateTypeToText(
-          comment.publishedAt.type,
-        ),
-        comment_published_at_raw_start_utc: commentRawDateRange.start,
-        comment_published_at_raw_end_utc: commentRawDateRange.end,
-        comment_text: comment.textContent,
-        comment_classification: (comment.classification ?? []).join(", "),
-        comment_classification_raw: JSON.stringify(comment.classification ?? []),
-        comment_classified_at: comment.classifiedAt
-          ? formatDateTimeForCsv(comment.classifiedAt)
-          : "",
-        comment_classified_at_raw_utc: comment.classifiedAt ?? "",
-        comment_screenshot_available: booleanToFrenchText(
-          Boolean(comment.screenshotData),
-        ),
-        comment_is_deleted: booleanToFrenchText(comment.isDeleted),
-        comment_is_new: booleanToFrenchText(comment.isNew),
-      };
+export function buildPostCommentRow(
+  post: Post | undefined,
+  comment: PostCommentWithId,
+): PostDetailCsvRow {
+  const postRawDateRange = post
+    ? getPublicationDateRawRange(post.publishedAt)
+    : null;
+  const commentRawDateRange = getPublicationDateRawRange(comment.publishedAt);
+
+  return {
+    post_last_analysis_at: post
+      ? formatDateTimeForCsv(post.latestAnalysisDate)
+      : "",
+    post_last_analysis_at_raw_utc: post?.latestAnalysisDate ?? "",
+    social_network: post ? getSocialNetworkName(post.socialNetwork) : "",
+    social_network_code: post?.socialNetwork ?? "",
+    post_id: post?.postId ?? "",
+    post_url: post?.url ?? "",
+    post_title: post?.title ?? "",
+    post_author: post?.author.name ?? "",
+    post_published_at: post ? publicationDateToCsvText(post.publishedAt) : "",
+    post_published_at_source_text: post
+      ? publicationDateSourceText(post.publishedAt)
+      : "",
+    post_published_at_type: post
+      ? publicationDateTypeToText(post.publishedAt.type)
+      : "",
+    post_published_at_raw_start_utc: postRawDateRange?.start ?? "",
+    post_published_at_raw_end_utc: postRawDateRange?.end ?? "",
+    comment_id: comment.id,
+    comment_author: comment.author.name,
+    comment_published_at: publicationDateToCsvText(comment.publishedAt),
+    comment_published_at_source_text: publicationDateSourceText(
+      comment.publishedAt,
+    ),
+    comment_published_at_type: publicationDateTypeToText(
+      comment.publishedAt.type,
+    ),
+    comment_published_at_raw_start_utc: commentRawDateRange.start,
+    comment_published_at_raw_end_utc: commentRawDateRange.end,
+    comment_text: comment.textContent,
+    comment_classification: (comment.classification ?? []).join(", "),
+    comment_classification_raw: JSON.stringify(comment.classification ?? []),
+    comment_classified_at: comment.classifiedAt
+      ? formatDateTimeForCsv(comment.classifiedAt)
+      : "",
+    comment_classified_at_raw_utc: comment.classifiedAt ?? "",
+    comment_screenshot_available: booleanToFrenchText(
+      Boolean(comment.screenshotData),
+    ),
+    comment_is_deleted: booleanToFrenchText(comment.isDeleted),
+    comment_is_new: booleanToFrenchText(comment.isNew),
+  };
 }
 
 export function escapeCsvCell(value: string): string {

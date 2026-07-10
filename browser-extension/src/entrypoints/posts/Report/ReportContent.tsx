@@ -1,4 +1,4 @@
-import { ReportQueryData, } from "./Stepper/BuildReport";
+import { ReportQueryData } from "./Stepper/BuildReport";
 
 import KpiCard from "../Shared/KpiCards/KpiCard";
 

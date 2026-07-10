@@ -15,9 +15,7 @@ import {
 } from "@/shared/utils/post-util";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
-import {
-  ReportQueryData,
-} from "../Stepper/BuildReport";
+import { ReportQueryData } from "../Stepper/BuildReport";
 import { NOTICE_UTILISATION_DATA } from "../Notice/noticeUtilisationData";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";

@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { PostCommentWithId } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
-
 const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;
 
 export type ReportQueryData = {
