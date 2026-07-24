@@ -120,6 +120,7 @@ function buildPostCommentForGroupOfSameText(
     screenshotData: selectScreenshotData(sortedByScrapedAt),
     classification: groupOldestComment.commentSnapshot.classification,
     classifiedAt: groupOldestComment.commentSnapshot.classifiedAt,
+    url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
   };
