@@ -133,11 +133,10 @@ const Report = ({
         </div>
       </div>
 
-      <ClosableAlert
-        title="Important"
-        description="Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez à télécharger le rapport en PDF ou exporter les données du rapport en CSV"
-        icon={<CircleAlert />}
-      />
+      <ClosableAlert title="Important" icon={<CircleAlert />}>
+        Ce rapport ne pourra pas être enregistré sur votre navigateur. Pensez à
+        télécharger le rapport en PDF ou exporter les données du rapport en CSV
+      </ClosableAlert>
 
       <div className="max-w-5xl self-center flex flex-col gap-6">
         <div className="flex justify-between items-center ">

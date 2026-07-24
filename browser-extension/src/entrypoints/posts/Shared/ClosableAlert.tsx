@@ -4,12 +4,14 @@ import { XIcon } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cva } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 // A compléter en fonction des besoins
 const closableAlertVariants = cva("card rounded-md flex gap-4", {
   variants: {
     variant: {
       info: "bg-navigation-accent text-card-foreground text-text-info",
+      support: "bg-fuchsia-100 text-fuchsia-900",
     },
   },
   defaultVariants: {
@@ -21,6 +23,7 @@ const closableAlertDescriptionVariants = cva("", {
   variants: {
     variant: {
       info: "text-text-info",
+      support: "text-fuchsia-900",
     },
   },
   defaultVariants: {
@@ -30,30 +33,31 @@ const closableAlertDescriptionVariants = cva("", {
 
 type ClosableAlertProps = {
   title: string;
-  description: string;
+  className?: string;
   icon: React.ReactNode;
-  variant?: "info";
+  variant?: "info" | "support";
 };
 
 const ClosableAlert = ({
+  children,
+  className,
   title,
-  description,
   icon,
   variant,
-}: ClosableAlertProps) => {
+}: React.PropsWithChildren<ClosableAlertProps>) => {
   const [isActive, setIsActive] = useState(true);
 
   if (!isActive) return null;
 
   return (
-    <Alert className={closableAlertVariants({ variant })}>
+    <Alert className={cn(closableAlertVariants({ variant }), className)}>
       <div className="mt-2">{icon}</div>
       <div className="flex-1 flex-col justify-center gap-1">
         <AlertTitle className="text-lg ">{title}</AlertTitle>
         <AlertDescription
           className={closableAlertDescriptionVariants({ variant })}
         >
-          {description}
+          {children}
         </AlertDescription>
       </div>
       <button
