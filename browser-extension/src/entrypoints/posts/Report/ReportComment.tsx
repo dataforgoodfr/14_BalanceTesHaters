@@ -87,9 +87,13 @@ export const ReportComment = ({
       </div>
       <div className="text-muted-foreground self-start">
         {LABEL_URL}
-        <a href={comment.url} target="_blank" rel="noopener noreferrer">
-          {comment.url}
-        </a>
+        {comment.url ? (
+          <a href={comment.url} target="_blank" rel="noopener noreferrer">
+            {comment.url}
+          </a>
+        ) : (
+          "N/A"
+        )}
         {" • "}
         {reportOrganizationType === ReportOrganizationType.BY_AUTHOR ? (
           <>

@@ -404,9 +404,13 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                     </View>
                     <Text style={styles.commentContent}>
                       {LABEL_URL}{" "}
-                      <Link style={styles.commentContent} href={comment.url}>
-                        {comment.url}
-                      </Link>
+                      {comment.url ? (
+                        <Link style={styles.commentContent} href={comment.url}>
+                          {comment.url}
+                        </Link>
+                      ) : (
+                        "N/A"
+                      )}
                       {" • "}
                       {reportQueryData.reportOrganizationType ===
                       ReportOrganizationType.BY_AUTHOR ? (
