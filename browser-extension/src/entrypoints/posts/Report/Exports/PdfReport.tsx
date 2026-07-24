@@ -190,12 +190,6 @@ const styles = StyleSheet.create({
     height: "100%",
     color: "transparent", // Makes text invisible
     whiteSpace: "pre-wrap", // Preserve text formatting
-    // Following values get closer to youtube screenshot text position but it can't be perfect
-    // and won't fit instagram screenshots
-    top: 12,
-    left: 22,
-    fontSize: pxToPt(18.5),
-    lineHeight: pxToPt(22),
   },
   noticeCard: {
     margin: pxToPt(96),
