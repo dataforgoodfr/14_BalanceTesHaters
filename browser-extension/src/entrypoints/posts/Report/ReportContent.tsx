@@ -1,4 +1,4 @@
-import { ReportQueryData, ReportOrganizationType } from "./Stepper/BuildReport";
+import { ReportQueryData } from "./Stepper/BuildReport";
 
 import KpiCard from "../Shared/KpiCards/KpiCard";
 
@@ -12,6 +12,7 @@ import { ReportCommentGroup } from "./ReportCommentGroup";
 import { useMemo } from "react";
 import { getPublicationGroups, getAuthorGroups } from "./ReportGroupingUtils";
 import { LABEL_RAPPORT_COMMENTAIRES_MALVEILLANTS } from "./reportData";
+import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 interface ReportContentProps {
   reportQueryData?: ReportQueryData;

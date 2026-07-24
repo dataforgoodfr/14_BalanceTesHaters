@@ -11,11 +11,7 @@ import { FilePen, XIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { PostCommentWithId } from "@/shared/utils/post-util";
-
-export enum ReportOrganizationType {
-  BY_PUBLICATION = "BY_PUBLICATION",
-  BY_AUTHOR = "BY_AUTHOR",
-}
+import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;
 

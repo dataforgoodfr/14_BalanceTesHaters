@@ -15,10 +15,7 @@ import {
 } from "@/shared/utils/post-util";
 import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
-import {
-  ReportOrganizationType,
-  ReportQueryData,
-} from "../Stepper/BuildReport";
+import { ReportQueryData } from "../Stepper/BuildReport";
 import { NOTICE_UTILISATION_DATA } from "../Notice/noticeUtilisationData";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
@@ -41,6 +38,7 @@ import {
   getPublicationGroups,
   GroupedData,
 } from "../ReportGroupingUtils";
+import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 const GRAY_500 = "#6b7280";
 const NEUTRAL_50 = "#FAFAFA";
