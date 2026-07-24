@@ -65,9 +65,9 @@ function Step1Plateforme({
                   <Field
                     orientation="horizontal"
                     key={option.id}
-                    className="rounded-md has-[[aria-checked=true]]:bg-selected has-[[aria-checked=true]]:border-selected-accent"
+                    className="rounded-md border has-aria-checked:bg-selected has-aria-checked:border-indigo-brand-300"
                   >
-                    <Label className="w-[256px] justify-center border border-border rounded-md p-4">
+                    <Label className="w-[256px] justify-center  rounded-md p-4 ">
                       <Checkbox
                         id={option.id}
                         className="hidden"

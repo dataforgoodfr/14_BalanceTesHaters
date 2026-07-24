@@ -94,6 +94,7 @@ main {
 
   /* A changer une fois le design system stabilisé */
   --indigo-brand-100: oklch(0.9081 0.0367 283.95);
+  --indigo-brand-300: oklch(0.7986 0.0833 282.83);
 }
 
 .dark {
@@ -187,6 +188,7 @@ main {
 
   /* A changer une fois le design system stabilisé */
   --color-indigo-brand-100: var(--indigo-brand-100);
+  --color-indigo-brand-300: var(--indigo-brand-300);
 }
 
 @layer base {

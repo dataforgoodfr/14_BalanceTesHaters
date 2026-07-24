@@ -52,7 +52,7 @@ export function BuildReport() {
 
   const [displayReport, setDisplayReport] = React.useState<boolean>(false);
   return (
-    <main className="flex flex-col gap-6">
+    <main className="flex flex-col gap-2">
       {!displayReport && (
         <BthStepper
           reportQueryData={reportQueryData}
@@ -132,7 +132,7 @@ const BthStepper = ({
           }
         ></Button>
       </div>
-      <div className="mt-6 flex flex-col gap-6">
+      <div className="flex flex-col gap-6">
         <Scoped>
           <Stepper.Root
             className="w-full h-full space-y-4"
@@ -195,7 +195,7 @@ const StepContent = ({
   }, [stateFromPostList]);
 
   return (
-    <div className="pt-4">
+    <div className="pt-8">
       {stepper.flow.when("step-1", () => (
         <Step1Plateforme
           setSocialNetworkList={setSocialNetworkList}
