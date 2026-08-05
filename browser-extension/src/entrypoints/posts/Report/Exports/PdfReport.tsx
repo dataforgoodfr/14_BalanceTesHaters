@@ -187,7 +187,14 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
     width: "18%",
   },
-  screenshotImage: { maxWidth: "100%" },
+  screenshotImage: { maxWidth: "100%", position: "relative" },
+  invisibleText: {
+    position: "absolute",
+    width: "77%",
+    height: "100%",
+    color: "transparent", // Makes text invisible
+    whiteSpace: "pre-wrap", // Preserve text formatting
+  },
   noticeCard: {
     margin: pxToPt(96),
     padding: pxToPt(16),
@@ -389,6 +396,9 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                         )}
                         style={styles.screenshotImage}
                       />
+                      <Text style={styles.invisibleText}>
+                        {comment.textContent}
+                      </Text>
                       <View style={styles.commentRightBlock}>
                         <Text style={[styles.commentContent]}>
                           {getLabelPublishedComment(comment.publishedAt)}
