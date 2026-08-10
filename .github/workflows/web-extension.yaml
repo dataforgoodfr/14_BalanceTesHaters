@@ -131,6 +131,9 @@ jobs:
     if: (github.ref_type == 'tag' && startsWith(github.ref_name, 'webext-v'))
     runs-on: ubuntu-latest
     environment: Chrome Web Store
+    permissions:
+      contents: "write"
+      id-token: "write"
     defaults:
       run:
         working-directory: browser-extension
@@ -163,14 +166,28 @@ jobs:
           name: Web Extension ${{needs.extension-artifacts.outputs.tag-version}}
           fail_on_unmatched_files: true
           files: browser-extension/bth-extension-chrome.zip
+      - name: "GCP Authentication"
+        uses: "google-github-actions/auth@v3"
+        id: gcp-auth
+        with:
+          service_account: ${{secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL}}
+          workload_identity_provider: "projects/476322675150/locations/global/workloadIdentityPools/github"
+          token_format: "access_token"
+      - name: Test API access
+        env:
+          EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
+          PUBLISHER_ID: "2391fb02-9ced-4094-9aa6-b33d4e554064"
+          ACCESS_TOKEN: ${{steps.gcp-auth.outputs.access_token}}
+        run: |
+          curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:fetchStatus
+
       - name: "Submit to Chrome Web Store"
         env:
           CHROME_API_VERSION: "v2"
           CHROME_EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
           CHROME_PUBLISHER_ID: "2391fb02-9ced-4094-9aa6-b33d4e554064"
           CHROME_PUBLISH_TYPE: "DEFAULT_PUBLISH"
-          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL}}
-          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY}}
+          CHROME_SERVICE_ACCOUNT_ACCESS_TOKEN: ${{steps.gcp-auth.outputs.access_token}}
         run: pnpm publish-extension ${{case(contains(github.ref_name, 'debug-publish'), '--dry-run', '')}} --chrome-zip bth-extension-chrome.zip
 
   e2e-tests:
