@@ -70,7 +70,7 @@
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.8",
-    "@wxt-dev/auto-icons": "^1.1.1",
+    "@wxt-dev/auto-icons": "^1.1.2",
     "@wxt-dev/module-react": "^1.2.2",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
@@ -79,7 +79,7 @@
     "globals": "^17.0.0",
     "happy-dom": "^20.9.0",
     "prettier": "^3.7.4",
-    "publish-browser-extension": "~4.0.5",
+    "publish-browser-extension": "~6.1.0",
     "storybook": "^10.3.4",
     "tsx": "^4.19.0",
     "typescript": "^5.9.3",
@@ -87,7 +87,7 @@
     "vite": "^8.0.16",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.8",
-    "wxt": "^0.20.26"
+    "wxt": "^0.20.27"
   },
   "packageManager": "pnpm@10.20.0",
   "engines": {

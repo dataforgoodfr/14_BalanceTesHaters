@@ -165,13 +165,13 @@ jobs:
           files: browser-extension/bth-extension-chrome.zip
       - name: "Submit to Chrome Web Store"
         env:
+          CHROME_API_VERSION: "v2"
           CHROME_EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
-          CHROME_PUBLISH_TARGET: "default"
-          CHROME_SKIP_SUBMIT_REVIEW: false
-          CHROME_CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CHROME_CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          CHROME_REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-        run: pnpm wxt submit ${{case(contains(github.ref_name, 'debug-publish'), '--dry-run', '')}} --chrome-zip bth-extension-chrome.zip
+          CHROME_PUBLISHER_ID: "2391fb02-9ced-4094-9aa6-b33d4e554064"
+          CHROME_PUBLISH_TYPE: "DEFAULT_PUBLISH"
+          CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL: ${{secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL}}
+          CHROME_SERVICE_ACCOUNT_PRIVATE_KEY: ${{secrets.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY}}
+        run: pnpm publish-extension ${{case(contains(github.ref_name, 'debug-publish'), '--dry-run', '')}} --chrome-zip bth-extension-chrome.zip
 
   e2e-tests:
     name: E2E Tests
