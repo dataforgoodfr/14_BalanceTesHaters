@@ -173,13 +173,14 @@ jobs:
           service_account: ${{secrets.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL}}
           workload_identity_provider: "projects/476322675150/locations/global/workloadIdentityPools/github/providers/bth-repo-cws-env"
           token_format: "access_token"
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
       - name: Test API access
         env:
           EXTENSION_ID: "bjmmakmdjbdlhghmjobpcnmeefhfajfe"
           PUBLISHER_ID: "2391fb02-9ced-4094-9aa6-b33d4e554064"
           ACCESS_TOKEN: ${{steps.gcp-auth.outputs.access_token}}
         run: |
-          curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:fetchStatus
+          curl -H "Authorization: Bearer ${ACCESS_TOKEN}" -X GET "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:fetchStatus"
 
       - name: "Submit to Chrome Web Store"
         env:
