@@ -3,7 +3,9 @@
 # Installer l'environnement de dev
 
 - Installer pnpm
-- `pnpm install` dans le répertoire browser-extension
+- dans le répertoire browser-extension
+  - `pnpm install` pour installer les dependances
+  - `pnpm playwright install` pour installer les navigateurs necessaire pour les tests e2e
 
 ## Installer l'extension en mode dev dans Chrome
 
