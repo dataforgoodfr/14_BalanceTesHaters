@@ -15,6 +15,7 @@ export default defineConfig([
     ".wxt/",
     ".output/",
     ".storybook/",
+    "storybook-static",
     "playwright-report",
     "test-results",
     "coverage",

@@ -59,6 +59,6 @@ function buildReportCsvRows(
       ),
       report_organization_code: reportQueryData.reportOrganizationType,
       ...buildPostCommentRow(post, comment),
-    } as ReportCsvRow;
+    };
   });
 }

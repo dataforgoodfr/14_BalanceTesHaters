@@ -2,7 +2,6 @@ import {
   isRequestRedirectAndScrap,
   SocialNetworkScraper,
 } from "./SocialNetworkScraper";
-import { StartScrapingResult } from "./StartScrapingResult";
 import {
   isScsPageInfoMessage,
   isScsScrapTabMessage,
@@ -60,7 +59,7 @@ export class ScrapingContentScript {
       // Answer started
       sendResponse({
         type: "started",
-      } as StartScrapingResult);
+      });
       // Return true to indicate async response to web-ext-messaging
       return true;
     } else if (isScsGetScrapingStatusMessage(message)) {

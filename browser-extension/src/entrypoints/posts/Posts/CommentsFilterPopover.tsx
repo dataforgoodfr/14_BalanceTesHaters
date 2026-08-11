@@ -32,12 +32,7 @@ const categories = [
 ] as const;
 
 type CommentsFilterCategory =
-  | "date"
-  | "score"
-  | "alert"
-  | "category"
-  | "pseudoAuthor"
-  | "status";
+  "date" | "score" | "alert" | "category" | "pseudoAuthor" | "status";
 
 const filterOptions: Record<
   CommentsFilterCategory,

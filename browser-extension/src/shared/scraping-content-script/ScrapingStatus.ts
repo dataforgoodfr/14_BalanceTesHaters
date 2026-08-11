@@ -56,10 +56,7 @@ export function scrapingFailed(errorMessage: string): ScrapingFailed {
 export function isScrapingStartable(
   scrapingStatus: ScrapingStatus,
 ): scrapingStatus is
-  | ScrapingSucceeded
-  | ScrapingFailed
-  | ScrapingCanceled
-  | ScrapingNotStarted {
+  ScrapingSucceeded | ScrapingFailed | ScrapingCanceled | ScrapingNotStarted {
   return (
     scrapingStatus.type === "not-started" || isScrapingCompleted(scrapingStatus)
   );

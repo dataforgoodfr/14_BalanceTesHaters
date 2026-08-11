@@ -173,9 +173,7 @@ function SearchSortFiltersPostList({
                   <div key={category.id} className="p-1">
                     <Button
                       variant="ghost"
-                      onClick={() =>
-                        setSelectedCategory(category.id as PostsFilterCategory)
-                      }
+                      onClick={() => setSelectedCategory(category.id)}
                       disabled={category.isDisabled}
                       className={cn(
                         "w-full text-left p-2 hover:bg-accent transition-colors flex items-center justify-between rounded-sm",
@@ -257,9 +255,7 @@ function SearchSortFiltersPostList({
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    setPostSortingCategory(
-                      sortingCategory as PostSortingCategory,
-                    );
+                    setPostSortingCategory(sortingCategory);
                     setSortingOpen(false);
                   }}
                   className=" text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
@@ -268,21 +264,14 @@ function SearchSortFiltersPostList({
                     PostSortingCategory.ANALYSIS_DATE_DESC,
                     PostSortingCategory.PUBLICATION_DATE_DESC,
                     PostSortingCategory.NB_HATEFUL_COMMENTS_DESC,
-                  ].includes(sortingCategory as PostSortingCategory) && (
-                    <ArrowUp />
-                  )}
+                  ].includes(sortingCategory) && <ArrowUp />}
                   {[
                     PostSortingCategory.ANALYSIS_DATE_ASC,
                     PostSortingCategory.PUBLICATION_DATE_ASC,
                     PostSortingCategory.NB_HATEFUL_COMMENTS_ASC,
-                  ].includes(sortingCategory as PostSortingCategory) && (
-                    <ArrowDown />
-                  )}
-                  <span>
-                    {getSortingLabel(sortingCategory as PostSortingCategory)}
-                  </span>
-                  {selectedSortingCategory ===
-                    (sortingCategory as PostSortingCategory) && (
+                  ].includes(sortingCategory) && <ArrowDown />}
+                  <span>{getSortingLabel(sortingCategory)}</span>
+                  {selectedSortingCategory === sortingCategory && (
                     <Check className="ms-auto" />
                   )}
                 </Button>
