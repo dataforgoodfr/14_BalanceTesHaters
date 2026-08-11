@@ -1,4 +1,4 @@
-import { Page, BrowserContext } from "@playwright/test";
+import type { Page, BrowserContext } from "@playwright/test";
 import { PopupPageObject } from "../po/PopupPageObject";
 import { e2eQueryTabIdWithUrl } from "../extension-integration/e2eQueryTabIdWithUrl";
 import { waitForConditionOrThrow } from "../utils/waitForCondition";

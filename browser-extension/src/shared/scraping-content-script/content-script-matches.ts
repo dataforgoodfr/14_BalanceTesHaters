@@ -38,9 +38,9 @@ function matchesWebExtensionMatchPattern(url: string, matchPattern: string) {
 
   const [, schemePattern, hostPattern, pathPattern] = parsedPattern;
   return (
-    matchesScheme(parsedUrl.protocol.slice(0, -1), schemePattern) &&
-    matchesHost(parsedUrl.hostname, hostPattern) &&
-    matchesPath(parsedUrl.pathname, pathPattern)
+    matchesScheme(parsedUrl.protocol.slice(0, -1), schemePattern!) &&
+    matchesHost(parsedUrl.hostname, hostPattern!) &&
+    matchesPath(parsedUrl.pathname, pathPattern!)
   );
 }
 

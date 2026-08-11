@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import {
   InputGroup,
@@ -49,7 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { useNavigate } from "react-router";
-import {
+import type {
   CommentFilters,
   CommentSortingCategory,
   PostCommentWithId,
@@ -376,8 +376,8 @@ export default function CommentsTable({
               onClick={() => {
                 void navigate("/build-report", {
                   state: {
-                    socialNetworkFilter: [filteredComments[0].socialNetwork],
-                    selectedPostIds: [filteredComments[0].postId],
+                    socialNetworkFilter: [filteredComments[0]!.socialNetwork],
+                    selectedPostIds: [filteredComments[0]!.postId],
                     selectedCommentList: filteredComments.filter((comment) =>
                       selectedCommentIdList.has(comment.id),
                     ),

@@ -1,4 +1,4 @@
-import { Image } from "image-js";
+import type { Image } from "image-js";
 
 export interface ScreenshotFragment {
   /**

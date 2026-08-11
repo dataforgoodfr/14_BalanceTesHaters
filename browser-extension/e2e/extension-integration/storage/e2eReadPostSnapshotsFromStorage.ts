@@ -1,5 +1,6 @@
-import { PostSnapshot, PostSnapshotSchema } from "@/shared/model/PostSnapshot";
-import { BrowserContext } from "@playwright/test";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import { PostSnapshotSchema } from "@/shared/model/PostSnapshot";
+import type { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "../evaluate/evaluateInBackgroundWorker";
 
 export async function e2eReadPostSnapshotsFromStorage(

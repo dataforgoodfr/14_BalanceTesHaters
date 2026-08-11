@@ -1,17 +1,18 @@
-import { decodePng, Image } from "image-js";
+import type { Image } from "image-js";
+import { decodePng } from "image-js";
 import { captureTabScreenshotAsDataUrl } from "../tab/captureTabScreenshotAsDataUrl";
-import { ScreenshotFragment } from "./ScreenshotFragment";
-import { ScrapingSupport } from "../../scraping/ScrapingSupport";
+import type { ScreenshotFragment } from "./ScreenshotFragment";
+import type { ScrapingSupport } from "../../scraping/ScrapingSupport";
 import { base64ToUint8Array } from "@/shared/utils/base-64";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { withRetry } from "@/shared/utils/withRetry";
 import { buildFullImageFromFragments } from "./buildFullImageFromFragments";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
 import { createLogger } from "../../utils/createLogger";
-import { Scrollable } from "./Scrollable";
+import type { Scrollable } from "./Scrollable";
 import { sleep } from "../../utils/sleep";
-import { Size } from "../Size";
+import type { Size } from "../Size";
 
 const logger = createLogger("[Screenshoting scrollable]");
 

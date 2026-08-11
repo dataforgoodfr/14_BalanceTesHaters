@@ -5,10 +5,8 @@ import { isSubmitClassificationRequestMessage } from "./classification/submitCla
 import { isUpdatePostWithClassificationResultMessage } from "./classification/updatePostWithClassificationResultMessage";
 import { updatePostWithClassificationResult } from "./classification/updatePostWithClassificationResult";
 import { startClassificationPolling } from "./classification/classificationPolling";
-import {
-  GetSenderInfoResult,
-  isGetSenderInfoMessage as isIdentifyMe,
-} from "./getSenderInfo";
+import type { GetSenderInfoResult } from "./getSenderInfo";
+import { isGetSenderInfoMessage as isIdentifyMe } from "./getSenderInfo";
 
 export default defineBackground(() => {
   console.info(

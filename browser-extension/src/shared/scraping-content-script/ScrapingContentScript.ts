@@ -1,7 +1,5 @@
-import {
-  isRequestRedirectAndScrap,
-  SocialNetworkScraper,
-} from "./SocialNetworkScraper";
+import type { SocialNetworkScraper } from "./SocialNetworkScraper";
+import { isRequestRedirectAndScrap } from "./SocialNetworkScraper";
 import {
   isScsPageInfoMessage,
   isScsScrapTabMessage,
@@ -9,13 +7,10 @@ import {
   isScsCancelScrapTabMessage,
 } from "./messages";
 import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
-import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
+import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { countAllComments } from "@/shared/model/PostSnapshot";
-import {
-  isScrapingStartable,
-  scrapingFailed,
-  ScrapingStatus,
-} from "./ScrapingStatus";
+import type { ScrapingStatus } from "./ScrapingStatus";
+import { isScrapingStartable, scrapingFailed } from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";

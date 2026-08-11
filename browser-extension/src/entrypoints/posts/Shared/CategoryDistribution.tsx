@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { PostComment } from "@/shared/model/post/Post";
+import type { PostComment } from "@/shared/model/post/Post";
+import type { ChartConfig } from "@/components/ui/chart";
 import {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
@@ -47,7 +47,7 @@ function CategoryDistribution({
   const dataPoints: ChartDataPoint[] = categoryStats.map((s, i) => ({
     name: s.label,
     value: s.count,
-    fill: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
+    fill: CATEGORY_COLORS[i % CATEGORY_COLORS.length]!,
   }));
 
   const chartConfig = dataPoints.reduce<ChartConfig>(

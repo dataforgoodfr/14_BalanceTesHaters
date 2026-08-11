@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildCommentsFromSnapshots } from "../buildCommentsFromSnapshots";
-import { PostSnapshot, CommentSnapshot } from "../../PostSnapshot";
+import type { PostSnapshot, CommentSnapshot } from "../../PostSnapshot";
 import { SocialNetwork } from "../../SocialNetworkName";
 
 describe("buildCommentsFromSnapshots", () => {
@@ -25,10 +25,10 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].author).toBe(comment.author);
-      expect(result[0].textContent).toBe(comment.textContent);
-      expect(result[0].isNew).toBe(false);
-      expect(result[0].isDeleted).toBe(false);
+      expect(result[0]!.author).toBe(comment.author);
+      expect(result[0]!.textContent).toBe(comment.textContent);
+      expect(result[0]!.isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(false);
     });
 
     it("should return multiple comments when given single snapshot with multiple comments", () => {
@@ -44,9 +44,9 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot]);
 
       expect(result).toHaveLength(3);
-      expect(result[0].textContent).toBe(comment1.textContent);
-      expect(result[1].textContent).toBe(comment2.textContent);
-      expect(result[2].textContent).toBe(comment3.textContent);
+      expect(result[0]!.textContent).toBe(comment1.textContent);
+      expect(result[1]!.textContent).toBe(comment2.textContent);
+      expect(result[2]!.textContent).toBe(comment3.textContent);
       // All comments from single snapshot are NOT new (isNew requires postSnapshotsCount > 1)
       expect(result.every((c) => c.isNew)).toBe(false);
       expect(result.every((c) => c.isDeleted)).toBe(false);
@@ -75,9 +75,9 @@ describe("buildCommentsFromSnapshots", () => {
       // Should have 3 comments: parent + 2 replies (flattened)
       expect(result).toHaveLength(3);
       // PostComment doesn't have commentId field, so we check by textContent
-      expect(result[0].textContent).toBe(parentComment.textContent);
-      expect(result[1].textContent).toBe(reply1.textContent);
-      expect(result[2].textContent).toBe(reply2.textContent);
+      expect(result[0]!.textContent).toBe(parentComment.textContent);
+      expect(result[1]!.textContent).toBe(reply1.textContent);
+      expect(result[2]!.textContent).toBe(reply2.textContent);
     });
   });
 
@@ -100,9 +100,9 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].textContent).toBe("Same text");
-      expect(result[0].isNew).toBe(false); // not from latest snapshot only
-      expect(result[0].isDeleted).toBe(false); // still present in latest
+      expect(result[0]!.textContent).toBe("Same text");
+      expect(result[0]!.isNew).toBe(false); // not from latest snapshot only
+      expect(result[0]!.isDeleted).toBe(false); // still present in latest
     });
   });
 
@@ -128,14 +128,14 @@ describe("buildCommentsFromSnapshots", () => {
       expect(result).toHaveLength(2);
 
       // First entry is the original text
-      expect(result[0].textContent).toBe("Original text");
-      expect(result[0].isNew).toBe(false);
-      expect(result[0].isDeleted).toBe(true); // original text no longer exists in latest
+      expect(result[0]!.textContent).toBe("Original text");
+      expect(result[0]!.isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(true); // original text no longer exists in latest
 
       // Second entry is the edited text
-      expect(result[1].textContent).toBe("Edited text");
-      expect(result[1].isNew).toBe(true);
-      expect(result[1].isDeleted).toBe(false);
+      expect(result[1]!.textContent).toBe("Edited text");
+      expect(result[1]!.isNew).toBe(true);
+      expect(result[1]!.isDeleted).toBe(false);
     });
 
     it("should handle multiple edits of same comment", () => {
@@ -168,17 +168,17 @@ describe("buildCommentsFromSnapshots", () => {
       expect(result).toHaveLength(3);
 
       // Each version should be its own entry
-      expect(result[0].textContent).toBe("Version 1");
-      expect(result[0].isNew).toBe(false);
-      expect(result[0].isDeleted).toBe(true);
+      expect(result[0]!.textContent).toBe("Version 1");
+      expect(result[0]!.isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(true);
 
-      expect(result[1].textContent).toBe("Version 2");
-      expect(result[1].isNew).toBe(false);
-      expect(result[1].isDeleted).toBe(true);
+      expect(result[1]!.textContent).toBe("Version 2");
+      expect(result[1]!.isNew).toBe(false);
+      expect(result[1]!.isDeleted).toBe(true);
 
-      expect(result[2].textContent).toBe("Version 3");
-      expect(result[2].isNew).toBe(true);
-      expect(result[2].isDeleted).toBe(false);
+      expect(result[2]!.textContent).toBe("Version 3");
+      expect(result[2]!.isNew).toBe(true);
+      expect(result[2]!.isDeleted).toBe(false);
     });
   });
 
@@ -225,8 +225,8 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].isDeleted).toBe(true);
-      expect(result[0].isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(true);
+      expect(result[0]!.isNew).toBe(false);
     });
   });
 
@@ -264,19 +264,19 @@ describe("buildCommentsFromSnapshots", () => {
       expect(result).toHaveLength(3);
 
       // Comment A persisted - not new, not deleted
-      expect(result[0].textContent).toBe(commentA_v1.textContent);
-      expect(result[0].isNew).toBe(false);
-      expect(result[0].isDeleted).toBe(false);
+      expect(result[0]!.textContent).toBe(commentA_v1.textContent);
+      expect(result[0]!.isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(false);
 
       // Comment B was deleted - not new, deleted
-      expect(result[1].textContent).toBe(commentB_v1.textContent);
-      expect(result[1].isNew).toBe(false);
-      expect(result[1].isDeleted).toBe(true);
+      expect(result[1]!.textContent).toBe(commentB_v1.textContent);
+      expect(result[1]!.isNew).toBe(false);
+      expect(result[1]!.isDeleted).toBe(true);
 
       // Comment C is new - new, not deleted
-      expect(result[2].textContent).toBe(commentC_v2.textContent);
-      expect(result[2].isNew).toBe(true);
-      expect(result[2].isDeleted).toBe(false);
+      expect(result[2]!.textContent).toBe(commentC_v2.textContent);
+      expect(result[2]!.isNew).toBe(true);
+      expect(result[2]!.isDeleted).toBe(false);
     });
   });
 
@@ -308,9 +308,9 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].textContent).toBe("Comment with absolute date");
-      expect(result[0].isNew).toBe(false);
-      expect(result[0].isDeleted).toBe(false);
+      expect(result[0]!.textContent).toBe("Comment with absolute date");
+      expect(result[0]!.isNew).toBe(false);
+      expect(result[0]!.isDeleted).toBe(false);
     });
 
     it("should throw error when no commentId and no absolute date", () => {
@@ -363,9 +363,9 @@ describe("buildCommentsFromSnapshots", () => {
 
       // Comments maintain the order they appear in the snapshot
       expect(result).toHaveLength(3);
-      expect(result[0].textContent).toBe("Third");
-      expect(result[1].textContent).toBe("First");
-      expect(result[2].textContent).toBe("Second");
+      expect(result[0]!.textContent).toBe("Third");
+      expect(result[1]!.textContent).toBe("First");
+      expect(result[2]!.textContent).toBe("Second");
     });
   });
 
@@ -407,13 +407,13 @@ describe("buildCommentsFromSnapshots", () => {
       // Should have 2 groups: "Same text" (merged) and "Different text" (merged)
       expect(result).toHaveLength(2);
 
-      expect(result[0].textContent).toBe("Same text");
-      expect(result[0].isDeleted).toBe(true); // No longer in latest
+      expect(result[0]!.textContent).toBe("Same text");
+      expect(result[0]!.isDeleted).toBe(true); // No longer in latest
 
-      expect(result[1].textContent).toBe("Different text");
+      expect(result[1]!.textContent).toBe("Different text");
       // Different text first appeared in snapshot3, so it's not new (not only in snapshot4)
-      expect(result[1].isNew).toBe(false);
-      expect(result[1].isDeleted).toBe(false);
+      expect(result[1]!.isNew).toBe(false);
+      expect(result[1]!.isDeleted).toBe(false);
     });
   });
 
@@ -438,7 +438,7 @@ describe("buildCommentsFromSnapshots", () => {
       ]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].screenshotData).toBe("bmV3LXNjcmVlbnNob3Q=");
+      expect(result[0]!.screenshotData).toBe("bmV3LXNjcmVlbnNob3Q=");
     });
 
     it("should fallback to latest non-empty screenshot when latest is empty", () => {
@@ -461,7 +461,7 @@ describe("buildCommentsFromSnapshots", () => {
       ]);
 
       expect(result).toHaveLength(1);
-      expect(result[0].screenshotData).toBe("dmFsaWQtc2NyZWVuc2hvdA==");
+      expect(result[0]!.screenshotData).toBe("dmFsaWQtc2NyZWVuc2hvdA==");
     });
   });
 });

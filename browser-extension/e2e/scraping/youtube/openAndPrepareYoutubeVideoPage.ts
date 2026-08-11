@@ -1,7 +1,7 @@
-import { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import { closeYoutubeCookieDialogIfPresent as waitAndCloseYoutubeCookieDialogIfPresent } from "./closeYoutubeCookieDialogIfPresent";
 import { isYoutubeAuthenticated } from "./isYoutubeAuthenticated";
-import { OpenAndPrepareResult } from "../e2eScrapPost";
+import type { OpenAndPrepareResult } from "../e2eScrapPost";
 import { isYoutubeSuspectingBot } from "./isYoutubeSuspectingBot";
 
 export async function openAndPrepareYoutubeVideoPage(

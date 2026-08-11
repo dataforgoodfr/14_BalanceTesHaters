@@ -1,5 +1,5 @@
-import { PostCommentWithId } from "@/shared/utils/post-util";
-import { Post } from "@/shared/model/post/Post";
+import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { Post } from "@/shared/model/post/Post";
 import {
   buildPostCommentRow,
   escapeCsvCell,

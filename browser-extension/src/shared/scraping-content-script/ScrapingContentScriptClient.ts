@@ -1,16 +1,18 @@
-import {
-  SCS_GET_PAGE_INFO_MESSAGE,
-  SCS_SCRAP_TAB_MESSAGE,
-  SCS_GET_SCRAPING_STATUS_MESSAGE,
-  SCS_CANCEL_SCRAP_TAB_MESSAGE,
+import type {
   ScsPageInfoMessage,
   ScsScrapTabMessage,
   ScsGetScrapingStatusMessage,
   ScsCancelScrapTabMessage,
 } from "./messages";
-import { StartScrapingResult } from "./StartScrapingResult";
-import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
-import { ScrapingStatus } from "./ScrapingStatus";
+import {
+  SCS_GET_PAGE_INFO_MESSAGE,
+  SCS_SCRAP_TAB_MESSAGE,
+  SCS_GET_SCRAPING_STATUS_MESSAGE,
+  SCS_CANCEL_SCRAP_TAB_MESSAGE,
+} from "./messages";
+import type { StartScrapingResult } from "./StartScrapingResult";
+import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
+import type { ScrapingStatus } from "./ScrapingStatus";
 import { matchesScrapingContentScriptUrl } from "./content-script-matches";
 
 /**

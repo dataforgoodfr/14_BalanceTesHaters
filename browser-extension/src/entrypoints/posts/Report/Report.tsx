@@ -5,8 +5,8 @@ import {
   formatAnalysisDate,
   getSocialNetworkName,
 } from "@/shared/utils/post-util";
-import { ReportQueryData } from "./Stepper/BuildReport";
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import type { ReportQueryData } from "./Stepper/BuildReport";
+import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { useMemo, useState } from "react";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import {

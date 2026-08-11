@@ -1,4 +1,4 @@
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 
 export function flattenComments(
   comments: CommentSnapshot[],

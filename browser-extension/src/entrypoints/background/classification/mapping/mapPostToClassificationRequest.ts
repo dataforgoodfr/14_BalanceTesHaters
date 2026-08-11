@@ -1,10 +1,13 @@
-import { CommentSnapshot, PostSnapshot } from "@/shared/model/PostSnapshot";
-import {
+import type {
+  CommentSnapshot,
+  PostSnapshot,
+} from "@/shared/model/PostSnapshot";
+import type {
   ClassificationAuthor,
   ClassificationComment,
   ClassificationRequest,
 } from "../api/submitClassificationRequest";
-import { Author } from "@/shared/model/Author";
+import type { Author } from "@/shared/model/Author";
 
 export function mapPostToClassificationRequest(
   post: PostSnapshot,

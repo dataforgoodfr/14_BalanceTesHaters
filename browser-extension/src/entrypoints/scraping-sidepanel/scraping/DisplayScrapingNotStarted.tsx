@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TabInfoScrapingNotStarted } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoScrapingNotStarted } from "../useScrapingAndClassificationTabInfo";
 import { startScraping } from "../startScraping";
 import {
   SidePanelActions,

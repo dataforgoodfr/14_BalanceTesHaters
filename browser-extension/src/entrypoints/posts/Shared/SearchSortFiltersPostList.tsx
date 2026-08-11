@@ -19,11 +19,11 @@ import {
   AnnotatedCategory,
   getCategoryLabel,
 } from "@/shared/model/AnnotatedCategory";
+import type { PostFilters } from "@/shared/utils/post-util";
 import {
   DateFilterOptions,
   emptyPostFilters,
   NbHatefulCommentsOptions,
-  PostFilters,
   PostSortingCategory,
 } from "@/shared/utils/post-util";
 import {

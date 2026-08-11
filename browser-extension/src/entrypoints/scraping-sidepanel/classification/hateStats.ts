@@ -1,4 +1,4 @@
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import { isCommentHateful } from "@/shared/utils/post-util";
 
 export type HateStats = {

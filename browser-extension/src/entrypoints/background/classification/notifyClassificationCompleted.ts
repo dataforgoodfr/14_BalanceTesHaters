@@ -1,4 +1,4 @@
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import iconUrl from "~/assets/notification-icon.png";
 export function notifyClassificationCompleted(
   snapshotsWithCompletedClassifications: PostSnapshot[],
@@ -23,7 +23,7 @@ export function notifyClassificationCompleted(
   const message = `Tu peux consulter les résultats.`;
 
   const resultsUrl =
-    nbPublications === 1 ? postUrl(dedupedByPostIds[0]) : postListUrl();
+    nbPublications === 1 ? postUrl(dedupedByPostIds[0]!) : postListUrl();
   const openResultsButtonTitle =
     nbPublications === 1 ? `Accéder à l'analyse` : `Accéder aux analyse`;
 
@@ -72,7 +72,7 @@ function createNotification({
   ) => {
     if (clickedNotificationId === id && buttons.length > buttonIndex) {
       removeListeners();
-      buttons[buttonIndex].onClick();
+      buttons[buttonIndex]!.onClick();
     }
   };
 

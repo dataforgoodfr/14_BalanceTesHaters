@@ -8,15 +8,15 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import {
   formatAnalysisDate,
   getSocialNetworkName,
 } from "@/shared/utils/post-util";
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
-import { ReportQueryData } from "../Stepper/BuildReport";
+import type { ReportQueryData } from "../Stepper/BuildReport";
 import { NOTICE_UTILISATION_DATA } from "../Notice/noticeUtilisationData";
 import redHatTextMedium from "@/assets/fonts/RedHatText-Medium.ttf";
 import redHatTextSemiBold from "@/assets/fonts/RedHatText-SemiBold.ttf";
@@ -34,11 +34,8 @@ import {
   LABEL_SCORE_JURIDIQUE,
   LABEL_URL,
 } from "../reportData";
-import {
-  getAuthorGroups,
-  getPublicationGroups,
-  GroupedData,
-} from "../ReportGroupingUtils";
+import type { GroupedData } from "../ReportGroupingUtils";
+import { getAuthorGroups, getPublicationGroups } from "../ReportGroupingUtils";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 const GRAY_500 = "#6b7280";

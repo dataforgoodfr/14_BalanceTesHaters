@@ -1,10 +1,12 @@
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
+import type {
+  PostFilters,
+  PostSortingCategory,
+} from "@/shared/utils/post-util";
 import {
   DateFilterOptions,
   emptyPostFilters,
   filterPosts,
-  PostFilters,
-  PostSortingCategory,
   sortPostList,
 } from "@/shared/utils/post-util";
 import React from "react";

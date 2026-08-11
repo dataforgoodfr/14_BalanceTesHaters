@@ -1,6 +1,6 @@
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
-import { ScrapingSucceeded } from "@/shared/scraping-content-script/ScrapingStatus";
-import { BrowserContext, Page, TestInfo } from "@playwright/test";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { ScrapingSucceeded } from "@/shared/scraping-content-script/ScrapingStatus";
+import type { BrowserContext, Page, TestInfo } from "@playwright/test";
 import { e2eWaitForScrapingSuccess } from "./e2eWaitForScrapingSuccess";
 import { triggerPageScrappingAndWaitForRunning } from "./e2eTriggerPageScrapping";
 import { e2eDeleteAllPostSnapshots } from "../extension-integration/storage/e2eDeleteAllPostSnapshots";

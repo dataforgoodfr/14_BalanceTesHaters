@@ -1,7 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { PostSnapshot, CommentSnapshot } from "@/shared/model/PostSnapshot";
-import { AbsoluteDate } from "@/shared/model/PublicationDate";
-import {
+import type {
+  PostSnapshot,
+  CommentSnapshot,
+} from "@/shared/model/PostSnapshot";
+import type { AbsoluteDate } from "@/shared/model/PublicationDate";
+import type {
   ClassificationResult,
   ClassificationResultStatus,
   CommentClassificationResult,
@@ -134,14 +137,14 @@ describe("mergeClassificationResultIntoPost", () => {
 
     const updatedPost = mergeClassificationResultIntoPost(post, result);
 
-    expect(updatedPost.comments[0].classification).toEqual([
+    expect(updatedPost.comments[0]!.classification).toEqual([
       AnnotatedCategory.MENACES,
     ]);
-    expect(updatedPost.comments[0].replies[0].classification).toEqual([
+    expect(updatedPost.comments[0]!.replies[0]!.classification).toEqual([
       AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT,
     ]);
     expect(
-      updatedPost.comments[0].replies[0].replies[0].classification,
+      updatedPost.comments[0]!.replies[0]!.replies[0]!.classification,
     ).toEqual([AnnotatedCategory.DOXXING]);
   });
 });

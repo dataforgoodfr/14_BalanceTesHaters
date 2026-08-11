@@ -1,7 +1,7 @@
 import { ScrapingContentScriptClient } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
 import { Button } from "@/components/ui/button";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
-import { TabInfoScrapingInProgress } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoScrapingInProgress } from "../useScrapingAndClassificationTabInfo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon, XIcon } from "lucide-react";
 import {

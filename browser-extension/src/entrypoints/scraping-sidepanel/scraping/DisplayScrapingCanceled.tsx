@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TabInfoScrapingCanceled } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoScrapingCanceled } from "../useScrapingAndClassificationTabInfo";
 import { startScraping } from "../startScraping";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import {

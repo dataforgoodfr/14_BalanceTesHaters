@@ -118,7 +118,7 @@ export function searchHelpPages(query: string): SearchResult[] {
         }
 
         // Reset counters for the new section
-        currentSectionTitle = headingMatch[1].trim();
+        currentSectionTitle = headingMatch[1]!.trim();
         currentSectionSlug = slugify(currentSectionTitle);
         accumulatedSectionText = "";
       } else {

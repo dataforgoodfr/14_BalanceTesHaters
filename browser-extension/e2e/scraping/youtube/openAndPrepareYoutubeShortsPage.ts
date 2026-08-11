@@ -1,6 +1,6 @@
-import { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import { closeYoutubeCookieDialogIfPresent } from "./closeYoutubeCookieDialogIfPresent";
-import { OpenAndPrepareResult } from "../e2eScrapPost";
+import type { OpenAndPrepareResult } from "../e2eScrapPost";
 import { isYoutubeSuspectingBot } from "./isYoutubeSuspectingBot";
 import { isYoutubeAuthenticated } from "./isYoutubeAuthenticated";
 

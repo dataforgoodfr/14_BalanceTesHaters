@@ -1,4 +1,4 @@
-import { TabInfoClassificationInProgess } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoClassificationInProgess } from "../useScrapingAndClassificationTabInfo";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import {
   SidePanelActions,

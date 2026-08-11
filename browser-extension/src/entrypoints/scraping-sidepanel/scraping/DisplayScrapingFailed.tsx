@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TabInfoScrapingFailed } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoScrapingFailed } from "../useScrapingAndClassificationTabInfo";
 import { startScraping } from "../startScraping";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

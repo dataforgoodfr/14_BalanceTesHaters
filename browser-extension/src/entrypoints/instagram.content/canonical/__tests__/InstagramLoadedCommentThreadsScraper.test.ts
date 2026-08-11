@@ -3,13 +3,11 @@ import { describe, it, expect, vi, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import {
-  InstagramLoadedCommentThreadsScraper,
-  InstagramCommentThread,
-} from "../InstagramLoadedCommentThreadsScraper";
+import type { InstagramCommentThread } from "../InstagramLoadedCommentThreadsScraper";
+import { InstagramLoadedCommentThreadsScraper } from "../InstagramLoadedCommentThreadsScraper";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { ElementScreenshotProvider } from "@/shared/screenshoting";
+import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { Image } from "image-js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,7 +57,7 @@ describe("InstagramLoadedCommentThreadsScraper", () => {
     });
     it("should contain an text comment with 14 replies", () => {
       expect(result).toHaveLength(1);
-      expect(result[0].comment).toMatchObject({
+      expect(result[0]!.comment).toMatchObject({
         type: "text",
         data: {
           author: {
@@ -74,7 +72,7 @@ describe("InstagramLoadedCommentThreadsScraper", () => {
           },
         },
       });
-      expect(result[0].replies).toHaveLength(14);
+      expect(result[0]!.replies).toHaveLength(14);
     });
   });
 

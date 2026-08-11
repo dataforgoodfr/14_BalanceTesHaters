@@ -1,9 +1,10 @@
-import { PostSnapshot, PostSnapshotSchema } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import { PostSnapshotSchema } from "@/shared/model/PostSnapshot";
 import {
   isPostPublishedAfter as IsPostPublishedAfter,
   isPostPublishedBefore as IsPostPublishedBefore,
 } from "../utils/post-util";
-import { SocialNetworkName } from "../model/SocialNetworkName";
+import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { isRunningClassificationStatus } from "../model/ClassificationStatus";
 
 export async function getPostSnapshotsBytesInUse(): Promise<number> {

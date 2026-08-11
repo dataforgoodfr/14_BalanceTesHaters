@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  postClassificationRequest,
+import type {
   ClassificationRequest,
   ClassificationResponse,
 } from "../submitClassificationRequest";
+import { postClassificationRequest } from "../submitClassificationRequest";
 import { ClassificationApiError } from "../ClassificationApiError";
 
 // Mock fetch globally

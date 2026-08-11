@@ -1,7 +1,8 @@
 import { test, expect } from "./fixtures";
 import { flattenComments } from "./utils/flattenComments";
 import { youtubeVideoUrl } from "./scraping/youtube/youtubeVideoUrl";
-import { e2eScrapPost, E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import type { E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import { e2eScrapPost } from "./scraping/e2eScrapPost";
 import { openAndPrepareYoutubeVideoPage } from "./scraping/youtube/openAndPrepareYoutubeVideoPage";
 import { E2E_TESTED_LOCALES } from "./E2E_TESTED_LOCALES";
 import { checkPostSnapshotGenericExpectations } from "./utils/checkPostSnapshotGenericExpectations";

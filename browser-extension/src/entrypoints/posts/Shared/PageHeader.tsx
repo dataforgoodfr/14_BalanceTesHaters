@@ -1,5 +1,5 @@
 import { Separator } from "@base-ui/react";
-import { MenuEntry } from "../Menu";
+import type { MenuEntry } from "../Menu";
 import { NavLink } from "react-router";
 
 function PageHeader({

@@ -3,7 +3,7 @@ import {
   getPostSnapshotsPendingResults,
 } from "@/shared/storage/post-snapshot-storage";
 import { updatePostWithClassificationResult } from "./updatePostWithClassificationResult";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { notifyClassificationCompleted } from "./notifyClassificationCompleted";
 import { submitClassificationRequestForPost } from "./submitClassificationForPost";
 

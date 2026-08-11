@@ -1,5 +1,5 @@
-import { Image } from "image-js";
-import { Size } from "../Size";
+import type { Image } from "image-js";
+import type { Size } from "../Size";
 
 /**
  * Abstraction around scrollable element. mostly to accomodate some quirks on client size returned on youtube

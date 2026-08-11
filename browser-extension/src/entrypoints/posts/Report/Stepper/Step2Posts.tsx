@@ -1,5 +1,6 @@
 import SearchSortFiltersPostList from "../../Shared/SearchSortFiltersPostList";
-import { ReportQueryData, useStepper } from "./BuildReport";
+import type { ReportQueryData } from "./BuildReport";
+import { useStepper } from "./BuildReport";
 
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";

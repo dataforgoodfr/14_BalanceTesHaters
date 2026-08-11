@@ -1,7 +1,10 @@
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
-import { AbsoluteDate, PublicationDate } from "@/shared/model/PublicationDate";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type {
+  AbsoluteDate,
+  PublicationDate,
+} from "@/shared/model/PublicationDate";
 import { INSTAGRAM_URL } from "../instagramPageInfo";
 export type InstagramOgDescriptionInfo = Pick<
   PostSnapshot,
@@ -49,10 +52,10 @@ export function parseOgDescriptionContent(
     );
   }
   const textContent = res.groups["textContent"] ?? "";
-  const dateFragment = res.groups["dateFragment"];
-  const accountName = res.groups["accountName"];
+  const dateFragment = res.groups["dateFragment"]!;
+  const accountName = res.groups["accountName"]!;
   const commentsCount = Number.parseInt(
-    res.groups["commentsCount"].replaceAll(",", "").replaceAll(" ", ""),
+    res.groups["commentsCount"]!.replaceAll(",", "").replaceAll(" ", ""),
   );
   const accountHref = `${INSTAGRAM_URL.origin}/${accountName}`;
   const publishedAt: PublicationDate = {
@@ -79,10 +82,10 @@ export function parseDateFragment(dateFragment: string): string {
     throw new Error(`Invalid date fragment format: ${dateFragment}`);
   }
   const [month, dayWithComma, year] = parts;
-  const day = dayWithComma.replace(",", "");
-  const monthNumber = monthToNumber(month);
+  const day = dayWithComma!.replace(",", "");
+  const monthNumber = monthToNumber(month!);
   const dayNumber = parseInt(day, 10);
-  const yearNumber = parseInt(year, 10);
+  const yearNumber = parseInt(year!, 10);
   if (isNaN(monthNumber) || isNaN(dayNumber) || isNaN(yearNumber)) {
     throw new Error(`Invalid date fragment: ${dateFragment}`);
   }

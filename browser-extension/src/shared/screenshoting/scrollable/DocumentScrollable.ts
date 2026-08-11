@@ -1,6 +1,10 @@
-import { Image } from "image-js";
-import { Size } from "../Size";
-import { Scrollable, ScrollableScrollToOptions, Position } from "./Scrollable";
+import type { Image } from "image-js";
+import type { Size } from "../Size";
+import type {
+  Scrollable,
+  ScrollableScrollToOptions,
+  Position,
+} from "./Scrollable";
 import { scrollToAndWait } from "./scrollToAndWait";
 
 export class DocumentScrollable implements Scrollable {

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TabInfoClassificationSucceeded } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoClassificationSucceeded } from "../useScrapingAndClassificationTabInfo";
 import { startScraping } from "../startScraping";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import {

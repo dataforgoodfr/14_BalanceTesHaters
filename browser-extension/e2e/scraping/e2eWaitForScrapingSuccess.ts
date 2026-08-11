@@ -1,10 +1,10 @@
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import {
   e2eGetScrapingStatus,
   e2eGetScrapingStatusOrUndefinedIfNoCS,
 } from "../extension-integration/cs/e2eGetScrapingStatus";
-import { ScrapingSucceeded } from "@/shared/scraping-content-script/ScrapingStatus";
-import { BrowserContext } from "@playwright/test";
+import type { ScrapingSucceeded } from "@/shared/scraping-content-script/ScrapingStatus";
+import type { BrowserContext } from "@playwright/test";
 import { e2eReadPostSnapshotByPostSnapshotId } from "../extension-integration/storage/e2eReadPostSnapshotByPostSnapshotId";
 import { waitForConditionOrThrow } from "../utils/waitForCondition";
 

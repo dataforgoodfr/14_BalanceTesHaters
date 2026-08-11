@@ -1,6 +1,6 @@
-import { BrowserContext } from "@playwright/test";
+import type { BrowserContext } from "@playwright/test";
 import { e2eReadPostSnapshotsFromStorage } from "./e2eReadPostSnapshotsFromStorage";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 
 export async function e2eReadPostSnapshotByPostSnapshotId(
   context: BrowserContext,

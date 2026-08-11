@@ -11,10 +11,10 @@ import {
   TextRun,
   WidthType,
 } from "docx";
-import { Post } from "@/shared/model/post/Post";
-import { ReportQueryData } from "../Stepper/BuildReport";
+import type { Post } from "@/shared/model/post/Post";
+import type { ReportQueryData } from "../Stepper/BuildReport";
 import { getSocialNetworkName } from "@/shared/utils/post-util";
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import {
   booleanToFrenchText,
   formatDateTimeForDocx,
@@ -299,9 +299,9 @@ function getPngDimensions(bytes: Uint8Array): {
   }
 
   const width =
-    (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19];
+    (bytes[16]! << 24) | (bytes[17]! << 16) | (bytes[18]! << 8) | bytes[19]!;
   const height =
-    (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23];
+    (bytes[20]! << 24) | (bytes[21]! << 16) | (bytes[22]! << 8) | bytes[23]!;
   if (width <= 0 || height <= 0) {
     return null;
   }

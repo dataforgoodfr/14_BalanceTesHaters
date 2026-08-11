@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import PostSummary from "./PostSummary";
-import { Post, PostComment } from "@/shared/model/post/Post";
+import type { Post, PostComment } from "@/shared/model/post/Post";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 const meta = {

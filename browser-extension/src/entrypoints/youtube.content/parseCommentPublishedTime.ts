@@ -1,4 +1,4 @@
-import { PublicationDate } from "@/shared/model/PublicationDate";
+import type { PublicationDate } from "@/shared/model/PublicationDate";
 import { PublicationDateTextParsing } from "@/shared/utils/date-text-parsing";
 
 export function parseCommentPublishedTime(

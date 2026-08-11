@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PostComment } from "@/shared/model/post/Post";
+import type { PostComment } from "@/shared/model/post/Post";
 import {
   getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,

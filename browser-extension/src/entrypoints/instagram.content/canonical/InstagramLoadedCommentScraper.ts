@@ -1,9 +1,9 @@
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
-import { PublicationDate } from "@/shared/model/PublicationDate";
-import { Author } from "@/shared/model/Author";
-import { ElementScreenshotProvider } from "@/shared/screenshoting";
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { PublicationDate } from "@/shared/model/PublicationDate";
+import type { Author } from "@/shared/model/Author";
+import type { ElementScreenshotProvider } from "@/shared/screenshoting";
+import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   FB_COMMENTS_TEXT_REGEX,
   LIKES_BUTTON_REGEX,
@@ -194,7 +194,7 @@ export class InstagramLoadedCommentScraper {
 export function extractCommentIdFromInstagramCommentHref(href: string): string {
   const parsed = URL.parse(href)!;
   const pathSegments = parsed.pathname.split("/").filter(Boolean);
-  return pathSegments[pathSegments.length - 1];
+  return pathSegments[pathSegments.length - 1]!;
 }
 
 export type InstagramTextComment = {

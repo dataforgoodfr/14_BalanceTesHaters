@@ -1,7 +1,7 @@
 import { waitForCondition } from "@@/e2e/utils/waitForCondition";
-import { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
 import { isInstagramPageAuthenticated } from "./isInstagramPageAuthenticated";
-import { OpenAndPrepareResult } from "../e2eScrapPost";
+import type { OpenAndPrepareResult } from "../e2eScrapPost";
 
 export async function openAndPrepareInstagramPage(
   postUrl: string,

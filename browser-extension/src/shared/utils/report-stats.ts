@@ -1,5 +1,5 @@
 import { getPercentage } from "@/shared/utils/maths";
-import { PostComment } from "@/shared/model/post/Post";
+import type { PostComment } from "@/shared/model/post/Post";
 import { isCommentHateful } from "@/shared/utils/post-util";
 import {
   AnnotatedCategory,

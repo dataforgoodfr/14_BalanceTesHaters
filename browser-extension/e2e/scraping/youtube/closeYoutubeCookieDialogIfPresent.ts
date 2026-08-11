@@ -1,5 +1,5 @@
 import { waitForCondition } from "@@/e2e/utils/waitForCondition";
-import { Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
 
 export async function closeYoutubeCookieDialogIfPresent(postPage: Page) {
   const cookieDialogClosed =

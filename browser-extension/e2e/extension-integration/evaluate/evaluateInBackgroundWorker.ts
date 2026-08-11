@@ -1,4 +1,4 @@
-import { BrowserContext } from "@playwright/test";
+import type { BrowserContext } from "@playwright/test";
 
 export async function evaluateInBackgroundWorker<T>(
   context: BrowserContext,

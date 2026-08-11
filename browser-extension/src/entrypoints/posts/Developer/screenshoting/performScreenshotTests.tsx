@@ -1,15 +1,15 @@
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { Scrollable } from "@/shared/screenshoting";
 import {
   captureScrollableScreenshot,
   imageToDataUrl,
-  Scrollable,
 } from "@/shared/screenshoting";
-import {
-  defaultWaitOptions,
+import type {
   ScreenshotWaitOptions,
   ScrollableScreenshot,
 } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
+import { defaultWaitOptions } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
 export type ScreenshotTestConfig = {
   name: string;
   waitOptions: ScreenshotWaitOptions;

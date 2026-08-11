@@ -1,4 +1,4 @@
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 export function reportOrganizationTypeToText(
