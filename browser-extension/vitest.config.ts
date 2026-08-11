@@ -5,6 +5,9 @@ import { WxtVitest } from "wxt/testing/vitest-plugin";
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
   plugins: [WxtVitest()],
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     projects: [
       {
