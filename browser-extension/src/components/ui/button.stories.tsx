@@ -5,7 +5,6 @@ import { XIcon } from "lucide-react";
 const meta = {
   title: "ui/Button",
   component: Button,
-  decorators: [],
   parameters: {
     // More on how to position stories at: https://storybook.js.org/docs/configure/story-layout
     layout: "fullscreen",

@@ -222,6 +222,4 @@ export type FacebookCommentsPlaceholder = {
  */
 
 export type InstagramComment =
-  | InstagramTextComment
-  | InstagramImageComment
-  | FacebookCommentsPlaceholder;
+  InstagramTextComment | InstagramImageComment | FacebookCommentsPlaceholder;

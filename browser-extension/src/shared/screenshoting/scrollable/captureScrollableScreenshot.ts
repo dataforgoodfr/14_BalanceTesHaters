@@ -66,8 +66,7 @@ export async function captureScrollableScreenshot(
       e instanceof ScrollableElementScrolledException,
     beforeRetry: async ({ latestError, remainingAttempts }) => {
       const error = latestError as
-        | ScrollableElementResizedException
-        | ScrollableElementScrolledException;
+        ScrollableElementResizedException | ScrollableElementScrolledException;
       logger.warn(
         "Error: ",
         error.message,
