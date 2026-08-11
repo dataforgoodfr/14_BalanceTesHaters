@@ -1,4 +1,4 @@
-import { PostComment } from "@/shared/model/post/Post";
+import type { PostComment } from "@/shared/model/post/Post";
 import KpiCard from "./KpiCard";
 import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
 

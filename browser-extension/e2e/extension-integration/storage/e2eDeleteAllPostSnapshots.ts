@@ -1,4 +1,4 @@
-import { BrowserContext } from "@playwright/test";
+import type { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "../evaluate/evaluateInBackgroundWorker";
 
 export async function e2eDeleteAllPostSnapshots(

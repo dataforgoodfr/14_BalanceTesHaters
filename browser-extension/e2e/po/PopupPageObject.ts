@@ -1,4 +1,4 @@
-import { Page, BrowserContext, Locator } from "@playwright/test";
+import type { Page, BrowserContext, Locator } from "@playwright/test";
 import { e2eQueryTabIdWithUrl } from "../extension-integration/e2eQueryTabIdWithUrl";
 
 export class PopupPageObject {

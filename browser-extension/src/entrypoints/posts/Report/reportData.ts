@@ -1,4 +1,7 @@
-import { PublicationDate, RelativeDate } from "@/shared/model/PublicationDate";
+import type {
+  PublicationDate,
+  RelativeDate,
+} from "@/shared/model/PublicationDate";
 
 export const LABEL_RAPPORT_COMMENTAIRES_MALVEILLANTS =
   "Rapport des commentaires malveillants";

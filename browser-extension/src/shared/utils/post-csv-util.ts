@@ -6,8 +6,9 @@ import {
   publicationDateToCsvText,
   publicationDateTypeToText,
 } from "@/entrypoints/posts/Report/Exports/reportExportShared";
-import { Post } from "../model/post/Post";
-import { getSocialNetworkName, PostCommentWithId } from "./post-util";
+import type { Post } from "../model/post/Post";
+import type { PostCommentWithId } from "./post-util";
+import { getSocialNetworkName } from "./post-util";
 
 export const POST_DETAIL_CSV_COLUMNS = [
   {

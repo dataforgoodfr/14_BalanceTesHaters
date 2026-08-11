@@ -1,5 +1,5 @@
 import { Logo } from "@/components/shared/Logo";
-import React from "react";
+import type React from "react";
 export function SidePanelLayout({ children }: React.PropsWithChildren) {
   return (
     <div className="flex flex-col p-[33px] gap-10">

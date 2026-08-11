@@ -1,27 +1,27 @@
-import {
+import type {
   PostSnapshot,
   CommentSnapshot,
-  countAllComments,
 } from "@/shared/model/PostSnapshot";
-import { PublicationDate } from "@/shared/model/PublicationDate";
+import { countAllComments } from "@/shared/model/PostSnapshot";
+import type { PublicationDate } from "@/shared/model/PublicationDate";
 import { currentIsoDate } from "../../shared/utils/current-iso-date";
 import { decodePng, encodePng, Image as ImageJs } from "image-js";
 
-import { ScrapingSupport } from "../../shared/scraping/ScrapingSupport";
+import type { ScrapingSupport } from "../../shared/scraping/ScrapingSupport";
 import {
   base64ToUint8Array,
   uint8ArrayToBase64,
 } from "../../shared/utils/base-64";
+import type { ScrollableScreenshot } from "@/shared/screenshoting";
 import {
-  ScrollableScreenshot,
   captureDocumentScreenshot,
   captureTabScreenshotAsDataUrl,
 } from "@/shared/screenshoting";
-import { Author } from "@/shared/model/Author";
+import type { Author } from "@/shared/model/Author";
 import { youtubePageInfo } from "./youtubePageInfo";
 import { extractCommentIdFromCommentHref } from "./extractCommentIdFromCommentHref";
 import { extractIsoDateFromPostInfoTooltipText } from "./extractIsoDateFromPostInfoTooltipText";
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 import { withRetry } from "../../shared/utils/withRetry";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
@@ -1491,13 +1491,13 @@ export class YoutubePostNativeScrapper {
           b.scrollRange - a.scrollRange ||
           a.depth - b.depth,
       );
-      return withThreads[0].element;
+      return withThreads[0]!.element;
     }
 
     rankedCandidates.sort(
       (a, b) => b.scrollRange - a.scrollRange || a.depth - b.depth,
     );
-    return rankedCandidates[0].element;
+    return rankedCandidates[0]!.element;
   }
 
   private isScrollableElementCandidate(element: HTMLElement): boolean {

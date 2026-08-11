@@ -1,7 +1,7 @@
-import { Image } from "image-js";
+import type { Image } from "image-js";
 import { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
 import { createLogger } from "@/shared/utils/createLogger";
-import { ScrollableScreenshot } from "../scrollable";
+import type { ScrollableScreenshot } from "../scrollable";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
 
 const logger = createLogger("CroppingParentElementScreenshotProvider");

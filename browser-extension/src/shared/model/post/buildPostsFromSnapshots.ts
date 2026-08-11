@@ -1,5 +1,5 @@
-import { Post } from "./Post";
-import { PostSnapshot } from "../PostSnapshot";
+import type { Post } from "./Post";
+import type { PostSnapshot } from "../PostSnapshot";
 import { buildPostFromSnapshots } from "./buildPostFromSnapshots";
 
 export function buildPostsFromSnapshots(snapshots: PostSnapshot[]): Post[] {

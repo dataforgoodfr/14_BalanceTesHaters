@@ -1,13 +1,12 @@
 import { useState, useMemo } from "react";
-import type { ColumnDef, ExpandedState } from "@tanstack/react-table";
+import type { ColumnDef, ExpandedState, Row } from "@tanstack/react-table";
 import {
   useReactTable,
   getCoreRowModel,
   getExpandedRowModel,
   flexRender,
-  Row,
 } from "@tanstack/react-table";
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   Table,
   TableBody,

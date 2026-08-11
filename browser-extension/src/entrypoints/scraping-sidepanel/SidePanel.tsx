@@ -8,8 +8,7 @@ import { DisplayScrapingCanceled } from "./scraping/DisplayScrapingCanceled";
 import { DisplayClassificationInProgress } from "./classification/DisplayClassificationInProgress";
 import { DisplayClassificationSucceeded } from "./classification/DisplayClassificationSucceeded";
 import { DisplayClassificationFailed } from "./classification/DisplayClassificationFailed";
-import {
-  ScrapingAndClassificationTabInfoType,
+import type {
   TabInfoClassificationFailed,
   TabInfoClassificationInProgess,
   TabInfoClassificationSucceeded,
@@ -19,6 +18,9 @@ import {
   TabInfoScrapingInProgress,
   TabInfoScrapingNotStarted,
   TabInfoScrapingNotStartedWithExistingSnapshot,
+} from "./useScrapingAndClassificationTabInfo";
+import {
+  ScrapingAndClassificationTabInfoType,
   useScrapingAndClassificationTabInfo,
 } from "./useScrapingAndClassificationTabInfo";
 import { getTabIdFromSidePanelUrl } from "./side-panel-url";

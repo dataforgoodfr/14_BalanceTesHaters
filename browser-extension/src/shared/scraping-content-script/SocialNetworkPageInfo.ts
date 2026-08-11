@@ -1,4 +1,4 @@
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 
 export type SocialNetworkPageInfo =
   | ScrapableSocialNetworkPage

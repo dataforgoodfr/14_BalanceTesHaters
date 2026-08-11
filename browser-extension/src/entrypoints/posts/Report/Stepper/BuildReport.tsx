@@ -10,7 +10,7 @@ import Report from "../Report";
 import { FilePen, XIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
-import { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithId } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;

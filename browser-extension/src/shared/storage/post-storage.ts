@@ -1,7 +1,7 @@
 import { buildPostFromSnapshots } from "../model/post/buildPostFromSnapshots";
 import { buildPostsFromSnapshots } from "../model/post/buildPostsFromSnapshots";
-import { Post } from "../model/post/Post";
-import { SocialNetworkName } from "../model/SocialNetworkName";
+import type { Post } from "../model/post/Post";
+import type { SocialNetworkName } from "../model/SocialNetworkName";
 import {
   getPostSnapshotsByPostIdList,
   getPostSnapshotsBySocialNetworkAndPeriod,

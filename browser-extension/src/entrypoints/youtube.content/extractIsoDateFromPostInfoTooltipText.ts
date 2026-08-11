@@ -13,7 +13,7 @@ export function extractIsoDateFromPostInfoTooltipText(
   if (fragments.length < 2) {
     throw new Error("Cannot parse tooltip - missing fragments: " + tooltipText);
   }
-  const dateFragment = fragments[1];
+  const dateFragment = fragments[1]!;
 
   const date = parseDateFragment(dateFragment);
 

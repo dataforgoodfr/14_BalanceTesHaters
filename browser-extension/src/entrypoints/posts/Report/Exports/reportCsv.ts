@@ -1,5 +1,5 @@
-import { Post } from "@/shared/model/post/Post";
-import { ReportQueryData } from "../Stepper/BuildReport";
+import type { Post } from "@/shared/model/post/Post";
+import type { ReportQueryData } from "../Stepper/BuildReport";
 import {
   formatDateTimeForCsv,
   reportOrganizationTypeToText,

@@ -1,5 +1,8 @@
-import { CommentSnapshot, PostSnapshot } from "@/shared/model/PostSnapshot";
-import {
+import type {
+  CommentSnapshot,
+  PostSnapshot,
+} from "@/shared/model/PostSnapshot";
+import type {
   ClassificationResult,
   CommentClassificationResult,
 } from "../api/getClassificationResult";

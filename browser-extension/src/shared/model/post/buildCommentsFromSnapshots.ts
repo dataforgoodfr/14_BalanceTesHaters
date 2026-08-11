@@ -1,9 +1,6 @@
-import { PostComment } from "./Post";
-import {
-  CommentSnapshot,
-  flattenCommentsSnapshotReplies,
-  PostSnapshot,
-} from "../PostSnapshot";
+import type { PostComment } from "./Post";
+import type { CommentSnapshot, PostSnapshot } from "../PostSnapshot";
+import { flattenCommentsSnapshotReplies } from "../PostSnapshot";
 
 /**
  * Builds PostComment array by:
@@ -76,12 +73,12 @@ function splitOnTextContentChanges(
   const groups: CommentSnapshotWithPostInfo[][] = [];
 
   // Add first comment to a first group
-  groups.push([group[0]]);
+  groups.push([group[0]!]);
 
   const remainingComments = group.slice(1);
   for (const comment of remainingComments) {
-    const currentGroup = groups[groups.length - 1];
-    const currentGroupFirstComment = currentGroup[0];
+    const currentGroup = groups[groups.length - 1]!;
+    const currentGroupFirstComment = currentGroup[0]!;
     if (
       comment.commentSnapshot.textContent ===
       currentGroupFirstComment.commentSnapshot.textContent
@@ -104,8 +101,8 @@ function buildPostCommentForGroupOfSameText(
   const sortedByScrapedAt = commentSnapshotsGroup.toSorted((a, b) =>
     a.commentSnapshot.scrapedAt.localeCompare(b.commentSnapshot.scrapedAt),
   );
-  const groupOldestComment = sortedByScrapedAt[0];
-  const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1];
+  const groupOldestComment = sortedByScrapedAt[0]!;
+  const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
 
   const isGroupOldestCommentFromLatestSnapshot =
     groupOldestComment.postSnapshotIndex === postSnapshotsCount - 1;
@@ -129,7 +126,7 @@ function buildPostCommentForGroupOfSameText(
 function selectScreenshotData(
   sortedByScrapedAt: CommentSnapshotWithPostInfo[],
 ): string {
-  const latest = sortedByScrapedAt[sortedByScrapedAt.length - 1];
+  const latest = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
   if (latest.commentSnapshot.screenshotData) {
     return latest.commentSnapshot.screenshotData;
   }

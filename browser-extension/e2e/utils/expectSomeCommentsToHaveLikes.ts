@@ -1,4 +1,4 @@
-import { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import { expect } from "@playwright/test";
 
 export function expectSomeCommentsToHaveLikes(comments: CommentSnapshot[]) {

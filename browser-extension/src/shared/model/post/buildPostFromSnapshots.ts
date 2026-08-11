@@ -1,6 +1,6 @@
 import { buildCommentsFromSnapshots } from "./buildCommentsFromSnapshots";
-import { Post } from "./Post";
-import { PostSnapshot } from "../PostSnapshot";
+import type { Post } from "./Post";
+import type { PostSnapshot } from "../PostSnapshot";
 
 export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
   if (snapshots.length === 0) {
@@ -16,8 +16,8 @@ export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
     a.scrapedAt.localeCompare(b.scrapedAt),
   );
 
-  const oldest = oldestFirst[0];
-  const latest = oldestFirst[oldestFirst.length - 1];
+  const oldest = oldestFirst[0]!;
+  const latest = oldestFirst[oldestFirst.length - 1]!;
 
   return {
     postId: oldest.postId,

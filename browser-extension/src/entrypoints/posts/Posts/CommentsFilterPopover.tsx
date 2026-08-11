@@ -12,7 +12,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { CommentFilters, emptyCommentFilters } from "@/shared/utils/post-util";
+import type { CommentFilters } from "@/shared/utils/post-util";
+import { emptyCommentFilters } from "@/shared/utils/post-util";
 import {
   isSelectedOption,
   toggleFilterValue,

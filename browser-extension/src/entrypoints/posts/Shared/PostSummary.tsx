@@ -1,8 +1,8 @@
 "use server";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import { Post } from "@/shared/model/post/Post";
-import { PublicationDate } from "@/shared/model/PublicationDate";
+import type { Post } from "@/shared/model/post/Post";
+import type { PublicationDate } from "@/shared/model/PublicationDate";
 import {
   getSocialNetworkName,
   isCommentHateful,

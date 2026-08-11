@@ -1,8 +1,8 @@
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import { ReportComment } from "./ReportComment";
-import React from "react";
-import { PostCommentWithId } from "@/shared/utils/post-util";
-import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
+import type React from "react";
+import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 interface CommentGroupProps {
   groupKey: string;

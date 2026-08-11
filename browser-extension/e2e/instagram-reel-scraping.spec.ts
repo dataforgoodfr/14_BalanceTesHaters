@@ -1,6 +1,7 @@
 import { test, expect } from "./fixtures";
 import { instagramReelUrl } from "./scraping/instagram/instagramReelUrl";
-import { e2eScrapPost, E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import type { E2EScrapPostResult } from "./scraping/e2eScrapPost";
+import { e2eScrapPost } from "./scraping/e2eScrapPost";
 import { openAndPrepareInstagramPage } from "./scraping/instagram/openAndPrepareInstagramPage";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { checkPostSnapshotGenericExpectations } from "./utils/checkPostSnapshotGenericExpectations";

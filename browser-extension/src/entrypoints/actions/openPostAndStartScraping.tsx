@@ -3,7 +3,7 @@ import {
   CONTENT_SCRIPT_LOADING,
   ScrapingContentScriptClient,
 } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
-import { StartScrapingResult } from "@/shared/scraping-content-script/StartScrapingResult";
+import type { StartScrapingResult } from "@/shared/scraping-content-script/StartScrapingResult";
 import { sleep } from "@/shared/utils/sleep";
 
 export async function openPostAndStartScraping(

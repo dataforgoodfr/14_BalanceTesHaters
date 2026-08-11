@@ -3,8 +3,8 @@ import { SidePanelContent } from "./SidePanel";
 import { ScrapingAndClassificationTabInfoType } from "./useScrapingAndClassificationTabInfo";
 
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
-import { Post, PostComment } from "@/shared/model/post/Post";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { Post, PostComment } from "@/shared/model/post/Post";
 
 const meta = {
   title: "entrypoints/SidePanel",

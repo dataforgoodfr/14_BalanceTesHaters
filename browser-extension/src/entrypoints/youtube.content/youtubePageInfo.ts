@@ -1,5 +1,5 @@
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
-import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
+import type { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 export const YOUTUBE_URL = new URL("https://www.youtube.com");
 
 export function youtubePageInfo(url: string): SocialNetworkPageInfo {
@@ -27,7 +27,7 @@ export function youtubePageInfo(url: string): SocialNetworkPageInfo {
 
   const pathSegments = parsed.pathname.split("/").filter(Boolean);
   if (pathSegments[0] === "shorts" && pathSegments.length === 2) {
-    const postId = pathSegments[1];
+    const postId = pathSegments[1]!;
     return {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.YouTube,

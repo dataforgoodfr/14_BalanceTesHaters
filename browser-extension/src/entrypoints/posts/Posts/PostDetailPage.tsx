@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SocialNetworkName } from "@/shared/model/SocialNetworkName";
+import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useQuery } from "@tanstack/react-query";
 import { HandHeart, MoveLeft, RotateCwIcon } from "lucide-react";

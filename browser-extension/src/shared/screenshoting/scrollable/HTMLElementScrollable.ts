@@ -1,6 +1,6 @@
-import { Image, CropOptions } from "image-js";
-import { Size } from "../Size";
-import { Scrollable, Position } from "./Scrollable";
+import type { Image, CropOptions } from "image-js";
+import type { Size } from "../Size";
+import type { Scrollable, Position } from "./Scrollable";
 import { scrollToAndWait } from "./scrollToAndWait";
 
 export class HTMLElementScrollable implements Scrollable {

@@ -1,10 +1,10 @@
-import { ScrapingStatus } from "@/shared/scraping-content-script/ScrapingStatus";
-import { BrowserContext } from "@playwright/test";
+import type { ScrapingStatus } from "@/shared/scraping-content-script/ScrapingStatus";
+import type { BrowserContext } from "@playwright/test";
 import {
   evaluateInBackgroundWorker,
   NoBackgroundWorker,
 } from "../evaluate/evaluateInBackgroundWorker";
-import { ScsGetScrapingStatusMessage } from "@/shared/scraping-content-script/messages";
+import type { ScsGetScrapingStatusMessage } from "@/shared/scraping-content-script/messages";
 
 export async function e2eGetScrapingStatus(
   context: BrowserContext,

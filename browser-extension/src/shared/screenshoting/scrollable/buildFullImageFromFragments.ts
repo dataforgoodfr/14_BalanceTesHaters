@@ -1,6 +1,6 @@
 import { Image } from "image-js";
-import { ScreenshotFragment } from "./ScreenshotFragment";
-import { Size } from "../Size";
+import type { ScreenshotFragment } from "./ScreenshotFragment";
+import type { Size } from "../Size";
 
 export function buildFullImageFromFragments(
   screenshotFragments: ScreenshotFragment[],

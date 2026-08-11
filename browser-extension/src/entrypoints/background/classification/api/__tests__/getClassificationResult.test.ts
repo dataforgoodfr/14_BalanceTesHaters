@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import {
-  getClassificationResult,
+import type {
   ClassificationResult,
   ClassificationResultPayload,
 } from "../getClassificationResult";
+import { getClassificationResult } from "../getClassificationResult";
 import { ClassificationApiError } from "../ClassificationApiError";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 

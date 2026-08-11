@@ -1,15 +1,18 @@
-import { CommentSnapshot, PostSnapshot } from "@/shared/model/PostSnapshot";
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type {
+  CommentSnapshot,
+  PostSnapshot,
+} from "@/shared/model/PostSnapshot";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger } from "@/shared/utils/createLogger";
 import { InstagramCommentThreadsScraper } from "./InstagramCommentThreadsScraper";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { ogImageUrl } from "../og/ogImageUrl";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractOgDescriptionInfo } from "../og/extractOgDescriptionInfo";
-import { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
-import { InstagramCommentThread } from "./InstagramLoadedCommentThreadsScraper";
-import {
+import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
+import type { InstagramCommentThread } from "./InstagramLoadedCommentThreadsScraper";
+import type {
   InstagramComment,
   InstagramTextComment,
 } from "./InstagramLoadedCommentScraper";

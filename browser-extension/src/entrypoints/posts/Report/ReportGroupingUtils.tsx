@@ -1,12 +1,13 @@
-import { Author } from "@/shared/model/Author";
-import { Post } from "@/shared/model/post/Post";
-import React from "react";
+import type { Author } from "@/shared/model/Author";
+import type { Post } from "@/shared/model/post/Post";
+import type React from "react";
 import {
   getSecondTextAuthorHeader,
   getTitlePublicationHeader,
   LABEL_URL,
 } from "./reportData";
-import { buildPostKey, PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithId } from "@/shared/utils/post-util";
+import { buildPostKey } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 export interface GroupedData {
@@ -103,7 +104,7 @@ export const getAuthorGroups = (
     ),
     postLatestAnalysisDate: latestAnalysisDate,
     reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
-    post: commentPostMap.get(commentList[0].id),
+    post: commentPostMap.get(commentList[0]!.id),
     commentPostMap: commentPostMap,
     author: authorMap.get(authorName),
   }));

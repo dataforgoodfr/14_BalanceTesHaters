@@ -1,9 +1,8 @@
-import { ReportQueryData, useStepper } from "./BuildReport";
+import type { ReportQueryData } from "./BuildReport";
+import { useStepper } from "./BuildReport";
 import CommentsTable from "../../Posts/CommentsTable";
-import {
-  CommentSortingCategory,
-  PostCommentWithId,
-} from "@/shared/utils/post-util";
+import type { PostCommentWithId } from "@/shared/utils/post-util";
+import { CommentSortingCategory } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
 import { getFormId } from "./StepperComponents";

@@ -1,5 +1,5 @@
 import { createLogger } from "@/shared/utils/createLogger";
-import { Position, ScrollableScrollToOptions } from "./Scrollable";
+import type { Position, ScrollableScrollToOptions } from "./Scrollable";
 
 const logger = createLogger("[Screenshoting scrollToAndWait]");
 export async function scrollToAndWait(

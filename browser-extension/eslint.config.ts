@@ -45,6 +45,7 @@ export default defineConfig([
           ignoreRestSiblings: true,
         },
       ],
+      "@typescript-eslint/consistent-type-imports": "error",
     },
   },
   {
@@ -55,8 +56,8 @@ export default defineConfig([
     },
     plugins: { react: pluginReact },
   },
-  pluginReact.configs.flat.recommended,
-  pluginReact.configs.flat["jsx-runtime"],
+  pluginReact.configs.flat.recommended!,
+  pluginReact.configs.flat["jsx-runtime"]!,
   {
     rules: {
       "react/prop-types": "off",

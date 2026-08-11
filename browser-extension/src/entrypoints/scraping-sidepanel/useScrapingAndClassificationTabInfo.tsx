@@ -1,10 +1,10 @@
-import { Post } from "@/shared/model/post/Post";
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { Post } from "@/shared/model/post/Post";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import {
   CONTENT_SCRIPT_LOADING,
   ScrapingContentScriptClient,
 } from "@/shared/scraping-content-script/ScrapingContentScriptClient";
-import {
+import type {
   ScrapingCanceled,
   ScrapingCanceling,
   ScrapingFailed,
@@ -12,18 +12,15 @@ import {
   ScrapingRunning,
   ScrapingSucceeded,
 } from "@/shared/scraping-content-script/ScrapingStatus";
-import { ScrapableSocialNetworkPage as ScrapableSocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
+import type { ScrapableSocialNetworkPage as ScrapableSocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import {
   getPostSnapshotById,
   getPostSnapshotsForPostId,
 } from "@/shared/storage/post-snapshot-storage";
 import { getPostByPostId } from "@/shared/storage/post-storage";
 import { useEffect } from "react";
-import {
-  useQuery,
-  useQueryClient,
-  UseQueryResult,
-} from "@tanstack/react-query";
+import type { UseQueryResult } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * String enum for ScrapingAndClassificationTabInfo type values

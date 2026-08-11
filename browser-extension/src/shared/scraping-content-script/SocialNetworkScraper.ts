@@ -1,6 +1,6 @@
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
-import { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
-import { ProgressManager } from "./ProgressManager";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
+import type { ProgressManager } from "./ProgressManager";
 export interface SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo>;
 

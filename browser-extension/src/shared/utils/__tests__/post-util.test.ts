@@ -1,20 +1,22 @@
 import { describe, it, expect } from "vitest";
+import type {
+  PostFilters,
+  CommentFilters,
+  PostCommentWithId,
+} from "../post-util";
 import {
   getEarliestPostDate,
   filterPosts,
   filterCommentList,
   sortCommentList,
-  PostFilters,
-  CommentFilters,
   NbHatefulCommentsOptions,
   CommentSortingCategory,
   emptyPostFilters,
   emptyCommentFilters,
-  PostCommentWithId,
 } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
-import { PublicationDate } from "@/shared/model/PublicationDate";
-import { Post, PostComment } from "@/shared/model/post/Post";
+import type { PublicationDate } from "@/shared/model/PublicationDate";
+import type { Post, PostComment } from "@/shared/model/post/Post";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 /**
@@ -269,7 +271,7 @@ describe("post utilities", () => {
         const result = filterPosts(posts, "spam", emptyPostFilters);
 
         expect(result).toHaveLength(1);
-        expect(result[0].comments[0].textContent).toContain("spam");
+        expect(result[0]!.comments[0]!.textContent).toContain("spam");
       });
 
       it("should be case-insensitive", () => {
@@ -371,7 +373,7 @@ describe("post utilities", () => {
           emptyCommentFilters,
         );
         expect(result).toHaveLength(1);
-        expect(result[0].author.name).toBe("Diane");
+        expect(result[0]!.author.name).toBe("Diane");
 
         const resultByText = filterCommentList(
           comments,
@@ -379,7 +381,7 @@ describe("post utilities", () => {
           emptyCommentFilters,
         );
         expect(resultByText).toHaveLength(1);
-        expect(resultByText[0].textContent).toBe("Another note");
+        expect(resultByText[0]!.textContent).toBe("Another note");
       });
 
       it("should be case-insensitive for search terms", () => {
@@ -538,7 +540,7 @@ describe("post utilities", () => {
         const result = filterPosts(posts, "", filters);
 
         expect(result).toHaveLength(1);
-        expect(result[0].comments).toHaveLength(2);
+        expect(result[0]!.comments).toHaveLength(2);
       });
 
       it("should filter posts with 10-50 hateful comments", () => {
@@ -567,7 +569,7 @@ describe("post utilities", () => {
         const result = filterPosts(posts, "", filters);
 
         expect(result).toHaveLength(1);
-        expect(result[0].comments).toHaveLength(25);
+        expect(result[0]!.comments).toHaveLength(25);
       });
 
       it("should filter posts with 50+ hateful comments", () => {
@@ -685,7 +687,7 @@ describe("post utilities", () => {
         const result = filterPosts(posts, "JavaScript", filters);
 
         expect(result).toHaveLength(1);
-        expect(result[0].title).toBe("JavaScript Tutorial");
+        expect(result[0]!.title).toBe("JavaScript Tutorial");
       });
 
       it("should return empty array when no posts match both filters", () => {

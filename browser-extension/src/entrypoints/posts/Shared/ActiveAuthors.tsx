@@ -1,22 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
-import { PostComment } from "@/shared/model/post/Post";
+import type { PostComment } from "@/shared/model/post/Post";
+import type { ChartConfig } from "@/components/ui/chart";
 import {
-  ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import {
-  Bar,
-  BarChart,
-  BarShapeProps,
-  Rectangle,
-  XAxis,
-  YAxis,
-} from "recharts";
+import type { BarShapeProps } from "recharts";
+import { Bar, BarChart, Rectangle, XAxis, YAxis } from "recharts";
 import { getHatefulAuthorStatsList } from "@/shared/utils/report-stats";
 
 const MAX_AUTHORS_TO_DISPLAY = 10; // Nombre maximum d'auteurs à afficher dans la liste des auteurs actifs

@@ -1,11 +1,11 @@
-import {
+import type {
   ScrapPagePostResult,
   SocialNetworkScraper,
 } from "@/shared/scraping-content-script/SocialNetworkScraper";
 import { instagramPageInfo } from "./instagramPageInfo";
-import { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
+import type { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { createLogger } from "@/shared/utils/createLogger";
 import { InstagramCanonicalScraper } from "./canonical";
 

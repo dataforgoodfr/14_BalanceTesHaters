@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { TabInfoClassificationFailed } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoClassificationFailed } from "../useScrapingAndClassificationTabInfo";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import {
   SidePanelActions,

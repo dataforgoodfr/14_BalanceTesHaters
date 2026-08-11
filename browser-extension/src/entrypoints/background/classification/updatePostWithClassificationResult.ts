@@ -2,10 +2,8 @@ import {
   getPostSnapshotById,
   updatePostSnapshot,
 } from "@/shared/storage/post-snapshot-storage";
-import {
-  ClassificationResult,
-  getClassificationResult,
-} from "./api/getClassificationResult";
+import type { ClassificationResult } from "./api/getClassificationResult";
+import { getClassificationResult } from "./api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "./mapping/mergeClassificationResultIntoPost";
 
 export async function updatePostWithClassificationResult(

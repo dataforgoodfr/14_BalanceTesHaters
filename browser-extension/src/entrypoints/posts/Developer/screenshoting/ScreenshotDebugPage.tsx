@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
+import type { DebugScreenshot } from "@/shared/screenshoting";
 import {
   clearDebugScreenshots,
-  DebugScreenshot,
   getDebugScreenshots,
   isStoreDebugScreenshots,
   setStoreDebugScreenshots,

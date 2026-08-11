@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { TabInfoScrapingNotStartedWithExistingSnapshot } from "../useScrapingAndClassificationTabInfo";
+import type { TabInfoScrapingNotStartedWithExistingSnapshot } from "../useScrapingAndClassificationTabInfo";
 import { startScraping } from "../startScraping";
 import { ViewPreviousAnalysesButton } from "../ViewPreviousAnalysesButton";
 import {

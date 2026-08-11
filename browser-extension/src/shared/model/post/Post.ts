@@ -1,6 +1,6 @@
-import { ClassificationStatus } from "../ClassificationStatus";
-import { CommentSharedProperties } from "../CommentSharedPropertiesSchema";
-import { PostSharedProperties } from "../PostSharedProperties";
+import type { ClassificationStatus } from "../ClassificationStatus";
+import type { CommentSharedProperties } from "../CommentSharedPropertiesSchema";
+import type { PostSharedProperties } from "../PostSharedProperties";
 
 /**
  * Merged view of Post Snapshot

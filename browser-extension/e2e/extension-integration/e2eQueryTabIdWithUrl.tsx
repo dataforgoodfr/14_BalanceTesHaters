@@ -1,4 +1,4 @@
-import { BrowserContext } from "@playwright/test";
+import type { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "./evaluate/evaluateInBackgroundWorker";
 
 export async function e2eQueryTabIdWithUrl(
@@ -19,7 +19,7 @@ export async function e2eQueryTabIdWithUrl(
       if (tabs.length === 0) {
         throw new Error("Popup - Couldn't find a tab with url: " + tabUrl);
       }
-      return tabs[0];
+      return tabs[0]!;
     },
     tabUrl,
   );

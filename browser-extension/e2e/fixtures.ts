@@ -1,4 +1,5 @@
-import { test as base, chromium, BrowserContext } from "@playwright/test";
+import type { BrowserContext } from "@playwright/test";
+import { test as base, chromium } from "@playwright/test";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -48,7 +49,7 @@ export const test = base.extend<ExtensionFixtures>({
     if (!background) {
       background = await context.waitForEvent("serviceworker");
     }
-    const extensionId = background.url().split("/")[2];
+    const extensionId = background.url().split("/")[2]!;
     await use(extensionId);
   },
 });

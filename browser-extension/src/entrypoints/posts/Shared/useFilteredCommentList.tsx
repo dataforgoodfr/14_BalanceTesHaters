@@ -1,11 +1,13 @@
-import {
-  buildPostKey,
+import type {
   CommentFilters,
   CommentSortingCategory,
+  PostCommentWithId,
+} from "@/shared/utils/post-util";
+import {
+  buildPostKey,
   emptyCommentFilters,
   filterCommentList,
   isCommentHateful,
-  PostCommentWithId,
   sortCommentList,
 } from "@/shared/utils/post-util";
 import React from "react";

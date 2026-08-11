@@ -1,5 +1,5 @@
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger } from "@/shared/utils/createLogger";
 import {
   REPLY_BUTTON_REGEX as REPLY_BUTTON_REGEX,

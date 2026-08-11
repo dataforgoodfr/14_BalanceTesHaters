@@ -1,4 +1,4 @@
-import { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { expect } from "@playwright/test";
 
 export function checkPostSnapshotGenericExpectations(

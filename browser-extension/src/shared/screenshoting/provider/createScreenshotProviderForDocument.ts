@@ -1,6 +1,6 @@
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { DocumentScrollable, captureScrollableScreenshot } from "../scrollable";
-import { ScrapingSupport } from "../../scraping/ScrapingSupport";
+import type { ScrapingSupport } from "../../scraping/ScrapingSupport";
 import { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
 import { DocumentDescendantsScreenshotProvider } from "./DocumentDescendantsScreenshotProvider";
 

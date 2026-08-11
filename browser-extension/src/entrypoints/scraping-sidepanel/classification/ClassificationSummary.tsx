@@ -1,6 +1,6 @@
 import { CircleUserRoundIcon, MessageSquareWarningIcon } from "lucide-react";
-import { HateStats } from "./hateStats";
-import React from "react";
+import type { HateStats } from "./hateStats";
+import type React from "react";
 import { cn } from "@/lib/utils";
 import {
   descriptionTextStyle,

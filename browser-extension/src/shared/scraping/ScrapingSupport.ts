@@ -113,7 +113,7 @@ export class ScrapingSupport {
       if (elements.length > 0) {
         return {
           status: "success",
-          element: elements[0],
+          element: elements[0]!,
         };
       }
       await this.sleep(100);

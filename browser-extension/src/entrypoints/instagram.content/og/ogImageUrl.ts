@@ -1,4 +1,4 @@
-import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 
 export async function ogImageUrl(
   scrapingSupport: ScrapingSupport,

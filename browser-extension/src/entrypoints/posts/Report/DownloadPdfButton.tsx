@@ -3,9 +3,9 @@ import { useEffect, useMemo } from "react";
 import { usePDF } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
 import { PdfReport } from "./Exports/PdfReport";
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import { REPORT_PDF_FILE_NAME } from "@/shared/utils/report-data";
-import { ReportQueryData } from "./Stepper/BuildReport";
+import type { ReportQueryData } from "./Stepper/BuildReport";
 import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
 
 interface DownloadPdfButtonProps {

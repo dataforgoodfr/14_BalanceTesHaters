@@ -1,8 +1,9 @@
 import { isCategoryHateful } from "../model/AnnotatedCategory";
-import { Post, PostComment } from "../model/post/Post";
-import { PostSnapshot } from "../model/PostSnapshot";
-import { SocialNetwork, SocialNetworkName } from "../model/SocialNetworkName";
-import { PublicationDate } from "../model/PublicationDate";
+import type { Post, PostComment } from "../model/post/Post";
+import type { PostSnapshot } from "../model/PostSnapshot";
+import type { SocialNetworkName } from "../model/SocialNetworkName";
+import { SocialNetwork } from "../model/SocialNetworkName";
+import type { PublicationDate } from "../model/PublicationDate";
 
 export enum NbHatefulCommentsOptions {
   ZERO_TEN = "0_10",

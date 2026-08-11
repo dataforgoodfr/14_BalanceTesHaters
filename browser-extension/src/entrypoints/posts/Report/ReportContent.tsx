@@ -1,11 +1,11 @@
-import { ReportQueryData } from "./Stepper/BuildReport";
+import type { ReportQueryData } from "./Stepper/BuildReport";
 
 import KpiCard from "../Shared/KpiCards/KpiCard";
 
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 
-import { Post } from "@/shared/model/post/Post";
+import type { Post } from "@/shared/model/post/Post";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 import { NoticeUtilisation } from "./Notice/NoticeUtilisation";
 import { ReportCommentGroup } from "./ReportCommentGroup";

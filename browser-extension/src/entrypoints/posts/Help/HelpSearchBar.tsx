@@ -5,7 +5,8 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { SearchIcon } from "lucide-react";
-import { searchHelpPages, SearchResult } from "./helpSearchUtil";
+import type { SearchResult } from "./helpSearchUtil";
+import { searchHelpPages } from "./helpSearchUtil";
 
 export function HelpSearchBar() {
   const [query, setQuery] = useState("");

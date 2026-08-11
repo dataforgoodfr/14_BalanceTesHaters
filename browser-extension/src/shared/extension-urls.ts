@@ -1,4 +1,4 @@
-import { SocialNetworkName } from "./model/SocialNetworkName";
+import type { SocialNetworkName } from "./model/SocialNetworkName";
 
 export function getPostsListUrl() {
   return browser.runtime.getURL("/posts.html#/posts");

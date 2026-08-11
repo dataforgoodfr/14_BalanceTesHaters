@@ -1,6 +1,7 @@
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
-import { Image, encodePng } from "image-js";
+import type { Image } from "image-js";
+import { encodePng } from "image-js";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { createLogger } from "@/shared/utils/createLogger";
 
