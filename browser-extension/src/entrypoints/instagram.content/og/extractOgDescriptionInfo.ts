@@ -16,12 +16,8 @@ export type InstagramOgDescriptionInfo = Pick<
 export function extractOgDescriptionInfo(
   scrapingSupport: ScrapingSupport,
 ): InstagramOgDescriptionInfo {
-  const element = scrapingSupport.selectOrThrow(
-    document,
-    "meta[property='og:description']",
-    HTMLMetaElement,
-  );
-  const ogDescriptionContent = element.getAttribute("content");
+  const ogDescriptionContent =
+    scrapingSupport.selectOrThrowMetaPropertyContent("og:description");
   if (!ogDescriptionContent) {
     throw new Error("og:description is empty");
   }

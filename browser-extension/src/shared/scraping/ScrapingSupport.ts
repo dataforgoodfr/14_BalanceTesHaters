@@ -267,6 +267,24 @@ export class ScrapingSupport {
     // Let the host page handle the click
     await this.resumeHostPage();
   }
+
+  selectMetaPropertyContent(metaPropertyName: string): string | undefined {
+    return this.select(
+      document,
+      `meta[property='${metaPropertyName}']`,
+      HTMLMetaElement,
+    )?.content;
+  }
+
+  selectOrThrowMetaPropertyContent(metaPropertyName: string): string {
+    const content = this.selectMetaPropertyContent(metaPropertyName);
+    if (content === undefined) {
+      throw new Error(
+        "Cannot find <meta> content with metaPropertyName:" + metaPropertyName,
+      );
+    }
+    return content;
+  }
 }
 
 export type SelectionElementsDescriptorsOptions = {
