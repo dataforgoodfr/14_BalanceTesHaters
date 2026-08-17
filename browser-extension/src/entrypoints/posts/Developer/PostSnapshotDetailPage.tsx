@@ -105,10 +105,11 @@ function PostSnapshotDetailPage() {
               isRunningClassificationStatus(post.classificationStatus) && (
                 <Binary className="text-orange-500" />
               )}
-            {!post.classificationStatus ||
-              (post.classificationStatus === "FAILED" && (
-                <X className="text-red-500" />
-              ))}
+            {(!post.classificationStatus ||
+              post.classificationStatus === "FAILED" ||
+              post.classificationStatus === "JOB_NOT_FOUND") && (
+              <X className="text-red-500" />
+            )}
             <span className="font-medium">
               {post.classificationStatus && post.classificationStatus}
               {!post.classificationStatus && "Non démarrée"}
