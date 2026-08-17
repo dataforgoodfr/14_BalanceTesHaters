@@ -188,7 +188,14 @@ const StepContent = ({
       setReportOrganizationType(DEFAULT_REPORT_ORGANIZATION_TYPE);
       void stepper.navigation.goTo(stateFromPostList.skipToStep);
     }
-  }, [stateFromPostList]);
+  }, [
+    stateFromPostList,
+    setCommentList,
+    setPostIdList,
+    setReportOrganizationType,
+    setSocialNetworkList,
+    stepper.navigation,
+  ]);
 
   return (
     <div className="pt-8">

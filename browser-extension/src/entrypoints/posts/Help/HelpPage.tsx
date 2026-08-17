@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import { Link } from "react-router";
 import type { ComponentType, ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";

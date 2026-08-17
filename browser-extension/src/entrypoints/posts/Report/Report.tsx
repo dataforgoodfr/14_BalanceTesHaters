@@ -36,14 +36,18 @@ const Report = ({
   const [selectedScreenshot, setSelectedScreenshot] = useState<string | null>(
     null,
   );
+  const [generatedAt] = useState(() => new Date());
 
   const { data: posts, isLoading: isLoadingPosts } = useReportPosts(
     reportQueryData?.postIdList,
   );
 
+  const socialNetworkListKey =
+    reportQueryData?.socialNetworkList?.join(",") ?? "";
+
   const queryKey = useMemo(
-    () => ["posts", reportQueryData?.socialNetworkList?.join(",") ?? ""],
-    [reportQueryData?.socialNetworkList?.join(",")],
+    () => ["posts", socialNetworkListKey],
+    [socialNetworkListKey],
   );
 
   const { data, isLoading } = useQuery({
@@ -144,7 +148,7 @@ const Report = ({
 
           <div className="flex flex-col items-end">
             <span>
-              Généré le : {formatAnalysisDate(new Date().toISOString())}
+              Généré le : {formatAnalysisDate(generatedAt.toISOString())}
             </span>
             <span>
               Publications analysées : {reportQueryData?.postIdList.length}

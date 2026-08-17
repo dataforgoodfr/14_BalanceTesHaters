@@ -170,17 +170,15 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         header: "Classification",
         cell: ({ row }) => {
           if (row.original.classifiedAt) {
-            return (row.original.classification || []).map(
-              (category, index) => (
-                <Badge
-                  key={index}
-                  variant="outline"
-                  className={getClassificationBadgeClassName(category)}
-                >
-                  {category}
-                </Badge>
-              ),
-            );
+            return (row.original.classification || []).map((category) => (
+              <Badge
+                key={category}
+                variant="outline"
+                className={getClassificationBadgeClassName(category)}
+              >
+                {category}
+              </Badge>
+            ));
           } else {
             return "Non ";
           }
@@ -217,7 +215,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         },
       },
     ],
-    [showScreenshot],
+    [],
   );
 
   const table = useReactTable({

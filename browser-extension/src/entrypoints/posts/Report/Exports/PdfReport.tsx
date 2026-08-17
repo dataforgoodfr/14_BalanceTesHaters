@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from "@react-pdf/renderer";
+import { useState } from "react";
 import type { Post } from "@/shared/model/post/Post";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import {
@@ -261,6 +262,8 @@ interface PdfReportProps {
 }
 
 export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
+  const [now] = useState(() => new Date());
+
   const { postCommentList, reportOrganizationType } = reportQueryData;
 
   const numberOfHatefulComments = postCommentList.length;
@@ -276,7 +279,7 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
   } else if (organizationType === ReportOrganizationType.BY_AUTHOR) {
     const latestAnalysisDate = posts?.[0]?.latestAnalysisDate
       ? new Date(posts[0].latestAnalysisDate)
-      : new Date();
+      : now;
     groupedData = getAuthorGroups(comments, latestAnalysisDate, posts);
   }
 
@@ -288,7 +291,7 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
           <Image src={bthLogo} style={styles.bthImage} />
           <View style={styles.metaBlock}>
             <Text style={styles.metaLine}>
-              Généré le : {formatAnalysisDate(new Date().toISOString())}
+              Généré le : {formatAnalysisDate(now.toISOString())}
             </Text>
             <Text style={styles.metaLine}>
               Publications analysées : {reportQueryData.postIdList.length}

@@ -53,7 +53,7 @@ export function useFilteredPostList(
   // Handle optimistic deletion for instant user feedback
   const [postsPendingDeletion, setPostsPendingDeletion] = React.useState<
     Set<string>
-  >(new Set());
+  >(() => new Set());
 
   const filteredPosts = React.useMemo(() => {
     if (!data || data.length === 0) {

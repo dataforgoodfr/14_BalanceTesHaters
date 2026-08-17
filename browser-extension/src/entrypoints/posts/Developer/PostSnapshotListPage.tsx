@@ -154,8 +154,8 @@ function PostSnapshotListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {postsQuery.data.map((post, index) => (
-                  <TableRow key={index}>
+                {postsQuery.data.map((post) => (
+                  <TableRow key={post.id}>
                     <TableCell className="whitespace-normal">
                       <div className="space-y-2">
                         <Tooltip>

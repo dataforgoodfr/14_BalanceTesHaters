@@ -117,7 +117,7 @@ function getCommentPostMap(
   const commentPostMap = new Map<string, Post>();
 
   comments.forEach((comment) => {
-    let post: Post | undefined = undefined;
+    let post: Post | undefined;
     // Map comment to its post for later retrieval
     if (posts) {
       post = posts.find(

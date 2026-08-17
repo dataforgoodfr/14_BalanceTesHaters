@@ -13,7 +13,7 @@ const topEntries = menuEntries.filter(
 const bottomEntries = menuEntries.filter((entry) => entry.section === "bottom");
 
 function SidePanelMenu() {
-  const [aideMenuOpen, setaideMenuOpen] = useState(false);
+  const [aideMenuOpen, setAideMenuOpen] = useState(false);
 
   return (
     <div className="flex flex-col ps-4 h-full">
@@ -37,7 +37,7 @@ function SidePanelMenu() {
                 subMenuOpen={entry.subMenus.length > 0 ? aideMenuOpen : false}
                 onClick={
                   entry.subMenus.length > 0
-                    ? () => setaideMenuOpen((current) => !current)
+                    ? () => setAideMenuOpen((current) => !current)
                     : undefined
                 }
               />
@@ -102,7 +102,7 @@ function SidePanelMenuItem({
       }
       to={to}
     >
-      {icon && <span className="mr-2">{icon}</span>}
+      {icon != null && <span className="mr-2">{icon}</span>}
       {label}
       <div className="ms-auto">
         {withSubMenu ? subMenuOpen ? <ChevronDown /> : <ChevronUp /> : null}

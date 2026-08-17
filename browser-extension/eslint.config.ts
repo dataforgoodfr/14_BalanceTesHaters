@@ -1,14 +1,15 @@
 // For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
 import storybook from "eslint-plugin-storybook";
+import type { Linter } from "eslint";
 
 import { defineConfig, globalIgnores } from "eslint/config";
-import eslint from "@eslint/js";
 import configPrettier from "eslint-config-prettier";
-import tseslint from "typescript-eslint";
-import pluginReact from "eslint-plugin-react";
+import ts from "typescript-eslint";
+import react from "@eslint-react/eslint-plugin";
 import json from "@eslint/json";
-import markdown from "@eslint/markdown";
 import css from "@eslint/css";
+import { tailwind4 } from "tailwind-csstree";
+import js from "@eslint/js";
 
 export default defineConfig([
   globalIgnores([
@@ -20,18 +21,42 @@ export default defineConfig([
     "test-results",
     "coverage",
   ]),
-  configPrettier,
-  eslint.configs.recommended,
-  markdown.configs.processor,
-  tseslint.configs.recommendedTypeChecked,
   {
+    name: "json",
+    files: ["**/*.json"],
+    ignores: ["package-lock.json"],
+    language: "json/json",
+    plugins: { json },
+    extends: ["json/recommended"],
+  },
+
+  {
+    name: "css",
+    files: ["**/*.css"],
+    language: "css/css",
+    plugins: { css },
+    languageOptions: {
+      tolerant: true,
+      customSyntax: tailwind4,
+    },
+    extends: [css.configs.recommended],
+    rules: {
+      "css/no-invalid-at-rules": "off",
+      "css/use-baseline": "off",
+      "css/font-family-fallbacks": "off",
+    },
+  },
+
+  {
+    name: "ts",
+    files: ["**/*.{ts,tsx,mts,cts}"],
+    plugins: { js: js, ts: ts },
+    extends: [js.configs.recommended, ts.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
         projectService: true,
       },
     },
-  },
-  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -49,21 +74,24 @@ export default defineConfig([
     },
   },
   {
-    settings: {
-      react: {
-        version: "detect",
-      },
-    },
-    plugins: { react: pluginReact },
+    name: "react-ts",
+    files: ["src/**/*.{ts,tsx,mts,cts}"],
+    plugins: { react: react },
+    extends: [react.configs["recommended-type-checked"]],
   },
-  pluginReact.configs.flat.recommended!,
-  pluginReact.configs.flat["jsx-runtime"]!,
   {
+    name: "@eslint-react/ui-primitives",
+    files: ["src/components/ui/**/*.tsx"],
     rules: {
-      "react/prop-types": "off",
+      "@eslint-react/no-nested-component-definitions": "off",
+      "@eslint-react/no-use-context": "off",
+      "@eslint-react/no-context-provider": "off",
+      "@eslint-react/dom-no-dangerously-set-innerhtml": "off",
+      "@eslint-react/no-array-index-key": "off",
     },
   },
-  json.configs.recommended, //markdown.configs.recommended,
-  css.configs.recommended,
-  storybook.configs["flat/recommended"],
+
+  storybook.configs["flat/recommended"] as Linter.Config,
+  /**config prettier goes last */
+  configPrettier,
 ]);

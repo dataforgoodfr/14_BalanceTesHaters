@@ -80,18 +80,6 @@ export default function CommentsFilterPopover({
   const [authorSearchTerm, setAuthorSearchTerm] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  React.useEffect(() => {
-    if (selectedCategory !== "pseudoAuthor" && authorSearchTerm !== "") {
-      setAuthorSearchTerm("");
-    }
-  }, [selectedCategory, authorSearchTerm]);
-
-  React.useEffect(() => {
-    if (!filtersOpen) {
-      setSelectedFilters(commentFilters);
-    }
-  }, [filtersOpen, commentFilters]);
-
   const toggleFilter = (value: string) => {
     setSelectedFilters((prev) => {
       return toggleFilterValue(prev, selectedCategory, value);
@@ -170,7 +158,15 @@ export default function CommentsFilterPopover({
                 <div key={category.id} className="p-1">
                   <Button
                     variant="ghost"
-                    onClick={() => setSelectedCategory(category.id)}
+                    onClick={() => {
+                      setSelectedCategory(category.id);
+                      if (
+                        category.id !== "pseudoAuthor" &&
+                        authorSearchTerm !== ""
+                      ) {
+                        setAuthorSearchTerm("");
+                      }
+                    }}
                     disabled={category.isDisabled}
                     className={cn(
                       "w-full text-left p-2 hover:bg-accent transition-colors flex items-center justify-between rounded-sm",
