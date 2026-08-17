@@ -163,8 +163,8 @@ export function ScreenshotDebugPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((s, index) => (
-                <tr key={index} className="max-h-100 ">
+              {filtered.map((s) => (
+                <tr key={s.screenshotDate} className="max-h-100 ">
                   <td className="align-top p-1 min-w-10">{s.type}</td>
                   <td className="align-top p-1">{s.screenshotDate}</td>
                   <td className="align-top p-1 min-w-10">{s.desc}</td>

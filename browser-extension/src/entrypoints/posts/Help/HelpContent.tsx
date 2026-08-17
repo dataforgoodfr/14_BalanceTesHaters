@@ -5,6 +5,8 @@ import rehypeSlug from "rehype-slug";
 
 export function HelpPageContent({ mdContent }: { mdContent: string }) {
   useEffect(() => {
+    let pendingScrollTimeout: ReturnType<typeof setTimeout> | undefined;
+
     const handleScrollToAnchor = () => {
       // Extract the query parameters sitting inside or after the hash
       const hashParts = window.location.hash.split("?");
@@ -14,7 +16,11 @@ export function HelpPageContent({ mdContent }: { mdContent: string }) {
 
         if (anchorId) {
           // Give Markdown a tiny macro-task delay to fully paint the HTML elements
-          setTimeout(() => {
+          if (pendingScrollTimeout !== undefined) {
+            globalThis.clearTimeout(pendingScrollTimeout);
+          }
+          pendingScrollTimeout = setTimeout(() => {
+            pendingScrollTimeout = undefined;
             const element = document.getElementById(anchorId);
             if (element) {
               element.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -29,8 +35,12 @@ export function HelpPageContent({ mdContent }: { mdContent: string }) {
 
     // Listen for changes if the user searches and clicks a new section while remaining on the same page
     globalThis.addEventListener("hashchange", handleScrollToAnchor);
-    return () =>
+    return () => {
       globalThis.removeEventListener("hashchange", handleScrollToAnchor);
+      if (pendingScrollTimeout !== undefined) {
+        globalThis.clearTimeout(pendingScrollTimeout);
+      }
+    };
   }, [mdContent]); // Re-run if content changes
 
   return (

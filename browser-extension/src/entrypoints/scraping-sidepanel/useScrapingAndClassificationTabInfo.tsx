@@ -70,7 +70,7 @@ export function useScrapingAndClassificationTabInfo(
     return () => {
       browser.tabs.onUpdated.removeListener(listener);
     };
-  }, [tabId]);
+  }, [tabId, queryClient]);
   return queryResult;
 }
 

@@ -1,4 +1,3 @@
-"use server";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import type { Post } from "@/shared/model/post/Post";

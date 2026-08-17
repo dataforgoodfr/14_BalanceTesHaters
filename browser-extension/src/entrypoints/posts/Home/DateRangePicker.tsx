@@ -24,7 +24,7 @@ type DateRangePickerProps = Readonly<{
 }>;
 
 function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
-  const today = new Date();
+  const [today] = useState(() => new Date());
 
   const [calendarOpen, setCalendarOpen] = useState(false);
 
@@ -33,10 +33,12 @@ function DateRangePicker({ startDate, onChange }: DateRangePickerProps) {
     to: today,
   });
 
-  // Update dateRange whenever startDate changes
-  React.useEffect(() => {
+  // Adjust dateRange whenever startDate changes (instead of setting state in an effect)
+  const [prevStartDate, setPrevStartDate] = useState(startDate);
+  if (startDate !== prevStartDate) {
+    setPrevStartDate(startDate);
     setDateRange({ from: startDate, to: today });
-  }, [startDate]);
+  }
 
   const handleSelect = (range: DateRange | undefined) => {
     setDateRange(range);

@@ -62,7 +62,7 @@ export function SidePanel() {
   ) {
     return (
       <SidePanelLayout>
-        <Spinner className="m-auto size-8" />;
+        <Spinner className="m-auto size-8" />
       </SidePanelLayout>
     );
   }

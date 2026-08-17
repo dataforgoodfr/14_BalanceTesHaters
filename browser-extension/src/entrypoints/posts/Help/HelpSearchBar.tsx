@@ -52,6 +52,7 @@ export function HelpSearchBar() {
         {parts.map((part, index) =>
           part.toLowerCase() === highlight.toLowerCase() ? (
             <mark
+              // eslint-disable-next-line @eslint-react/no-array-index-key -- split text segments have no stable id and may repeat
               key={index}
               className="bg-yellow-200 text-black font-medium rounded-sm px-0.5"
             >
@@ -99,9 +100,9 @@ export function HelpSearchBar() {
       {isOpen && (
         <div className="absolute w-full mt-1 bg-white border rounded-lg shadow-xl max-h-80 overflow-y-auto divide-y divide-gray-100">
           {results.length > 0 ? (
-            results.map((result, idx) => (
+            results.map((result) => (
               <a
-                key={idx}
+                key={result.url}
                 href={result.url}
                 onClick={() => setIsOpen(false)}
                 className="block p-3 hover:bg-gray-50 transition-colors group"

@@ -85,11 +85,11 @@ export default function CommentsTable({
   const [inputValue, setInputValue] = React.useState("");
   const [searchTerm, setSearchTerm] = React.useState("");
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
-    new Set(),
+    () => new Set(),
   );
   const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
     Set<string>
-  >(new Set(defaultSelectedCommentIdList));
+  >(() => new Set(defaultSelectedCommentIdList));
   const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<
     string | null
@@ -109,20 +109,28 @@ export default function CommentsTable({
     setVisibleComments((prev) => addOrRemoveValueToSet(prev, id));
   };
 
-  const updateSelectedCommentList = (commentIdList: Set<string>) => {
-    // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
-    form.setFieldValue("commentIdList", [...commentIdList]);
-    setSelectedCommentIdList(commentIdList);
-  };
+  const updateSelectedCommentList = React.useCallback(
+    (commentIdList: Set<string>) => {
+      // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
+      form.setFieldValue("commentIdList", [...commentIdList]);
+      setSelectedCommentIdList(commentIdList);
+    },
+    [form],
+  );
 
-  const toggleCommentSelection = (id: string) => {
-    updateSelectedCommentList(addOrRemoveValueToSet(selectedCommentIdList, id));
-  };
+  const toggleCommentSelection = React.useCallback(
+    (id: string) => {
+      updateSelectedCommentList(
+        addOrRemoveValueToSet(selectedCommentIdList, id),
+      );
+    },
+    [selectedCommentIdList, updateSelectedCommentList],
+  );
 
-  const openScreenshotDialog = (screenshotData: string) => {
+  const openScreenshotDialog = React.useCallback((screenshotData: string) => {
     setSelectedScreenshot(screenshotData);
     setScreenshotDialogOpen(true);
-  };
+  }, []);
 
   const filteredComments = React.useMemo(
     () =>
@@ -145,6 +153,34 @@ export default function CommentsTable({
   }, [inputValue]);
 
   // La taille de chaque colonne est convertie ensuite en pourcentage. Attention, la somme doit faire 100%.
+  const setAllCommentsVisibility = React.useCallback(() => {
+    if (visibleComments.size === filteredComments.length) {
+      setVisibleComments(new Set());
+    } else {
+      const allVisibleRowIds = new Set(
+        filteredComments.map((comment) => comment.id),
+      );
+      setVisibleComments(allVisibleRowIds);
+    }
+  }, [visibleComments, filteredComments]);
+
+  const setAllCommentsSelection = React.useCallback(
+    (canDeselect: boolean) => {
+      if (
+        canDeselect &&
+        selectedCommentIdList.size === filteredComments.length
+      ) {
+        updateSelectedCommentList(new Set());
+      } else {
+        const allVisibleRowIds = new Set(
+          filteredComments.map((comment) => comment.id),
+        );
+        updateSelectedCommentList(allVisibleRowIds);
+      }
+    },
+    [selectedCommentIdList, filteredComments, updateSelectedCommentList],
+  );
+
   const columns = useMemo<ColumnDef<PostCommentWithId>[]>(
     () => [
       {
@@ -283,6 +319,9 @@ export default function CommentsTable({
       filteredComments,
       openScreenshotDialog,
       selectedCommentIdList,
+      setAllCommentsSelection,
+      setAllCommentsVisibility,
+      toggleCommentSelection,
       visibleComments,
     ],
   );
@@ -302,28 +341,6 @@ export default function CommentsTable({
       },
     },
   });
-
-  const setAllCommentsVisibility = () => {
-    if (visibleComments.size === filteredComments.length) {
-      setVisibleComments(new Set());
-    } else {
-      const allVisibleRowIds = new Set(
-        filteredComments.map((comment) => comment.id),
-      );
-      setVisibleComments(allVisibleRowIds);
-    }
-  };
-
-  const setAllCommentsSelection = (canDeselect: boolean) => {
-    if (canDeselect && selectedCommentIdList.size === filteredComments.length) {
-      updateSelectedCommentList(new Set());
-    } else {
-      const allVisibleRowIds = new Set(
-        filteredComments.map((comment) => comment.id),
-      );
-      updateSelectedCommentList(allVisibleRowIds);
-    }
-  };
 
   const navigate = useNavigate();
 
