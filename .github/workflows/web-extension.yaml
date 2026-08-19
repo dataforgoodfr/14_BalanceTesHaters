@@ -20,7 +20,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "browser-extension/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: "browser-extension/package.json"
           cache-dependency-path: "browser-extension/pnpm-lock.yaml"
@@ -54,7 +54,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "browser-extension/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: "browser-extension/package.json"
           cache-dependency-path: "browser-extension/pnpm-lock.yaml"
@@ -139,7 +139,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "browser-extension/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: "browser-extension/package.json"
           cache-dependency-path: "browser-extension/pnpm-lock.yaml"
@@ -184,7 +184,7 @@ jobs:
       - uses: pnpm/action-setup@v6
         with:
           package_json_file: "browser-extension/package.json"
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: "browser-extension/package.json"
           cache-dependency-path: "browser-extension/pnpm-lock.yaml"
