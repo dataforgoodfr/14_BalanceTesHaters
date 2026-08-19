@@ -102,7 +102,7 @@ jobs:
           retention-days: 30
 
       - name: "[PR] Link artifacts in PR"
-        if: github.event_name == 'pull_request' && steps.upload-bth-extension-artifact.outcome == 'success'
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]' && steps.upload-bth-extension-artifact.outcome == 'success'
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
