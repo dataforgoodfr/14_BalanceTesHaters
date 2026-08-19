@@ -115,7 +115,7 @@ jobs:
           cp .output/bth-extension-*-chrome.zip .output/bth-extension-latest-chrome.zip
 
       - name: "[main] Update assets on extension-latest release"
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.2
         if: github.ref == 'refs/heads/main'
         with:
           name: Web Extension Latest Development Build
@@ -158,7 +158,7 @@ jobs:
           unzip -t bth-extension-chrome.zip
       - name: "Create GH release"
         id: create-tag-release
-        uses: softprops/action-gh-release@v2.5.0
+        uses: softprops/action-gh-release@v3.0.2
         with:
           name: Web Extension ${{needs.extension-artifacts.outputs.tag-version}}
           fail_on_unmatched_files: true
