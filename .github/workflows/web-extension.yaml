@@ -90,7 +90,7 @@ jobs:
         run: pnpm zip
 
       - name: "Upload build artifacts"
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         id: upload-bth-extension-artifact
         with:
           if-no-files-found: error
@@ -209,7 +209,7 @@ jobs:
         run: CI=true xvfb-run pnpm playwright test --retries=3
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
