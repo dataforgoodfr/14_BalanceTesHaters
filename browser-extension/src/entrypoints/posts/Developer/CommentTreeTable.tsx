@@ -1,11 +1,16 @@
 import { useState, useMemo } from "react";
-import type { LegacyColumnDef, LegacyRow } from "@tanstack/react-table/legacy";
-import { flexRender } from "@tanstack/react-table";
 import {
-  getCoreRowModel as getLegacyCoreRowModel,
-  getExpandedRowModel as getLegacyExpandedRowModel,
-  useLegacyTable,
-} from "@tanstack/react-table/legacy";
+  createExpandedRowModel,
+  columnSizingFeature,
+  columnVisibilityFeature,
+  flexRender,
+  rowExpandingFeature,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
+  type ExpandedState,
+  type Row,
+} from "@tanstack/react-table";
 import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   Table,
@@ -33,11 +38,16 @@ import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { Badge } from "@/components/ui/badge";
 
-type ExpandedState = true | Record<string, boolean>;
-
 interface CommentTreeTableProps {
   comments: CommentSnapshot[];
 }
+
+const commentTreeFeatures = tableFeatures({
+  columnSizingFeature,
+  columnVisibilityFeature,
+  rowExpandingFeature,
+  expandedRowModel: createExpandedRowModel(),
+});
 
 export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
@@ -73,12 +83,14 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const getRowId = (
     _: CommentSnapshot,
     index: number,
-    parent?: LegacyRow<CommentSnapshot>,
+    parent?: Row<typeof commentTreeFeatures, CommentSnapshot>,
   ) => {
     return parent ? `${parent.id}-${index}` : `${index}`;
   };
 
-  const columns = useMemo<LegacyColumnDef<CommentSnapshot>[]>(
+  const columns = useMemo<
+    ColumnDef<typeof commentTreeFeatures, CommentSnapshot>[]
+  >(
     () => [
       {
         accessorKey: "author",
@@ -220,13 +232,12 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
     [],
   );
 
-  const table = useLegacyTable({
+  const table = useTable({
+    features: commentTreeFeatures,
     data: comments,
     columns: columns.filter((c) => c.id !== "screenshot" || showScreenshot),
     getRowId,
     getSubRows: (row) => row.replies,
-    getCoreRowModel: getLegacyCoreRowModel(),
-    getExpandedRowModel: getLegacyExpandedRowModel(),
     onExpandedChange: setExpandedState,
     state: {
       expanded: expandedState,
