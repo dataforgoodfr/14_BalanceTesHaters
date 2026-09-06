@@ -25,7 +25,7 @@ function Step1Plateforme({
     },
     onSubmit: () => {
       setSocialNetworkList(form.state.values.socialNetworkList);
-      void stepper.navigation.next();
+      void stepper.next();
     },
   });
 
@@ -42,7 +42,7 @@ function Step1Plateforme({
       />
 
       <form
-        id={getFormId(stepper.state.current.data.id)}
+        id={getFormId(stepper.current.id)}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
