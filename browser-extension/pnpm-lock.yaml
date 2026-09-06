@@ -21,8 +21,8 @@ importers:
         specifier: ^4.8.1
         version: 4.8.1(react@19.2.8)
       '@stepperize/react':
-        specifier: ^6.1.0
-        version: 6.1.0(react@19.2.8)(typescript@6.0.3)
+        specifier: ^7.0.0
+        version: 7.0.0(react@19.2.8)(typescript@6.0.3)
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.2.2(@types/node@26.4.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.12))
@@ -1387,13 +1387,16 @@ packages:
   '@standard-schema/utils@0.3.0':
     resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
-  '@stepperize/core@2.1.0':
-    resolution: {integrity: sha512-edzIlkAUDrqan3G7XhY32PvciyQoJtyX3Fz8G1LBgSHIg2rMTBsZk8oz39NxT7XFxqibRXf2rvsH81iwg+Dd6w==}
+  '@stepperize/core@3.0.0':
+    resolution: {integrity: sha512-eWhs9qUsNOiuMAWRwajIIX94YnVp5rhd0FDfOQ+XpOevEYa7X0M1lzTQtJ5KWhOtNwCMSUzLV0AijntOdWG3yw==}
     peerDependencies:
       typescript: '>=5.0.2'
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
-  '@stepperize/react@6.1.0':
-    resolution: {integrity: sha512-ywTt0OQDoBKcdzeBK9V1hTsMAQ+zAoIF/au9fcATspdGWfYr/z+mDGZm2cA2rzMJF79J+fUbjZPb+7Js4PtKBA==}
+  '@stepperize/react@7.0.0':
+    resolution: {integrity: sha512-Pfudzw2z+qalkt1PuJQZdxY885r3XS4LOt1QSE2vm88R7q2M6UY9X0OjXgc7Onc2d7DerGkzjUxi+VK2cPRzxA==}
     peerDependencies:
       react: ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -5236,13 +5239,13 @@ snapshots:
 
   '@standard-schema/utils@0.3.0': {}
 
-  '@stepperize/core@2.1.0(typescript@6.0.3)':
-    dependencies:
+  '@stepperize/core@3.0.0(typescript@6.0.3)':
+    optionalDependencies:
       typescript: 6.0.3
 
-  '@stepperize/react@6.1.0(react@19.2.8)(typescript@6.0.3)':
+  '@stepperize/react@7.0.0(react@19.2.8)(typescript@6.0.3)':
     dependencies:
-      '@stepperize/core': 2.1.0(typescript@6.0.3)
+      '@stepperize/core': 3.0.0(typescript@6.0.3)
       react: 19.2.8
     transitivePeerDependencies:
       - typescript
