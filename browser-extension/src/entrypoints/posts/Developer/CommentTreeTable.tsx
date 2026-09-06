@@ -1,11 +1,11 @@
 import { useState, useMemo } from "react";
-import type { ColumnDef, ExpandedState, Row } from "@tanstack/react-table";
+import type { LegacyColumnDef, LegacyRow } from "@tanstack/react-table/legacy";
+import { flexRender } from "@tanstack/react-table";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getExpandedRowModel,
-  flexRender,
-} from "@tanstack/react-table";
+  getCoreRowModel as getLegacyCoreRowModel,
+  getExpandedRowModel as getLegacyExpandedRowModel,
+  useLegacyTable,
+} from "@tanstack/react-table/legacy";
 import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   Table,
@@ -32,6 +32,8 @@ import {
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { Badge } from "@/components/ui/badge";
+
+type ExpandedState = true | Record<string, boolean>;
 
 interface CommentTreeTableProps {
   comments: CommentSnapshot[];
@@ -71,12 +73,12 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const getRowId = (
     _: CommentSnapshot,
     index: number,
-    parent?: Row<CommentSnapshot>,
+    parent?: LegacyRow<CommentSnapshot>,
   ) => {
     return parent ? `${parent.id}-${index}` : `${index}`;
   };
 
-  const columns = useMemo<ColumnDef<CommentSnapshot>[]>(
+  const columns = useMemo<LegacyColumnDef<CommentSnapshot>[]>(
     () => [
       {
         accessorKey: "author",
@@ -218,13 +220,13 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
     [],
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: comments,
     columns: columns.filter((c) => c.id !== "screenshot" || showScreenshot),
     getRowId,
     getSubRows: (row) => row.replies,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
+    getCoreRowModel: getLegacyCoreRowModel(),
+    getExpandedRowModel: getLegacyExpandedRowModel(),
     onExpandedChange: setExpandedState,
     state: {
       expanded: expandedState,

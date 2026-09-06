@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import {
-  useReactTable,
+  useLegacyTable,
   getPaginationRowModel,
   getCoreRowModel,
-  flexRender,
-} from "@tanstack/react-table";
+} from "@tanstack/react-table/legacy";
+import { flexRender } from "@tanstack/react-table";
 import {
   TableHeader,
   TableRow,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/table";
 import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import {
   InputGroup,
@@ -181,7 +181,7 @@ export default function CommentsTable({
     [selectedCommentIdList, filteredComments, updateSelectedCommentList],
   );
 
-  const columns = useMemo<ColumnDef<PostCommentWithId>[]>(
+  const columns = useMemo<LegacyColumnDef<PostCommentWithId>[]>(
     () => [
       {
         id: "selection",
@@ -326,7 +326,7 @@ export default function CommentsTable({
     ],
   );
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: filteredComments,
     columns: columns.filter(
       (column) => showScreenshotColumn || column.id !== "screenshot",
