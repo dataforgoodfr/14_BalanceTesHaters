@@ -1,0 +1,15 @@
+# Default maintainer and fallback for otherwise-unmatched files.
+* @sarod @njouanin
+
+# Browser extension and its documentation.
+/browser-extension/ @sarod @AntoineQuesnel
+/docs/frontend/ @sarod @AntoineQuesnel
+
+# Backend, deployment containers, and backend documentation.
+/backend/ @njouanin @gregoireco
+/docker/ @njouanin @gregoireco
+/docs/backend/ @njouanin @gregoireco
+/.dockerignore @njouanin @gregoireco
+
+# Repository automation and CI.
+/.github/ @sarod @njouanin
