@@ -22,8 +22,8 @@ export type ReportQueryData = {
   reportOrganizationType: ReportOrganizationType;
 };
 
-export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
-  defineStepper(
+export const { Provider, Stepper, useStepper, ...stepperDefinition } =
+  defineStepper([
     {
       id: "step-1",
       title: "Plateforme",
@@ -40,7 +40,7 @@ export const { Scoped, Stepper, useStepper, ...stepperDefinition } =
       id: "step-4",
       title: "Organisation",
     },
-  );
+  ]);
 
 export function BuildReport() {
   const [reportQueryData, setReportQueryData] =
@@ -129,7 +129,7 @@ const BthStepper = ({
         ></Button>
       </div>
       <div className="flex flex-col gap-6">
-        <Scoped>
+        <Provider>
           <Stepper.Root
             className="w-full h-full space-y-4"
             orientation="horizontal"
@@ -145,7 +145,7 @@ const BthStepper = ({
             />
             <StepperActions />
           </Stepper.Root>
-        </Scoped>
+        </Provider>
       </div>
     </>
   );
@@ -186,7 +186,7 @@ const StepContent = ({
       setPostIdList(stateFromPostList.selectedPostIds || []);
       setCommentList(stateFromPostList.selectedCommentList || []);
       setReportOrganizationType(DEFAULT_REPORT_ORGANIZATION_TYPE);
-      void stepper.navigation.goTo(stateFromPostList.skipToStep);
+      void stepper.goTo(stateFromPostList.skipToStep);
     }
   }, [
     stateFromPostList,
@@ -194,36 +194,36 @@ const StepContent = ({
     setPostIdList,
     setReportOrganizationType,
     setSocialNetworkList,
-    stepper.navigation,
+    stepper,
   ]);
 
   return (
     <div className="pt-8">
-      {stepper.flow.when("step-1", () => (
+      {stepper.is("step-1") && (
         <Step1Plateforme
           setSocialNetworkList={setSocialNetworkList}
           reportQueryData={reportQueryData}
         />
-      ))}
-      {stepper.flow.when("step-2", () => (
+      )}
+      {stepper.is("step-2") && (
         <Step2Posts
           reportQueryData={reportQueryData}
           setPostList={setPostIdList}
         />
-      ))}
-      {stepper.flow.when("step-3", () => (
+      )}
+      {stepper.is("step-3") && (
         <Step3Comments
           reportQueryData={reportQueryData}
           setCommentList={setCommentList}
         />
-      ))}
-      {stepper.flow.when("step-4", () => (
+      )}
+      {stepper.is("step-4") && (
         <Step4Organization
           reportQueryData={reportQueryData}
           setReportOrganizationType={setReportOrganizationType}
           setDisplayReport={setDisplayReport}
         />
-      ))}
+      )}
     </div>
   );
 };

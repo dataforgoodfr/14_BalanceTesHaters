@@ -52,7 +52,7 @@ function Step4Organization({
         subTitle="Sélectionne la structure la plus adaptée à l’objectif du dossier."
       />
       <form
-        id={getFormId(stepper.state.current.data.id)}
+        id={getFormId(stepper.current.id)}
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();

@@ -49,7 +49,7 @@ function Step2Posts({
     },
     onSubmit: () => {
       setPostList(form.state.values.postList);
-      void stepper.navigation.next();
+      void stepper.next();
     },
   });
 
@@ -104,7 +104,7 @@ function Step2Posts({
         )}
 
         <form
-          id={getFormId(stepper.state.current.data.id)}
+          id={getFormId(stepper.current.id)}
           onSubmit={(e) => {
             e.preventDefault();
             e.stopPropagation();

@@ -1,14 +1,17 @@
-import { useStepItemContext } from "@stepperize/react/primitives";
-
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
 import { Stepper, useStepper } from "./BuildReport";
 import { Link } from "react-router";
 
-const StepperTriggerWrapper = () => {
-  const item = useStepItemContext();
-  const isInactive = item.status === "inactive";
-  const isCompleted = item.status === "success";
+const StepperTriggerWrapper = ({
+  status,
+  index,
+}: {
+  status: ReturnType<ReturnType<typeof useStepper>["status"]>;
+  index: number;
+}) => {
+  const isInactive = status === "upcoming";
+  const isCompleted = status === "previous";
 
   return (
     <Stepper.Trigger
@@ -17,14 +20,14 @@ const StepperTriggerWrapper = () => {
           roundness="round"
           variant={isInactive ? "secondary" : "default"}
           size="icon"
-          data-status={item.status}
-          className="data-[status=success]:opacity-50"
+          data-status={status}
+          className="data-[status=previous]:opacity-50"
           {...domProps}
         >
           {isCompleted ? (
             <Check className="h-4 w-4" />
           ) : (
-            <Stepper.Indicator>{item.index + 1}</Stepper.Indicator>
+            <Stepper.Indicator>{index + 1}</Stepper.Indicator>
           )}
         </Button>
       )}
@@ -32,14 +35,18 @@ const StepperTriggerWrapper = () => {
   );
 };
 
-const StepperTitleWrapper = ({ title }: { title: string }) => {
-  const item = useStepItemContext();
-
+const StepperTitleWrapper = ({
+  title,
+  status,
+}: {
+  title: string;
+  status: ReturnType<ReturnType<typeof useStepper>["status"]>;
+}) => {
   return (
     <Stepper.Title
       render={(domProps) => (
         <h4
-          data-status={item.status}
+          data-status={status}
           className="text-sm font-medium opacity-50 data-[status=active]:opacity-100"
           {...domProps}
         >
@@ -70,13 +77,9 @@ export const StepperBanner = () => {
 
   return (
     <Stepper.List className="flex list-none flex-row items-center justify-between max-w-3/4 mx-auto">
-      {stepper.state.all.map((stepData, index) => {
-        const isLast = index === stepper.state.all.length - 1;
-        const data = stepData as {
-          id: string;
-          title: string;
-          description?: string;
-        };
+      {stepper.steps.map((stepData, index) => {
+        const isLast = index === stepper.steps.length - 1;
+        const status = stepper.status(stepData.id);
         return (
           <Stepper.Item
             key={stepData.id}
@@ -84,8 +87,8 @@ export const StepperBanner = () => {
             className="group peer relative flex w-full flex-col items-center justify-center gap-2"
           >
             <div className="flex items-center gap-2">
-              <StepperTriggerWrapper />
-              <StepperTitleWrapper title={data.title} />
+              <StepperTriggerWrapper status={status} index={index} />
+              <StepperTitleWrapper title={stepData.title} status={status} />
             </div>
             <StepperSeparatorWithLabelOrientation isLast={isLast} />
           </Stepper.Item>
@@ -100,7 +103,7 @@ export const StepperActions = () => {
   return (
     <div className="fixed bottom-0 w-full border-t py-8 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">
-        {stepper.state.isFirst ? (
+        {stepper.isFirst ? (
           <Button
             roundness="round"
             type="button"
@@ -124,11 +127,11 @@ export const StepperActions = () => {
           />
         )}
 
-        {stepper.state.isLast ? (
+        {stepper.isLast ? (
           <Button
             roundness="round"
             type="submit"
-            form={getFormId(stepper.state.current.data.id)}
+            form={getFormId(stepper.current.id)}
             className="w-1/6"
           >
             Générer le rapport
@@ -137,7 +140,7 @@ export const StepperActions = () => {
           <Button
             roundness="round"
             type="submit"
-            form={getFormId(stepper.state.current.data.id)}
+            form={getFormId(stepper.current.id)}
             className="w-1/6"
           >
             Suivant <MoveRight className="h-4 w-4 ml-1" />
