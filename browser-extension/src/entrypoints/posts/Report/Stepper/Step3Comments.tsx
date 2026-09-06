@@ -40,7 +40,7 @@ function Step3Comments({
         commentIdList.includes(comment.id),
       ),
     );
-    void stepper.navigation.next();
+    void stepper.next();
   };
 
   return (
@@ -67,7 +67,7 @@ function Step3Comments({
               []
             }
             onSubmit={handleSubmit}
-            formId={getFormId(stepper.state.current.data.id)}
+            formId={getFormId(stepper.current.id)}
             authorList={hatefulAuthorList}
             showScreenshotColumn={true}
             showCreateReportButton={false}
