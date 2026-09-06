@@ -6,7 +6,7 @@ import {
   getDefaultClassNames,
   type DayButton,
   type Locale,
-} from "react-day-picker";
+} from "@daypicker/react";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";

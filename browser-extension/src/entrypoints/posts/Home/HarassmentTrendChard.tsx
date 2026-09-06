@@ -10,7 +10,7 @@ import {
 import type { PostComment } from "@/shared/model/post/Post";
 import { getFirstDayOfWeek } from "@/shared/utils/date-util";
 import { isCommentHateful } from "@/shared/utils/post-util";
-import type { DateRange } from "react-day-picker";
+import type { DateRange } from "@daypicker/react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 const MAX_DATA_POINTS = 60; // Maximum number of data points to display in the chart

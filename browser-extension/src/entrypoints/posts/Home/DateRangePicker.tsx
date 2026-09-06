@@ -1,6 +1,6 @@
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { type DateRange } from "react-day-picker";
+import { type DateRange } from "@daypicker/react";
 import React from "react";
 import {
   Popover,
@@ -14,7 +14,7 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { fr } from "date-fns/locale";
-import { fr as frDP } from "react-day-picker/locale";
+import { fr as frDP } from "@daypicker/react/locale";
 import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 
