@@ -1,9 +1,13 @@
 import { useMemo } from "react";
 import {
-  useReactTable,
-  getPaginationRowModel,
-  getCoreRowModel,
+  createPaginatedRowModel,
+  columnSizingFeature,
+  columnVisibilityFeature,
   flexRender,
+  rowPaginationFeature,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
 } from "@tanstack/react-table";
 import {
   TableHeader,
@@ -15,7 +19,6 @@ import {
 } from "@/components/ui/table";
 import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { ColumnDef } from "@tanstack/react-table";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import {
   InputGroup,
@@ -56,6 +59,13 @@ import type {
 } from "@/shared/utils/post-util";
 import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
+
+const commentsTableFeatures = tableFeatures({
+  columnSizingFeature,
+  columnVisibilityFeature,
+  rowPaginationFeature,
+  paginatedRowModel: createPaginatedRowModel(),
+});
 
 export default function CommentsTable({
   commentList,
@@ -181,7 +191,9 @@ export default function CommentsTable({
     [selectedCommentIdList, filteredComments, updateSelectedCommentList],
   );
 
-  const columns = useMemo<ColumnDef<PostCommentWithId>[]>(
+  const columns = useMemo<
+    ColumnDef<typeof commentsTableFeatures, PostCommentWithId>[]
+  >(
     () => [
       {
         id: "selection",
@@ -326,14 +338,13 @@ export default function CommentsTable({
     ],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: commentsTableFeatures,
     data: filteredComments,
     columns: columns.filter(
       (column) => showScreenshotColumn || column.id !== "screenshot",
     ),
-    getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => row.id,
-    getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
         pageIndex: 0,
@@ -489,7 +500,7 @@ export default function CommentsTable({
               Nombre de commentaires par page
             </FieldLabel>
             <Select
-              defaultValue={table.getState().pagination.pageSize}
+              defaultValue={table.state.pagination.pageSize}
               onValueChange={(e) => {
                 table.setPageSize(Number(e));
               }}

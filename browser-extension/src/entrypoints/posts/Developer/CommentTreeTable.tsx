@@ -1,10 +1,15 @@
 import { useState, useMemo } from "react";
-import type { ColumnDef, ExpandedState, Row } from "@tanstack/react-table";
 import {
-  useReactTable,
-  getCoreRowModel,
-  getExpandedRowModel,
+  createExpandedRowModel,
+  columnSizingFeature,
+  columnVisibilityFeature,
   flexRender,
+  rowExpandingFeature,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
+  type ExpandedState,
+  type Row,
 } from "@tanstack/react-table";
 import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
@@ -36,6 +41,13 @@ import { Badge } from "@/components/ui/badge";
 interface CommentTreeTableProps {
   comments: CommentSnapshot[];
 }
+
+const commentTreeFeatures = tableFeatures({
+  columnSizingFeature,
+  columnVisibilityFeature,
+  rowExpandingFeature,
+  expandedRowModel: createExpandedRowModel(),
+});
 
 export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
@@ -71,12 +83,14 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
   const getRowId = (
     _: CommentSnapshot,
     index: number,
-    parent?: Row<CommentSnapshot>,
+    parent?: Row<typeof commentTreeFeatures, CommentSnapshot>,
   ) => {
     return parent ? `${parent.id}-${index}` : `${index}`;
   };
 
-  const columns = useMemo<ColumnDef<CommentSnapshot>[]>(
+  const columns = useMemo<
+    ColumnDef<typeof commentTreeFeatures, CommentSnapshot>[]
+  >(
     () => [
       {
         accessorKey: "author",
@@ -218,13 +232,12 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
     [],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: commentTreeFeatures,
     data: comments,
     columns: columns.filter((c) => c.id !== "screenshot" || showScreenshot),
     getRowId,
     getSubRows: (row) => row.replies,
-    getCoreRowModel: getCoreRowModel(),
-    getExpandedRowModel: getExpandedRowModel(),
     onExpandedChange: setExpandedState,
     state: {
       expanded: expandedState,
