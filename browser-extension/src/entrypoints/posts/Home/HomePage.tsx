@@ -7,7 +7,7 @@ import DateRangePicker from "./DateRangePicker";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
-import { type DateRange } from "react-day-picker";
+import { type DateRange } from "@daypicker/react";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getEarliestPostDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
