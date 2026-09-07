@@ -175,6 +175,22 @@ describe("parseOgDescriptionContent", () => {
     expect(result.textContent).toBe("Few comments");
   });
 
+  it("Should parse a post with no likes or comments", () => {
+    const ogDescription =
+      'isa_cest_moi_ on August 18, 2026: "#feminisme #sororité #pedagogie #egalitehommefemme #etreunefemme".';
+    const result: InstagramOgDescriptionInfo =
+      parseOgDescriptionContent(ogDescription);
+    expect(result.commentsCount).toBe(0);
+    expect(result.textContent).toBe(
+      "#feminisme #sororité #pedagogie #egalitehommefemme #etreunefemme",
+    );
+    expect(result.author).toEqual({
+      name: "isa_cest_moi_",
+      accountHref: "https://www.instagram.com/isa_cest_moi_",
+    });
+    expect(result.publishedAt.date).toBe("2026-08-18T00:00:00.000Z");
+  });
+
   it("Should throw error for invalid og:description format", () => {
     expect(() => parseOgDescriptionContent("invalid format")).toThrow();
     expect(() => parseOgDescriptionContent("missing quotes")).toThrow();
