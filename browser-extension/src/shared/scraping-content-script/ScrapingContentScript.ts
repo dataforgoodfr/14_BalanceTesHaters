@@ -171,10 +171,11 @@ export class ScrapingContentScript {
         return;
       } else {
         logger.error("Unexpected error while scraping", e);
-        const errorMessage =
+        const errorDetails =
           e instanceof Error && e.stack
             ? `${e.message}\n${e.stack}`
             : String(e);
+        const errorMessage = `Post URL: ${window.location.href}\n${errorDetails}`;
         this.scrapAbortController = null;
         this.scrapingStatus = scrapingFailed(errorMessage);
         return;
