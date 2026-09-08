@@ -42,7 +42,12 @@ export class YoutubeScraper implements SocialNetworkScraper {
       if (this.allowDegradedScrapping) {
         logger.warn(message);
       } else {
-        throw new Error(message);
+        // YouTube can expose the new URL before it has refreshed the page metadata.
+        // Reloading gives the page a chance to populate og:url before scraping starts.
+        logger.info("og metadata unavailable reloading page");
+        return {
+          redirectUrl: document.URL,
+        };
       }
     } else if (isOutdatedOgMeta(ogUrl, document.URL)) {
       // Scraper uses og: meta information which are only loaded on page load not on navigation
