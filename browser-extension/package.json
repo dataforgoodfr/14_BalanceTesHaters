@@ -42,7 +42,7 @@
     "date-fns": "^4.4.0",
     "docx": "^9.7.1",
     "image-js": "^1.7.0",
-    "lucide-react": "^0.563.0",
+    "lucide-react": "^1.40.0",
     "react": "^19.2.8",
     "@daypicker/react": "^10.0.1",
     "react-dom": "^19.2.8",
