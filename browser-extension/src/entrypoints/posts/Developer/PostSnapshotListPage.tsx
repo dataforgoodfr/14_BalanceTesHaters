@@ -21,14 +21,8 @@ import {
 } from "@/components/ui/tooltip";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  InstagramIcon,
-  RefreshCwIcon,
-  TrashIcon,
-  YoutubeIcon,
-} from "lucide-react";
+import { RefreshCwIcon, TrashIcon } from "lucide-react";
 import { countAllComments } from "@/shared/model/PostSnapshot";
-import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getSocialNetworkName } from "@/shared/utils/post-util";
 
 function PostSnapshotListPage() {
@@ -205,14 +199,7 @@ function PostSnapshotListPage() {
                       )}
                     </TableCell>
                     <TableCell className="whitespace-normal">
-                      <div className="inline-flex items-center gap-2">
-                        {post.socialNetwork === SocialNetwork.YouTube ? (
-                          <YoutubeIcon className="size-4 text-red-600" />
-                        ) : (
-                          <InstagramIcon className="size-4 text-pink-600" />
-                        )}
-                        <span>{getSocialNetworkName(post.socialNetwork)}</span>
-                      </div>
+                      {getSocialNetworkName(post.socialNetwork)}
                     </TableCell>
                     <TableCell className="whitespace-normal break-all">
                       {post.author.name}
