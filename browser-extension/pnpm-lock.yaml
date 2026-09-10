@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  publish-browser-extension@6.1.1:
+    hash: 43ba2a66f72c552a3712863cdbec503b9ebb123bb1c3e04e98cc218d8e044116
+    path: patches/publish-browser-extension@6.1.1.patch
+
 importers:
 
   .:
@@ -155,7 +160,7 @@ importers:
         version: 3.9.6
       publish-browser-extension:
         specifier: ^6.1.1
-        version: 6.1.1
+        version: 6.1.1(patch_hash=43ba2a66f72c552a3712863cdbec503b9ebb123bb1c3e04e98cc218d8e044116)
       storybook:
         specifier: ^10.6.0
         version: 10.6.0(@types/react@19.2.18)(prettier@3.9.6)(react@19.2.8)
@@ -7720,7 +7725,7 @@ snapshots:
 
   property-information@7.2.0: {}
 
-  publish-browser-extension@6.1.1:
+  publish-browser-extension@6.1.1(patch_hash=43ba2a66f72c552a3712863cdbec503b9ebb123bb1c3e04e98cc218d8e044116):
     dependencies:
       '@topcli/prompts': 4.0.0
       cac: 7.0.0
@@ -8504,7 +8509,7 @@ snapshots:
       magicast: 0.5.4
       nypm: 0.6.9
       picomatch: 4.0.5
-      publish-browser-extension: 6.1.1
+      publish-browser-extension: 6.1.1(patch_hash=43ba2a66f72c552a3712863cdbec503b9ebb123bb1c3e04e98cc218d8e044116)
       superlock: 1.3.5
       tiny-open: 1.3.0
       tinyexec: 1.3.0

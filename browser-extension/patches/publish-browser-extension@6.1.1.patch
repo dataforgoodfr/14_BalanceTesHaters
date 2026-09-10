@@ -1,0 +1,197 @@
+diff --git a/dist/cli.mjs b/dist/cli.mjs
+index 396f631739856d4a26dd4c43f8adcd7107a7a68d..735cfd1b6c27efaee3a603281422e7a0d77700ed 100644
+--- a/dist/cli.mjs
++++ b/dist/cli.mjs
+@@ -1,4 +1,4 @@
+-import { c as validateConfig, d as highlight, f as logger, n as submit, r as ChromeWebStoreV2, s as resolveConfig, t as init } from "./init-DhMr270n.mjs";
++import { c as validateConfig, d as highlight, f as logger, n as submit, r as ChromeWebStoreV2, s as resolveConfig, t as init } from "./init-BHo7Hjl9.mjs";
+ import { readFileSync } from "node:fs";
+ import { cac } from "cac";
+ import { parseEnv } from "node:util";
+@@ -53,9 +53,10 @@ cli.option("--chrome-zip [chromeZip]", "Path to extension zip to upload");
+ cli.option("--chrome-cancel-pending [chromeCancelPending]", "[API v2 only] Cancel any pending review before submitting the new version (default: false)");
+ cli.option("--chrome-publisher-id [chromePublisherId]", "[API v2 only] Publisher ID who owns the extension");
+ cli.option("--chrome-publish-type [chromePublishType]", "[API v2 only] Set to \"STAGED_PUBLISH\" to not publish the extension immediately after submission");
+-cli.option("--chrome-service-account-client-email [chromeServiceAccountClientEmail]", "[API v2 only] Client email of the service account used for authorizing requests to the Chrome Web Store");
+-cli.option("--chrome-service-account-private-key [chromeServiceAccountPrivateKey]", "[API v2 only] Private key of the service account used for authorizing requests to the Chrome Web Store");
+ cli.option("--chrome-skip-review [chromeSkipReview]", "[API v2 only] Some updates, like ad-blocker rule updates, can skip the review process and be published immediately after submission");
++cli.option("--chrome-service-account-client-email [chromeServiceAccountClientEmail]", "[API v2 only; mutually exclusive with serviceAccountAccessToken] Client email of the service account used for authorizing requests to the Chrome Web Store");
++cli.option("--chrome-service-account-private-key [chromeServiceAccountPrivateKey]", "[API v2 only; mutually exclusive with serviceAccountAccessToken] Private key of the service account used for authorizing requests to the Chrome Web Store");
++cli.option("--chrome-service-account-access-token [chromeServiceAccountAccessToken]", "[API v2 only; mutually exclusive with serviceAccountClientEmail and serviceAccountPrivateKey] Short-lived OAuth 2.0 access token used for authorizing requests to the Chrome Web Store");
+ cli.option("--chrome-client-id [chromeClientId]", "[Deprecated: API v1.1 only] Client ID used for authorizing requests to the Chrome Web Store");
+ cli.option("--chrome-client-secret [chromeClientSecret]", "[Deprecated: API v1.1 only] Client secret used for authorizing requests to the Chrome Web Store");
+ cli.option("--chrome-publish-target [chromePublishTarget]", "[Deprecated: API v1.1 only] Group to publish to, \"default\" or \"trustedTesters\"");
+@@ -94,9 +95,10 @@ function configFromFlags(flags) {
+ 	config.chrome.cancelPending = flags.chromeCancelPending;
+ 	config.chrome.publisherId = flags.chromePublisherId;
+ 	config.chrome.publishType = flags.chromePublishType;
++	config.chrome.skipReview = flags.chromeSkipReview;
+ 	config.chrome.serviceAccountClientEmail = flags.chromeServiceAccountClientEmail;
+ 	config.chrome.serviceAccountPrivateKey = flags.chromeServiceAccountPrivateKey;
+-	config.chrome.skipReview = flags.chromeSkipReview;
++	config.chrome.serviceAccountAccessToken = flags.chromeServiceAccountAccessToken;
+ 	config.chrome.clientId = flags.chromeClientId;
+ 	config.chrome.clientSecret = flags.chromeClientSecret;
+ 	config.chrome.publishTarget = flags.chromePublishTarget;
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index 7a48d43ac6aaaf222c2b9c810b44788274191f7a..a69d7604bf91af8116e2fa39bf1c34f91547856b 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -165,16 +165,18 @@ declare const ChromeWebStoreV2Options: Struct<{
+   extensionId: string;
+   skipSubmitReview: boolean;
+   publisherId: string;
+-  serviceAccountClientEmail: string;
+-  serviceAccountPrivateKey: string;
+   cancelPending: boolean;
+   deployPercentage?: number | undefined;
++  serviceAccountAccessToken?: string | undefined;
++  serviceAccountClientEmail?: string | undefined;
++  serviceAccountPrivateKey?: string | undefined;
+   publishType?: "PUBLISH_TYPE_UNSPECIFIED" | "DEFAULT_PUBLISH" | "STAGED_PUBLISH" | undefined;
+   skipReview?: boolean | undefined;
+ }, {
+   publisherId: MetaStruct<string>;
+-  serviceAccountClientEmail: MetaStruct<string>;
+-  serviceAccountPrivateKey: MetaStruct<string>;
++  serviceAccountAccessToken: MetaStruct<string | undefined>;
++  serviceAccountClientEmail: MetaStruct<string | undefined>;
++  serviceAccountPrivateKey: MetaStruct<string | undefined>;
+   publishType: MetaStruct<"PUBLISH_TYPE_UNSPECIFIED" | "DEFAULT_PUBLISH" | "STAGED_PUBLISH" | undefined>;
+   skipReview: MetaStruct<boolean | undefined>;
+   cancelPending: MetaStruct<boolean>;
+@@ -265,10 +267,11 @@ declare const ResolvedConfig: Struct<{
+     extensionId: string;
+     skipSubmitReview: boolean;
+     publisherId: string;
+-    serviceAccountClientEmail: string;
+-    serviceAccountPrivateKey: string;
+     cancelPending: boolean;
+     deployPercentage?: number | undefined;
++    serviceAccountAccessToken?: string | undefined;
++    serviceAccountClientEmail?: string | undefined;
++    serviceAccountPrivateKey?: string | undefined;
+     publishType?: "PUBLISH_TYPE_UNSPECIFIED" | "DEFAULT_PUBLISH" | "STAGED_PUBLISH" | undefined;
+     skipReview?: boolean | undefined;
+   } | undefined;
+@@ -304,10 +307,11 @@ declare const ResolvedConfig: Struct<{
+     extensionId: string;
+     skipSubmitReview: boolean;
+     publisherId: string;
+-    serviceAccountClientEmail: string;
+-    serviceAccountPrivateKey: string;
+     cancelPending: boolean;
+     deployPercentage?: number | undefined;
++    serviceAccountAccessToken?: string | undefined;
++    serviceAccountClientEmail?: string | undefined;
++    serviceAccountPrivateKey?: string | undefined;
+     publishType?: "PUBLISH_TYPE_UNSPECIFIED" | "DEFAULT_PUBLISH" | "STAGED_PUBLISH" | undefined;
+     skipReview?: boolean | undefined;
+   } | undefined, null>;
+@@ -388,10 +392,11 @@ declare const PartialResolvedConfig: Struct<{
+     extensionId?: string | undefined;
+     skipSubmitReview?: boolean | undefined;
+     publisherId?: string | undefined;
+-    serviceAccountClientEmail?: string | undefined;
+-    serviceAccountPrivateKey?: string | undefined;
+     cancelPending?: boolean | undefined;
+     deployPercentage?: number | undefined;
++    serviceAccountAccessToken?: string | undefined;
++    serviceAccountClientEmail?: string | undefined;
++    serviceAccountPrivateKey?: string | undefined;
+     publishType?: "PUBLISH_TYPE_UNSPECIFIED" | "DEFAULT_PUBLISH" | "STAGED_PUBLISH" | undefined;
+     skipReview?: boolean | undefined;
+   } | undefined;
+@@ -624,7 +629,7 @@ declare class ChromeWebStoreV2 implements Store {
+   setDeploymentPercentage(percentage: number): Promise<void>;
+   getStatus(): Promise<FetchItemStatusResponse>;
+   private getAccessToken;
+-  private getAccessTokenNoCache;
++  private generateAccessToken;
+   private get nameParam();
+   private checkUploadState;
+ }
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 44a7171e67b9c9f7ca1cdb71eb4241b7c9179a32..0b703c1cb62b5a9a1475c30a548046a7286c1935 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -1,2 +1,2 @@
+-import { a as FirefoxAddonStoreV5, c as validateConfig, i as OperaAddonsStore, l as ChromeWebStoreUploadStateError, n as submit, o as EdgeAddonStoreV1_1, r as ChromeWebStoreV2, s as resolveConfig, t as init, u as ChromeWebStoreV1_1 } from "./init-DhMr270n.mjs";
++import { a as FirefoxAddonStoreV5, c as validateConfig, i as OperaAddonsStore, l as ChromeWebStoreUploadStateError, n as submit, o as EdgeAddonStoreV1_1, r as ChromeWebStoreV2, s as resolveConfig, t as init, u as ChromeWebStoreV1_1 } from "./init-BHo7Hjl9.mjs";
+ export { ChromeWebStoreUploadStateError, ChromeWebStoreV1_1, ChromeWebStoreV2, EdgeAddonStoreV1_1, FirefoxAddonStoreV5, OperaAddonsStore, init, resolveConfig, submit, validateConfig };
+diff --git a/dist/init-DhMr270n.mjs b/dist/init-BHo7Hjl9.mjs
+similarity index 98%
+rename from dist/init-DhMr270n.mjs
+rename to dist/init-BHo7Hjl9.mjs
+index ce7add85e19c639c27ff2f095606371fa4b71a7d..ccebd574c6a190c438d03229ea34af9f2620f476 100644
+--- a/dist/init-DhMr270n.mjs
++++ b/dist/init-BHo7Hjl9.mjs
+@@ -1256,7 +1256,7 @@ const ChromeWebStoreV1_1Options = (0, import_dist.object)({
+ 		description: "Submit update using expedited review process"
+ 	})
+ });
+-const ChromeWebStoreV2Options = (0, import_dist.object)({
++const ChromeWebStoreV2OptionsShape = {
+ 	apiVersion: meta((0, import_dist.literal)("v2"), {
+ 		path: "chrome.apiVersion",
+ 		description: "The API version to use for the Chrome Web Store: \"v1.1\" or \"v2\""
+@@ -1267,14 +1267,19 @@ const ChromeWebStoreV2Options = (0, import_dist.object)({
+ 		note: "API v2 only",
+ 		description: "Publisher ID who owns the extension"
+ 	}),
+-	serviceAccountClientEmail: meta((0, import_dist.nonempty)((0, import_dist.trimmed)((0, import_dist.string)())), {
++	serviceAccountAccessToken: meta((0, import_dist.optional)((0, import_dist.nonempty)((0, import_dist.trimmed)((0, import_dist.string)()))), {
++		path: "chrome.serviceAccountAccessToken",
++		note: "API v2 only; mutually exclusive with serviceAccountClientEmail and serviceAccountPrivateKey",
++		description: "Short-lived OAuth 2.0 access token used for authorizing requests to the Chrome Web Store"
++	}),
++	serviceAccountClientEmail: meta((0, import_dist.optional)((0, import_dist.nonempty)((0, import_dist.trimmed)((0, import_dist.string)()))), {
+ 		path: "chrome.serviceAccountClientEmail",
+-		note: "API v2 only",
++		note: "API v2 only; mutually exclusive with serviceAccountAccessToken",
+ 		description: "Client email of the service account used for authorizing requests to the Chrome Web Store"
+ 	}),
+-	serviceAccountPrivateKey: meta((0, import_dist.nonempty)((0, import_dist.trimmed)((0, import_dist.string)())), {
++	serviceAccountPrivateKey: meta((0, import_dist.optional)((0, import_dist.nonempty)((0, import_dist.trimmed)((0, import_dist.string)()))), {
+ 		path: "chrome.serviceAccountPrivateKey",
+-		note: "API v2 only",
++		note: "API v2 only; mutually exclusive with serviceAccountAccessToken",
+ 		description: "Private key of the service account used for authorizing requests to the Chrome Web Store"
+ 	}),
+ 	publishType: meta((0, import_dist.optional)((0, import_dist.enums)([
+@@ -1296,7 +1301,8 @@ const ChromeWebStoreV2Options = (0, import_dist.object)({
+ 		note: "API v2 only",
+ 		description: "Cancel any pending review before submitting the new version"
+ 	})
+-});
++};
++const ChromeWebStoreV2Options = (0, import_dist.refine)((0, import_dist.object)(ChromeWebStoreV2OptionsShape), "chrome-v2-authentication", (value) => Boolean(value.serviceAccountAccessToken) !== Boolean(value.serviceAccountClientEmail && value.serviceAccountPrivateKey) || "Provide either serviceAccountAccessToken or both serviceAccountClientEmail and serviceAccountPrivateKey, but not both");
+ const FirefoxAddonStoreV5Options = (0, import_dist.object)({
+ 	zip: meta((0, import_dist.nonempty)((0, import_dist.string)()), {
+ 		path: "firefox.zip",
+@@ -1428,9 +1434,10 @@ function resolveConfig(config) {
+ 	if (raw.chrome) raw.chrome.cancelPending = config?.chrome?.cancelPending ?? process.env.CHROME_CANCEL_PENDING;
+ 	if (raw.chrome) raw.chrome.publisherId = config?.chrome?.publisherId ?? process.env.CHROME_PUBLISHER_ID;
+ 	if (raw.chrome) raw.chrome.publishType = config?.chrome?.publishType ?? process.env.CHROME_PUBLISH_TYPE;
++	if (raw.chrome) raw.chrome.skipReview = config?.chrome?.skipReview ?? process.env.CHROME_SKIP_REVIEW;
+ 	if (raw.chrome) raw.chrome.serviceAccountClientEmail = config?.chrome?.serviceAccountClientEmail ?? process.env.CHROME_SERVICE_ACCOUNT_CLIENT_EMAIL;
+ 	if (raw.chrome) raw.chrome.serviceAccountPrivateKey = config?.chrome?.serviceAccountPrivateKey ?? process.env.CHROME_SERVICE_ACCOUNT_PRIVATE_KEY;
+-	if (raw.chrome) raw.chrome.skipReview = config?.chrome?.skipReview ?? process.env.CHROME_SKIP_REVIEW;
++	if (raw.chrome) raw.chrome.serviceAccountAccessToken = config?.chrome?.serviceAccountAccessToken ?? process.env.CHROME_SERVICE_ACCOUNT_ACCESS_TOKEN;
+ 	if (raw.chrome) raw.chrome.clientId = config?.chrome?.clientId ?? process.env.CHROME_CLIENT_ID;
+ 	if (raw.chrome) raw.chrome.clientSecret = config?.chrome?.clientSecret ?? process.env.CHROME_CLIENT_SECRET;
+ 	if (raw.chrome) raw.chrome.publishTarget = config?.chrome?.publishTarget ?? process.env.CHROME_PUBLISH_TARGET;
+@@ -1959,10 +1966,11 @@ var ChromeWebStoreV2 = class {
+ 		return await this.client.get("/v2/{+name}:fetchStatus", { params: { name: this.nameParam } });
+ 	}
+ 	async getAccessToken() {
+-		if (!this.accessTokenCache) this.accessTokenCache = this.getAccessTokenNoCache();
++		if (this.options.serviceAccountAccessToken) return this.options.serviceAccountAccessToken;
++		if (!this.accessTokenCache) this.accessTokenCache = this.generateAccessToken();
+ 		return (await this.accessTokenCache).access_token;
+ 	}
+-	async getAccessTokenNoCache() {
++	async generateAccessToken() {
+ 		const res = await fetch("https://oauth2.googleapis.com/token", {
+ 			method: "POST",
+ 			headers: { "Content-Type": "application/x-www-form-urlencoded" },
