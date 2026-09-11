@@ -35,15 +35,16 @@ export function extractOgDescriptionInfo(
 export function parseOgDescriptionContent(
   ogDescriptionContent: string,
 ): InstagramOgDescriptionInfo {
-  // og:description is of the form
+  // og:description is usually of the form
   // '<likesCount> likes, <commentsCount> comments - <accountName> le\u00A0 <dateFragment>: "<textContent>".'
   // Or
   // '<likesCount> likes, <commentsCount> comments - <accountName> on <dateFragment>: "<textContent>".'
   // Or
   // '<likesCount> likes, <commentsCount> comments - <accountName> on <dateFragment>'
+  // Instagram omits the engagement prefix when a post has no likes or comments.
 
   const regex =
-    /^[0-9, ]+K? likes, (?<commentsCount>[0-9, ]+) comments - (?<accountName>\S+)\s+(?:(le)|(on))\s+(?<dateFragment>[^:]*)(?:: "(?<textContent>.*)"\.)?\s*/gms;
+    /^(?:(?:[0-9, ]+K? likes, (?<commentsCount>[0-9, ]+) comments - ))?(?<accountName>\S+)\s+(?:(le)|(on))\s+(?<dateFragment>[^:]*)(?:: "(?<textContent>.*)"\.)?\s*/gms;
 
   const res = regex.exec(ogDescriptionContent);
   if (!res || !res.groups) {
@@ -54,9 +55,11 @@ export function parseOgDescriptionContent(
   const textContent = res.groups["textContent"] ?? "";
   const dateFragment = res.groups["dateFragment"]!;
   const accountName = res.groups["accountName"]!;
-  const commentsCount = Number.parseInt(
-    res.groups["commentsCount"]!.replaceAll(",", "").replaceAll(" ", ""),
-  );
+  const commentsCount = res.groups["commentsCount"]
+    ? Number.parseInt(
+        res.groups["commentsCount"].replaceAll(",", "").replaceAll(" ", ""),
+      )
+    : 0;
   const accountHref = `${INSTAGRAM_URL.origin}/${accountName}`;
   const publishedAt: PublicationDate = {
     type: "absolute",
