@@ -25,11 +25,19 @@ export class InstagramScraper implements SocialNetworkScraper {
     if (!documentUrlPageInfo.isScrapablePost) {
       throw new Error("Not scrapable");
     }
-    const ogUrl = scrapingSupport.selectOrThrow(
+    const ogUrl = scrapingSupport.select(
       document,
       "meta[property='og:url']",
       HTMLMetaElement,
-    ).content;
+    )?.content;
+
+    if (!ogUrl) {
+      logger.info("og metadata unavailable reloading page");
+      return {
+        redirectUrl: document.URL,
+      };
+    }
+
     const ogPageInfo = instagramPageInfo(ogUrl);
 
     // Scraper uses og: meta information which are only loaded on page load not on navigation
