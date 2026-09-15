@@ -11,7 +11,10 @@ from balanceteshaters.model.base import JobStatus
 from balanceteshaters.model.repositories import (
     classification_job as classification_job_repository,
 )
-from balanceteshaters.routers.classification_model import ClassificationJob
+from balanceteshaters.routers.classification_model import (
+    ClassificationJob,
+    ClassificationJobResult,
+)
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException
 
@@ -51,7 +54,7 @@ async def post_classification_job(
         return {"job_id": str(classification_job.id)}
 
 
-@router.get("/{job_id}")
+@router.get("/{job_id}", response_model=ClassificationJobResult)
 @inject
 async def get_classification_job(
     job_id: str,

@@ -51,7 +51,7 @@ class ClassificationTask:
             result = {
                 comment_id: {
                     "classification": categories,
-                    "score": round(score, 4),
+                    "hate_score": round(score, 4),
                     "classified_at": datetime.datetime.now(datetime.timezone.utc)
                     .isoformat()
                     .replace("+00:00", "Z"),

@@ -1,4 +1,8 @@
-from pydantic import BaseModel
+import datetime
+from uuid import UUID
+
+from balanceteshaters.model.base import JobStatus
+from pydantic import BaseModel, Field
 
 
 class Author(BaseModel):
@@ -18,3 +22,15 @@ class ClassificationJob(BaseModel):
     author: Author
     text_content: str | None = None
     comments: list[Comment] = []
+
+
+class CommentClassificationResult(BaseModel):
+    classification: list[str]
+    hate_score: float = Field(ge=0, le=1)
+    classified_at: datetime.datetime
+
+
+class ClassificationJobResult(BaseModel):
+    id: UUID
+    comments: dict[str, CommentClassificationResult] | None
+    status: JobStatus
