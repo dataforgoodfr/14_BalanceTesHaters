@@ -215,7 +215,7 @@ export default function CommentsTable({
       {
         accessorKey: "textContent",
         header: "Commentaire",
-        size: 42,
+        size: 32,
         cell: ({ row }) => (
           <div
             className={`${visibleComments.has(row.id) ? "text-wrap" : "blur-sm overflow-hidden"}`}
@@ -223,6 +223,19 @@ export default function CommentsTable({
             {row.original.textContent}
           </div>
         ),
+      },
+      {
+        accessorKey: "hateScore",
+        header: "Malveillance (IA)",
+        size: 10,
+        cell: ({ row }) => {
+          const score = row.original.hateScore;
+          return score === undefined ? (
+            <span className="text-muted-foreground">N/A</span>
+          ) : (
+            score.toFixed(4)
+          );
+        },
       },
       {
         id: "screenshot",
