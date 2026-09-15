@@ -16,6 +16,7 @@ export type ClassificationResultStatus = z.output<
 
 export const CommentClassificationResult = z.object({
   classification: z.array(AnnotatedCategorySchema),
+  hate_score: z.number().min(0).max(1),
   classified_at: z.iso.datetime(),
 });
 
