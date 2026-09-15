@@ -123,14 +123,17 @@ describe("mergeClassificationResultIntoPost", () => {
     const result = createCompletedClassificationResult({
       [commentId]: {
         classification: [AnnotatedCategory.MENACES],
+        hate_score: 0.91,
         classified_at: "2024-01-15T14:00:00.000Z",
       },
       [replyId1]: {
         classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
+        hate_score: 0.12,
         classified_at: "2024-01-15T14:30:00.000Z",
       },
       [replyId2]: {
         classification: [AnnotatedCategory.DOXXING],
+        hate_score: 0.87,
         classified_at: "2024-01-15T15:00:00.000Z",
       },
     });
@@ -140,11 +143,16 @@ describe("mergeClassificationResultIntoPost", () => {
     expect(updatedPost.comments[0]!.classification).toEqual([
       AnnotatedCategory.MENACES,
     ]);
+    expect(updatedPost.comments[0]!.hateScore).toBe(0.91);
     expect(updatedPost.comments[0]!.replies[0]!.classification).toEqual([
       AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT,
     ]);
+    expect(updatedPost.comments[0]!.replies[0]!.hateScore).toBe(0.12);
     expect(
       updatedPost.comments[0]!.replies[0]!.replies[0]!.classification,
     ).toEqual([AnnotatedCategory.DOXXING]);
+    expect(updatedPost.comments[0]!.replies[0]!.replies[0]!.hateScore).toBe(
+      0.87,
+    );
   });
 });

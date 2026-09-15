@@ -116,6 +116,7 @@ function buildPostCommentForGroupOfSameText(
     author: groupOldestComment.commentSnapshot.author,
     screenshotData: selectScreenshotData(sortedByScrapedAt),
     classification: groupOldestComment.commentSnapshot.classification,
+    hateScore: groupOldestComment.commentSnapshot.hateScore,
     classifiedAt: groupOldestComment.commentSnapshot.classifiedAt,
     url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,

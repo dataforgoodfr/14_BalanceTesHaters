@@ -39,6 +39,7 @@ classDiagram
         replies: CommentSnapshot[]
 
         classification: string[]?
+        hateScore: float?
         classifiedAt: datetime?
     }
 
@@ -109,6 +110,7 @@ classDiagram
       },
       "nbLikes": 42,
       "classification": ["A caractère sexuel", "Injures et diffamation"],
+      "hateScore": 0.9321,
       "classifiedAt": "2026-01-03T15:52:01.000Z",
       "replies": []
     }

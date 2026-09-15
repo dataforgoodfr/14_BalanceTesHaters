@@ -34,6 +34,7 @@ function commentWithClassification(
   return {
     ...comment,
     classification: classificationResult?.classification,
+    hateScore: classificationResult?.hate_score,
     classifiedAt: classificationResult?.classified_at,
     replies: comment.replies.map((reply) =>
       commentWithClassification(reply, commentClassifications),

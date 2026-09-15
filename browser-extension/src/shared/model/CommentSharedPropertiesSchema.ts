@@ -14,6 +14,8 @@ export const CommentSharedPropertiesSchema = z.object({
   publishedAt: PublicationDateSchema,
 
   classification: AnnotatedCategorySchema.array().optional(),
+  /** Classification model probability, between 0 and 1. */
+  hateScore: z.number().min(0).max(1).optional(),
   /** ISO date time of classification */
   classifiedAt: z.iso.datetime().optional(),
 
