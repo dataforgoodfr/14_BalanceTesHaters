@@ -4,14 +4,19 @@ import { describe, expect, test } from "vitest";
 import { YoutubeScraper } from "../YoutubeScraper";
 
 describe("YoutubeScraper", () => {
-  test("reloads the page when og:url is not available yet", async () => {
-    document.head.innerHTML = "";
+  test("redirects Shorts to the equivalent watch URL", async () => {
+    Object.defineProperty(document, "URL", {
+      configurable: true,
+      value: "https://www.youtube.com/shorts/test-short-id",
+    });
 
-    const result = await new YoutubeScraper(false).scrapPagePost(
+    const result = await new YoutubeScraper().scrapPagePost(
       new AbortController().signal,
       undefined!,
     );
 
-    expect(result).toEqual({ redirectUrl: document.URL });
+    expect(result).toEqual({
+      redirectUrl: "https://www.youtube.com/watch?v=test-short-id",
+    });
   });
 });

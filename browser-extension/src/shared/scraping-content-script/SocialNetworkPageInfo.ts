@@ -7,6 +7,7 @@ export type SocialNetworkPageInfo =
     };
 
 export type ScrapableSocialNetworkPage = {
+  url: string;
   isScrapablePost: true;
   socialNetwork: SocialNetworkName;
   postId: string;

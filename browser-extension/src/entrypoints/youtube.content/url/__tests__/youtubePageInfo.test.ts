@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { youtubePageInfo } from "../youtubePageInfo";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import { youtubePageInfo } from "../youtubePageInfo";
 
 describe("youtubePageInfo", () => {
   test("returns watch video info", () => {
@@ -10,6 +10,7 @@ describe("youtubePageInfo", () => {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.YouTube,
       postId: "test-video-id",
+      url: "https://www.youtube.com/watch?v=test-video-id",
     });
   });
 
@@ -20,6 +21,7 @@ describe("youtubePageInfo", () => {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.YouTube,
       postId: "test-short-id",
+      url: "https://www.youtube.com/shorts/test-short-id",
     });
   });
 

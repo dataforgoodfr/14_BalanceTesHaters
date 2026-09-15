@@ -7,7 +7,7 @@ export function extractCommentIdFromCommentHref(href: string): string {
   const parsed = URL.parse(href);
   const lc = parsed?.searchParams.get("lc");
   if (lc == undefined) {
-    throw new Error("Cannot find comment id on link");
+    throw new Error("Cannot extract comment id from commentHref: " + href);
   }
   return lc;
 }

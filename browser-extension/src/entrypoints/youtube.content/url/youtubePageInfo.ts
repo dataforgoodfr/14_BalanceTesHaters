@@ -22,6 +22,7 @@ export function youtubePageInfo(url: string): SocialNetworkPageInfo {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.YouTube,
       postId: postId,
+      url,
     };
   }
 
@@ -32,6 +33,7 @@ export function youtubePageInfo(url: string): SocialNetworkPageInfo {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.YouTube,
       postId,
+      url,
     };
   }
 
