@@ -8,7 +8,7 @@ import { checkPostSnapshotGenericExpectations } from "./utils/checkPostSnapshotG
 import { expectCommentsToMatchInvariants } from "./utils/expectCommentsToMatchInvariants";
 import { expectSomeCommentsToHaveEmojis } from "./utils/expectSomeCommentsToHaveEmojis";
 import { expectSomeCommentsToHaveLikes } from "./utils/expectSomeCommentsToHaveLikes";
-import { PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING } from "@/entrypoints/youtube.content/PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING";
+import { youtubeVideoUrl } from "./scraping/youtube/youtubeVideoUrl";
 
 E2E_TESTED_LOCALES.forEach((locale) => {
   test.describe(`Youtube Shorts Scrapping (locale:${locale})`, () => {
@@ -34,23 +34,16 @@ E2E_TESTED_LOCALES.forEach((locale) => {
 
       checkPostSnapshotGenericExpectations(postSnapshot);
       expect(postSnapshot.postId).toEqual(postId);
-      expect(postSnapshot.url).toEqual(postUrl);
+      // With new scraper short url is converted to video url
+      expect(postSnapshot.url).toEqual(youtubeVideoUrl(postId));
 
-      if (scrappingResult.platformSuspectingBot) {
-        // When youtube suspect we are a bot it prevents og meta scrapping
-        expect(postSnapshot.title).toBeUndefined();
-        expect(postSnapshot.publishedAt).toEqual(
-          PUBLISHED_AT_PLACEHOLDER_FOR_DEGRADED_SCRAPPING,
-        );
-      } else {
-        expect(postSnapshot.title).toContain(
-          "Celles et ceux qui ne voulaient pas être ce qu’elles/ils étaient",
-        );
-        expect(postSnapshot.publishedAt).toEqual({
-          type: "absolute",
-          date: "2025-02-19T17:00:41.000Z",
-        });
-      }
+      expect(postSnapshot.title).toContain(
+        "Celles et ceux qui ne voulaient pas être ce qu’elles/ils étaient",
+      );
+      expect(postSnapshot.publishedAt).toEqual({
+        type: "absolute",
+        date: "2025-02-19T00:00:00.000Z",
+      });
     });
 
     test(`Check comments`, () => {

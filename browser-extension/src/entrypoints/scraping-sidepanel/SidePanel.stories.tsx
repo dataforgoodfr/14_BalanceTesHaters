@@ -53,6 +53,7 @@ export const ScrapingNotStarted: Story = {
       type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -70,6 +71,7 @@ export const ScrapingNotStartedWithExistingSnapshot: Story = {
       type: ScrapingAndClassificationTabInfoType.SCRAPING_NOT_STARTED_WITH_EXISTING_SNAPSHOT,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -87,6 +89,7 @@ export const ScrapingInProgress: Story = {
       type: ScrapingAndClassificationTabInfoType.SCRAPING_IN_PROGRESS,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -104,6 +107,7 @@ export const ClassificationInProgress: Story = {
       type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_IN_PROGRESS,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -123,6 +127,7 @@ export const ClassificationSucceededWithoutHate: Story = {
       type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_SUCCEEDED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -147,6 +152,7 @@ export const ClassificationSucceededWithHate: Story = {
       type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_SUCCEEDED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -171,6 +177,7 @@ export const ScrapingCanceled: Story = {
       type: ScrapingAndClassificationTabInfoType.SCRAPING_CANCELED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -188,6 +195,7 @@ export const ScrapingFailed: Story = {
       type: ScrapingAndClassificationTabInfoType.SCRAPING_FAILED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",
@@ -205,6 +213,7 @@ export const ClassificationFailed: Story = {
       type: ScrapingAndClassificationTabInfoType.CLASSIFICATION_FAILED,
       tabId: 42,
       pageInfo: {
+        url: "https://www.youtube.com/watch?v=xxx",
         isScrapablePost: true,
         socialNetwork: SocialNetwork.YouTube,
         postId: "xxx",

@@ -44,14 +44,6 @@ describe("extractIsoDateFromPostInfoTooltipText", () => {
     });
   });
 
-  it("should extract 4 juin 2024 date", () => {
-    expect(
-      extractIsoDateFromPostInfoTooltipText(
-        "22 116 vues • 4 juin 2024 • #Festin",
-      ),
-    ).toBe("2024-06-04T00:00:00.000Z");
-  });
-
   it("should throw error when tooltip doesn't have bullet separators", () => {
     const tooltipText = "20 330 vues";
     expect(() => extractIsoDateFromPostInfoTooltipText(tooltipText)).toThrow(

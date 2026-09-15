@@ -12,7 +12,7 @@ describe("extractCommentIdFromCommentHref", () => {
   it("should throw error when lc parameter is missing", () => {
     const href = "https://www.youtube.com/watch?v=0eHZRPzbiJ0";
     expect(() => extractCommentIdFromCommentHref(href)).toThrow(
-      "Cannot find comment id on link",
+      "Cannot extract comment id from commentHref: https://www.youtube.com/watch?v=0eHZRPzbiJ0",
     );
   });
 });
