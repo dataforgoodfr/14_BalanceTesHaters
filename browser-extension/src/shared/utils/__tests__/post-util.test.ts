@@ -409,23 +409,44 @@ describe("post utilities", () => {
     });
 
     describe("comment list sorting", () => {
-      it("should return the original array for score sorting categories", () => {
+      it("should sort by hate score and place missing scores last", () => {
         const comments = [
-          createDummyCommentWithId({ id: "1" }),
-          createDummyCommentWithId({ id: "2" }),
+          createDummyCommentWithId({
+            id: "1",
+            hateScore: 0.42,
+          }),
+          createDummyCommentWithId({
+            id: "2",
+            hateScore: 0.91,
+          }),
+          createDummyCommentWithId({ id: "3" }),
+          createDummyCommentWithId({
+            id: "4",
+            hateScore: 0.08,
+          }),
         ];
 
         const resultAsc = sortCommentList(
           comments,
-          CommentSortingCategory.SCORE_ASC,
+          CommentSortingCategory.HATE_SCORE_ASC,
         );
         const resultDesc = sortCommentList(
           comments,
-          CommentSortingCategory.SCORE_DESC,
+          CommentSortingCategory.HATE_SCORE_DESC,
         );
 
-        expect(resultAsc).toBe(comments);
-        expect(resultDesc).toBe(comments);
+        expect(resultAsc.map((comment) => comment.id)).toEqual([
+          "2",
+          "1",
+          "4",
+          "3",
+        ]);
+        expect(resultDesc.map((comment) => comment.id)).toEqual([
+          "4",
+          "1",
+          "2",
+          "3",
+        ]);
       });
 
       it("should sort by comment date for COMMENT_DATE_ASC and COMMENT_DATE_DESC", () => {

@@ -15,10 +15,10 @@ type Props = {
 
 function getSortingLabel(sortingCategory: CommentSortingCategory): string {
   switch (sortingCategory) {
-    case CommentSortingCategory.SCORE_ASC:
-      return "Score juridique : d'élevé à faible";
-    case CommentSortingCategory.SCORE_DESC:
-      return "Score juridique : de faible à élevé";
+    case CommentSortingCategory.HATE_SCORE_ASC:
+      return "Niveau de malveillance (IA) : d'élevé à faible";
+    case CommentSortingCategory.HATE_SCORE_DESC:
+      return "Niveau de malveillance (IA) : de faible à élevé";
     case CommentSortingCategory.COMMENT_DATE_DESC:
       return "Date commentaire : d’ancien à nouveau";
     case CommentSortingCategory.COMMENT_DATE_ASC:
@@ -52,10 +52,6 @@ export default function CommentsSortingPopover({
             <div key={sortingCategory} className="p-1">
               <Button
                 variant="ghost"
-                disabled={
-                  sortingCategory === CommentSortingCategory.SCORE_DESC ||
-                  sortingCategory === CommentSortingCategory.SCORE_ASC
-                }
                 onClick={() => {
                   onChange(sortingCategory);
                   setOpen(false);
@@ -63,12 +59,12 @@ export default function CommentsSortingPopover({
                 className="text-left p-2 hover:bg-accent transition-colors flex items-center justify-start rounded-sm w-full"
               >
                 {[
-                  CommentSortingCategory.SCORE_ASC,
+                  CommentSortingCategory.HATE_SCORE_ASC,
                   CommentSortingCategory.COMMENT_DATE_ASC,
                   CommentSortingCategory.PSEUDO_AUTHOR_ASC,
                 ].includes(sortingCategory) && <ArrowUp />}
                 {[
-                  CommentSortingCategory.SCORE_DESC,
+                  CommentSortingCategory.HATE_SCORE_DESC,
                   CommentSortingCategory.COMMENT_DATE_DESC,
                   CommentSortingCategory.PSEUDO_AUTHOR_DESC,
                 ].includes(sortingCategory) && <ArrowDown />}

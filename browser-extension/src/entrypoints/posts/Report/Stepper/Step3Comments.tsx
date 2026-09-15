@@ -17,7 +17,9 @@ function Step3Comments({
   setCommentList: (commentIdList: PostCommentWithId[]) => void;
 }>) {
   const [commentSortingCategory, setCommentSortingCategory] =
-    React.useState<CommentSortingCategory>(CommentSortingCategory.SCORE_ASC);
+    React.useState<CommentSortingCategory>(
+      CommentSortingCategory.HATE_SCORE_ASC,
+    );
 
   const {
     commentFilters,

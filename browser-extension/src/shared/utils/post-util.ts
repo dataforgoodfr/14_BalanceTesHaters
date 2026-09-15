@@ -27,8 +27,8 @@ export enum PostSortingCategory {
 }
 
 export enum CommentSortingCategory {
-  SCORE_ASC = "scoreAsc",
-  SCORE_DESC = "scoreDesc",
+  HATE_SCORE_ASC = "hateScoreAsc",
+  HATE_SCORE_DESC = "hateScoreDesc",
   COMMENT_DATE_ASC = "commentDateAsc",
   COMMENT_DATE_DESC = "commentDateDesc",
   PSEUDO_AUTHOR_ASC = "pseudoAuthorAsc",
@@ -324,10 +324,18 @@ export function sortCommentList(
   sortingCategory: CommentSortingCategory,
 ): PostCommentWithId[] {
   switch (sortingCategory) {
-    case CommentSortingCategory.SCORE_ASC:
-    case CommentSortingCategory.SCORE_DESC:
-      // Score is not yet available
-      return commentList;
+    case CommentSortingCategory.HATE_SCORE_ASC:
+      return [...commentList].sort(
+        (a, b) =>
+          (b.hateScore ?? Number.NEGATIVE_INFINITY) -
+          (a.hateScore ?? Number.NEGATIVE_INFINITY),
+      );
+    case CommentSortingCategory.HATE_SCORE_DESC:
+      return [...commentList].sort(
+        (a, b) =>
+          (a.hateScore ?? Number.POSITIVE_INFINITY) -
+          (b.hateScore ?? Number.POSITIVE_INFINITY),
+      );
     case CommentSortingCategory.COMMENT_DATE_ASC:
       return [...commentList].sort((a, b) => {
         return (

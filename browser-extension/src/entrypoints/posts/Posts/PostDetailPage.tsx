@@ -43,7 +43,7 @@ function PostDetailPage() {
 
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
-      CommentSortingCategory.PSEUDO_AUTHOR_ASC,
+      CommentSortingCategory.HATE_SCORE_DESC,
     );
 
   const {
