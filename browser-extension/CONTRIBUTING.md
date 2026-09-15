@@ -9,8 +9,11 @@
 
 ## Installer l'extension en mode dev dans Chrome
 
-- Lancer `pnpm dev` qui lance un serveur
-- Charger le répertoire .output/chrome-mv3-dev comme extension non empaquetée (voir https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked)
+- Lancer `pnpm dev`. La commande démarre WXT, attend le premier build, puis ouvre
+  Chromium sur YouTube avec l'extension chargée.
+- Le profil Chromium est conservé dans `.wxt/chromium-data`.
+- Définir `CHROMIUM_BIN` pour choisir l'exécutable. Sinon, la commande utilise
+  `/snap/bin/chromium` s'il existe, puis cherche `chromium` dans le `PATH`.
 
 A partir de là la plupart des changements sont propagés automatiquement dans l'extension navigateur sans besoin de rafraichir manuellement l'extension.
 
