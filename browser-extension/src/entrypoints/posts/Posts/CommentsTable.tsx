@@ -233,7 +233,7 @@ export default function CommentsTable({
           return score === undefined ? (
             <span className="text-muted-foreground">N/A</span>
           ) : (
-            score.toFixed(4)
+            `${(score * 100).toFixed(2)}%`
           );
         },
       },

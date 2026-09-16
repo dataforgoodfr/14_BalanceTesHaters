@@ -189,7 +189,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         header: "Malveillance (IA)",
         cell: ({ row }) => {
           const score = row.original.hateScore;
-          return score === undefined ? "N/A" : score.toFixed(4);
+          return score === undefined ? "N/A" : `${(score * 100).toFixed(2)}%`;
         },
       },
       {
