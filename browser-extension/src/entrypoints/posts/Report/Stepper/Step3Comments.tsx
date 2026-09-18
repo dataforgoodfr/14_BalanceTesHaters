@@ -18,7 +18,7 @@ function Step3Comments({
 }>) {
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
-      CommentSortingCategory.HATE_SCORE_ASC,
+      CommentSortingCategory.HATE_SCORE_DESC,
     );
 
   const {
