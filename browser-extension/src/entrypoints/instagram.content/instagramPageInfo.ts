@@ -24,6 +24,7 @@ export function instagramPageInfo(url: string): SocialNetworkPageInfo {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.Instagram,
       postId: id,
+      url,
     };
   }
   if (
@@ -37,6 +38,7 @@ export function instagramPageInfo(url: string): SocialNetworkPageInfo {
       isScrapablePost: true,
       socialNetwork: SocialNetwork.Instagram,
       postId: id,
+      url,
     };
   }
 

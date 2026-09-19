@@ -1,5 +1,8 @@
 import type { Image } from "image-js";
-import { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
+import {
+  ObsoleteScreenshotError,
+  type ElementScreenshotProvider,
+} from "./ElementScreenshotProvider";
 import { createLogger } from "@/shared/utils/createLogger";
 import type { ScrollableScreenshot } from "../scrollable";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
@@ -39,7 +42,7 @@ export class DocumentDescendantsScreenshotProvider implements ElementScreenshotP
       window.innerWidth !== this.documentScreenshot.clientSize.width ||
       window.innerHeight !== this.documentScreenshot.clientSize.height
     ) {
-      throw new Error(
+      throw new ObsoleteScreenshotError(
         "Cannot extract sub element screenshot: Document screenshot is obsolete because window inner size changed!!",
       );
     }

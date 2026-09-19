@@ -1,5 +1,8 @@
 import type { Image } from "image-js";
-import type { ElementScreenshotProvider } from "./ElementScreenshotProvider";
+import {
+  ObsoleteScreenshotError,
+  type ElementScreenshotProvider,
+} from "./ElementScreenshotProvider";
 import { createLogger } from "@/shared/utils/createLogger";
 import type { ScrollableScreenshot } from "../scrollable";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
@@ -66,7 +69,7 @@ export class ElementDescendantsScreenshotProvider implements ElementScreenshotPr
       this.parentElement.clientHeight !=
         this.parentElementScreenshot.clientSize.height
     ) {
-      throw new Error(
+      throw new ObsoleteScreenshotError(
         "Cannot extract sub element screenshot: Parent screenshot is obsolete because parent client size changed!!",
       );
     }
