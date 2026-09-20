@@ -1,7 +1,7 @@
 import { createLogger } from "@/shared/utils/createLogger";
 import type { Position, ScrollableScrollToOptions } from "./Scrollable";
 
-const logger = createLogger("[Screenshoting scrollToAndWait]");
+const logger = createLogger("screenshoting-scrollToAndWait");
 export async function scrollToAndWait(
   scrollable: Window | HTMLElement,
   scrollEndEventSource: Document | HTMLElement,

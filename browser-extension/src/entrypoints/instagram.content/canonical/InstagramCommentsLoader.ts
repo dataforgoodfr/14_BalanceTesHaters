@@ -1,13 +1,13 @@
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import {
   REPLY_BUTTON_REGEX as REPLY_BUTTON_REGEX,
   SHOW_HIDDEN_COMMENTS_REGEX,
   VIEW_REPLIES_BUTTON_TEXT_REGEX,
 } from "./instagramElementsTexts";
 
-const logger = createLogger("[CS - InstagramCommentsLoader]");
+const logger = createLogger("ig-comments-loader", scrapingLogger);
 
 export class InstagramCommentsLoader {
   constructor(

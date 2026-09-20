@@ -3,7 +3,7 @@ import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { parseCommentPublishedTime } from "./utils/parseCommentPublishedTime";
 import { extractCommentIdFromCommentHref } from "./utils/extractCommentIdFromCommentHref";
@@ -11,7 +11,7 @@ import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { encodePng } from "image-js";
 import { parseIntegerSwallowingSeparators } from "./utils/parseIntegerSwallowingSeparators";
 
-const logger = createLogger("[CS - YoutubeVideoCommentsScraper]");
+const logger = createLogger("yt-loaded-comments", scrapingLogger);
 
 export class YoutubeVideoLoadedCommentsScraper {
   private readonly collectedPostIds = new Set<string>();

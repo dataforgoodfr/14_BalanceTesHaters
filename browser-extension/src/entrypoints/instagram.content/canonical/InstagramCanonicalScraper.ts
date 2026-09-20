@@ -4,7 +4,7 @@ import type {
 } from "@/shared/model/PostSnapshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { InstagramCommentThreadsScraper } from "./InstagramCommentThreadsScraper";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { ogImageUrl } from "../og/ogImageUrl";
@@ -17,7 +17,7 @@ import type {
   InstagramTextComment,
 } from "./InstagramLoadedCommentScraper";
 
-const logger = createLogger("[CS - InstagramCanonicalScraper]");
+const logger = createLogger("ig-canonical", scrapingLogger);
 
 /**
  * Scrap an Instagram Post or Reel that is opened using its canonical url & rendering

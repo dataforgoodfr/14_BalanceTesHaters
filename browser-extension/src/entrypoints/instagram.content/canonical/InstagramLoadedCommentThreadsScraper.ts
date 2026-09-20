@@ -3,10 +3,10 @@ import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { InstagramComment } from "./InstagramLoadedCommentScraper";
 import { InstagramLoadedCommentScraper } from "./InstagramLoadedCommentScraper";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { MASQUES_LES_COMMENTAIRES_BUTTON_REGEX } from "./instagramElementsTexts";
 
-const logger = createLogger("[CS - InstagramLoadedCommentThreadsScraper]");
+const logger = createLogger("ig-comment-threads", scrapingLogger);
 /**
  * Scrap comment threads. This assumes all comments as been loaded previously.
  */

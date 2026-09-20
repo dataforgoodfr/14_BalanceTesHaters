@@ -5,37 +5,33 @@ import {
 import type { ClassificationResult } from "./api/getClassificationResult";
 import { getClassificationResult } from "./api/getClassificationResult";
 import { mergeClassificationResultIntoPost } from "./mapping/mergeClassificationResultIntoPost";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("classification-update");
 
 export async function updatePostWithClassificationResult(
   postSnapshotId: string,
 ): Promise<ClassificationResult> {
-  console.debug(
-    "updatePostWithClassificationResult - postSnapshotId:",
-    postSnapshotId,
-  );
+  logger.debug("postSnapshotId:", postSnapshotId);
 
   const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
     throw new Error(
-      `updatePostWithClassificationResult failed: PostSnapshot "${postSnapshotId}" not found in storage.`,
+      `Failed: PostSnapshot "${postSnapshotId}" not found in storage.`,
     );
   }
   const classificationJobId = post.classificationJobId;
   if (!classificationJobId) {
     throw new Error(
-      `updatePostWithClassificationResult failed: PostSnapshot "${postSnapshotId}" doesn't have a classificationJobId.`,
+      `Failed: PostSnapshot "${postSnapshotId}" doesn't have a classificationJobId.`,
     );
   }
 
-  console.debug(
-    "updatePostWithClassificationResult - Getting ClassificationResult from backend",
-  );
+  logger.debug("Getting ClassificationResult from backend");
   const classificationResult =
     await getClassificationResult(classificationJobId);
 
-  console.debug(
-    "updatePostWithClassificationResult - merging ClassificationResult into PostSnapshot",
-  );
+  logger.debug("Merging ClassificationResult into PostSnapshot");
   const updatedPost = mergeClassificationResultIntoPost(
     post,
     classificationResult,

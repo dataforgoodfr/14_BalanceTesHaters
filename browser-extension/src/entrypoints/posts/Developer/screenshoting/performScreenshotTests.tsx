@@ -11,6 +11,9 @@ import type {
 } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
 import { defaultWaitOptions } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
 import { buildImageFromFragments } from "@/shared/screenshoting/scrollable/buildImageFromFragments";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("screenshot-tests");
 export type ScreenshotTestConfig = {
   name: string;
   waitOptions: ScreenshotWaitOptions;
@@ -51,7 +54,7 @@ export async function performScreenshotTests(
     .replaceAll("-", "");
 
   const referenceCaptureId = `${options.runIdPrefix}-${runId}-reference`;
-  console.log(
+  logger.debug(
     `performScreenshotTests - ${referenceCaptureId} - starting capture`,
   );
 
@@ -67,14 +70,14 @@ export async function performScreenshotTests(
   for (const cfg of options.tests) {
     for (let i = 0; i < options.iterationsPerConfig; i++) {
       const captureId = `${options.runIdPrefix}-${runId}-${cfg.name}-${i}`;
-      console.log(`performScreenshotTests - ${captureId} - starting capture`);
+      logger.debug(`performScreenshotTests - ${captureId} - starting capture`);
       const screenshot = await captureScreenshot(
         scrollable,
         captureId,
         cfg.waitOptions,
       );
-      console.log(`performScreenshotTests - ${captureId} - done.`);
-      console.log(`performScreenshotTests - ${captureId} - downloading...`);
+      logger.debug(`performScreenshotTests - ${captureId} - done.`);
+      logger.debug(`performScreenshotTests - ${captureId} - downloading...`);
       const capturedImage = buildFullScreenshotImage(screenshot);
       const screenshotDataUrl = imageToDataUrl(capturedImage);
       const matchesRef = screenshotDataUrl === referenceDataUrl;
@@ -83,7 +86,7 @@ export async function performScreenshotTests(
         screenshotDataUrl,
       );
       if (!matchesRef) {
-        console.log(
+        logger.debug(
           `performScreenshotTests - ${captureId} - mismatch downloading diff...`,
         );
         // Diff
@@ -91,7 +94,7 @@ export async function performScreenshotTests(
         await downloadScreenshot(captureId + "-diff", imageToDataUrl(diff));
       }
 
-      console.log(`performScreenshotTests - ${captureId} - download done.`);
+      logger.debug(`performScreenshotTests - ${captureId} - download done.`);
     }
   }
 }
@@ -126,7 +129,7 @@ async function captureScreenshot(
     scrollable,
     support,
     new ProgressManager((progress) =>
-      console.log(
+      logger.debug(
         `performScreenshotTests - ${captureId} - in progress: ${Math.round(progress)}%`,
       ),
     ),

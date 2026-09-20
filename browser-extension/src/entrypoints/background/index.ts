@@ -7,17 +7,17 @@ import { updatePostWithClassificationResult } from "./classification/updatePostW
 import { startClassificationPolling } from "./classification/classificationPolling";
 import type { GetSenderInfoResult } from "./getSenderInfo";
 import { isGetSenderInfoMessage as isIdentifyMe } from "./getSenderInfo";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("background");
 
 export default defineBackground(() => {
-  console.info(
-    "Background - Initializing background. Extension id is: ",
-    browser.runtime.id,
-  );
+  logger.info("Initializing background. Extension id is: ", browser.runtime.id);
 
-  console.debug("Background - Registering message listener");
+  logger.debug("Registering message listener");
   browser.runtime.onMessage.addListener(handleIncomingMessages);
 
-  console.debug("Background - Register classification polling alarm");
+  logger.debug("Register classification polling alarm");
   startClassificationPolling();
 });
 
@@ -35,7 +35,7 @@ function handleIncomingMessages(
   sender: Browser.runtime.MessageSender,
   sendResponse: (response: unknown) => void,
 ): boolean | undefined {
-  console.debug("Background - Message received:", message, sender);
+  logger.debug("Background - Message received", { message, sender });
 
   if (isScreenshotSenderTab(message)) {
     void screenshotSenderTab(sender).then((result) => {
@@ -47,8 +47,8 @@ function handleIncomingMessages(
       () => {
         sendResponse({ success: true });
       },
-      (error) => {
-        console.error(error);
+      (error: unknown) => {
+        logger.error("Classification submission failed", error);
         sendResponse({ success: false });
       },
     );
@@ -58,8 +58,8 @@ function handleIncomingMessages(
       () => {
         sendResponse({ success: true });
       },
-      (error) => {
-        console.error(error);
+      (error: unknown) => {
+        logger.error("Classification result update failed", error);
         sendResponse({ success: false });
       },
     );

@@ -1,29 +1,16 @@
-export type Logger = {
-  debug: (...data: LogArgs) => void;
-  warn: (...data: LogArgs) => void;
-  info: (...data: LogArgs) => void;
-  error: (...data: LogArgs) => void;
-  log: (...data: LogArgs) => void;
-};
+import { Logger as TslogLogger } from "tslog";
 
-export type LogArgs = unknown[];
+export type Logger = TslogLogger<Record<string, unknown>>;
 
-/**
- * Creates a simple prefixed logger.
- * TODO consider using winston
- * @param loggerPrefix
- * @param baseLogger
- * @returns
- */
+export const rootLogger: Logger = new TslogLogger({
+  name: "bth",
+  stack: { capture: "full" },
+});
+export const scrapingLogger = rootLogger.getSubLogger({ name: "scrap" });
+
 export function createLogger(
-  loggerPrefix: string,
-  baseLogger: Logger = console,
+  name: string,
+  parentLogger: Logger = rootLogger,
 ): Logger {
-  return {
-    debug: (...data: LogArgs) => baseLogger.debug(loggerPrefix, ...data),
-    warn: (...data: LogArgs) => baseLogger.warn(loggerPrefix, ...data),
-    info: (...data: LogArgs) => baseLogger.info(loggerPrefix, ...data),
-    error: (...data: LogArgs) => baseLogger.error(loggerPrefix, ...data),
-    log: (...data: LogArgs) => baseLogger.log(loggerPrefix, ...data),
-  };
+  return parentLogger.getSubLogger({ name });
 }

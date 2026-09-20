@@ -6,6 +6,9 @@ import { updatePostWithClassificationResult } from "./updatePostWithClassificati
 import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { notifyClassificationCompleted } from "./notifyClassificationCompleted";
 import { submitClassificationRequestForPost } from "./submitClassificationForPost";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("classification-polling");
 
 /**
  * Register and start the classification results polling.
@@ -35,31 +38,29 @@ async function handleClassificationPollingAlarm(): Promise<void> {
       await pollClassificationResults();
 
     if (snapshotsWithCompletedClassifications.length > 0) {
-      console.debug(
-        "[Classification Polling] - Notifying user of " +
+      logger.debug(
+        "Notifying user of " +
           snapshotsWithCompletedClassifications.length +
           " completed classifications.",
       );
       notifyClassificationCompleted(snapshotsWithCompletedClassifications);
     }
   } catch (error) {
-    console.error("[Classification Polling] - Error during polling:", error);
+    logger.error("Polling failed", error);
   }
 }
 
 async function submitPendingClassifications(): Promise<void> {
-  console.debug(
-    "[Classification Polling] - Submitting classifications for posts pending submission...",
-  );
+  logger.debug("Submitting classifications for posts pending submission...");
   const postsPendingSubmission = await getPostSnapshotsPendingSubmission();
 
   if (postsPendingSubmission.length === 0) {
-    console.debug("[Classification Polling] - No posts pending submission");
+    logger.debug("No posts pending submission");
     return;
   }
 
-  console.debug(
-    `[Classification Polling] - Submitting ${postsPendingSubmission.length} posts for classification...`,
+  logger.debug(
+    `Submitting ${postsPendingSubmission.length} posts for classification...`,
   );
 
   let errorCount = 0;
@@ -67,8 +68,8 @@ async function submitPendingClassifications(): Promise<void> {
     try {
       await submitClassificationRequestForPost(postSnapshot.id);
     } catch (error) {
-      console.error(
-        "[Classification Polling] - Failed to submit classification for snapshotPostId:",
+      logger.error(
+        "Failed to submit classification for snapshotPostId:",
         postSnapshot.id,
         " with error",
         error,
@@ -77,26 +78,24 @@ async function submitPendingClassifications(): Promise<void> {
     }
   }
 
-  const logFn = errorCount > 0 ? console.info : console.debug;
-  logFn(
-    `[Classification Polling] - Submission completed - Success: ${postsPendingSubmission.length - errorCount}, Failed: ${errorCount}`,
-  );
+  const completionMessage = `Submission completed - Success: ${postsPendingSubmission.length - errorCount}, Failed: ${errorCount}`;
+  if (errorCount > 0) {
+    logger.info(completionMessage);
+  } else {
+    logger.debug(completionMessage);
+  }
 }
 
 async function pollClassificationResults(): Promise<PostSnapshot[]> {
-  console.debug(
-    "[Classification Polling] - Fetching classification results for posts pending results...",
-  );
+  logger.debug("Fetching classification results for posts pending results...");
   const postsPendingResults = await getPostSnapshotsPendingResults();
 
   if (postsPendingResults.length === 0) {
-    console.debug("[Classification Polling] - No posts pending results");
+    logger.debug("No posts pending results");
     return [];
   }
 
-  console.debug(
-    `[Classification Polling] - Fetching results for ${postsPendingResults.length} posts...`,
-  );
+  logger.debug(`Fetching results for ${postsPendingResults.length} posts...`);
 
   let errorCount = 0;
   const snapshotsWithCompletedClassifications: PostSnapshot[] = [];
@@ -109,8 +108,8 @@ async function pollClassificationResults(): Promise<PostSnapshot[]> {
         snapshotsWithCompletedClassifications.push(postSnapshot);
       }
     } catch (error) {
-      console.error(
-        "[Classification Polling] - Failed to fetch results for snapshotPostId:",
+      logger.error(
+        "Failed to fetch results for snapshotPostId:",
         postSnapshot.id,
         " with error",
         error,
@@ -119,9 +118,11 @@ async function pollClassificationResults(): Promise<PostSnapshot[]> {
     }
   }
 
-  const logFn = errorCount > 0 ? console.info : console.debug;
-  logFn(
-    `[Classification Polling] - Results polling completed - Success: ${postsPendingResults.length - errorCount}, Failed: ${errorCount}`,
-  );
+  const completionMessage = `Results polling completed - Success: ${postsPendingResults.length - errorCount}, Failed: ${errorCount}`;
+  if (errorCount > 0) {
+    logger.info(completionMessage);
+  } else {
+    logger.debug(completionMessage);
+  }
   return snapshotsWithCompletedClassifications;
 }

@@ -3,12 +3,12 @@ import {
   ObsoleteScreenshotError,
   type ElementScreenshotProvider,
 } from "./ElementScreenshotProvider";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import type { ScrollableScreenshot } from "../scrollable";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
 import { buildImageFromFragments } from "../scrollable/buildImageFromFragments";
 
-const logger = createLogger("CroppingParentElementScreenshotProvider");
+const logger = createLogger("screenshot-provider", scrapingLogger);
 /**
  * Screenshot provider cropping screenshot of an ancestor element to build descendant screenshots.
  */
