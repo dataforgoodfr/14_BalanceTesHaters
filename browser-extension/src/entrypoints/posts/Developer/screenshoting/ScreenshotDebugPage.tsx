@@ -17,9 +17,12 @@ import {
 } from "lucide-react";
 import PageHeader from "../../Shared/PageHeader";
 import { useState } from "react";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("screenshot-debug");
 
 function downloadScreenshot(screenshotDataUrl: string) {
-  console.log(
+  logger.debug(
     "Downloading screenshotDataUrl (" +
       screenshotDataUrl.length / 1024 +
       " kB)",

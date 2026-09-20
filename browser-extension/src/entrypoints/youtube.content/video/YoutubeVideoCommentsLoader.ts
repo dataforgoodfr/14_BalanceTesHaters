@@ -1,8 +1,8 @@
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 
-const logger = createLogger("[CS - YoutubeVideoCommentsLoader]");
+const logger = createLogger("yt-comments-loader", scrapingLogger);
 
 const ACTUAL_LOADING_COMMENT_PROGRESS_PERCENT = 80;
 

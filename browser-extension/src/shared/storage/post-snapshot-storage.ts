@@ -6,6 +6,9 @@ import {
 } from "../utils/post-util";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { isRunningClassificationStatus } from "../model/ClassificationStatus";
+import { createLogger } from "../utils/createLogger";
+
+const logger = createLogger("post-snapshot-storage");
 
 export async function getPostSnapshotsBytesInUse(): Promise<number> {
   return browser.storage.local.getBytesInUse(postSnapshotsStorageKey);
@@ -89,7 +92,7 @@ export async function getPostSnapshots(): Promise<PostSnapshot[]> {
     return result.data;
   }
 
-  console.log(
+  logger.warn(
     "Some posts records don't conform to schema. Invalid records will be filterd out. Errors: ",
     result.error,
   );

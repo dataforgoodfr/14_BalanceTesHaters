@@ -14,6 +14,9 @@ import type { StartScrapingResult } from "./StartScrapingResult";
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import type { ScrapingStatus } from "./ScrapingStatus";
 import { matchesScrapingContentScriptUrl } from "./content-script-matches";
+import { createLogger, rootLogger } from "../utils/createLogger";
+
+const logger = createLogger("scraping-client", rootLogger);
 
 /**
  * Client to communicate with content script in a specific tabId.
@@ -29,7 +32,7 @@ export class ScrapingContentScriptClient {
     SocialNetworkPageInfo | typeof CONTENT_SCRIPT_LOADING
   > {
     if (!(await this.isContentScriptRegisteredForTabUrl())) {
-      console.debug("No content script in tab " + this.tabId);
+      logger.debug("No content script in tab", { tabId: this.tabId });
       return {
         isScrapablePost: false,
       };
@@ -39,7 +42,7 @@ export class ScrapingContentScriptClient {
       SocialNetworkPageInfo
     >(SCS_GET_PAGE_INFO_MESSAGE);
     if (response === CONTENT_SCRIPT_NOT_RESPONDING) {
-      console.debug("Content script loading");
+      logger.debug("Content script loading");
       return CONTENT_SCRIPT_LOADING;
     }
     return response;
@@ -97,7 +100,9 @@ export class ScrapingContentScriptClient {
           "Error: Could not establish connection. Receiving end does not exist.",
         )
       ) {
-        console.debug("Content script not responding in tab " + this.tabId);
+        logger.debug("Content script not responding in tab", {
+          tabId: this.tabId,
+        });
         return CONTENT_SCRIPT_NOT_RESPONDING;
       }
       throw e;

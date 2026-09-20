@@ -1,6 +1,6 @@
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { YoutubeVideoCommentsLoader } from "./YoutubeVideoCommentsLoader";
 import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
@@ -11,7 +11,7 @@ import { withRetry } from "@/shared/utils/withRetry";
 import { ObsoleteScreenshotError } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
 import { YoutubeVideoLoadedCommentsScraper } from "./YoutubeVideoLoadedCommentsScraper";
 
-const logger = createLogger("[CS - YoutubeVideoCommentsScraper]");
+const logger = createLogger("yt-comments", scrapingLogger);
 
 export class YoutubeVideoCommentsScraper {
   public constructor(

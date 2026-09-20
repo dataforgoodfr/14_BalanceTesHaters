@@ -12,6 +12,9 @@ import { Logo } from "../../components/shared/Logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 import { PageNotScrapableAlert } from "./PageNotScrapableAlert";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("popup");
 
 export function Popup() {
   return (
@@ -27,7 +30,7 @@ function PopupContent() {
   useEffect(() => {
     const parsedUrl = URL.parse(document.URL);
     const tabId = parsedUrl?.hash?.substring(1);
-    console.debug("Popup", "tabId:", tabId);
+    logger.debug("Resolved tab ID", { tabId });
     const tabPromise = tabId
       ? queryTabWithId(Number.parseInt(tabId))
       : queryActiveTab();
@@ -122,7 +125,7 @@ function PopupContent() {
 }
 
 async function queryTabWithId(tabId: number): Promise<Browser.tabs.Tab> {
-  console.log("Popup - Querying to tab with id " + tabId);
+  logger.debug("Querying tab", { tabId });
   return await browser.tabs.get(tabId);
 }
 

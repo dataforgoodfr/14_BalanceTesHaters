@@ -14,12 +14,13 @@ import { isScrapingStartable, scrapingFailed } from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";
-import { createLogger } from "../utils/createLogger";
+import { createLogger, scrapingLogger } from "../utils/createLogger";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
-const logger = createLogger("[CS - SCS]");
+const logger = createLogger("cs", scrapingLogger);
 const START_SCRAPING_LOG = "Received start scraping message - start scraping";
+
 export class ScrapingContentScript {
   private scrapingStatus: ScrapingStatus = { type: "not-started" };
   private scrapAbortController: AbortController | null = null;
@@ -113,7 +114,7 @@ export class ScrapingContentScript {
           const roundedProgress = Math.round(progress);
           const durationSec = Math.round((Date.now() - start) / 1000);
 
-          logger.info(
+          logger.debug(
             `Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
           );
           this.scrapingStatus = {

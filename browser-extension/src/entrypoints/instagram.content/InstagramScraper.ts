@@ -6,10 +6,10 @@ import { instagramPageInfo } from "./instagramPageInfo";
 import type { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { InstagramCanonicalScraper } from "./canonical";
 
-const logger = createLogger("[CS - InstagramScraper]");
+const logger = createLogger("ig", scrapingLogger);
 
 export class InstagramScraper implements SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {

@@ -24,6 +24,9 @@ import React from "react";
 import ClosableAlert from "../Shared/ClosableAlert";
 import { main } from "../Menu";
 import { buildPostDetailCsv } from "./postDetailCsv";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("post-detail");
 
 function PostDetailPage() {
   const params = useParams();
@@ -195,7 +198,7 @@ function PostDetailPage() {
                 // We can't use filteredHatefulComments because we want to access all the hateful authors
                 // and not only the ones that are currently displayed in the table (because of the filters)
                 authorList={hatefulAuthorList}
-                onSubmit={() => console.log("submitted")}
+                onSubmit={() => logger.debug("Comments submitted")}
                 showCreateReportButton={true}
               />
             </div>

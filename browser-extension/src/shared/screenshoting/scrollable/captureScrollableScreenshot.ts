@@ -12,7 +12,7 @@ import type { Scrollable } from "./Scrollable";
 import { sleep } from "../../utils/sleep";
 import type { Size } from "../Size";
 
-const logger = createLogger("[Screenshoting scrollable]");
+const logger = createLogger("capture-screenshot");
 
 export type ScrollableScreenshot = {
   /** PNG fragments, positioned in the scrollable element's CSS coordinates. */

@@ -1,5 +1,8 @@
 import { withRetry } from "@/shared/utils/withRetry";
 import { sleep } from "../../../shared/utils/sleep";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("screenshot-sender");
 
 export type TabScreenshotResult = string | { error: string };
 
@@ -20,7 +23,7 @@ export async function screenshotSenderTab(
       maxAttempts: 10,
       retryOn: isRetryableError,
       beforeRetry: async ({ latestError, remainingAttempts }) => {
-        console.warn(
+        logger.warn(
           "Screenshoting error:",
           latestError,
           " - Retrying... ",
@@ -47,7 +50,7 @@ export async function screenshotSenderTab(
       },
     });
   } catch (e) {
-    console.error("Screenshoting error:", e);
+    logger.error("Screenshoting error", e);
     return {
       error: String(e),
     };

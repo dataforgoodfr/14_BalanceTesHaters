@@ -4,17 +4,20 @@ import {
 } from "@/shared/storage/post-snapshot-storage";
 import { mapPostToClassificationRequest } from "./mapping/mapPostToClassificationRequest";
 import { postClassificationRequest } from "./api/submitClassificationRequest";
+import { createLogger } from "@/shared/utils/createLogger";
+
+const logger = createLogger("classification-submit");
 
 const postIdsBeingSubmitted = new Map<string, Promise<void>>();
 export async function submitClassificationRequestForPost(
   postSnapshotId: string,
 ): Promise<void> {
-  console.debug(
+  logger.debug(
     "submitClassificationRequestForPost - postSnapshotId:",
     postSnapshotId,
   );
   if (postIdsBeingSubmitted.has(postSnapshotId)) {
-    console.debug(
+    logger.debug(
       "submitClassificationRequestForPost - already submitted - waiting for existing promise",
     );
     // Already being submitted
@@ -43,7 +46,7 @@ async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
       `Submit classification failed: PostSnapshot ${postSnapshotId} already has a classificationJobId!!`,
     );
   }
-  console.debug(
+  logger.debug(
     "submitClassificationRequestForPost - Submitting postsnapshot to backend for classification",
   );
   const classificationJob = mapPostToClassificationRequest(post);
@@ -52,7 +55,7 @@ async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
   post.classificationJobId = response.job_id;
   post.classificationStatus = "SUBMITTED";
 
-  console.debug(
+  logger.debug(
     "submitClassificationRequestForPost - Updating post with classificationJobId and status SUBMITTED",
     response.job_id,
   );

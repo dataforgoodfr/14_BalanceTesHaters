@@ -1,4 +1,7 @@
 import { sleep } from "../utils/sleep";
+import { createLogger, scrapingLogger } from "../utils/createLogger";
+
+const logger = createLogger("support", scrapingLogger);
 
 type Class<T> = new () => T;
 
@@ -75,7 +78,7 @@ export class ScrapingSupport {
       options,
     );
     if (result.status === "failure") {
-      console.error(
+      logger.error(
         result.message,
         // Log parent as object. This makes it interactable in browser console (can select in element panel...).
         "Parent:",
@@ -185,7 +188,7 @@ export class ScrapingSupport {
         selectedElementDescriptor: options?.selectedElementDescriptor,
         parentElementDescriptor: options?.parentElementDescriptor,
       });
-      console.error(
+      logger.error(
         errorMessage,
         // Log parent as object. This makes it interactable in browser console (can select in element panel...).
         "Parent:",

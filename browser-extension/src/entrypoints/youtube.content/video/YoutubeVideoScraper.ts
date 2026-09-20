@@ -3,7 +3,7 @@ import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractIsoDateFromPostInfoTooltipText } from "./utils/extractIsoDateFromPostInfoTooltipText";
 import type { Author } from "@/shared/model/Author";
@@ -12,7 +12,7 @@ import { coverImageUrl } from "./utils/coverImageUrl";
 import { YoutubeVideoCommentsScraper } from "./YoutubeVideoCommentsScraper";
 import { parseIntegerSwallowingSeparators } from "./utils/parseIntegerSwallowingSeparators";
 
-const logger = createLogger("[CS - YoutubeVideoScraper]");
+const logger = createLogger("yt-video", scrapingLogger);
 
 export class YoutubeVideoScraper {
   public constructor(
