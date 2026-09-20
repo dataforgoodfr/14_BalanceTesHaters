@@ -21,6 +21,11 @@ export function buildImageFromFragments(
     if (!intersection) {
       continue;
     }
+    const croppedHeight = Math.round(intersection.height);
+    const croppedWidth = Math.round(intersection.width);
+    if (croppedHeight === 0 || croppedWidth === 0) {
+      continue;
+    }
 
     // Screencapture can be high resolution. Normalize each fragment only while
     // it is needed, then let it be collected before processing the next one.
@@ -36,8 +41,8 @@ export function buildImageFromFragments(
         column: Math.round(intersection.x - fragment.catpureArea.x),
         row: Math.round(intersection.y - fragment.catpureArea.y),
       },
-      height: Math.round(intersection.height),
-      width: Math.round(intersection.width),
+      height: croppedHeight,
+      width: croppedWidth,
     });
     croppedFragment.copyTo(image, {
       origin: {

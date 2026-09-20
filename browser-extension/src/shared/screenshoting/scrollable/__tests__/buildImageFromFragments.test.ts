@@ -59,4 +59,22 @@ describe("buildImageFromFragments", () => {
     expect(image.getPixel(0, 1)).toEqual([255, 0, 255]);
     expect(image.getPixel(1, 1)).toEqual([0, 255, 255]);
   });
+
+  it("ignores a subpixel intersection rounded to zero", () => {
+    const fragments = [
+      createFragment(0, [[[255, 0, 0]], [[0, 255, 0]]]),
+      createFragment(2, [[[0, 0, 255]], [[255, 255, 0]]]),
+    ];
+
+    const image = buildImageFromFragments(fragments, {
+      x: 0,
+      y: 1.203125,
+      width: 1,
+      height: 1,
+    });
+
+    expect(image.width).toBe(1);
+    expect(image.height).toBe(1);
+    expect(image.getPixel(0, 0)).toEqual([0, 255, 0]);
+  });
 });
