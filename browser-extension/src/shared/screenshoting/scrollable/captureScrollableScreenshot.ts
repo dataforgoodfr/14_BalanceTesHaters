@@ -1,5 +1,4 @@
-import type { Image } from "image-js";
-import { decodePng } from "image-js";
+import { decodePng, encodePng, type Image } from "image-js";
 import { captureTabScreenshotAsDataUrl } from "../tab/captureTabScreenshotAsDataUrl";
 import type { ScreenshotFragment } from "./ScreenshotFragment";
 import type { ScrapingSupport } from "../../scraping/ScrapingSupport";
@@ -7,7 +6,6 @@ import { base64ToUint8Array } from "@/shared/utils/base-64";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { withRetry } from "@/shared/utils/withRetry";
-import { buildFullImageFromFragments } from "./buildFullImageFromFragments";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
 import { createLogger } from "../../utils/createLogger";
 import type { Scrollable } from "./Scrollable";
@@ -17,11 +15,8 @@ import type { Size } from "../Size";
 const logger = createLogger("[Screenshoting scrollable]");
 
 export type ScrollableScreenshot = {
-  /**
-   * Scrollable Element screenshot image.
-   * Image/Screenshot scale is normalized: 1 css pixel = 1 image pixel
-   */
-  image: Image;
+  /** PNG fragments, positioned in the scrollable element's CSS coordinates. */
+  fragments: ScreenshotFragment[];
 
   /**
    * Scrollable Element client size at screenshot time.
@@ -84,14 +79,9 @@ export async function captureScrollableScreenshot(
           progressManager.subTaskProgressManager({ from: 0, to: 90 }),
           customWaitOptions,
         );
-      logger.debug("Building full image from fragments...");
       scrapingSupport.throwIfAborted();
-      const elementFullScreenshot = buildFullImageFromFragments(fragments);
-      await maybeStoreDebugScreenshot(elementFullScreenshot, {
-        type: "scrollable-full",
-      });
       progressManager.setProgress(100);
-      return { image: elementFullScreenshot, clientSize: viewPortSize };
+      return { fragments, clientSize: viewPortSize };
     },
   });
 }
@@ -223,14 +213,14 @@ async function captureElementScreenshotFragments(
       desc: "scrollTop:" + requestedTop,
     });
 
-    const screenshot = {
+    const screenshot: ScreenshotFragment = {
       catpureArea: {
         x: 0,
         y: requestedTop,
         width: onStartClientSize.width,
         height: onStartClientSize.height,
       },
-      screenshotImage: elementImage,
+      screenshotPng: encodePng(elementImage),
     };
     screenshots.push(screenshot);
     progressManager.setProgress(screenshots.length * progressPerFragment);

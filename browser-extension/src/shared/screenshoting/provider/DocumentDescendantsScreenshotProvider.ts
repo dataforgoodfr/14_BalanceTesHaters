@@ -6,6 +6,7 @@ import {
 import { createLogger } from "@/shared/utils/createLogger";
 import type { ScrollableScreenshot } from "../scrollable";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
+import { buildImageFromFragments } from "../scrollable/buildImageFromFragments";
 
 const logger = createLogger("CroppingParentElementScreenshotProvider");
 /**
@@ -23,11 +24,9 @@ export class DocumentDescendantsScreenshotProvider implements ElementScreenshotP
     const width = elementBox.width;
     logger.debug("cropForElement - ", { top, left, height, width });
 
-    const result = this.documentScreenshot.image.crop({
-      origin: {
-        column: Math.round(left),
-        row: Math.round(top),
-      },
+    const result = buildImageFromFragments(this.documentScreenshot.fragments, {
+      x: left,
+      y: top,
       height: Math.round(height),
       width: Math.round(width),
     });
