@@ -6,11 +6,11 @@ import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractIsoDateFromPostInfoTooltipText } from "./utils/extractIsoDateFromPostInfoTooltipText";
-import type { Author } from "@/shared/model/Author";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { coverImageUrl } from "./utils/coverImageUrl";
 import { YoutubeVideoCommentsScraper } from "./YoutubeVideoCommentsScraper";
 import { parseIntegerSwallowingSeparators } from "./utils/parseIntegerSwallowingSeparators";
+import { scrapYoutubeVideoAuthor } from "./scrapYoutubeVideoAuthor";
 
 const logger = createLogger("yt-video", scrapingLogger);
 
@@ -45,7 +45,7 @@ export class YoutubeVideoScraper {
     logger.debug(`title: ${title}`);
 
     logger.debug("Scraping author...");
-    const author = await this.scrapPostAuthor();
+    const author = await scrapYoutubeVideoAuthor(this.scrapingSupport);
     logger.debug(`author.name: ${author.name}`);
 
     logger.debug("Scraping textContent...");
@@ -146,57 +146,6 @@ export class YoutubeVideoScraper {
       type: "absolute",
       date: extractIsoDateFromPostInfoTooltipText(tooltipText),
     };
-  }
-
-  private async scrapPostAuthor(): Promise<Author> {
-    const ownerElement = await this.scrapingSupport.waitForSelectorOrThrow(
-      document,
-      "#owner",
-      HTMLElement,
-    );
-    const channelNameEl = this.scrapingSupport.select(
-      ownerElement,
-      "#channel-name",
-      HTMLElement,
-    );
-
-    if (channelNameEl && this.scrapingSupport.isVisible(channelNameEl)) {
-      const channelName = channelNameEl.innerText;
-
-      const link = this.scrapingSupport.selectOrThrow(
-        channelNameEl,
-        "a",
-        HTMLAnchorElement,
-      );
-      const channelUrl = link.href;
-      return {
-        name: channelName,
-        accountHref: channelUrl,
-      };
-    }
-    const attributedChannelNameEl = this.scrapingSupport.select(
-      ownerElement,
-      "#attributed-channel-name",
-      HTMLElement,
-    );
-    if (
-      attributedChannelNameEl &&
-      this.scrapingSupport.isVisible(attributedChannelNameEl)
-    ) {
-      const channelName = attributedChannelNameEl.innerText;
-
-      const link = this.scrapingSupport.selectOrThrow(
-        attributedChannelNameEl,
-        "a",
-        HTMLAnchorElement,
-      );
-      const channelUrl = link.href;
-      return {
-        name: channelName,
-        accountHref: channelUrl,
-      };
-    }
-    throw new Error("Failed to scrap post author");
   }
 
   private async scrapExpectedCommentCount(): Promise<number> {

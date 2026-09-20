@@ -102,4 +102,28 @@ E2E_TESTED_LOCALES.forEach((locale) => {
       expectSomeCommentsToHaveLikes(firstLevelReplies);
     });
   });
+
+  test.describe(`Youtube multi-author video scrapping (locale:${locale})`, () => {
+    test.use({ locale });
+
+    test("Scrape the primary collaborator", async ({
+      extensionId,
+      context,
+    }, testInfo) => {
+      const postId = "5N9evgGteDI";
+      const scrappingResult = await e2eScrapPost({
+        postUrl: youtubeVideoUrl(postId),
+        openAndPreparePage: openAndPrepareYoutubeVideoPage,
+        context,
+        extensionId,
+        testInfo,
+        scrapingTimeout: 120000,
+      });
+
+      expect(scrappingResult.postSnapshot.author).toEqual({
+        name: "Le Vortex - ARTE",
+        accountHref: "https://www.youtube.com/channel/UCZxLew-WXWm5dhRZBgEFl-Q",
+      });
+    });
+  });
 });
