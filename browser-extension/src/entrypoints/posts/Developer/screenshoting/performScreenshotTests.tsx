@@ -10,6 +10,7 @@ import type {
   ScrollableScreenshot,
 } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
 import { defaultWaitOptions } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
+import { buildImageFromFragments } from "@/shared/screenshoting/scrollable/buildImageFromFragments";
 export type ScreenshotTestConfig = {
   name: string;
   waitOptions: ScreenshotWaitOptions;
@@ -59,7 +60,8 @@ export async function performScreenshotTests(
     referenceCaptureId,
     options.referenceScreenshotWaitOptions,
   );
-  const referenceDataUrl = imageToDataUrl(reference.image);
+  const referenceImage = buildFullScreenshotImage(reference);
+  const referenceDataUrl = imageToDataUrl(referenceImage);
   await downloadScreenshot(referenceCaptureId, referenceDataUrl);
 
   for (const cfg of options.tests) {
@@ -73,7 +75,8 @@ export async function performScreenshotTests(
       );
       console.log(`performScreenshotTests - ${captureId} - done.`);
       console.log(`performScreenshotTests - ${captureId} - downloading...`);
-      const screenshotDataUrl = imageToDataUrl(screenshot.image);
+      const capturedImage = buildFullScreenshotImage(screenshot);
+      const screenshotDataUrl = imageToDataUrl(capturedImage);
       const matchesRef = screenshotDataUrl === referenceDataUrl;
       await downloadScreenshot(
         captureId + (matchesRef ? "-ok" : "-ko"),
@@ -84,13 +87,26 @@ export async function performScreenshotTests(
           `performScreenshotTests - ${captureId} - mismatch downloading diff...`,
         );
         // Diff
-        const diff = reference.image.subtract(screenshot.image);
+        const diff = referenceImage.subtract(capturedImage);
         await downloadScreenshot(captureId + "-diff", imageToDataUrl(diff));
       }
 
       console.log(`performScreenshotTests - ${captureId} - download done.`);
     }
   }
+}
+
+function buildFullScreenshotImage(screenshot: ScrollableScreenshot) {
+  const lastFragment = screenshot.fragments.at(-1);
+  if (!lastFragment) {
+    throw new Error("Screenshot has no fragments.");
+  }
+  return buildImageFromFragments(screenshot.fragments, {
+    x: 0,
+    y: 0,
+    width: lastFragment.catpureArea.x + lastFragment.catpureArea.width,
+    height: lastFragment.catpureArea.y + lastFragment.catpureArea.height,
+  });
 }
 async function downloadScreenshot(fileBaseName: string, dataUrl: string) {
   await browser.downloads.download({
