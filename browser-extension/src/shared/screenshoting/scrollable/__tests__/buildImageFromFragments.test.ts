@@ -1,6 +1,9 @@
 import { encodePng, Image } from "image-js";
 import { describe, expect, it } from "vitest";
-import { buildImageFromFragments } from "../buildImageFromFragments";
+import {
+  buildImageFromFragments,
+  MissingScreenshotFragmentsError,
+} from "../buildImageFromFragments";
 import type { ScreenshotFragment } from "../ScreenshotFragment";
 
 function createFragment(
@@ -76,5 +79,18 @@ describe("buildImageFromFragments", () => {
     expect(image.width).toBe(1);
     expect(image.height).toBe(1);
     expect(image.getPixel(0, 0)).toEqual([0, 255, 0]);
+  });
+
+  it("throws when a requested area is not covered by the fragments", () => {
+    const fragments = [createFragment(0, [[[255, 0, 0]], [[0, 255, 0]]])];
+
+    expect(() =>
+      buildImageFromFragments(fragments, {
+        x: 0,
+        y: 1,
+        width: 1,
+        height: 2,
+      }),
+    ).toThrow(MissingScreenshotFragmentsError);
   });
 });

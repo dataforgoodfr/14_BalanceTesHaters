@@ -11,6 +11,11 @@ export function buildImageFromFragments(
   screenshotFragments: ScreenshotFragment[],
   requestedArea: Rect,
 ): Image {
+  const missingAreas = findMissingAreas(requestedArea, screenshotFragments);
+  if (missingAreas.length > 0) {
+    throw new MissingScreenshotFragmentsError(requestedArea, missingAreas);
+  }
+
   const image = new Image(
     Math.ceil(requestedArea.width),
     Math.ceil(requestedArea.height),
@@ -58,6 +63,17 @@ export function buildImageFromFragments(
   return image;
 }
 
+export class MissingScreenshotFragmentsError extends Error {
+  constructor(
+    readonly requestedArea: Rect,
+    readonly missingAreas: Rect[],
+  ) {
+    super(
+      "Cannot build screenshot because captured fragments do not cover the requested area.",
+    );
+  }
+}
+
 function intersectRects(first: Rect, second: Rect): Rect | undefined {
   const left = Math.max(first.x, second.x);
   const top = Math.max(first.y, second.y);
@@ -69,4 +85,63 @@ function intersectRects(first: Rect, second: Rect): Rect | undefined {
   }
 
   return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+function findMissingAreas(
+  requestedArea: Rect,
+  screenshotFragments: ScreenshotFragment[],
+): Rect[] {
+  let uncoveredAreas = [requestedArea];
+
+  for (const fragment of screenshotFragments) {
+    uncoveredAreas = uncoveredAreas.flatMap((uncoveredArea) =>
+      subtractRect(uncoveredArea, fragment.catpureArea),
+    );
+    if (uncoveredAreas.length === 0) {
+      return [];
+    }
+  }
+
+  return uncoveredAreas;
+}
+
+/** Returns the parts of `source` which are not covered by `cover`. */
+function subtractRect(source: Rect, cover: Rect): Rect[] {
+  const intersection = intersectRects(source, cover);
+  if (!intersection) {
+    return [source];
+  }
+
+  const remainingAreas: Rect[] = [
+    {
+      x: source.x,
+      y: source.y,
+      width: source.width,
+      height: intersection.y - source.y,
+    },
+    {
+      x: source.x,
+      y: intersection.y + intersection.height,
+      width: source.width,
+      height: source.y + source.height - (intersection.y + intersection.height),
+    },
+    {
+      x: source.x,
+      y: intersection.y,
+      width: intersection.x - source.x,
+      height: intersection.height,
+    },
+    {
+      x: intersection.x + intersection.width,
+      y: intersection.y,
+      width: source.x + source.width - (intersection.x + intersection.width),
+      height: intersection.height,
+    },
+  ].filter(isEmptyRect);
+
+  return remainingAreas;
+}
+
+function isEmptyRect(rect: Rect): boolean {
+  return rect.width > 0 && rect.height > 0;
 }

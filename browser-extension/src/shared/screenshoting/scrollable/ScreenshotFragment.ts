@@ -1,6 +1,6 @@
 export interface ScreenshotFragment {
   /**
-   * Captured area in CSS pixels
+   * Captured area in CSS pixels relative to captured element.
    */
   catpureArea: Rect;
   /** PNG bytes for the captured area. */

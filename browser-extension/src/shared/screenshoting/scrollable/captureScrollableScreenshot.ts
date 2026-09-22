@@ -136,28 +136,41 @@ async function captureElementScreenshotFragments(
     );
   }
 
-  const screenshots: ScreenshotFragment[] = [];
+  logger.debug(
+    "Screenshoting element with clientSize ",
+    onStartClientSize,
+    " scrollSize",
+    onStartScrollSize,
+  );
   const expectedFragmentsCount = Math.ceil(
     onStartScrollSize.height / onStartClientSize.height,
   );
-  logger.debug(
-    "Screenshoting will require " +
-      expectedFragmentsCount +
-      " page screenshots.",
-  );
-
   const progressPerFragment = 100 / expectedFragmentsCount;
 
+  logger.debug(
+    "Expecting " +
+      expectedFragmentsCount +
+      " page screenshots to be necessary.",
+  );
+
+  const screenshots: ScreenshotFragment[] = [];
+
   let nextTop = 0;
-  while (nextTop < scrollableElement.getScrollSize().height) {
+  const maxScrollTopAcceptableValue =
+    onStartScrollSize.height - onStartClientSize.height;
+  while (nextTop < onStartScrollSize.height) {
     scrapingSupport.throwIfAborted();
 
-    const requestedTop = Math.min(
-      nextTop,
-      onStartScrollSize.height - onStartClientSize.height,
-    );
+    // Ensure requestedTop screenshot does not extend past scrollclientSize
+    const requestedTop = Math.min(nextTop, maxScrollTopAcceptableValue);
 
-    logger.debug("Scroll to requestedTop:", requestedTop);
+    logger.debug(
+      "Scroll to requestedTop:" +
+        requestedTop +
+        " [nextTop was: " +
+        nextTop +
+        "]",
+    );
     await scrollableElement.scrollTo({
       top: requestedTop,
       waitForScrollEnd: waitOptions.waitForScrollEnd,
