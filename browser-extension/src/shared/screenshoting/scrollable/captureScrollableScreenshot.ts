@@ -58,11 +58,14 @@ export async function captureScrollableScreenshot(
   return await withRetry<ScrollableScreenshot>({
     maxAttempts: 10,
     retryOn: (e) =>
-      e instanceof ScrollableElementResizedException ||
+      e instanceof ScrollableElementClientSizeChangedException ||
+      e instanceof ScrollableElementScrollSizeChangedException ||
       e instanceof ScrollableElementScrolledException,
     beforeRetry: async ({ latestError, remainingAttempts }) => {
       const error = latestError as
-        ScrollableElementResizedException | ScrollableElementScrolledException;
+        | ScrollableElementClientSizeChangedException
+        | ScrollableElementScrollSizeChangedException
+        | ScrollableElementScrolledException;
       logger.warn(
         "Error: ",
         error.message,
@@ -86,10 +89,18 @@ export async function captureScrollableScreenshot(
   });
 }
 
-export class ScrollableElementResizedException extends Error {
+export class ScrollableElementClientSizeChangedException extends Error {
   constructor() {
     super(
       "Screenshoting failed: element client size changed during screenshot.",
+    );
+  }
+}
+
+export class ScrollableElementScrollSizeChangedException extends Error {
+  constructor() {
+    super(
+      "Screenshoting failed: element scroll size changed during screenshot.",
     );
   }
 }
@@ -205,6 +216,11 @@ async function captureElementScreenshotFragments(
       onStartClientSize,
     );
 
+    assertScrollableSizeDidntChange(
+      scrollableElement.getScrollSize(),
+      onStartScrollSize,
+    );
+
     const tabImage: Image = decodePng(
       base64ToUint8Array(extractBase64DataFromDataUrl(dataUrl)),
     );
@@ -292,6 +308,18 @@ function assertClientSizeDidntChange(
     currentClientSize.height != onStartClientSize.height ||
     currentClientSize.width != onStartClientSize.width
   ) {
-    throw new ScrollableElementResizedException();
+    throw new ScrollableElementClientSizeChangedException();
+  }
+}
+
+function assertScrollableSizeDidntChange(
+  currentScrollableSize: Size,
+  onStartScrollableSize: Size,
+) {
+  if (
+    currentScrollableSize.height != onStartScrollableSize.height ||
+    currentScrollableSize.width != onStartScrollableSize.width
+  ) {
+    throw new ScrollableElementScrollSizeChangedException();
   }
 }
