@@ -22,7 +22,7 @@ export type ReportQueryData = {
   reportOrganizationType: ReportOrganizationType;
 };
 
-export const { Provider, Stepper, useStepper, ...stepperDefinition } =
+export const { Stepper, useStepperContext, ...stepperDefinition } =
   defineStepper([
     {
       id: "step-1",
@@ -129,23 +129,21 @@ const BthStepper = ({
         ></Button>
       </div>
       <div className="flex flex-col gap-6">
-        <Provider>
-          <Stepper.Root
-            className="w-full h-full space-y-4"
-            orientation="horizontal"
-          >
-            <StepperBanner />
-            <StepContent
-              setSocialNetworkList={setSocialNetworkList}
-              setPostIdList={setPostIdList}
-              setCommentList={setCommentList}
-              setReportOrganizationType={setReportOrganizationType}
-              setDisplayReport={setDisplayReport}
-              reportQueryData={reportQueryData}
-            />
-            <StepperActions />
-          </Stepper.Root>
-        </Provider>
+        <Stepper.Root
+          className="w-full h-full space-y-4"
+          orientation="horizontal"
+        >
+          <StepperBanner />
+          <StepContent
+            setSocialNetworkList={setSocialNetworkList}
+            setPostIdList={setPostIdList}
+            setCommentList={setCommentList}
+            setReportOrganizationType={setReportOrganizationType}
+            setDisplayReport={setDisplayReport}
+            reportQueryData={reportQueryData}
+          />
+          <StepperActions />
+        </Stepper.Root>
       </div>
     </>
   );
@@ -177,7 +175,7 @@ const StepContent = ({
     skipToStep?: "step-3" | "step-4";
   };
 
-  const stepper = useStepper();
+  const stepper = useStepperContext();
   React.useEffect(() => {
     // If we come from the post list page with selected posts, we want to prefill the stepper with
     // the selected posts and go to the step 3 (comments) directly

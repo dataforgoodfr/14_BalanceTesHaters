@@ -1,13 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Check, MoveLeft, MoveRight } from "lucide-react";
-import { Stepper, useStepper } from "./BuildReport";
+import type { StepStatus } from "@stepperize/react";
+import { Stepper, useStepperContext } from "./BuildReport";
 import { Link } from "react-router";
 
 const StepperTriggerWrapper = ({
   status,
   index,
 }: {
-  status: ReturnType<ReturnType<typeof useStepper>["status"]>;
+  status: StepStatus;
   index: number;
 }) => {
   const isInactive = status === "upcoming";
@@ -40,7 +41,7 @@ const StepperTitleWrapper = ({
   status,
 }: {
   title: string;
-  status: ReturnType<ReturnType<typeof useStepper>["status"]>;
+  status: StepStatus;
 }) => {
   return (
     <Stepper.Title
@@ -73,7 +74,7 @@ const StepperSeparatorWithLabelOrientation = ({
 };
 
 export const StepperBanner = () => {
-  const stepper = useStepper();
+  const stepper = useStepperContext();
 
   return (
     <Stepper.List className="flex list-none flex-row items-center justify-between max-w-3/4 mx-auto">
@@ -99,7 +100,7 @@ export const StepperBanner = () => {
 };
 
 export const StepperActions = () => {
-  const stepper = useStepper();
+  const stepper = useStepperContext();
   return (
     <div className="fixed bottom-0 w-full border-t py-8 bg-background">
       <Stepper.Actions className="flex justify-center gap-6">

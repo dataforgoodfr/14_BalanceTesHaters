@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import type { ReportQueryData } from "./BuildReport";
-import { useStepper } from "./BuildReport"; // or wherever the export is
+import { useStepperContext } from "./BuildReport";
 import { useForm } from "@tanstack/react-form";
 import { RadioGroup } from "@base-ui/react";
 import { RadioGroupItem } from "@/components/ui/radio-group";
@@ -19,7 +19,7 @@ function Step4Organization({
   ) => void;
   setDisplayReport: (displayReport: boolean) => void;
 }>) {
-  const stepper = useStepper();
+  const stepper = useStepperContext();
 
   const form = useForm({
     defaultValues: {
