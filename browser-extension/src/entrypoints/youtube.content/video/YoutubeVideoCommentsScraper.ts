@@ -13,6 +13,8 @@ import { ObsoleteScreenshotError } from "@/shared/screenshoting/provider/Element
 import { YoutubeVideoLoadedCommentsScraper } from "./YoutubeVideoLoadedCommentsScraper";
 
 const logger = createLogger("yt-comments", scrapingLogger);
+const COMMENTS_PREPARATION_PROGRESS_END = 50;
+const SCREENSHOT_PROGRESS_END = 85;
 
 export class YoutubeVideoCommentsScraper {
   public constructor(
@@ -31,7 +33,10 @@ export class YoutubeVideoCommentsScraper {
 
     await new YoutubeVideoCommentsLoader(
       this.scrapingSupport,
-      this.progressManager.subTaskProgressManager({ from: 0, to: 50 }),
+      this.progressManager.subTaskProgressManager({
+        from: 0,
+        to: COMMENTS_PREPARATION_PROGRESS_END,
+      }),
       this.expectedCommentsCount,
       this.commentsContainer,
     ).loadCommentsAndReplies();
@@ -63,8 +68,8 @@ export class YoutubeVideoCommentsScraper {
           const screenshotProvider: ElementScreenshotProvider =
             await this.createScreenshotProvider(
               this.progressManager.subTaskProgressManager({
-                from: 50,
-                to: 90,
+                from: COMMENTS_PREPARATION_PROGRESS_END,
+                to: SCREENSHOT_PROGRESS_END,
               }),
             );
 
@@ -73,7 +78,10 @@ export class YoutubeVideoCommentsScraper {
             this.scrapingSupport,
             screenshotProvider,
             this.expectedCommentsCount,
-            this.progressManager.subTaskProgressManager({ from: 90, to: 100 }),
+            this.progressManager.subTaskProgressManager({
+              from: SCREENSHOT_PROGRESS_END,
+              to: 100,
+            }),
           ).scrapLoadedCommentThreads();
           return comments;
         },

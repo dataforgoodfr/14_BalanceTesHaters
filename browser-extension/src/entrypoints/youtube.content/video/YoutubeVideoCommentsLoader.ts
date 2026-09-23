@@ -4,30 +4,39 @@ import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 
 const logger = createLogger("yt-comments-loader", scrapingLogger);
 
-const ACTUAL_LOADING_COMMENT_PROGRESS_PERCENT = 80;
+const LOAD_COMMENT_AND_REPLIES_PROGRESS_END = 40;
 
 export class YoutubeVideoCommentsLoader {
+  private readonly loadProgressMgr: ProgressManager;
+  private readonly expandCommentsProgressMgr: ProgressManager;
   constructor(
     private scrapingSupport: ScrapingSupport,
-    private progressManager: ProgressManager,
+    progressManager: ProgressManager,
     private expectedCommentsCount: number,
     private commentsContainer: HTMLElement,
-  ) {}
+  ) {
+    this.loadProgressMgr = progressManager.subTaskProgressManager({
+      from: 0,
+      to: LOAD_COMMENT_AND_REPLIES_PROGRESS_END,
+    });
+
+    this.expandCommentsProgressMgr = progressManager.subTaskProgressManager({
+      from: LOAD_COMMENT_AND_REPLIES_PROGRESS_END,
+      to: 100,
+    });
+  }
 
   public async loadCommentsAndReplies() {
     logger.info(
       "Loading comments expecting " + this.expectedCommentsCount + " comments",
     );
-
     await this.loadAllTopLevelComments();
 
     logger.debug("Expanding all replies...");
     await this.loadAllReplies();
-    this.progressManager.setProgress(ACTUAL_LOADING_COMMENT_PROGRESS_PERCENT);
 
     logger.debug("Expanding long comments...");
     await this.expandLongComments();
-    this.progressManager.setProgress(100);
   }
 
   private async loadAllTopLevelComments() {
@@ -174,11 +183,19 @@ export class YoutubeVideoCommentsLoader {
       .selectAll(this.commentsContainer, "#more", HTMLElement)
       .filter((e) => this.scrapingSupport.isVisible(e));
     logger.debug("Expanding ", readMoreButton.length, " read more buttons...");
-    for (const b of readMoreButton) {
+
+    // Keep reporting progress while expanding long comments. This phase used
+    // to leave the scraper at 80% until every button had been processed, which
+    // made a healthy (but large) post indistinguishable from a stalled run.
+    for (const [index, b] of readMoreButton.entries()) {
+      this.expandCommentsProgressMgr.setProgress(
+        (index / readMoreButton.length) * 100,
+      );
       b.scrollIntoView();
       b.click();
       await this.scrapingSupport.resumeHostPage();
     }
+    this.expandCommentsProgressMgr.setProgress(100);
   }
 
   private async waitForRepliesToLoad(): Promise<number> {
@@ -248,8 +265,8 @@ export class YoutubeVideoCommentsLoader {
       `${loadedCommentsCount} comments loaded (${percentOfExpectedTotal}% of expected total ${this.expectedCommentsCount})`,
     );
     const progress =
-      (ACTUAL_LOADING_COMMENT_PROGRESS_PERCENT * loadedCommentsCount) /
+      (LOAD_COMMENT_AND_REPLIES_PROGRESS_END * loadedCommentsCount) /
       this.expectedCommentsCount;
-    this.progressManager.setProgress(progress);
+    this.loadProgressMgr.setProgress(progress);
   }
 }
