@@ -1,6 +1,6 @@
 import SearchSortFiltersPostList from "../../Shared/SearchSortFiltersPostList";
 import type { ReportQueryData } from "./BuildReport";
-import { useStepper } from "./BuildReport";
+import { useStepperContext } from "./BuildReport";
 
 import { Spinner } from "@/components/ui/spinner";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,7 +41,7 @@ function Step2Posts({
     postSortingCategory,
   );
 
-  const stepper = useStepper();
+  const stepper = useStepperContext();
 
   const form = useForm({
     defaultValues: {

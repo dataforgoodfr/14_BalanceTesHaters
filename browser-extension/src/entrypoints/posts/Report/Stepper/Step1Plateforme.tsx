@@ -2,7 +2,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Field } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import type { ReportQueryData } from "./BuildReport";
-import { useStepper } from "./BuildReport"; // or wherever the export is
+import { useStepperContext } from "./BuildReport";
 import { useForm } from "@tanstack/react-form";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getFormId } from "./StepperComponents";
@@ -17,7 +17,7 @@ function Step1Plateforme({
   reportQueryData: ReportQueryData | undefined;
   setSocialNetworkList: (socialNetworkList: string[]) => void;
 }>) {
-  const stepper = useStepper();
+  const stepper = useStepperContext();
 
   const form = useForm({
     defaultValues: {
