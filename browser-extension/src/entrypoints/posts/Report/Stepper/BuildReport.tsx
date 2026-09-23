@@ -129,23 +129,21 @@ const BthStepper = ({
         ></Button>
       </div>
       <div className="flex flex-col gap-6">
-        <Provider>
-          <Stepper.Root
-            className="w-full h-full space-y-4"
-            orientation="horizontal"
-          >
-            <StepperBanner />
-            <StepContent
-              setSocialNetworkList={setSocialNetworkList}
-              setPostIdList={setPostIdList}
-              setCommentList={setCommentList}
-              setReportOrganizationType={setReportOrganizationType}
-              setDisplayReport={setDisplayReport}
-              reportQueryData={reportQueryData}
-            />
-            <StepperActions />
-          </Stepper.Root>
-        </Provider>
+        <Stepper.Root
+          className="w-full h-full space-y-4"
+          orientation="horizontal"
+        >
+          <StepperBanner />
+          <StepContent
+            setSocialNetworkList={setSocialNetworkList}
+            setPostIdList={setPostIdList}
+            setCommentList={setCommentList}
+            setReportOrganizationType={setReportOrganizationType}
+            setDisplayReport={setDisplayReport}
+            reportQueryData={reportQueryData}
+          />
+          <StepperActions />
+        </Stepper.Root>
       </div>
     </>
   );
