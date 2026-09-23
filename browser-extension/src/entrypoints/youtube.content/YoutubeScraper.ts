@@ -1,6 +1,7 @@
 import type {
   ScrapPagePostResult,
   SocialNetworkScraper,
+  SocialNetworkScraperSettings,
 } from "@/shared/scraping-content-script/SocialNetworkScraper";
 import type { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
@@ -18,6 +19,7 @@ export class YoutubeScraper implements SocialNetworkScraper {
   async scrapPagePost(
     abortSignal: AbortSignal,
     progressManager: ProgressManager,
+    settings?: SocialNetworkScraperSettings,
   ): Promise<ScrapPagePostResult> {
     const scrapingSupport = new ScrapingSupport(abortSignal);
     const pageInfo = youtubePageInfo(document.URL);
@@ -38,6 +40,7 @@ export class YoutubeScraper implements SocialNetworkScraper {
         scrapingSupport,
         pageInfo,
         progressManager,
+        settings?.skipScreenshoting ?? false,
       ).scrapPost();
     }
   }

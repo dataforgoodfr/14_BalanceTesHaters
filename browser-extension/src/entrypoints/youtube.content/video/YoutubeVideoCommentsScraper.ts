@@ -5,6 +5,7 @@ import { YoutubeVideoCommentsLoader } from "./YoutubeVideoCommentsLoader";
 import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
 import {
   createScreenshotProviderForDocument,
+  EmptyElementScreenshotProvider,
   type ElementScreenshotProvider,
 } from "@/shared/screenshoting";
 import { withRetry } from "@/shared/utils/withRetry";
@@ -19,6 +20,7 @@ export class YoutubeVideoCommentsScraper {
     private progressManager: ProgressManager,
     private commentsContainer: HTMLElement,
     private expectedCommentsCount: number,
+    private skipScreenshoting: boolean = false,
   ) {}
 
   public async scrapComments(): Promise<CommentSnapshot[]> {
@@ -59,9 +61,11 @@ export class YoutubeVideoCommentsScraper {
         },
         retry: async () => {
           const screenshotProvider: ElementScreenshotProvider =
-            await createScreenshotProviderForDocument(
-              this.scrapingSupport,
-              this.progressManager.subTaskProgressManager({ from: 50, to: 90 }),
+            await this.createScreenshotProvider(
+              this.progressManager.subTaskProgressManager({
+                from: 50,
+                to: 90,
+              }),
             );
 
           const comments = await new YoutubeVideoLoadedCommentsScraper(
@@ -78,6 +82,21 @@ export class YoutubeVideoCommentsScraper {
       masthead.style.visibility = "visible";
       await this.scrapingSupport.resumeHostPage();
     }
+  }
+
+  private async createScreenshotProvider(
+    progressManager: ProgressManager,
+  ): Promise<ElementScreenshotProvider> {
+    if (this.skipScreenshoting) {
+      logger.warn(
+        "skipScreenshoting=true - using EmptyElementScreenshotProvider",
+      );
+      return new EmptyElementScreenshotProvider();
+    }
+    return await createScreenshotProviderForDocument(
+      this.scrapingSupport,
+      progressManager,
+    );
   }
 
   private async sortCommentsByNewest(): Promise<void> {

@@ -1,6 +1,7 @@
 import type {
   ScrapPagePostResult,
   SocialNetworkScraper,
+  SocialNetworkScraperSettings,
 } from "@/shared/scraping-content-script/SocialNetworkScraper";
 import { instagramPageInfo } from "./instagramPageInfo";
 import type { SocialNetworkPageInfo } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
@@ -19,6 +20,7 @@ export class InstagramScraper implements SocialNetworkScraper {
   async scrapPagePost(
     abortSignal: AbortSignal,
     progressManager: ProgressManager,
+    settings?: SocialNetworkScraperSettings,
   ): Promise<ScrapPagePostResult> {
     const scrapingSupport = new ScrapingSupport(abortSignal);
     const documentUrlPageInfo = instagramPageInfo(document.URL);
@@ -75,6 +77,7 @@ export class InstagramScraper implements SocialNetworkScraper {
       scrapingSupport,
       documentUrlPageInfo,
       progressManager,
+      settings?.skipScreenshoting ?? false,
     ).scrapPost();
   }
 }
