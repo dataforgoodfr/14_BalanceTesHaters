@@ -1,5 +1,5 @@
 import type { ReportQueryData } from "./BuildReport";
-import { useStepper } from "./BuildReport";
+import { useStepperContext } from "./BuildReport";
 import CommentsTable from "../../Posts/CommentsTable";
 import type { PostCommentWithId } from "@/shared/utils/post-util";
 import { CommentSortingCategory } from "@/shared/utils/post-util";
@@ -34,7 +34,7 @@ function Step3Comments({
 
   const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
 
-  const stepper = useStepper();
+  const stepper = useStepperContext();
 
   const handleSubmit = (commentIdList: string[]) => {
     setCommentList(
