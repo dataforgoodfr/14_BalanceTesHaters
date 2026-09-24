@@ -1,42 +1,36 @@
-import { access, mkdir, stat } from "node:fs/promises";
+import { spawn, type ChildProcess } from "node:child_process";
 import { constants } from "node:fs";
-import { spawn } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import { access, stat } from "node:fs/promises";
 import path from "node:path";
+import {
+  exitCodeFor,
+  projectDir,
+  startChromium,
+  waitForExit,
+} from "./start-chromium.ts";
 
-const projectDir = fileURLToPath(new URL("..", import.meta.url));
 const extensionDir = path.join(projectDir, ".output/chrome-mv3-dev");
 const manifestPath = path.join(extensionDir, "manifest.json");
-const profileDir = path.join(projectDir, ".wxt/chromium-data");
 const wxtBin = path.join(projectDir, "node_modules/.bin/wxt");
 
-const delay = (milliseconds) =>
+const delay = (milliseconds: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-async function getModificationTime(filePath) {
+async function getModificationTime(
+  filePath: string,
+): Promise<number | undefined> {
   try {
     return (await stat(filePath)).mtimeMs;
   } catch (error) {
-    if (error.code === "ENOENT") return undefined;
+    if (hasErrorCode(error) && error.code === "ENOENT") return undefined;
     throw error;
   }
 }
 
-async function resolveChromiumBin() {
-  if (process.env.CHROMIUM_BIN) return process.env.CHROMIUM_BIN;
-
-  const snapChromium = "/snap/bin/chromium";
-  try {
-    await access(snapChromium, constants.X_OK);
-    return snapChromium;
-  } catch (error) {
-    if (error.code !== "ENOENT" && error.code !== "EACCES") throw error;
-    return "chromium";
-  }
-}
-
-async function waitForBuild(previousModificationTime) {
-  while (true) {
+async function waitForBuild(
+  previousModificationTime: number | undefined,
+): Promise<void> {
+  for (;;) {
     const modificationTime = await getModificationTime(manifestPath);
     if (
       modificationTime !== undefined &&
@@ -48,22 +42,7 @@ async function waitForBuild(previousModificationTime) {
   }
 }
 
-function waitForExit(child, name) {
-  return new Promise((resolve, reject) => {
-    child.once("error", (error) => {
-      reject(new Error(`${name} failed to start: ${error.message}`));
-    });
-    child.once("exit", (code, signal) => resolve({ code, signal }));
-  });
-}
-
-function exitCodeFor({ code, signal }) {
-  if (code !== null) return code;
-  return signal === "SIGINT" ? 130 : 1;
-}
-
 await access(wxtBin, constants.X_OK);
-const chromiumBin = await resolveChromiumBin();
 const previousModificationTime = await getModificationTime(manifestPath);
 
 const wxt = spawn(wxtBin, [], {
@@ -72,10 +51,10 @@ const wxt = spawn(wxtBin, [], {
 });
 const wxtExit = waitForExit(wxt, "WXT");
 
-let chromium;
-let requestedExitCode;
+let chromium: ChildProcess | undefined;
+let requestedExitCode: number | undefined;
 
-function stop(signal, exitCode) {
+function stop(signal: NodeJS.Signals, exitCode: number): void {
   requestedExitCode ??= exitCode;
   if (wxt.exitCode === null) wxt.kill(signal);
   if (chromium?.exitCode === null) chromium.kill(signal);
@@ -94,26 +73,12 @@ try {
     }),
   ]);
 
-  await mkdir(profileDir, { recursive: true });
-
-  chromium = spawn(
-    chromiumBin,
-    [
-      `--user-data-dir=${profileDir}`,
-      "--no-default-browser-check",
-      `--load-extension=${extensionDir}`,
-      "https://www.youtube.com",
-    ],
-    {
-      cwd: projectDir,
-      stdio: "inherit",
-    },
-  );
+  chromium = await startChromium({ extensionDir });
 
   const chromiumExit = waitForExit(chromium, "Chromium");
   const firstExit = await Promise.race([
-    wxtExit.then((result) => ({ process: "WXT", result })),
-    chromiumExit.then((result) => ({ process: "Chromium", result })),
+    wxtExit.then((result) => ({ process: "WXT" as const, result })),
+    chromiumExit.then((result) => ({ process: "Chromium" as const, result })),
   ]);
 
   if (firstExit.process === "WXT" && chromium.exitCode === null) {
@@ -126,6 +91,10 @@ try {
   process.exitCode = requestedExitCode ?? exitCodeFor(firstExit.result);
 } catch (error) {
   stop("SIGTERM", 1);
-  console.error(error.message);
+  console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = requestedExitCode ?? 1;
+}
+
+function hasErrorCode(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error;
 }
