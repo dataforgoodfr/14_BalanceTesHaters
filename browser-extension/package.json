@@ -4,7 +4,7 @@
   "version": "0.0.0-dev",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev.mjs",
+    "dev": "tsx scripts/dev.ts",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
