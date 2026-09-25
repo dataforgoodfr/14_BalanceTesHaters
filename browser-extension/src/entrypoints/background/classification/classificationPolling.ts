@@ -7,6 +7,7 @@ import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import { notifyClassificationCompleted } from "./notifyClassificationCompleted";
 import { submitClassificationRequestForPost } from "./submitClassificationForPost";
 import { createLogger } from "@/shared/utils/createLogger";
+import { getSettings } from "@/shared/storage/settings-storage";
 
 const logger = createLogger("classification-polling");
 
@@ -33,7 +34,12 @@ const CLASSIFICATION_POLLING_ALARM_NAME = "classification-polling-alarm";
 
 async function handleClassificationPollingAlarm(): Promise<void> {
   try {
-    await submitPendingClassifications();
+    const settings = await getSettings();
+    if (!settings.skipSubmitForClassification) {
+      await submitPendingClassifications();
+    } else {
+      logger.debug("Skipping pending submissions because of settings");
+    }
     const snapshotsWithCompletedClassifications =
       await pollClassificationResults();
 

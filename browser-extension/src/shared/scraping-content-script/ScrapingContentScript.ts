@@ -15,6 +15,7 @@ import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";
 import { createLogger, scrapingLogger } from "../utils/createLogger";
+import { getSettings } from "@/shared/storage/settings-storage";
 
 const ABORT_CANCEL_SCRAPING_REASON = Symbol("CANCEL_SCRAPING");
 
@@ -103,6 +104,7 @@ export class ScrapingContentScript {
         progress: 0,
       };
       const start = Date.now();
+      const settings = await getSettings();
       const scrapResult = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
         new ProgressManager((progress) => {
@@ -122,6 +124,7 @@ export class ScrapingContentScript {
             progress: roundedProgress,
           };
         }),
+        { skipScreenshoting: settings.skipScreenshoting },
       );
       if (isRequestRedirectAndScrap(scrapResult)) {
         logger.info("Scraper requested a page reload and restart");
@@ -139,10 +142,14 @@ export class ScrapingContentScript {
       const postSnapshot = scrapResult;
       await insertPostSnapshot(postSnapshot);
 
-      logger.info("Submit for classification");
-      // Request background to submit to backend without awaiting
-      // If this fails it will be recovered by background polling
-      void sendSubmitClassificationRequestMessage(postSnapshot.id);
+      if (!settings.skipSubmitForClassification) {
+        logger.info("Submit for classification");
+        // Request background to submit to backend without awaiting
+        // If this fails it will be recovered by background polling
+        void sendSubmitClassificationRequestMessage(postSnapshot.id);
+      } else {
+        logger.info("Skipping classification submission because of settings");
+      }
 
       const end = Date.now();
       const durationMs = end - start;

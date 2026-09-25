@@ -20,6 +20,7 @@ export class YoutubeVideoScraper {
     private pageInfo: ScrapableSocialNetworkPage,
 
     private progressManager: ProgressManager,
+    private skipScreenshoting: boolean = false,
   ) {}
 
   async scrapPost(): Promise<PostSnapshot> {
@@ -68,6 +69,7 @@ export class YoutubeVideoScraper {
       this.progressManager,
       commentsContainer,
       expectedCommentCount,
+      this.skipScreenshoting,
     ).scrapComments();
     return {
       id,

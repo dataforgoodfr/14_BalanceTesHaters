@@ -3,3 +3,4 @@ export { createScreenshotProviderForScrollableDescendants } from "./createScreen
 export { DocumentDescendantsScreenshotProvider } from "./DocumentDescendantsScreenshotProvider";
 export { ElementDescendantsScreenshotProvider } from "./ElementDescendantsScreenshotProvider";
 export { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
+export { EmptyElementScreenshotProvider } from "./EmptyElementScreenshotProvider";

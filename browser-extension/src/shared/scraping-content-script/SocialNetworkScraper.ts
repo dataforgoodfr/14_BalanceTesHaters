@@ -1,12 +1,18 @@
 import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import type { ProgressManager } from "./ProgressManager";
+
+export type SocialNetworkScraperSettings = {
+  skipScreenshoting: boolean;
+};
+
 export interface SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo>;
 
   scrapPagePost(
     abortSignal: AbortSignal,
     progress: ProgressManager,
+    settings?: SocialNetworkScraperSettings,
   ): Promise<ScrapPagePostResult>;
 }
 

@@ -15,6 +15,7 @@ import LayoutWithSidePanel from "./LayoutWithSidePanel";
 import { DocumentScreenshotingTestPage } from "./Developer/screenshoting/DocumentScreenshotingTestPage";
 import { ElementScreenshotingTestPage } from "./Developer/screenshoting/ElementScreenshotingTestPage";
 import { main } from "./Menu";
+import SettingsPage from "./Developer/settings/SettingsPage";
 
 export default function App() {
   return (
@@ -81,6 +82,10 @@ export default function App() {
         <Route
           path="/dev/element-screenshot-test"
           element={<ElementScreenshotingTestPage />}
+        />
+        <Route
+          path="/dev/settings"
+          element={<LayoutWithSidePanel page={<SettingsPage />} />}
         />
       </Routes>
     </HashRouter>
