@@ -19,7 +19,19 @@ export default defineBackground(() => {
 
   logger.debug("Register classification polling alarm");
   startClassificationPolling();
+
+  if (import.meta.env.VITE_SOAK_TEST_BUILD === "true") {
+    void openSoakControllerOnce();
+  }
 });
+
+async function openSoakControllerOnce(): Promise<void> {
+  const controllerPageUrl = `chrome-extension://${browser.runtime.id}/soak-controller.html`;
+  const tabs = await browser.tabs.query({});
+  if (!tabs.some((tab) => tab.url === controllerPageUrl)) {
+    await browser.tabs.create({ url: controllerPageUrl, active: true });
+  }
+}
 
 /**
  * Handles incoming messages from content scripts, popup, and other extension parts.

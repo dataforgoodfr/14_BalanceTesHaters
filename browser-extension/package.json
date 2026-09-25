@@ -24,6 +24,8 @@
     "test:e2e:ui": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --ui",
     "test:e2e:debug": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --debug",
     "test:e2e:report": "playwright show-report",
+    "test:soak:browser": "VITE_SOAK_TEST_BUILD=true pnpm build && tsx scripts/start-chromium.ts",
+    "test:soak:server": "tsx soak-test/main.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

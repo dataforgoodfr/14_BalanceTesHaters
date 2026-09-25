@@ -1,45 +1,58 @@
-export type ScrapingStatus =
-  | ScrapingNotStarted
-  | ScrapingRunning
-  | ScrapingCanceling
-  | ScrapingSucceeded
-  | ScrapingFailed
-  | ScrapingCanceled;
+import { z } from "zod";
 
-export type ScrapingNotStarted = {
-  type: "not-started";
-};
-export type ScrapingRunning = {
-  type: "running";
-  progress: number;
-};
+export const ScrapingNotStartedSchema = z.object({
+  type: z.literal("not-started"),
+});
+export type ScrapingNotStarted = z.infer<typeof ScrapingNotStartedSchema>;
+
+export const ScrapingRunningSchema = z.object({
+  type: z.literal("running"),
+  progress: z.number().min(0).max(100),
+});
+export type ScrapingRunning = z.infer<typeof ScrapingRunningSchema>;
+
 /**
  * Scraping completed successfully
  */
-export type ScrapingSucceeded = {
-  type: "succeeded";
-  postSnapshotId: string;
-  durationMs: number;
-};
+export const ScrapingSucceededSchema = z.object({
+  type: z.literal("succeeded"),
+  postSnapshotId: z.string(),
+  durationMs: z.number().nonnegative(),
+});
+export type ScrapingSucceeded = z.infer<typeof ScrapingSucceededSchema>;
+
 /**
  * Scraping failed with an error
  */
-export type ScrapingFailed = {
-  type: "failed";
+export const ScrapingFailedSchema = z.object({
+  type: z.literal("failed"),
   /** Error message */
-  errorMessage: string;
-};
+  errorMessage: z.string(),
+});
+export type ScrapingFailed = z.infer<typeof ScrapingFailedSchema>;
 
 /**
  * Cancel has been requested but it didn't stop yet
  */
-export type ScrapingCanceling = {
-  type: "canceling";
-};
+export const ScrapingCancelingSchema = z.object({
+  type: z.literal("canceling"),
+});
+export type ScrapingCanceling = z.infer<typeof ScrapingCancelingSchema>;
 
-export type ScrapingCanceled = {
-  type: "canceled";
-};
+export const ScrapingCanceledSchema = z.object({
+  type: z.literal("canceled"),
+});
+export type ScrapingCanceled = z.infer<typeof ScrapingCanceledSchema>;
+
+export const ScrapingStatusSchema = z.discriminatedUnion("type", [
+  ScrapingNotStartedSchema,
+  ScrapingRunningSchema,
+  ScrapingCancelingSchema,
+  ScrapingSucceededSchema,
+  ScrapingFailedSchema,
+  ScrapingCanceledSchema,
+]);
+export type ScrapingStatus = z.infer<typeof ScrapingStatusSchema>;
 
 export function scrapingFailed(errorMessage: string): ScrapingFailed {
   return {

@@ -4,6 +4,17 @@ import tailwindcss from "@tailwindcss/vite";
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: "src",
+  hooks: {
+    "entrypoints:resolved": (_wxt, entrypoints) => {
+      if (process.env.VITE_SOAK_TEST_BUILD !== "true") {
+        // includ soak-controller only in SOAK_TEST_BUILD
+        const soakController = entrypoints.find(
+          (entrypoint) => entrypoint.name === "soak-controller",
+        );
+        if (soakController) soakController.skipped = true;
+      }
+    },
+  },
   webExt: {
     disabled: true,
   },

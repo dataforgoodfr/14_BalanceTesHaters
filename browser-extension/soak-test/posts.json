@@ -1,0 +1,143 @@
+{
+  "scenarios": [
+    {
+      "id": "youtube-small-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=BqS4b2BzGgs",
+      "approximateExpectedComments": 358
+    },
+    {
+      "id": "youtube-large-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=VTFXXV_3x9Q",
+      "approximateExpectedComments": 1768
+    },
+    {
+      "id": "youtube-large-2",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=auIduirbKMQ",
+      "approximateExpectedComments": 1217
+    },
+    {
+      "id": "youtube-issue-304",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=aNjbKNHHAXI",
+      "approximateExpectedComments": 705
+    },
+    {
+      "id": "youtube-premiered",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=H7oc4uS0C7Y",
+      "approximateExpectedComments": 631
+    },
+    {
+      "id": "youtube-issue-214-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=GXp_AZGsOtc",
+      "approximateExpectedComments": 2027
+    },
+    {
+      "id": "youtube-issue-214-2",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=GSxKt8qRpTY",
+      "approximateExpectedComments": 13
+    },
+    {
+      "id": "youtube-issue-197-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=w-f0eiUGlUs",
+      "approximateExpectedComments": 28
+    },
+    {
+      "id": "youtube-issue-197-2",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=voOYyLqw_zA",
+      "approximateExpectedComments": 69
+    },
+    {
+      "id": "youtube-issue-111",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=haFll09jPzQ",
+      "approximateExpectedComments": 202
+    },
+    {
+      "id": "youtube-small-2",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=Hgj32MtxVeE",
+      "approximateExpectedComments": 37
+    },
+    {
+      "id": "youtube-multi-authors",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=5N9evgGteDI",
+      "approximateExpectedComments": 160
+    },
+    {
+      "id": "youtube-xxl-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=D-5sz_JLYOo",
+      "approximateExpectedComments": 9345
+    },
+    {
+      "id": "youtube-short-1",
+      "platform": "youtube",
+      "url": "https://www.youtube.com/shorts/AP4E92JxexI",
+      "approximateExpectedComments": 22
+    },
+    {
+      "id": "instagram-issue-3",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/p/DVTtFYHEgX_/",
+      "approximateExpectedComments": 162
+    },
+    {
+      "id": "instagram-issue-110",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/p/DWD5jrEoGa8/",
+      "approximateExpectedComments": 170
+    },
+    {
+      "id": "instagram-issue-201",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/p/DV5uq78jJqa/",
+      "approximateExpectedComments": 137
+    },
+    {
+      "id": "instagram-post-xsmall-1",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/p/DWVGSv_jZR-/",
+      "approximateExpectedComments": 29
+    },
+    {
+      "id": "instagram-reel-small-1",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/reels/DX9g-fpCIbF/",
+      "approximateExpectedComments": 134
+    },
+    {
+      "id": "instagram-post-large-1",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/salomesaque/p/DFswGyfItGF/",
+      "approximateExpectedComments": 913
+    },
+    {
+      "id": "instagram-post-large-2",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/p/DdmEeWvNbNY/",
+      "approximateExpectedComments": 1664
+    },
+    {
+      "id": "instagram-post-large-3",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/hugodecrypte/p/DdRWWxNjdmx/",
+      "approximateExpectedComments": 2839
+    },
+
+    {
+      "id": "instagram-post-xlarge-1",
+      "platform": "instagram",
+      "url": "https://www.instagram.com/hugodecrypte/p/DdEX9pjjaKD/",
+      "approximateExpectedComments": 3600
+    }
+  ]
+}
