@@ -155,11 +155,12 @@ export class ScrapingContentScript {
 
       const end = Date.now();
       const durationMs = end - start;
-      const topLevelCommentCounts = postSnapshot.comments.length;
+      const topLevelCommentCount = postSnapshot.comments.length;
       const allCommentsCount = countAllComments(postSnapshot.comments);
       const durationSec = Math.round(durationMs / 1000);
+      const averagePerComment = durationSec / allCommentsCount;
       logger.info(
-        `Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (${topLevelCommentCounts} top level)`,
+        `Scraping took: ${durationSec} seconds for ${allCommentsCount} comments (topLevelCount: ${topLevelCommentCount} , averagePerComment: ${averagePerComment.toFixed(2)}s )`,
       );
 
       this.scrapingStatus = {

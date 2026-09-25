@@ -6,16 +6,17 @@ import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
+import { createLogger } from "@/shared/utils/createLogger";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractIsoDateFromPostInfoTooltipText } from "./utils/extractIsoDateFromPostInfoTooltipText";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { coverImageUrl } from "./utils/coverImageUrl";
-import { YoutubeVideoCommentsScraper } from "./YoutubeVideoCommentsScraper";
 import { parseIntegerSwallowingSeparators } from "./utils/parseIntegerSwallowingSeparators";
-import { scrapYoutubeVideoAuthor } from "./scrapYoutubeVideoAuthor";
+import { scrapYoutubeVideoAuthor } from "./utils/scrapYoutubeVideoAuthor";
+import { YoutubeVideoCommentsScraper } from "./comments/YoutubeVideoCommentsScraper";
+import { ytBaseLogger } from "../ytBaseLogger";
 
-const logger = createLogger("yt-video", scrapingLogger);
+const logger = createLogger("video", ytBaseLogger);
 
 export class YoutubeVideoScraper {
   public constructor(
@@ -27,7 +28,7 @@ export class YoutubeVideoScraper {
   ) {}
 
   async scrapPost(): Promise<PostScrapingResult> {
-    logger.debug("Start Scraping... ", document.URL);
+    logger.info("Start Scraping... ", document.URL);
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
     logger.debug("Pause video...");
