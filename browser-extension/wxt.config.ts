@@ -4,6 +4,35 @@ import tailwindcss from "@tailwindcss/vite";
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   srcDir: "src",
+  hooks: {
+    "entrypoints:resolved": (_wxt, entrypoints) => {
+      const excludedEntrypoints = new Set<string>();
+      const soakTestBuild = process.env.VITE_SOAK_TEST_BUILD === "true";
+      if (soakTestBuild) {
+        console.log(
+          "VITE_SOAK_TEST_BUILD===true => Include soak-controller entrypoint",
+        );
+      } else {
+        console.log(
+          "VITE_SOAK_TEST_BUILD!==true => Excluding soak-controller entrypoint",
+        );
+        excludedEntrypoints.add("soak-controller");
+      }
+
+      excludedEntrypoints.forEach((excludedEntryPointName) => {
+        const entryPoint = entrypoints.find(
+          (ep) => ep.name === excludedEntryPointName,
+        );
+        if (entryPoint) {
+          entryPoint.skipped = true;
+        } else {
+          throw new Error(
+            "could not find entrypoint with name:" + excludedEntryPointName,
+          );
+        }
+      });
+    },
+  },
   webExt: {
     disabled: true,
   },
@@ -16,6 +45,9 @@ export default defineConfig({
   },
   vite: () => ({
     plugins: [tailwindcss()],
+    build: {
+      sourcemap: true,
+    },
   }),
   manifest: {
     name: "Balance Tes Haters : outil de détection de commentaires malveillants",
@@ -42,6 +74,10 @@ export default defineConfig({
       "activeTab",
       // Sidepanel needed to display scraping progresss
       "sidePanel",
+      // For Memory and cpu monitoring in soak testing
+      ...(process.env.VITE_SOAK_TEST_BUILD === "true"
+        ? (["processes"] as const)
+        : []),
     ],
     host_permissions: [
       // Allow sending data to backend server
@@ -57,5 +93,11 @@ export default defineConfig({
       extension_pages:
         "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';",
     },
+    web_accessible_resources: [
+      {
+        resources: ["**.js.map"],
+        matches: ["<all_urls>"],
+      },
+    ],
   },
 });
