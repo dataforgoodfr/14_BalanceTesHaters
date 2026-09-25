@@ -1,1 +1,3 @@
 pnpm-lock.yaml
+.soak-test-browser-data/
+soak-test-results/

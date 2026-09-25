@@ -25,6 +25,10 @@ export async function startChromium({
     [
       `--user-data-dir=${profileDir}`,
       "--no-default-browser-check",
+      "--chromium-pref",
+      // Enable content script source maps
+      // see https://github.com/wxt-dev/wxt/issues/236#issuecomment-1915364520
+      "devtools.synced_preferences_sync_disabled.skipContentScripts=false",
       `--load-extension=${extensionDir}`,
       "https://www.youtube.com",
     ],

@@ -113,15 +113,17 @@ export class ScrapingContentScript {
             // Probably canceling
             return;
           }
-          const roundedProgress = Math.round(progress);
+
           const durationSec = Math.round((Date.now() - start) / 1000);
 
           logger.debug(
-            `Scraping running - progress: ${roundedProgress}% - duration ${durationSec} seconds`,
+            `Scraping running - progress: ${progress.toFixed(2)}% - duration ${durationSec} seconds`,
           );
           this.scrapingStatus = {
             type: "running",
-            progress: roundedProgress,
+            // Keep the precise value so long-running phases can signal
+            // movement even when their progress changes by less than 1%.
+            progress,
           };
         }),
         { skipScreenshoting: settings.skipScreenshoting },

@@ -34,6 +34,8 @@ coverage
 # exclude playwright outputs report
 playwright-report
 test-results
+soak-test-results
+.soak-test-browser-data
 *storybook.log
 storybook-static
 tsconfig.tsbuildinfo

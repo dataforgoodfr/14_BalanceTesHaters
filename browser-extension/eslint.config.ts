@@ -19,6 +19,8 @@ export default defineConfig([
     "storybook-static",
     "playwright-report",
     "test-results",
+    "soak-test-results",
+    ".soak-test-browser-data/",
     "coverage",
   ]),
   {
