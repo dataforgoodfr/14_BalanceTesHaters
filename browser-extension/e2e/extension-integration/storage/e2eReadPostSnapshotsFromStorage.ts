@@ -7,8 +7,13 @@ export async function e2eReadPostSnapshotsFromStorage(
   context: BrowserContext,
 ): Promise<PostSnapshot[]> {
   const evaluationFn = async () => {
-    const partial = await browser.storage.local.get("posts");
-    return partial["posts"] || [];
+    const keys = (await browser.storage.local.getKeys()).filter((key) =>
+      key.startsWith("post-snapshots:v2:record:"),
+    );
+    const stored = await browser.storage.local.get(keys);
+    return keys.map(
+      (key) => (stored[key] as { postSnapshot: PostSnapshot }).postSnapshot,
+    );
   };
   const posts: unknown = await evaluateInBackgroundWorker(
     context,

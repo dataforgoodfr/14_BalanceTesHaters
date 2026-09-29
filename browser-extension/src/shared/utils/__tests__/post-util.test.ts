@@ -70,8 +70,6 @@ function createHatefulComment(
       date: new Date().toISOString(),
     },
     classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
-    screenshotData:
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     isNew: false,
     isDeleted: false,
   };
@@ -92,8 +90,6 @@ function createDummyCommentWithId(
       type: "absolute",
       date: new Date("2026-01-01T12:00:00Z").toISOString(),
     },
-    screenshotData:
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
     isNew: false,
     isDeleted: false,
     ...overrides,
@@ -243,8 +239,6 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
-                screenshotData:
-                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 isNew: false,
                 isDeleted: false,
               },
@@ -259,8 +253,6 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
-                screenshotData:
-                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 isNew: false,
                 isDeleted: false,
               },
@@ -764,8 +756,6 @@ describe("post utilities", () => {
                   date: new Date().toISOString(),
                 },
                 classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
-                screenshotData:
-                  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
                 isNew: false,
                 isDeleted: false,
               },

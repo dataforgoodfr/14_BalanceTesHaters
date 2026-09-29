@@ -34,11 +34,13 @@ import {
   EyeOff,
   MessageCircleMoreIcon,
 } from "lucide-react";
-import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import DisplayPublicationDate from "./DisplayPublicationDate";
 import { Badge } from "@/components/ui/badge";
+import { LazyCommentScreenshotImage } from "../Shared/LazyCommentScreenshotImage";
+import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 
 interface CommentTreeTableProps {
+  postSnapshotId: string;
   comments: CommentSnapshot[];
 }
 
@@ -49,9 +51,12 @@ const commentTreeFeatures = tableFeatures({
   expandedRowModel: createExpandedRowModel(),
 });
 
-export function CommentTreeTable({ comments }: CommentTreeTableProps) {
+export function CommentTreeTable({
+  postSnapshotId,
+  comments,
+}: CommentTreeTableProps) {
   const [expandedState, setExpandedState] = useState<ExpandedState>({});
-  const [showScreenshot, setShowScreenshot] = useState(true);
+  const [showScreenshot, setShowScreenshot] = useState(false);
   const [contentDialogOpen, setContentDialogOpen] = useState(false);
   const [screenshotDialogOpen, setScreenshotDialogOpen] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{
@@ -211,15 +216,15 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         header: "Capture d'écran",
         size: 300,
         cell: ({ row }) => {
-          if (!row.original.screenshotData) {
-            return <span className="text-muted-foreground">N/A</span>;
-          }
           return (
-            <img
-              src={buildDataUrl(row.original.screenshotData, PNG_MIME_TYPE)}
+            <LazyCommentScreenshotImage
+              screenshotRef={{
+                postSnapshotId,
+                commentSnapshotId: row.original.id,
+              }}
               alt="Screenshot"
               className="cursor-pointer h-full max-h-full!"
-              onClick={() => openScreenshotDialog(row.original.screenshotData)}
+              onClick={openScreenshotDialog}
             />
           );
         },
@@ -237,7 +242,7 @@ export function CommentTreeTable({ comments }: CommentTreeTableProps) {
         },
       },
     ],
-    [],
+    [postSnapshotId],
   );
 
   const table = useTable({

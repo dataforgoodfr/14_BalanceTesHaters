@@ -21,7 +21,6 @@ const exampleComment: PostComment = {
     type: "absolute",
     date: "2026-03-22T00:00:00.000Z",
   },
-  screenshotData: "",
 };
 
 const inProgressPost: Post = {

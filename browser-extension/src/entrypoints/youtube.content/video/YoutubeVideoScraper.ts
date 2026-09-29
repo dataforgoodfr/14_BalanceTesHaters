@@ -1,4 +1,7 @@
-import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import {
+  detachCommentScreenshots,
+  type PostScrapingResult,
+} from "@/shared/model/PostScrapingResult";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
@@ -23,7 +26,7 @@ export class YoutubeVideoScraper {
     private skipScreenshoting: boolean = false,
   ) {}
 
-  async scrapPost(): Promise<PostSnapshot> {
+  async scrapPost(): Promise<PostScrapingResult> {
     logger.debug("Start Scraping... ", document.URL);
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
@@ -64,25 +67,31 @@ export class YoutubeVideoScraper {
     );
     const expectedCommentCount = await this.scrapExpectedCommentCount();
 
-    const comments = await new YoutubeVideoCommentsScraper(
+    const commentsWithScreenshots = await new YoutubeVideoCommentsScraper(
       this.scrapingSupport,
       this.progressManager,
       commentsContainer,
       expectedCommentCount,
       this.skipScreenshoting,
     ).scrapComments();
+    const { comments, screenshots } = detachCommentScreenshots(
+      commentsWithScreenshots,
+    );
     return {
-      id,
-      postId,
-      socialNetwork: SocialNetwork.YouTube,
-      scrapedAt,
-      coverImageUrl: coverImageUrl(this.pageInfo.postId),
-      url,
-      author: author,
-      publishedAt: publishedAt,
-      textContent,
-      comments: comments,
-      title,
+      postSnapshot: {
+        id,
+        postId,
+        socialNetwork: SocialNetwork.YouTube,
+        scrapedAt,
+        coverImageUrl: coverImageUrl(this.pageInfo.postId),
+        url,
+        author: author,
+        publishedAt: publishedAt,
+        textContent,
+        comments,
+        title,
+      },
+      screenshots,
     };
   }
 

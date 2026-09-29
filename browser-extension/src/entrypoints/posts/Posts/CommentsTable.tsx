@@ -50,7 +50,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { useNavigate } from "react-router";
 import type {
   CommentFilters,
@@ -59,6 +58,8 @@ import type {
 } from "@/shared/utils/post-util";
 import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
+import { CommentScreenshotImage } from "../Shared/CommentScreenshotImage";
+import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 
 const commentsTableFeatures = tableFeatures({
   columnSizingFeature,
@@ -254,16 +255,12 @@ export default function CommentsTable({
         header: "Capture",
         size: 14,
         cell: ({ row }) => {
-          if (!row.original.screenshotData) {
-            return <span className="text-muted-foreground">N/A</span>;
-          }
-
           return (
-            <img
-              src={buildDataUrl(row.original.screenshotData, PNG_MIME_TYPE)}
+            <CommentScreenshotImage
+              screenshotRef={row.original.screenshotRef}
               alt="Capture du commentaire"
               className="max-h-16 cursor-pointer border rounded"
-              onClick={() => openScreenshotDialog(row.original.screenshotData)}
+              onClick={openScreenshotDialog}
             />
           );
         },

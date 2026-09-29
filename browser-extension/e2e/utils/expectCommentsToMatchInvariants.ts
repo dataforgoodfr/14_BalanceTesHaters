@@ -14,11 +14,6 @@ export function expectCommentsToMatchInvariants(comments: CommentSnapshot[]) {
   ).toBe(true);
 
   expect(
-    comments.every((comment) => comment.screenshotData.length > 0),
-    "Comments should have screenshot data",
-  ).toBe(true);
-
-  expect(
     comments.every((comment) => comment.author.name.length > 0),
     "Comments should have author name",
   ).toBe(true);

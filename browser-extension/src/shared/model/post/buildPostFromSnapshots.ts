@@ -1,8 +1,14 @@
-import { buildCommentsFromSnapshots } from "./buildCommentsFromSnapshots";
+import {
+  buildCommentsFromSnapshots,
+  type ScreenshotCommentIdsByPostSnapshotId,
+} from "./buildCommentsFromSnapshots";
 import type { Post } from "./Post";
 import type { PostSnapshot } from "../PostSnapshot";
 
-export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
+export function buildPostFromSnapshots(
+  snapshots: PostSnapshot[],
+  screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
+): Post {
   if (snapshots.length === 0) {
     throw new Error("At least one snapshot required");
   }
@@ -29,7 +35,10 @@ export function buildPostFromSnapshots(snapshots: PostSnapshot[]): Post {
     coverImageUrl: latest.coverImageUrl,
     textContent: latest.textContent,
     title: latest.title,
-    comments: buildCommentsFromSnapshots(oldestFirst),
+    comments: buildCommentsFromSnapshots(
+      oldestFirst,
+      screenshotCommentIdsByPostSnapshotId,
+    ),
     firstAnalysisDate: oldest.scrapedAt,
     analysisCount: snapshots.length,
     latestAnalysisDate: latest.scrapedAt,

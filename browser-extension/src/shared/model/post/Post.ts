@@ -1,6 +1,7 @@
 import type { ClassificationStatus } from "../ClassificationStatus";
 import type { CommentSharedProperties } from "../CommentSharedPropertiesSchema";
 import type { PostSharedProperties } from "../PostSharedProperties";
+import type { CommentScreenshotRef } from "../CommentScreenshot";
 
 /**
  * Merged view of Post Snapshot
@@ -31,9 +32,9 @@ export type Post = PostSharedProperties & {
 
 export type PostComment = CommentSharedProperties & {
   /**
-   * Base64 encoded PNG screenshot captured at scrape time.
+   * Screenshot selected as evidence for this consolidated comment.
    */
-  screenshotData: string;
+  screenshotRef?: CommentScreenshotRef;
 
   /**
    * True if comment was added in latest snapshot of post and more than one snapshot existed

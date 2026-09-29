@@ -38,6 +38,10 @@ import {
 import type { GroupedData } from "../ReportGroupingUtils";
 import { getAuthorGroups, getPublicationGroups } from "../ReportGroupingUtils";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
+import {
+  getReportCommentScreenshot,
+  type ReportScreenshotData,
+} from "../reportScreenshots";
 
 const GRAY_500 = "#6b7280";
 const NEUTRAL_50 = "#FAFAFA";
@@ -259,9 +263,14 @@ const KpiCard = ({ label, value }: { label: string; value: string }) => {
 interface PdfReportProps {
   reportQueryData: ReportQueryData;
   posts: Post[];
+  screenshotData: ReportScreenshotData;
 }
 
-export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
+export const PdfReport = ({
+  reportQueryData,
+  posts,
+  screenshotData,
+}: PdfReportProps) => {
   const [now] = useState(() => new Date());
 
   const { postCommentList, reportOrganizationType } = reportQueryData;
@@ -389,13 +398,18 @@ export const PdfReport = ({ reportQueryData, posts }: PdfReportProps) => {
                       </Text>
                     </View>
                     <View style={styles.commentRow}>
-                      <Image
-                        src={buildDataUrl(
-                          comment.screenshotData,
-                          PNG_MIME_TYPE,
-                        )}
-                        style={styles.screenshotImage}
-                      />
+                      {getReportCommentScreenshot(comment, screenshotData) ? (
+                        <Image
+                          src={buildDataUrl(
+                            getReportCommentScreenshot(
+                              comment,
+                              screenshotData,
+                            )!,
+                            PNG_MIME_TYPE,
+                          )}
+                          style={styles.screenshotImage}
+                        />
+                      ) : null}
                       <Text style={styles.invisibleText}>
                         {comment.textContent}
                       </Text>

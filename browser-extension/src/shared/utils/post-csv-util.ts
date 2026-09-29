@@ -131,7 +131,7 @@ export function buildPostCommentRow(
       : "",
     comment_classified_at_raw_utc: comment.classifiedAt ?? "",
     comment_screenshot_available: booleanToFrenchText(
-      Boolean(comment.screenshotData),
+      Boolean(comment.screenshotRef),
     ),
     comment_is_deleted: booleanToFrenchText(comment.isDeleted),
     comment_is_new: booleanToFrenchText(comment.isNew),

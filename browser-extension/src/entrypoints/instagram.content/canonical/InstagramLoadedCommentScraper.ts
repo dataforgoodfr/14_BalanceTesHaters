@@ -3,7 +3,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { Author } from "@/shared/model/Author";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
 import {
   FB_COMMENTS_TEXT_REGEX,
   LIKES_BUTTON_REGEX,
@@ -199,13 +199,13 @@ export function extractCommentIdFromInstagramCommentHref(href: string): string {
 
 export type InstagramTextComment = {
   type: "text";
-  data: Omit<CommentSnapshot, "replies">;
+  data: Omit<CommentSnapshotWithScreenshot, "replies">;
 };
 
 export type InstagramImageComment = {
   type: "image";
   data: Omit<
-    CommentSnapshot,
+    CommentSnapshotWithScreenshot,
     "replies" | "publishedAt" | "textContent" | "commentId"
   > & {
     imageSrc: string;

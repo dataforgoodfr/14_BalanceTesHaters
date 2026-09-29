@@ -139,8 +139,8 @@ export class ScrapingContentScript {
 
       // Store post snapshot
       logger.info("Storing post snapshot");
-      const postSnapshot = scrapResult;
-      await insertPostSnapshot(postSnapshot);
+      const { postSnapshot, screenshots } = scrapResult;
+      await insertPostSnapshot({ postSnapshot, screenshots });
 
       if (!settings.skipSubmitForClassification) {
         logger.info("Submit for classification");

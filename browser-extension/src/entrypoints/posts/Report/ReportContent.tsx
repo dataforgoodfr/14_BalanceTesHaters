@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { getPublicationGroups, getAuthorGroups } from "./ReportGroupingUtils";
 import { LABEL_RAPPORT_COMMENTAIRES_MALVEILLANTS } from "./reportData";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
+import type { ReportScreenshotData } from "./reportScreenshots";
 
 interface ReportContentProps {
   reportQueryData?: ReportQueryData;
@@ -20,6 +21,7 @@ interface ReportContentProps {
   isLoadingPosts: boolean;
   setSelectedScreenshot: (screenshot: string | null) => void;
   setScreenshotDialogOpen: (open: boolean) => void;
+  screenshotData: ReportScreenshotData;
 }
 
 export const ReportContent = ({
@@ -28,6 +30,7 @@ export const ReportContent = ({
   isLoadingPosts,
   setSelectedScreenshot,
   setScreenshotDialogOpen,
+  screenshotData,
 }: ReportContentProps) => {
   const numberOfHatefulComments = reportQueryData?.postCommentList?.length ?? 0;
 
@@ -94,6 +97,7 @@ export const ReportContent = ({
             ReportOrganizationType.BY_AUTHOR
           }
           commentPostMap={group.commentPostMap}
+          screenshotData={screenshotData}
         />
       ))}
       <NoticeUtilisation />

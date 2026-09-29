@@ -22,10 +22,15 @@ import {
   publicationDateToDocxText,
   reportOrganizationTypeToText,
 } from "./reportExportShared";
+import {
+  getReportCommentScreenshot,
+  type ReportScreenshotData,
+} from "../reportScreenshots";
 
 export function buildReportDocx(
   reportQueryData: ReportQueryData,
   posts: Post[],
+  screenshotData: ReportScreenshotData,
 ): DocxDocument {
   const postsByKey = new Map<string, Post>(
     posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
@@ -161,7 +166,7 @@ export function buildReportDocx(
           ],
           [
             "Capture d'écran disponible",
-            booleanToFrenchText(Boolean(comment.screenshotData)),
+            booleanToFrenchText(Boolean(comment.screenshotRef)),
           ],
           ["Commentaire supprimé", booleanToFrenchText(comment.isDeleted)],
           ["Commentaire nouveau", booleanToFrenchText(comment.isNew)],
@@ -178,7 +183,7 @@ export function buildReportDocx(
       );
 
       const screenshotParagraphs = createCommentScreenshotParagraphs(
-        comment.screenshotData,
+        getReportCommentScreenshot(comment, screenshotData) ?? "",
       );
       screenshotParagraphs.forEach((paragraph) => {
         children.push(paragraph);

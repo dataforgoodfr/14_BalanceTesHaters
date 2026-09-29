@@ -12,6 +12,10 @@ import {
 } from "./reportData";
 import type { PostCommentWithId } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
+import {
+  getReportCommentScreenshot,
+  type ReportScreenshotData,
+} from "./reportScreenshots";
 
 interface ReportCommentProps {
   comment: PostCommentWithId;
@@ -20,6 +24,7 @@ interface ReportCommentProps {
   totalItems: number;
   reportOrganizationType: ReportOrganizationType;
   post?: Post;
+  screenshotData: ReportScreenshotData;
 }
 
 export const ReportComment = ({
@@ -29,7 +34,9 @@ export const ReportComment = ({
   totalItems,
   reportOrganizationType,
   post,
+  screenshotData,
 }: ReportCommentProps) => {
+  const screenshot = getReportCommentScreenshot(comment, screenshotData);
   return (
     <div
       className={cn(
@@ -58,23 +65,27 @@ export const ReportComment = ({
       </div>
       <div className="flex w-full">
         <div className="flex justify-between gap-2 w-full">
-          <button
-            type="button"
-            onClick={() => onScreenshotClick(comment.screenshotData)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                onScreenshotClick(comment.screenshotData);
-              }
-            }}
-            className="cursor-pointer h-full max-h-full rounded-2xl border p-2 bg-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-opacity"
-            aria-label="Afficher la capture d'écran du commentaire"
-          >
-            <img
-              src={buildDataUrl(comment.screenshotData, PNG_MIME_TYPE)}
-              alt="Capture d'écran du commentaire"
-              className="h-full max-h-full"
-            />
-          </button>
+          {screenshot ? (
+            <button
+              type="button"
+              onClick={() => onScreenshotClick(screenshot)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  onScreenshotClick(screenshot);
+                }
+              }}
+              className="cursor-pointer h-full max-h-full rounded-2xl border p-2 bg-white hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-opacity"
+              aria-label="Afficher la capture d'écran du commentaire"
+            >
+              <img
+                src={buildDataUrl(screenshot, PNG_MIME_TYPE)}
+                alt="Capture d'écran du commentaire"
+                className="h-full max-h-full"
+              />
+            </button>
+          ) : (
+            <span className="text-muted-foreground">N/A</span>
+          )}
           <div className="flex flex-col items-end">
             <span className="text-xs text-muted-foreground">
               {getLabelPublishedComment(comment.publishedAt)}
