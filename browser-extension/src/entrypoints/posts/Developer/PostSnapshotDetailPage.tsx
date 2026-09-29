@@ -133,7 +133,7 @@ function PostSnapshotDetailPage() {
 
           <h2 className="text-left pt-2 my-4">Commentaires</h2>
 
-          <CommentTreeTable comments={post.comments} />
+          <CommentTreeTable postSnapshotId={post.id} comments={post.comments} />
         </>
       )}
     </main>

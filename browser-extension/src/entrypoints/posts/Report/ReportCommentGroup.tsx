@@ -3,6 +3,7 @@ import { ReportComment } from "./ReportComment";
 import type React from "react";
 import type { PostCommentWithId } from "@/shared/utils/post-util";
 import type { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
+import type { ReportScreenshotData } from "./reportScreenshots";
 
 interface CommentGroupProps {
   groupKey: string;
@@ -11,6 +12,7 @@ interface CommentGroupProps {
   onScreenshotClick: (screenshot: string) => void;
   reportOrganizationType: ReportOrganizationType;
   commentPostMap?: Map<string, Post>;
+  screenshotData: ReportScreenshotData;
 }
 
 export const ReportCommentGroup = ({
@@ -20,6 +22,7 @@ export const ReportCommentGroup = ({
   onScreenshotClick,
   reportOrganizationType,
   commentPostMap,
+  screenshotData,
 }: CommentGroupProps) => (
   <div key={groupKey} className="flex flex-col border rounded-xl">
     <div className="flex justify-between p-4 bg-indigo-50 rounded-t-xl">
@@ -35,6 +38,7 @@ export const ReportCommentGroup = ({
           totalItems={comments.length}
           reportOrganizationType={reportOrganizationType}
           post={commentPostMap?.get(comment.id)}
+          screenshotData={screenshotData}
         />
       ))}
     </div>

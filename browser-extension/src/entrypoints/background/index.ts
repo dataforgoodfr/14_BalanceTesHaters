@@ -8,6 +8,7 @@ import { startClassificationPolling } from "./classification/classificationPolli
 import type { GetSenderInfoResult } from "./getSenderInfo";
 import { isGetSenderInfoMessage as isIdentifyMe } from "./getSenderInfo";
 import { createLogger } from "@/shared/utils/createLogger";
+import { initializeStorage } from "@/shared/storage/post-snapshot-storage";
 
 const logger = createLogger("background");
 
@@ -19,6 +20,11 @@ export default defineBackground(() => {
 
   logger.debug("Register classification polling alarm");
   startClassificationPolling();
+
+  logger.debug("Initialize post snapshot storage");
+  void initializeStorage().catch((error: unknown) => {
+    logger.error("Post snapshot storage initialization failed", error);
+  });
 });
 
 /**

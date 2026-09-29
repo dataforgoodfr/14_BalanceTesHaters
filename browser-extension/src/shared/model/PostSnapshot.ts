@@ -18,10 +18,6 @@ const NonRecursiveCommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
   commentId: z.string(),
 
   /**
-   * Based 64 encoded PNG data
-   */
-  screenshotData: z.base64(),
-  /**
    * Timestamp of scrap - ISO datetime
    */
   scrapedAt: z.iso.datetime(),

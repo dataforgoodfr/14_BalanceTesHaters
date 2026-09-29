@@ -1,7 +1,8 @@
-import type {
-  CommentSnapshot,
-  PostSnapshot,
-} from "@/shared/model/PostSnapshot";
+import {
+  detachCommentScreenshots,
+  type CommentSnapshotWithScreenshot,
+  type PostScrapingResult,
+} from "@/shared/model/PostScrapingResult";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
@@ -34,7 +35,7 @@ export class InstagramCanonicalScraper {
     private skipScreenshoting: boolean = false,
   ) {}
 
-  async scrapPost(): Promise<PostSnapshot> {
+  async scrapPost(): Promise<PostScrapingResult> {
     logger.debug("Start Scraping... ", document.URL);
 
     const url = document.URL;
@@ -69,25 +70,33 @@ export class InstagramCanonicalScraper {
       this.skipScreenshoting,
     ).scrapCommentThreads();
 
-    const comments = this.mapToCommentSnapshots(instagramCommentThreads);
+    const commentsWithScreenshots = this.mapToCommentSnapshots(
+      instagramCommentThreads,
+    );
+    const { comments, screenshots } = detachCommentScreenshots(
+      commentsWithScreenshots,
+    );
 
     return {
-      id,
-      socialNetwork: SocialNetwork.Instagram,
-      postId,
-      author,
-      publishedAt,
-      textContent,
-      scrapedAt,
-      url,
-      coverImageUrl,
-      comments,
+      postSnapshot: {
+        id,
+        socialNetwork: SocialNetwork.Instagram,
+        postId,
+        author,
+        publishedAt,
+        textContent,
+        scrapedAt,
+        url,
+        coverImageUrl,
+        comments,
+      },
+      screenshots,
     };
   }
 
   private mapToCommentSnapshots(
     instagramCommentThreads: InstagramCommentThread[],
-  ): CommentSnapshot[] {
+  ): CommentSnapshotWithScreenshot[] {
     const commentSnapshots = instagramCommentThreads
       .map((ict) => {
         if (ict.comment.type !== "text") {
@@ -95,7 +104,7 @@ export class InstagramCanonicalScraper {
           return undefined;
         }
 
-        const commentSnapshot: CommentSnapshot = {
+        const commentSnapshot: CommentSnapshotWithScreenshot = {
           ...ict.comment.data,
           replies: this.mapRepliesToCommentSnapshots(ict.replies),
         };
@@ -107,7 +116,7 @@ export class InstagramCanonicalScraper {
 
   private mapRepliesToCommentSnapshots(
     instagramCommentReplies: InstagramComment[],
-  ): CommentSnapshot[] {
+  ): CommentSnapshotWithScreenshot[] {
     return instagramCommentReplies
       .filter((r) => r.type === "text")
       .map((r: InstagramTextComment) => ({

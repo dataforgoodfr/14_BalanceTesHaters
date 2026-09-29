@@ -5,9 +5,6 @@ import type {
 } from "@/shared/model/PostSnapshot";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 
-const SCREENSHOT_DATA =
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
-
 function comment(
   overrides: Partial<CommentSnapshot> &
     Pick<CommentSnapshot, "id" | "commentId" | "textContent">,
@@ -21,7 +18,6 @@ function comment(
       type: "absolute",
       date: "2026-08-19T08:00:00.000Z",
     },
-    screenshotData: SCREENSHOT_DATA,
     scrapedAt: "2026-08-20T10:00:00.000Z",
     nbLikes: 0,
     replies: [],

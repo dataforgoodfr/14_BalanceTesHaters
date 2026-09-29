@@ -86,7 +86,6 @@ describe("mergeClassificationResultIntoPost", () => {
         commentId: commentId,
         textContent: "Parent comment",
         author: { name: "Author", accountHref: "https://example.com" },
-        screenshotData: "data:image/png;base64,abc123",
         scrapedAt: "2024-01-15T12:00:00.000Z",
         publishedAt: absoluteDate(),
         replies: [
@@ -95,7 +94,6 @@ describe("mergeClassificationResultIntoPost", () => {
             commentId: replyId1,
             textContent: "First level reply",
             author: { name: "Author1", accountHref: "https://example.com/1" },
-            screenshotData: "data:image/png;base64,reply1",
             scrapedAt: "2024-01-15T12:00:00.000Z",
             publishedAt: absoluteDate(),
             replies: [
@@ -107,7 +105,6 @@ describe("mergeClassificationResultIntoPost", () => {
                   name: "Author2",
                   accountHref: "https://example.com/2",
                 },
-                screenshotData: "data:image/png;base64,reply2",
                 scrapedAt: "2024-01-15T12:00:00.000Z",
                 publishedAt: absoluteDate(),
                 replies: [],

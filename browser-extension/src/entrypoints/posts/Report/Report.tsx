@@ -26,6 +26,11 @@ import { getPostsByPostIdList } from "@/shared/storage/post-storage";
 import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
 import ClosableAlert from "../Shared/ClosableAlert";
 import { Logo } from "@/components/shared/Logo";
+import { getScreenshots } from "@/shared/storage/post-snapshot-storage";
+import { commentScreenshotRefKey } from "@/shared/model/CommentScreenshot";
+import type { ReportScreenshotData } from "./reportScreenshots";
+
+const EMPTY_SCREENSHOT_DATA: ReportScreenshotData = new Map();
 
 const Report = ({
   reportQueryData,
@@ -55,9 +60,31 @@ const Report = ({
     queryFn: () => getPostsByPostIdList(reportQueryData?.postIdList ?? []),
   });
 
+  const screenshotRefs = useMemo(
+    () =>
+      reportQueryData?.postCommentList.flatMap((comment) =>
+        comment.screenshotRef ? [comment.screenshotRef] : [],
+      ) ?? [],
+    [reportQueryData?.postCommentList],
+  );
+  const screenshotQueryKey = screenshotRefs
+    .map(commentScreenshotRefKey)
+    .sort()
+    .join(",");
+  const {
+    data: screenshotData = EMPTY_SCREENSHOT_DATA,
+    isLoading: isLoadingScreenshots,
+  } = useQuery({
+    queryKey: ["report-screenshots", screenshotQueryKey],
+    queryFn: () => getScreenshots(screenshotRefs),
+    enabled: screenshotRefs.length > 0,
+    gcTime: 0,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+
   const canExportCsv =
     !isLoading && (reportQueryData?.postCommentList.length ?? 0) > 0;
-  const canExportDocx = canExportCsv;
+  const canExportDocx = canExportCsv && !isLoadingScreenshots;
 
   const exportCsv = () => {
     if (!reportQueryData) {
@@ -80,7 +107,11 @@ const Report = ({
       return;
     }
     const generatedAt = new Date().toISOString().replace(/[:.]/g, "-");
-    const docxDocument = buildReportDocx(reportQueryData, data ?? []);
+    const docxDocument = buildReportDocx(
+      reportQueryData,
+      data ?? [],
+      screenshotData,
+    );
     const blob = await Packer.toBlob(docxDocument);
     const objectUrl = URL.createObjectURL(blob);
 
@@ -116,10 +147,11 @@ const Report = ({
           >
             Exporter les données en CSV
           </Button>
-          {reportQueryData && posts ? (
+          {reportQueryData && posts && !isLoadingScreenshots ? (
             <DownloadPdfButton
               reportQueryData={reportQueryData}
               posts={posts}
+              screenshotData={screenshotData}
             />
           ) : (
             <Button roundness="round" variant="outline" disabled>
@@ -170,6 +202,7 @@ const Report = ({
           isLoadingPosts={isLoadingPosts}
           setSelectedScreenshot={setSelectedScreenshot}
           setScreenshotDialogOpen={setScreenshotDialogOpen}
+          screenshotData={screenshotData}
         />
       </div>
 

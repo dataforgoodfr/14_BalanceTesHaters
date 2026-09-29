@@ -1,6 +1,13 @@
-# Modèle de données pour le stockage côté client (Extension navigateur)
+# Modèle applicatif côté client
 
-## Schéma
+Ce document décrit les objets métier manipulés par l'extension. Une collecte
+peut produire plusieurs milliers de screenshots. Ils font partie du
+métier, mais leurs données sont chargées séparément pour limiter la consommation
+mémoire.
+
+Le format de persistance des PostsSnapshot est décrit dans [Stockage côté client](./post-storage-v2.md).
+
+## Snapshots de collecte (PostSnapshot)
 
 ```mermaid
 classDiagram
@@ -33,7 +40,6 @@ classDiagram
         author: Author
 
         textContent: string
-        screenshotData: base64
         scrapedAt: datetime
         nbLikes: int
         replies: CommentSnapshot[]
@@ -73,7 +79,7 @@ classDiagram
     CommentSnapshot "1" --> "0..n" CommentSnapshot : replies
 ```
 
-## Exemple
+### Exemple JSON
 
 ```json
 {
@@ -102,7 +108,6 @@ classDiagram
         "type": "absolute",
         "date": "2025-11-21T07:21:06.000Z"
       },
-      "screenshotData": "<base64 encoded PNG>",
       "scrapedAt": "2026-01-03T14:52:01.000Z",
       "author": {
         "name": "julieau_makeup.n.paint",
@@ -116,4 +121,42 @@ classDiagram
     }
   ]
 }
+```
+
+## Model résultat du scraping
+
+`CommentSnapshot` ne contient pas les données d'un screenshot.
+Le scraper retourne le snapshot et les screenshots dans deux propriétés distinctes :
+```ts
+type PostScrapingResult = {
+  postSnapshot: PostSnapshot;
+  screenshots: Record<CommentSnapshot["id"], string>;
+};
+```
+
+La clé de `screenshots` est `CommentSnapshot.id`, l'UUID propre à cette
+collecte. Il ne s'agit pas de `CommentSnapshot.commentId`, qui identifie le
+commentaire sur le réseau social et peut être commun à plusieurs snapshots. Le
+`postSnapshotId` n'est pas répété pour chaque screenshot puisqu'il est déjà porté
+par `postSnapshot.id`.
+
+
+## Modèle consolidé (Post, PostComment)
+
+`Post` et `PostComment` consolident plusieurs
+snapshots et portent les règles de déduplication ainsi que les notions de
+commentaire ajouté ou supprimé. Un `PostComment` référence le screenshot retenu
+comme preuve, sans contenir ses données :
+
+```ts
+type CommentScreenshotRef = {
+  postSnapshotId: PostSnapshot["id"];
+  commentSnapshotId: CommentSnapshot["id"];
+};
+
+type PostComment = CommentSharedProperties & {
+  screenshotRef?: CommentScreenshotRef;
+  isNew: boolean;
+  isDeleted: boolean;
+};
 ```

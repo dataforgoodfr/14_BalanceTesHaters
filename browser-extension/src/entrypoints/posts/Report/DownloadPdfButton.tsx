@@ -7,19 +7,28 @@ import type { Post } from "@/shared/model/post/Post";
 import { REPORT_PDF_FILE_NAME } from "@/shared/utils/report-data";
 import type { ReportQueryData } from "./Stepper/BuildReport";
 import { DOWNLOAD_PDF_LABEL } from "@/shared/constants/labels";
+import type { ReportScreenshotData } from "./reportScreenshots";
 
 interface DownloadPdfButtonProps {
   reportQueryData: ReportQueryData;
   posts: Post[];
+  screenshotData: ReportScreenshotData;
 }
 
 export const DownloadPdfButton = ({
   reportQueryData,
   posts,
+  screenshotData,
 }: DownloadPdfButtonProps) => {
   const pdfDocument = useMemo(
-    () => <PdfReport reportQueryData={reportQueryData} posts={posts} />,
-    [posts, reportQueryData],
+    () => (
+      <PdfReport
+        reportQueryData={reportQueryData}
+        posts={posts}
+        screenshotData={screenshotData}
+      />
+    ),
+    [posts, reportQueryData, screenshotData],
   );
   const [instance, updateInstance] = usePDF();
 

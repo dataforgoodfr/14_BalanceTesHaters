@@ -1,6 +1,15 @@
 import type { PostComment } from "./Post";
 import type { CommentSnapshot, PostSnapshot } from "../PostSnapshot";
 import { flattenCommentsSnapshotReplies } from "../PostSnapshot";
+import type { CommentScreenshotRef } from "../CommentScreenshot";
+
+/**
+ * Extra information needed to track which comments have screenshot
+ */
+export type ScreenshotCommentIdsByPostSnapshotId = ReadonlyMap<
+  PostSnapshot["id"],
+  ReadonlySet<CommentSnapshot["id"]>
+>;
 
 /**
  * Builds PostComment array by:
@@ -12,10 +21,14 @@ import { flattenCommentsSnapshotReplies } from "../PostSnapshot";
  */
 export function buildCommentsFromSnapshots(
   postSnapshots: PostSnapshot[],
+  screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
 ): PostComment[] {
   // Flatten all comments from all snapshots adding  post index info
   const flattenedCommentSnapshots: CommentSnapshotWithPostInfo[] =
-    buildFlattenCommentSnapshotsWithPostInfo(postSnapshots);
+    buildFlattenCommentSnapshotsWithPostInfo(
+      postSnapshots,
+      screenshotCommentIdsByPostSnapshotId,
+    );
 
   // Group by same comment id
   const commentSnapshotsGroupedByCommentId: CommentSnapshotWithPostInfo[][] =
@@ -41,11 +54,14 @@ type CommentSnapshotWithPostInfo = {
    * Position of the post snapshot from which this comment is coming.
    */
   postSnapshotIndex: number;
+  postSnapshotId: PostSnapshot["id"];
+  hasScreenshot: boolean;
   commentSnapshot: CommentSnapshot;
 };
 
 function buildFlattenCommentSnapshotsWithPostInfo(
   postSnapshots: PostSnapshot[],
+  screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
 ): CommentSnapshotWithPostInfo[] {
   return postSnapshots.flatMap((postSnapshot, postSnapshotIndex) =>
     flattenCommentsSnapshotReplies(
@@ -53,6 +69,11 @@ function buildFlattenCommentSnapshotsWithPostInfo(
     ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => ({
       commentSnapshot,
       postSnapshotIndex,
+      postSnapshotId: postSnapshot.id,
+      hasScreenshot:
+        screenshotCommentIdsByPostSnapshotId
+          .get(postSnapshot.id)
+          ?.has(commentSnapshot.id) ?? false,
     })),
   );
 }
@@ -114,7 +135,7 @@ function buildPostCommentForGroupOfSameText(
     textContent: groupOldestComment.commentSnapshot.textContent,
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
     author: groupOldestComment.commentSnapshot.author,
-    screenshotData: selectScreenshotData(sortedByScrapedAt),
+    screenshotRef: selectScreenshotRef(sortedByScrapedAt),
     classification: groupOldestComment.commentSnapshot.classification,
     hateScore: groupOldestComment.commentSnapshot.hateScore,
     classifiedAt: groupOldestComment.commentSnapshot.classifiedAt,
@@ -124,19 +145,16 @@ function buildPostCommentForGroupOfSameText(
   };
 }
 
-function selectScreenshotData(
+function selectScreenshotRef(
   sortedByScrapedAt: CommentSnapshotWithPostInfo[],
-): string {
-  const latest = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
-  if (latest.commentSnapshot.screenshotData) {
-    return latest.commentSnapshot.screenshotData;
-  }
-
-  const latestNonEmpty = [...sortedByScrapedAt]
-    .reverse()
-    .find((item) => item.commentSnapshot.screenshotData);
-
-  return latestNonEmpty?.commentSnapshot.screenshotData ?? "";
+): CommentScreenshotRef | undefined {
+  const selected = sortedByScrapedAt.findLast((item) => item.hasScreenshot);
+  return selected
+    ? {
+        postSnapshotId: selected.postSnapshotId,
+        commentSnapshotId: selected.commentSnapshot.id,
+      }
+    : undefined;
 }
 
 function commentId(comment: CommentSnapshot): string {

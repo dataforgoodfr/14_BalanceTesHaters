@@ -6,14 +6,17 @@ import { SocialNetwork } from "../../SocialNetworkName";
 describe("buildCommentsFromSnapshots", () => {
   describe("empty input", () => {
     it("should return empty array when given empty postSnapshots array", () => {
-      const result = buildCommentsFromSnapshots([]);
+      const result = buildCommentsFromSnapshots([], new Map());
       expect(result).toEqual([]);
     });
 
     it("should return empty array when snapshots have no comments", () => {
       const snapshot1 = createMinimalPostSnapshot([]);
       const snapshot2 = createMinimalPostSnapshot([]);
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
       expect(result).toEqual([]);
     });
   });
@@ -22,7 +25,7 @@ describe("buildCommentsFromSnapshots", () => {
     it("should return single comment when given single snapshot with one comment", () => {
       const comment = createCommentSnapshot({ textContent: "Hello World" });
       const snapshot = createMinimalPostSnapshot([comment]);
-      const result = buildCommentsFromSnapshots([snapshot]);
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       expect(result).toHaveLength(1);
       expect(result[0]!.author).toBe(comment.author);
@@ -41,7 +44,7 @@ describe("buildCommentsFromSnapshots", () => {
         comment3,
       ]);
 
-      const result = buildCommentsFromSnapshots([snapshot]);
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       expect(result).toHaveLength(3);
       expect(result[0]!.textContent).toBe(comment1.textContent);
@@ -70,7 +73,7 @@ describe("buildCommentsFromSnapshots", () => {
       });
 
       const snapshot = createMinimalPostSnapshot([parentComment]);
-      const result = buildCommentsFromSnapshots([snapshot]);
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       // Should have 3 comments: parent + 2 replies (flattened)
       expect(result).toHaveLength(3);
@@ -97,7 +100,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment2]);
 
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]!.textContent).toBe("Same text");
@@ -122,7 +128,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment2]);
 
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       // Should have 2 separate entries: original and edited
       expect(result).toHaveLength(2);
@@ -159,11 +168,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([comment2]);
       const snapshot3 = createMinimalPostSnapshot([comment3]);
 
-      const result = buildCommentsFromSnapshots([
-        snapshot1,
-        snapshot2,
-        snapshot3,
-      ]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2, snapshot3],
+        new Map(),
+      );
 
       expect(result).toHaveLength(3);
 
@@ -198,7 +206,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment1, comment2]);
 
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       expect(result).toHaveLength(2);
 
@@ -222,7 +233,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([]); // No comments in latest
 
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]!.isDeleted).toBe(true);
@@ -259,7 +273,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([commentA_v1, commentB_v1]);
       const snapshot2 = createMinimalPostSnapshot([commentA_v2, commentC_v2]);
 
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       expect(result).toHaveLength(3);
 
@@ -305,7 +322,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([comment2]);
 
       // Both comments have same author and same absolute date, so they should be grouped
-      const result = buildCommentsFromSnapshots([snapshot1, snapshot2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map(),
+      );
 
       expect(result).toHaveLength(1);
       expect(result[0]!.textContent).toBe("Comment with absolute date");
@@ -329,7 +349,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const snapshot = createMinimalPostSnapshot([comment]);
 
-      expect(() => buildCommentsFromSnapshots([snapshot])).toThrow(
+      expect(() => buildCommentsFromSnapshots([snapshot], new Map())).toThrow(
         "Need a comment id or an absolute date",
       );
     });
@@ -359,7 +379,7 @@ describe("buildCommentsFromSnapshots", () => {
         comment2,
       ]);
 
-      const result = buildCommentsFromSnapshots([snapshot]);
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       // Comments maintain the order they appear in the snapshot
       expect(result).toHaveLength(3);
@@ -397,12 +417,10 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot3 = createMinimalPostSnapshot([comment3]);
       const snapshot4 = createMinimalPostSnapshot([comment4]);
 
-      const result = buildCommentsFromSnapshots([
-        snapshot1,
-        snapshot2,
-        snapshot3,
-        snapshot4,
-      ]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2, snapshot3, snapshot4],
+        new Map(),
+      );
 
       // Should have 2 groups: "Same text" (merged) and "Different text" (merged)
       expect(result).toHaveLength(2);
@@ -422,46 +440,55 @@ describe("buildCommentsFromSnapshots", () => {
       const commentV1 = createCommentSnapshot({
         commentId: "screenshot-latest",
         textContent: "Same text",
-        screenshotData: "b2xkLXNjcmVlbnNob3Q=", // old-screenshot
         scrapedAt: "2024-01-01T00:01:00.000Z",
       });
       const commentV2 = createCommentSnapshot({
         commentId: "screenshot-latest",
         textContent: "Same text",
-        screenshotData: "bmV3LXNjcmVlbnNob3Q=", // new-screenshot
         scrapedAt: "2024-01-01T00:02:00.000Z",
       });
 
-      const result = buildCommentsFromSnapshots([
-        createMinimalPostSnapshot([commentV1]),
-        createMinimalPostSnapshot([commentV2]),
-      ]);
+      const snapshot1 = createMinimalPostSnapshot([commentV1]);
+      const snapshot2 = createMinimalPostSnapshot([commentV2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map([
+          [snapshot1.id, new Set([commentV1.id])],
+          [snapshot2.id, new Set([commentV2.id])],
+        ]),
+      );
 
       expect(result).toHaveLength(1);
-      expect(result[0]!.screenshotData).toBe("bmV3LXNjcmVlbnNob3Q=");
+      expect(result[0]!.screenshotRef).toEqual({
+        postSnapshotId: snapshot2.id,
+        commentSnapshotId: commentV2.id,
+      });
     });
 
     it("should fallback to latest non-empty screenshot when latest is empty", () => {
       const commentV1 = createCommentSnapshot({
         commentId: "screenshot-fallback",
         textContent: "Same text",
-        screenshotData: "dmFsaWQtc2NyZWVuc2hvdA==", // valid-screenshot
         scrapedAt: "2024-01-01T00:01:00.000Z",
       });
       const commentV2 = createCommentSnapshot({
         commentId: "screenshot-fallback",
         textContent: "Same text",
-        screenshotData: "",
         scrapedAt: "2024-01-01T00:02:00.000Z",
       });
 
-      const result = buildCommentsFromSnapshots([
-        createMinimalPostSnapshot([commentV1]),
-        createMinimalPostSnapshot([commentV2]),
-      ]);
+      const snapshot1 = createMinimalPostSnapshot([commentV1]);
+      const snapshot2 = createMinimalPostSnapshot([commentV2]);
+      const result = buildCommentsFromSnapshots(
+        [snapshot1, snapshot2],
+        new Map([[snapshot1.id, new Set([commentV1.id])]]),
+      );
 
       expect(result).toHaveLength(1);
-      expect(result[0]!.screenshotData).toBe("dmFsaWQtc2NyZWVuc2hvdA==");
+      expect(result[0]!.screenshotRef).toEqual({
+        postSnapshotId: snapshot1.id,
+        commentSnapshotId: commentV1.id,
+      });
     });
   });
 });
@@ -500,7 +527,6 @@ function createCommentSnapshot(
       type: "absolute",
       date: "2024-01-01T00:00:00.000Z",
     },
-    screenshotData: "dGVzdA==", // "test" in base64
     scrapedAt: overrides.scrapedAt ?? "2024-01-01T00:00:00.000Z",
     nbLikes: 0,
     replies: overrides.replies ?? [],

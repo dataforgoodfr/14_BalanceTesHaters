@@ -1,4 +1,4 @@
-import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { PostScrapingResult } from "@/shared/model/PostScrapingResult";
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import type { ProgressManager } from "./ProgressManager";
 
@@ -16,7 +16,7 @@ export interface SocialNetworkScraper {
   ): Promise<ScrapPagePostResult>;
 }
 
-export type ScrapPagePostResult = PostSnapshot | RequestRedirectAndScrap;
+export type ScrapPagePostResult = PostScrapingResult | RequestRedirectAndScrap;
 
 export type RequestRedirectAndScrap = {
   redirectUrl: string;

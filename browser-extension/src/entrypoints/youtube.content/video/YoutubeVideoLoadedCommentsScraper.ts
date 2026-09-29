@@ -1,5 +1,5 @@
 import type { Author } from "@/shared/model/Author";
-import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
@@ -23,7 +23,9 @@ export class YoutubeVideoLoadedCommentsScraper {
     private progressManager: ProgressManager,
   ) {}
 
-  public async scrapLoadedCommentThreads(): Promise<CommentSnapshot[]> {
+  public async scrapLoadedCommentThreads(): Promise<
+    CommentSnapshotWithScreenshot[]
+  > {
     logger.info("Capturing comment threads...");
     const threadContainers = this.scrapingSupport.selectAll(
       this.commentsContainer,
@@ -36,10 +38,10 @@ export class YoutubeVideoLoadedCommentsScraper {
 
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
-  ): Promise<CommentSnapshot[]> {
+  ): Promise<CommentSnapshotWithScreenshot[]> {
     logger.info(`Found ${threadContainers.length} thread containers...`);
 
-    const comments: CommentSnapshot[] = [];
+    const comments: CommentSnapshotWithScreenshot[] = [];
     for (const threadContainer of threadContainers) {
       const thread = await this.scrapCommentThread(threadContainer);
       if (thread.scrapingStatus === "success") {
@@ -110,7 +112,7 @@ export class YoutubeVideoLoadedCommentsScraper {
 
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
-  ): Promise<CommentSnapshot[]> {
+  ): Promise<CommentSnapshotWithScreenshot[]> {
     const expandedThreadsContainer = this.scrapingSupport.select(
       repliesContainer,
       "#expanded-threads",
@@ -136,7 +138,7 @@ export class YoutubeVideoLoadedCommentsScraper {
 
   private async scrapCommentWithoutReplies(
     commentContainer: HTMLElement,
-  ): Promise<CommentSnapshot> {
+  ): Promise<CommentSnapshotWithScreenshot> {
     const scrapDate = currentIsoDate();
 
     const author: Author = this.scrapCommentAuthor(commentContainer);
@@ -230,5 +232,5 @@ export class YoutubeVideoLoadedCommentsScraper {
   }
 }
 type ScrapCommentThreadResult =
-  | { scrapingStatus: "success"; comment: CommentSnapshot }
+  | { scrapingStatus: "success"; comment: CommentSnapshotWithScreenshot }
   | { scrapingStatus: "failure"; message: string };

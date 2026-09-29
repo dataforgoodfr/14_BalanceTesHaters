@@ -2,7 +2,7 @@ import type { ProgressManager } from "@/shared/scraping-content-script/ProgressM
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { YoutubeVideoCommentsLoader } from "./YoutubeVideoCommentsLoader";
-import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
 import {
   createScreenshotProviderForDocument,
   EmptyElementScreenshotProvider,
@@ -23,7 +23,7 @@ export class YoutubeVideoCommentsScraper {
     private skipScreenshoting: boolean = false,
   ) {}
 
-  public async scrapComments(): Promise<CommentSnapshot[]> {
+  public async scrapComments(): Promise<CommentSnapshotWithScreenshot[]> {
     if (this.expectedCommentsCount === 0) return [];
     // Sort by newest to esnure all are loaded
     // Otherwise only most popular are displayed
@@ -39,7 +39,9 @@ export class YoutubeVideoCommentsScraper {
     return this.scrapLoadedComments();
   }
 
-  private async scrapLoadedComments(): Promise<CommentSnapshot[]> {
+  private async scrapLoadedComments(): Promise<
+    CommentSnapshotWithScreenshot[]
+  > {
     // Hide matshead overlay that otherwise is screenshoted of top of elements
     const masthead = this.scrapingSupport.selectOrThrow(
       document,
