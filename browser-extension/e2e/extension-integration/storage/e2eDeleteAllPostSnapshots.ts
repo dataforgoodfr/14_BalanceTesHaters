@@ -6,10 +6,7 @@ export async function e2eDeleteAllPostSnapshots(
 ): Promise<void> {
   const clearPostStorage = async () => {
     const keys = (await browser.storage.local.getKeys()).filter(
-      (key) =>
-        key === "posts" ||
-        key === "post-snapshots:storage-version" ||
-        key.startsWith("post-snapshots:v2:"),
+      (key) => key === "posts" || key.startsWith("post-snapshots:v2:"),
     );
     await browser.storage.local.remove(keys);
   };
