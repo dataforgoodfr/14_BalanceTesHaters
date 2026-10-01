@@ -12,11 +12,15 @@ repos:
       - id: mixed-line-ending
   - repo: local
     hooks:
+      # Force pass_filenames: false, so that pre-commit invokes each
+      # whole-project check only once.
       - id: eslint
         name: eslint
         entry: bash -c "cd browser-extension && pnpm lint"
         language: node
+        pass_filenames: false
       - id: format
         name: format
         entry: bash -c "cd browser-extension && pnpm format:check"
         language: node
+        pass_filenames: false
