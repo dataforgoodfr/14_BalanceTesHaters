@@ -133,6 +133,7 @@ async function captureScreenshot(
         `performScreenshotTests - ${captureId} - in progress: ${Math.round(progress)}%`,
       ),
     ),
+    undefined,
     waitOptions,
   );
   return screenshot;

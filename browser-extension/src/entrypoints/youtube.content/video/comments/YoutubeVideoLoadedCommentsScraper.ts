@@ -3,44 +3,37 @@ import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingR
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
+import { createLogger } from "@/shared/utils/createLogger";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { parseCommentPublishedTime } from "./utils/parseCommentPublishedTime";
 import { extractCommentIdFromCommentHref } from "./utils/extractCommentIdFromCommentHref";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
 import { encodePng } from "image-js";
-import { parseIntegerSwallowingSeparators } from "./utils/parseIntegerSwallowingSeparators";
+import { parseIntegerSwallowingSeparators } from "../utils/parseIntegerSwallowingSeparators";
+import { ytBaseLogger } from "../../ytBaseLogger";
 
-const logger = createLogger("yt-loaded-comments", scrapingLogger);
+const logger = createLogger("loaded-comment-scraper", ytBaseLogger);
 
 export class YoutubeVideoLoadedCommentsScraper {
-  private readonly collectedPostIds = new Set<string>();
   constructor(
-    private commentsContainer: HTMLElement,
     private scrapingSupport: ScrapingSupport,
     private screenshotProvider: ElementScreenshotProvider,
     private expectedCommentCount: number,
     private progressManager: ProgressManager,
+    private readonly collectedCommentIds = new Set<string>(),
   ) {}
 
-  public async scrapLoadedCommentThreads(): Promise<
-    CommentSnapshotWithScreenshot[]
-  > {
-    logger.info("Capturing comment threads...");
-    const threadContainers = this.scrapingSupport.selectAll(
-      this.commentsContainer,
-      "#contents > ytd-comment-thread-renderer",
-      HTMLElement,
-    );
-    const comments = await this.scrapCommentThreads(threadContainers);
-    return comments;
+  public async scrapRootCommentThreads(
+    threadContainers: HTMLElement[],
+  ): Promise<CommentSnapshotWithScreenshot[]> {
+    logger.debug(`Scraping ${threadContainers.length} loaded comment threads`);
+
+    return await this.scrapCommentThreads(threadContainers);
   }
 
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
   ): Promise<CommentSnapshotWithScreenshot[]> {
-    logger.info(`Found ${threadContainers.length} thread containers...`);
-
     const comments: CommentSnapshotWithScreenshot[] = [];
     for (const threadContainer of threadContainers) {
       const thread = await this.scrapCommentThread(threadContainer);
@@ -56,7 +49,7 @@ export class YoutubeVideoLoadedCommentsScraper {
   ): Promise<ScrapCommentThreadResult> {
     const commentContainer = this.scrapingSupport.selectOrThrow(
       commentThreadContainer,
-      "#comment-container",
+      ":scope > #comment-container",
       HTMLElement,
     );
 
@@ -77,7 +70,7 @@ export class YoutubeVideoLoadedCommentsScraper {
     if (!comment.commentId) {
       throw new Error("Unexpected undefined commentId");
     }
-    if (this.collectedPostIds.has(comment.commentId)) {
+    if (this.collectedCommentIds.has(comment.commentId)) {
       logger.warn(
         "Ignoring duplicate comment from ",
         comment.author.name,
@@ -89,9 +82,9 @@ export class YoutubeVideoLoadedCommentsScraper {
         message: "Duplicate comment " + comment.commentId,
       };
     }
-    this.collectedPostIds.add(comment.commentId);
+    this.collectedCommentIds.add(comment.commentId);
     this.progressManager.setProgress(
-      (100 * this.collectedPostIds.size) / this.expectedCommentCount,
+      (100 * this.collectedCommentIds.size) / this.expectedCommentCount,
     );
 
     const repliesContainer = this.scrapingSupport.select(
@@ -133,7 +126,7 @@ export class YoutubeVideoLoadedCommentsScraper {
       HTMLElement,
     );
 
-    return this.scrapCommentThreads(repliesThreads);
+    return this.scrapRootCommentThreads(repliesThreads);
   }
 
   private async scrapCommentWithoutReplies(
@@ -149,7 +142,6 @@ export class YoutubeVideoLoadedCommentsScraper {
     );
     const publishedTimeText = publishedTimeElement.innerText;
     const publishedAt = parseCommentPublishedTime(publishedTimeText);
-    logger.debug(`publishedAtInfo: ${JSON.stringify(publishedAt)}`);
 
     const commentHref = this.scrapingSupport.selectOrThrow(
       publishedTimeElement,
