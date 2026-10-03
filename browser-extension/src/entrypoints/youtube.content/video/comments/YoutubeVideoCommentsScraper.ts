@@ -11,17 +11,20 @@ import { ytBaseLogger } from "../../ytBaseLogger";
 const logger = createLogger("comments", ytBaseLogger);
 
 export class YoutubeVideoCommentsScraper {
+  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 4000;
+
   public constructor(
     private scrapingSupport: ScrapingSupport,
     private progressManager: ProgressManager,
     private commentsContainer: HTMLElement,
     private expectedCommentsCount: number,
     private skipScreenshoting: boolean = false,
+    private maxScrapingComments: number = YoutubeVideoCommentsScraper.DEFAULT_MAX_SCRAPING_COMMENTS,
   ) {}
 
   public async scrapComments(): Promise<CommentSnapshotWithScreenshot[]> {
     logger.info(
-      `Scraping comments (expectedCommentsCount: ${this.expectedCommentsCount})...`,
+      `Scraping comments (expectedCommentsCount: ${this.expectedCommentsCount}, maxScrapingComments: ${this.maxScrapingComments})...`,
     );
     if (this.expectedCommentsCount === 0) return [];
     // Sort by newest so the continuation contains every comment, not a ranked sample.
@@ -34,10 +37,14 @@ export class YoutubeVideoCommentsScraper {
     const threadContentLoader = new YoutubeVideoCommentThreadContentLoader(
       this.scrapingSupport,
     );
+    const targetCommentsCount = Math.min(
+      this.expectedCommentsCount,
+      this.maxScrapingComments,
+    );
     const batchScraper = new YoutubeVideoCommentThreadBatchScraper(
       this.scrapingSupport,
       this.progressManager,
-      this.expectedCommentsCount,
+      targetCommentsCount,
       this.skipScreenshoting,
     );
     const comments: CommentSnapshotWithScreenshot[] = [];
@@ -60,14 +67,20 @@ export class YoutubeVideoCommentsScraper {
 
       logger.info(`Scraping batch content...`);
       const batchComments = await batchScraper.scrapBatch(batch);
-      const allCommentsCount = countAllComments(batchComments);
+      const allBatchCommentsCount = countAllComments(batchComments);
       logger.info(
-        `Scraped ${allCommentsCount} comments in batch (in ${batchComments.length} roots)`,
+        `Scraped ${allBatchCommentsCount} comments in batch (in ${batchComments.length} roots)`,
       );
 
       comments.push(...batchComments);
 
       await this.scrapingSupport.resumeHostPage();
+      if (countAllComments(comments) >= this.maxScrapingComments) {
+        logger.warn(
+          `Maximum number of comments reached ${this.maxScrapingComments}. Stopping...`,
+        );
+        break;
+      }
     }
 
     this.progressManager.setProgress(100);

@@ -126,7 +126,10 @@ export class ScrapingContentScript {
             progress,
           };
         }),
-        { skipScreenshoting: settings.skipScreenshoting },
+        {
+          skipScreenshoting: settings.skipScreenshoting,
+          scrapingMaxComments: settings.scrapingMaxComments,
+        },
       );
       if (isRequestRedirectAndScrap(scrapResult)) {
         logger.info("Scraper requested a page reload and restart");

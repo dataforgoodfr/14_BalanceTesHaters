@@ -5,6 +5,7 @@ export const SETTINGS_STORAGE_KEY = "settings:v1";
 export const SettingsSchema = z.object({
   skipScreenshoting: z.boolean(),
   skipSubmitForClassification: z.boolean(),
+  scrapingMaxComments: z.number().int().positive().optional(),
 });
 
 export type Settings = z.infer<typeof SettingsSchema>;
@@ -28,7 +29,12 @@ export async function getSettings(): Promise<Settings> {
 }
 
 export async function setSettings(settings: Settings): Promise<void> {
-  const serializedSettings = SettingsSchema.parse(settings);
+  const parsedSettings = SettingsSchema.parse(settings);
+  const { scrapingMaxComments, ...requiredSettings } = parsedSettings;
+  const serializedSettings =
+    scrapingMaxComments === undefined
+      ? requiredSettings
+      : { ...requiredSettings, scrapingMaxComments };
   await browser.storage.local.set({
     [SETTINGS_STORAGE_KEY]: serializedSettings,
   });

@@ -25,6 +25,7 @@ export class YoutubeVideoScraper {
 
     private progressManager: ProgressManager,
     private skipScreenshoting: boolean = false,
+    private scrapingMaxComments?: number,
   ) {}
 
   async scrapPost(): Promise<PostScrapingResult> {
@@ -74,6 +75,7 @@ export class YoutubeVideoScraper {
       commentsContainer,
       expectedCommentCount,
       this.skipScreenshoting,
+      this.scrapingMaxComments,
     ).scrapComments();
     const { comments, screenshots } = detachCommentScreenshots(
       commentsWithScreenshots,

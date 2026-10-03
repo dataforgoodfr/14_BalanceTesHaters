@@ -1,5 +1,6 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -8,6 +9,7 @@ import {
   type Settings,
 } from "@/shared/storage/settings-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import PageHeader from "../../Shared/PageHeader";
 
 type SettingName = keyof Settings;
@@ -29,14 +31,17 @@ export default function SettingsPage() {
     },
   });
 
-  const updateSetting = (name: SettingName, checked: boolean) => {
+  function updateSetting<Name extends SettingName>(
+    name: Name,
+    value: Settings[Name],
+  ) {
     if (!settingsQuery.data) return;
 
     saveSettingsMutation.mutate({
       ...settingsQuery.data,
-      [name]: checked,
+      [name]: value,
     });
-  };
+  }
 
   return (
     <main className="flex flex-col gap-6 text-left">
@@ -70,6 +75,14 @@ export default function SettingsPage() {
                 void updateSetting("skipSubmitForClassification", checked)
               }
             />
+            <MaxCommentsSettingRow
+              key={settingsQuery.data.scrapingMaxComments ?? "default"}
+              value={settingsQuery.data.scrapingMaxComments}
+              disabled={saveSettingsMutation.isPending}
+              onValueChange={(value) =>
+                updateSetting("scrapingMaxComments", value)
+              }
+            />
           </CardContent>
         </Card>
       )}
@@ -86,6 +99,62 @@ export default function SettingsPage() {
           </div>
         ))}
     </main>
+  );
+}
+
+function MaxCommentsSettingRow({
+  value,
+  disabled,
+  onValueChange,
+}: {
+  value: number | undefined;
+  disabled: boolean;
+  onValueChange: (value: number | undefined) => void;
+}) {
+  const [draft, setDraft] = useState(value?.toString() ?? "");
+
+  const parsedValue = draft === "" ? undefined : Number(draft);
+  const isValid =
+    parsedValue === undefined ||
+    (Number.isSafeInteger(parsedValue) && parsedValue > 0);
+
+  const save = () => {
+    if (isValid && parsedValue !== value) {
+      onValueChange(parsedValue);
+    }
+  };
+
+  return (
+    <div className="flex items-start justify-between gap-6 py-5 first:pt-0 last:pb-0">
+      <div className="space-y-1">
+        <Label htmlFor="scraping-max-comments" className="font-medium">
+          Nombre maximal de commentaires
+        </Label>
+        <div className="text-muted-foreground text-sm">
+          Laisser vide pour utiliser la valeur par défaut du scraper.
+        </div>
+        {!isValid && (
+          <div role="alert" className="text-destructive text-sm">
+            Saisir un nombre entier supérieur à zéro.
+          </div>
+        )}
+      </div>
+      <Input
+        id="scraping-max-comments"
+        className="w-32"
+        type="number"
+        min={1}
+        step={1}
+        value={draft}
+        disabled={disabled}
+        aria-invalid={!isValid}
+        onChange={(event) => setDraft(event.currentTarget.value)}
+        onBlur={save}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+        }}
+      />
+    </div>
   );
 }
 

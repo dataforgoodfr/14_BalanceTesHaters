@@ -26,6 +26,7 @@ describe("settings storage", () => {
     const settings: Settings = {
       skipScreenshoting: true,
       skipSubmitForClassification: true,
+      scrapingMaxComments: 250,
     };
     await browser.storage.local.set({
       [SETTINGS_STORAGE_KEY]: settings,
@@ -54,6 +55,7 @@ describe("settings storage", () => {
     const settings: Settings = {
       skipScreenshoting: true,
       skipSubmitForClassification: false,
+      scrapingMaxComments: 500,
     };
 
     await setSettings(settings);
@@ -63,5 +65,45 @@ describe("settings storage", () => {
     ).resolves.toEqual({
       [SETTINGS_STORAGE_KEY]: settings,
     });
+  });
+
+  it("accepts an omitted scraping comment limit", async () => {
+    const settings: Settings = {
+      skipScreenshoting: false,
+      skipSubmitForClassification: false,
+    };
+
+    await setSettings(settings);
+
+    await expect(getSettings()).resolves.toEqual(settings);
+  });
+
+  it("removes an undefined scraping comment limit before storage", async () => {
+    await setSettings({
+      skipScreenshoting: false,
+      skipSubmitForClassification: false,
+      scrapingMaxComments: undefined,
+    });
+
+    await expect(
+      browser.storage.local.get(SETTINGS_STORAGE_KEY),
+    ).resolves.toEqual({
+      [SETTINGS_STORAGE_KEY]: {
+        skipScreenshoting: false,
+        skipSubmitForClassification: false,
+      },
+    });
+  });
+
+  it("rejects an invalid scraping comment limit", async () => {
+    await browser.storage.local.set({
+      [SETTINGS_STORAGE_KEY]: {
+        skipScreenshoting: false,
+        skipSubmitForClassification: false,
+        scrapingMaxComments: 0,
+      },
+    });
+
+    await expect(getSettings()).resolves.toEqual(DEFAULT_SETTINGS);
   });
 });

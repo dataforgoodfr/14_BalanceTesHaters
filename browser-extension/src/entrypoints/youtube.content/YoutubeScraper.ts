@@ -41,6 +41,7 @@ export class YoutubeScraper implements SocialNetworkScraper {
         pageInfo,
         progressManager,
         settings?.skipScreenshoting ?? false,
+        settings?.scrapingMaxComments,
       ).scrapPost();
     }
   }
