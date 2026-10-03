@@ -4,6 +4,7 @@ import type { ProgressManager } from "./ProgressManager";
 
 export type SocialNetworkScraperSettings = {
   skipScreenshoting: boolean;
+  scrapingMaxComments?: number;
 };
 
 export interface SocialNetworkScraper {

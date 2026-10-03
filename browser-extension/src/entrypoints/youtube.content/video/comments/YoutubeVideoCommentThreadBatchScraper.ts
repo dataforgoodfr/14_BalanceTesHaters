@@ -21,7 +21,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
   constructor(
     private readonly scrapingSupport: ScrapingSupport,
     private readonly progressManager: ProgressManager,
-    private readonly expectedCommentCount: number,
+    private readonly targetCommentsCount: number,
     private readonly skipScreenshoting: boolean = false,
   ) {}
 
@@ -56,7 +56,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
           const comments = await new YoutubeVideoLoadedCommentsScraper(
             this.scrapingSupport,
             screenshotProvider,
-            this.expectedCommentCount,
+            this.targetCommentsCount,
             this.progressManager,
             attemptCommentIds,
           ).scrapRootCommentThreads(threadElements);

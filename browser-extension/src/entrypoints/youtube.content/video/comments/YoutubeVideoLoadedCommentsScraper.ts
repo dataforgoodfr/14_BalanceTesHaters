@@ -18,7 +18,7 @@ export class YoutubeVideoLoadedCommentsScraper {
   constructor(
     private scrapingSupport: ScrapingSupport,
     private screenshotProvider: ElementScreenshotProvider,
-    private expectedCommentCount: number,
+    private targetCommentsCount: number,
     private progressManager: ProgressManager,
     private readonly collectedCommentIds = new Set<string>(),
   ) {}
@@ -84,7 +84,7 @@ export class YoutubeVideoLoadedCommentsScraper {
     }
     this.collectedCommentIds.add(comment.commentId);
     this.progressManager.setProgress(
-      (100 * this.collectedCommentIds.size) / this.expectedCommentCount,
+      (100 * this.collectedCommentIds.size) / this.targetCommentsCount,
     );
 
     const repliesContainer = this.scrapingSupport.select(
