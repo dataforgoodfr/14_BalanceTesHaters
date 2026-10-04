@@ -11,7 +11,7 @@ import { ytBaseLogger } from "../../ytBaseLogger";
 const logger = createLogger("comments", ytBaseLogger);
 
 export class YoutubeVideoCommentsScraper {
-  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 4000;
+  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 3000;
 
   public constructor(
     private scrapingSupport: ScrapingSupport,
