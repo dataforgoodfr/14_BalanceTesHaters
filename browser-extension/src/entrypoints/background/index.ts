@@ -21,15 +21,21 @@ export default defineBackground(() => {
   logger.debug("Register classification polling alarm");
   startClassificationPolling();
 
-  logger.debug("Initialize post snapshot storage");
-  void initializeStorage().catch((error: unknown) => {
-    logger.error("Post snapshot storage initialization failed", error);
-  });
+  logger.debug("Register post snapshot storage initialization listeners");
+  browser.runtime.onStartup.addListener(initializePostSnapshotStorage);
+  browser.runtime.onInstalled.addListener(initializePostSnapshotStorage);
 
   if (import.meta.env.VITE_SOAK_TEST_BUILD === "true") {
     void openSoakControllerOnce();
   }
 });
+
+function initializePostSnapshotStorage(): void {
+  logger.debug("Initialize post snapshot storage");
+  void initializeStorage().catch((error: unknown) => {
+    logger.error("Post snapshot storage initialization failed", error);
+  });
+}
 
 async function openSoakControllerOnce(): Promise<void> {
   const controllerPageUrl = `chrome-extension://${browser.runtime.id}/soak-controller.html`;
