@@ -1,6 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { PostSnapshotCleanup } from "../src/shared/soak-test/SoakTestProtocol";
+import {
+  DEFAULT_SETTINGS,
+  type Settings,
+} from "../src/shared/storage/settings-storage";
 import type {
   RunnerOptions,
   SoakTestManifest,
@@ -20,6 +24,9 @@ const RUNNER_OPTION_NAMES = new Set([
   "max-expected-comments",
   "platform",
   "post-snapshot-cleanup",
+  "skip-screenshoting",
+  "skip-submit-for-classification",
+  "scraping-max-comments",
 ]);
 
 export function parseRunnerOptions(argv: string[]): RunnerOptions {
@@ -81,6 +88,7 @@ export function parseRunnerOptions(argv: string[]): RunnerOptions {
     postSnapshotCleanup: parsePostSnapshotCleanup(
       values.get("post-snapshot-cleanup"),
     ),
+    scrapingSettings: parseScrapingSettings(values),
   };
 }
 
@@ -189,6 +197,45 @@ function parsePostSnapshotCleanup(
     );
   }
   return value;
+}
+
+function parseScrapingSettings(values: Map<string, string>): Settings {
+  const scrapingMaxComments = parseOptionalPositiveInteger(
+    values.get("scraping-max-comments"),
+    "scraping-max-comments",
+  );
+  return {
+    ...DEFAULT_SETTINGS,
+    skipScreenshoting:
+      parseOptionalBoolean(
+        values.get("skip-screenshoting"),
+        "skip-screenshoting",
+      ) ?? DEFAULT_SETTINGS.skipScreenshoting,
+    skipSubmitForClassification:
+      parseOptionalBoolean(
+        values.get("skip-submit-for-classification"),
+        "skip-submit-for-classification",
+      ) ?? DEFAULT_SETTINGS.skipSubmitForClassification,
+    ...(scrapingMaxComments === undefined ? {} : { scrapingMaxComments }),
+  };
+}
+
+function parseOptionalPositiveInteger(
+  value: string | undefined,
+  name: string,
+): number | undefined {
+  if (value === undefined) return undefined;
+  return parsePositiveInteger(value, name);
+}
+
+function parseOptionalBoolean(
+  value: string | undefined,
+  name: string,
+): boolean | undefined {
+  if (value === undefined) return undefined;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  throw new Error(`--${name} must be true or false.`);
 }
 
 function parseInteger(value: string, name: string): number {

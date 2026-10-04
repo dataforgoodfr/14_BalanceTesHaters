@@ -33,6 +33,7 @@ async function main() {
       stallTimeoutMs: options.stallTimeoutMs,
       pollIntervalMs: options.pollIntervalMs,
       postSnapshotCleanup: options.postSnapshotCleanup,
+      scrapingSettings: options.scrapingSettings,
     },
     onResult: async (extensionResult) => {
       const result = toAttemptResult(extensionResult);

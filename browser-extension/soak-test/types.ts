@@ -4,6 +4,7 @@ import {
   type SoakControllerObservation,
   type SoakControllerStatus,
 } from "../src/shared/soak-test/SoakTestProtocol";
+import type { Settings } from "../src/shared/storage/settings-storage";
 import { z } from "zod";
 
 export const PlatformSchema = z.enum(["youtube", "instagram"]);
@@ -93,4 +94,5 @@ export type RunnerOptions = {
   maxExpectedComments?: number;
   platform?: Platform;
   postSnapshotCleanup: PostSnapshotCleanup;
+  scrapingSettings: Settings;
 };

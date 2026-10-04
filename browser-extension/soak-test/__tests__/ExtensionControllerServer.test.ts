@@ -22,6 +22,10 @@ const config: SoakControllerConfig = {
   stallTimeoutMs: 30_000,
   pollIntervalMs: 1000,
   postSnapshotCleanup: "keep",
+  scrapingSettings: {
+    skipScreenshoting: false,
+    skipSubmitForClassification: false,
+  },
 };
 
 describe("ExtensionControllerServer", () => {

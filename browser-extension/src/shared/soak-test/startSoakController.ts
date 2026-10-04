@@ -10,6 +10,7 @@ import {
   deleteAllPostSnapshots,
   getPostSnapshotById,
 } from "@/shared/storage/post-snapshot-storage";
+import { setSettings } from "@/shared/storage/settings-storage";
 import type {
   SoakControllerAttempt,
   SoakControllerConfig,
@@ -52,6 +53,7 @@ export function startSoakController(): void {
 async function run(): Promise<void> {
   const config = await waitForConfig();
   soakControllerStore.configure(config.attempts.length);
+  await setSettings(config.scrapingSettings);
   if (config.postSnapshotCleanup === "on-start") {
     await deleteAllPostSnapshots();
   }

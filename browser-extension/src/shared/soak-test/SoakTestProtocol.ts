@@ -1,6 +1,7 @@
 import { PostSnapshotSchema } from "@/shared/model/PostSnapshot";
 import { ScraperLogEntrySchema } from "./SoakTestScraperLogCapture";
 import { ScrapingStatusSchema } from "@/shared/scraping-content-script/ScrapingStatus";
+import { SettingsSchema } from "@/shared/storage/settings-storage";
 import { z } from "zod";
 
 export const SOAK_TEST_CONTROLLER_PORT = 38_471;
@@ -38,6 +39,7 @@ export const SoakControllerConfigSchema = z
     stallTimeoutMs: z.int().positive(),
     pollIntervalMs: z.int().positive(),
     postSnapshotCleanup: PostSnapshotCleanupSchema,
+    scrapingSettings: SettingsSchema,
   })
   .strict();
 export type SoakControllerConfig = z.infer<typeof SoakControllerConfigSchema>;
