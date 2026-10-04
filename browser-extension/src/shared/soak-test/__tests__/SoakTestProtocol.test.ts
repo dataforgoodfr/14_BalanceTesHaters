@@ -24,12 +24,22 @@ describe("SoakTestProtocol", () => {
         stallTimeoutMs: 90_000,
         pollIntervalMs: 1000,
         postSnapshotCleanup: "keep",
+        scrapingSettings: {
+          skipScreenshoting: true,
+          skipSubmitForClassification: true,
+          scrapingMaxComments: 5000,
+        },
       }),
     ).toEqual({
       attempts: [attempt],
       stallTimeoutMs: 90_000,
       pollIntervalMs: 1000,
       postSnapshotCleanup: "keep",
+      scrapingSettings: {
+        skipScreenshoting: true,
+        skipSubmitForClassification: true,
+        scrapingMaxComments: 5000,
+      },
     });
   });
 
@@ -40,6 +50,10 @@ describe("SoakTestProtocol", () => {
         stallTimeoutMs: 90_000,
         pollIntervalMs: 1000,
         postSnapshotCleanup: "sometimes",
+        scrapingSettings: {
+          skipScreenshoting: false,
+          skipSubmitForClassification: false,
+        },
       }),
     ).toThrow();
   });

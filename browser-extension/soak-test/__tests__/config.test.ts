@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { filterScenarios, parseRunnerOptions, readManifest } from "../config";
 import { SoakTestManifestSchema, type SoakTestScenario } from "../types";
+import { DEFAULT_SETTINGS } from "../../src/shared/storage/settings-storage";
 
 const scenarios: SoakTestScenario[] = [
   {
@@ -24,6 +25,35 @@ const scenarios: SoakTestScenario[] = [
 ];
 
 describe("soak-test scenario filters", () => {
+  it("resets scraping settings to their defaults", () => {
+    expect(parseRunnerOptions([]).scrapingSettings).toEqual(DEFAULT_SETTINGS);
+  });
+
+  it("parses scraping settings", () => {
+    expect(
+      parseRunnerOptions([
+        "--skip-screenshoting",
+        "true",
+        "--skip-submit-for-classification",
+        "true",
+        "--scraping-max-comments",
+        "2500",
+      ]).scrapingSettings,
+    ).toEqual({
+      skipScreenshoting: true,
+      skipSubmitForClassification: true,
+      scrapingMaxComments: 2500,
+    });
+  });
+
+  it.each([
+    ["--skip-screenshoting", "yes", "must be true or false"],
+    ["--skip-submit-for-classification", "1", "must be true or false"],
+    ["--scraping-max-comments", "0", "must be greater than zero"],
+  ])("rejects invalid scraping setting %s=%s", (name, value, message) => {
+    expect(() => parseRunnerOptions([name, value])).toThrow(message);
+  });
+
   it("keeps post snapshots by default", () => {
     expect(parseRunnerOptions([]).postSnapshotCleanup).toBe("keep");
   });

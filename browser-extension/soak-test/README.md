@@ -33,6 +33,18 @@ pnpm test:soak:server -- --post-snapshot-cleanup before-each-attempt
 pnpm test:soak:server -- --post-snapshot-cleanup on-start
 ```
 
+Les paramètres de scraping sont réinitialisés à leurs valeurs par défaut au
+démarrage de chaque exécution. Pour les remplacer :
+
+```sh
+pnpm test:soak:server -- --skip-screenshoting true
+pnpm test:soak:server -- --skip-submit-for-classification true
+pnpm test:soak:server -- --scraping-max-comments 5000
+```
+
+Ces options peuvent être combinées. Les valeurs effectivement utilisées sont
+enregistrées dans `run.json`, sous `options.scrapingSettings`.
+
 Le profil est stocké dans `.wxt/chromium-data`. Pour choisir Chromium :
 
 ```sh
