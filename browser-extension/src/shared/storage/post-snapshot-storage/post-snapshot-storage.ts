@@ -1,9 +1,8 @@
 import type { CommentScreenshotRef } from "../../model/CommentScreenshot";
 import { commentScreenshotRefKey } from "../../model/CommentScreenshot";
 import { isRunningClassificationStatus } from "../../model/ClassificationStatus";
-import type { CommentSnapshot, PostSnapshot } from "../../model/PostSnapshot";
+import type { PostSnapshot } from "../../model/PostSnapshot";
 import { PostSnapshotSchema } from "../../model/PostSnapshot";
-import type { PostScrapingResult } from "../../model/PostScrapingResult";
 import type { SocialNetworkName } from "../../model/SocialNetworkName";
 import {
   isPostPublishedAfter,
@@ -12,22 +11,29 @@ import {
 import { createLogger } from "../../utils/createLogger";
 import { migrateLegacyPostSnapshotStorage } from "./migration/migrateLegacyPostSnapshotStorage";
 import {
-  getPostSnapshotDataKeys,
+  getPostSnapshotScreenshotChunksDataKeys,
   getPostSnapshotStorageKeys,
   POST_SNAPSHOTS_STORAGE_VERSION,
   POST_SNAPSHOTS_STORAGE_VERSION_KEY,
   type PostSnapshotRecord,
   postSnapshotRecordKey,
+  postSnapshotIdFromScreenshotChunkKey,
   postSnapshotScreenshotChunkKey,
   readPostSnapshotRecord,
+  getPostSnapshotIds,
   readPostSnapshotRecords,
   readPostSnapshotStorageVersion,
-  ScreenshotDataByCommentSnapshotIdSchema,
   StoredScreenshotChunkSchema,
   unsupportedStorageVersionError,
-  writePostSnapshot,
   writePostSnapshotRecord,
+  getPostSnapshotDataKeys,
 } from "./post-snapshot-storage-format";
+import {
+  StoragePostSnapshotWriteSession,
+  type PostSnapshotWriteSession,
+} from "./post-snapshot-write-session";
+
+export type { PostSnapshotWriteSession } from "./post-snapshot-write-session";
 
 const logger = createLogger("post-snapshot-storage");
 
@@ -35,8 +41,38 @@ let migrationPromise: Promise<void> | undefined;
 let storageReadyPromise: Promise<void> | undefined;
 
 export function initializeStorage(): Promise<void> {
-  migrationPromise ??= migrateLegacyPostSnapshotStorage();
+  migrationPromise ??= migrateLegacyPostSnapshotStorage().then(
+    removeOrphanedScreenshotChunks,
+  );
   return migrationPromise;
+}
+
+export async function createPostSnapshotWriteSession(
+  postSnapshotId: string = crypto.randomUUID(),
+): Promise<PostSnapshotWriteSession> {
+  await ensurePostSnapshotStorageReady();
+  if (await readPostSnapshotRecord(postSnapshotId)) {
+    throw new Error("Post already exists with id: " + postSnapshotId);
+  }
+  return new StoragePostSnapshotWriteSession(postSnapshotId);
+}
+
+async function removeOrphanedScreenshotChunks(): Promise<void> {
+  const chunkKeys = await getPostSnapshotScreenshotChunksDataKeys();
+  const existingPostSnapshotIds = new Set(await getPostSnapshotIds());
+  const orphanedChunkKeys = chunkKeys.filter((key) => {
+    const postSnapshotId = postSnapshotIdFromScreenshotChunkKey(key);
+    return (
+      postSnapshotId !== undefined &&
+      !existingPostSnapshotIds.has(postSnapshotId)
+    );
+  });
+  if (orphanedChunkKeys.length > 0) {
+    logger.info(
+      `Removing ${orphanedChunkKeys.length} orphaned screenshot chunks`,
+    );
+    await browser.storage.local.remove(orphanedChunkKeys);
+  }
 }
 
 export async function getPostSnapshotsBytesInUse(): Promise<number> {
@@ -59,17 +95,6 @@ export async function updatePostSnapshot(postSnapshot: PostSnapshot) {
     ...record,
     postSnapshot,
   });
-}
-
-export async function insertPostSnapshot(result: PostScrapingResult) {
-  PostSnapshotSchema.parse(result.postSnapshot);
-  ScreenshotDataByCommentSnapshotIdSchema.parse(result.screenshots);
-  assertScreenshotsBelongToSnapshot(result);
-  await ensurePostSnapshotStorageReady();
-  if (await readPostSnapshotRecord(result.postSnapshot.id)) {
-    throw new Error("Post already exists with id: " + result.postSnapshot.id);
-  }
-  await writePostSnapshot(result);
 }
 
 export async function deleteAllPostSnapshots() {
@@ -314,27 +339,4 @@ function waitForPostSnapshotStorageVersion(): Promise<void> {
       },
     );
   });
-}
-
-function assertScreenshotsBelongToSnapshot({
-  postSnapshot,
-  screenshots,
-}: PostScrapingResult): void {
-  const commentSnapshotIds = new Set<string>();
-  const visit = (comments: CommentSnapshot[]) => {
-    for (const comment of comments) {
-      commentSnapshotIds.add(comment.id);
-      visit(comment.replies);
-    }
-  };
-  visit(postSnapshot.comments);
-
-  const unknownScreenshotId = Object.keys(screenshots).find(
-    (id) => !commentSnapshotIds.has(id),
-  );
-  if (unknownScreenshotId) {
-    throw new Error(
-      `Screenshot ${unknownScreenshotId} does not belong to PostSnapshot ${postSnapshot.id}`,
-    );
-  }
 }

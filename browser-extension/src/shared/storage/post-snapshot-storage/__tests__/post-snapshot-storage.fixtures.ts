@@ -1,5 +1,5 @@
 import type { PostSnapshot } from "../../../model/PostSnapshot";
-import type { PostScrapingResult } from "../../../model/PostScrapingResult";
+import type { ScrapingScreenshots } from "../../../model/scraping/ScrapingScreenshots";
 import { SocialNetwork } from "../../../model/SocialNetworkName";
 
 export const POST_SNAPSHOT_ID = "11111111-1111-4111-8111-111111111111";
@@ -8,7 +8,10 @@ export const REPLY_ID = "33333333-3333-4333-8333-333333333333";
 export const SCREENSHOT_DATA = "dGVzdA==";
 export const REPLY_SCREENSHOT_DATA = "cmVwbHk=";
 
-export function scrapingResult(): PostScrapingResult {
+export function scrapingResult(): {
+  postSnapshot: PostSnapshot;
+  screenshots: ScrapingScreenshots;
+} {
   return {
     postSnapshot: snapshot(),
     screenshots: {

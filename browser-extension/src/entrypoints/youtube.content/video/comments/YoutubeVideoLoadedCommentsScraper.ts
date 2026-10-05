@@ -1,5 +1,5 @@
 import type { Author } from "@/shared/model/Author";
-import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";

@@ -3,7 +3,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { Author } from "@/shared/model/Author";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import {
   FB_COMMENTS_TEXT_REGEX,
   LIKES_BUTTON_REGEX,

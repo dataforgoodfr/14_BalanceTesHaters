@@ -1,5 +1,9 @@
-import { countAllComments } from "@/shared/model/PostSnapshot";
-import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
+import {
+  countAllComments,
+  type CommentSnapshot,
+} from "@/shared/model/PostSnapshot";
+import { detachCommentScreenshots } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
+import type { ScrapingScreenshots } from "@/shared/model/scraping/ScrapingScreenshots";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger } from "@/shared/utils/createLogger";
@@ -11,18 +15,21 @@ import { ytBaseLogger } from "../../ytBaseLogger";
 const logger = createLogger("comments", ytBaseLogger);
 
 export class YoutubeVideoCommentsScraper {
-  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 3000;
+  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 4000;
 
   public constructor(
     private scrapingSupport: ScrapingSupport,
     private progressManager: ProgressManager,
     private commentsContainer: HTMLElement,
     private expectedCommentsCount: number,
+    private appendScreenshots: (
+      screenshots: ScrapingScreenshots,
+    ) => Promise<void>,
     private skipScreenshoting: boolean = false,
     private maxScrapingComments: number = YoutubeVideoCommentsScraper.DEFAULT_MAX_SCRAPING_COMMENTS,
   ) {}
 
-  public async scrapComments(): Promise<CommentSnapshotWithScreenshot[]> {
+  public async scrapComments(): Promise<CommentSnapshot[]> {
     logger.info(
       `Scraping comments (expectedCommentsCount: ${this.expectedCommentsCount}, maxScrapingComments: ${this.maxScrapingComments})...`,
     );
@@ -47,7 +54,7 @@ export class YoutubeVideoCommentsScraper {
       targetCommentsCount,
       this.skipScreenshoting,
     );
-    const comments: CommentSnapshotWithScreenshot[] = [];
+    const comments: CommentSnapshot[] = [];
 
     for (;;) {
       logger.info("Loading next batch...");
@@ -66,12 +73,16 @@ export class YoutubeVideoCommentsScraper {
       }
 
       logger.info(`Scraping batch content...`);
-      const batchComments = await batchScraper.scrapBatch(batch);
+      const batchCommentsWithScreenshots = await batchScraper.scrapBatch(batch);
+      const { comments: batchComments, screenshots } = detachCommentScreenshots(
+        batchCommentsWithScreenshots,
+      );
       const allBatchCommentsCount = countAllComments(batchComments);
       logger.info(
         `Scraped ${allBatchCommentsCount} comments in batch (in ${batchComments.length} roots)`,
       );
 
+      await this.appendScreenshots(screenshots);
       comments.push(...batchComments);
 
       await this.scrapingSupport.resumeHostPage();

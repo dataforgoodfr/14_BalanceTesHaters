@@ -62,18 +62,22 @@ describe("YoutubeVideoCommentsScraper", () => {
     const support = new ScrapingSupport(new AbortController().signal);
     vi.spyOn(support, "isVisible").mockReturnValue(true);
 
+    const appendScreenshots = vi.fn(() => Promise.resolve());
     const comments = await new YoutubeVideoCommentsScraper(
       support,
       new ProgressManager(vi.fn()),
       commentsContainer,
       2,
+      appendScreenshots,
     ).scrapComments();
 
     expect(comments.map((comment) => comment.commentId)).toEqual([
       "first",
       "second",
     ]);
+    expect(JSON.stringify(comments)).not.toContain("screenshotData");
     expect(createScreenshotProviderForDocumentArea).toHaveBeenCalledTimes(2);
+    expect(appendScreenshots).toHaveBeenCalledTimes(2);
     expect(
       vi.mocked(createScreenshotProviderForDocumentArea).mock.calls[0]?.[0],
     ).toEqual([firstThread]);

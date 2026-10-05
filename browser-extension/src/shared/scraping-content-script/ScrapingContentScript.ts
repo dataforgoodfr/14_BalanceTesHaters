@@ -6,7 +6,10 @@ import {
   isScsGetScrapingStatusMessage,
   isScsCancelScrapTabMessage,
 } from "./messages";
-import { insertPostSnapshot } from "@/shared/storage/post-snapshot-storage";
+import {
+  createPostSnapshotWriteSession,
+  type PostSnapshotWriteSession,
+} from "@/shared/storage/post-snapshot-storage";
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { countAllComments } from "@/shared/model/PostSnapshot";
 import type { ScrapingStatus } from "./ScrapingStatus";
@@ -87,6 +90,7 @@ export class ScrapingContentScript {
   }
 
   private async scrapPost(): Promise<void> {
+    let writeSession: PostSnapshotWriteSession | undefined;
     const pageInfo = await this.getPageInfo();
     if (!pageInfo.isScrapablePost) {
       logger.error("Page not scrapable");
@@ -105,6 +109,7 @@ export class ScrapingContentScript {
       };
       const start = Date.now();
       const settings = await getSettings();
+      writeSession = await createPostSnapshotWriteSession();
       const scrapResult = await this.scraper.scrapPagePost(
         this.scrapAbortController.signal,
         new ProgressManager((progress) => {
@@ -127,12 +132,17 @@ export class ScrapingContentScript {
           };
         }),
         {
+          postSnapshotId: writeSession.postSnapshotId,
+          appendScreenshots: writeSession.appendScreenshots.bind(writeSession),
+        },
+        {
           skipScreenshoting: settings.skipScreenshoting,
           scrapingMaxComments: settings.scrapingMaxComments,
         },
       );
       if (isRequestRedirectAndScrap(scrapResult)) {
         logger.info("Scraper requested a page reload and restart");
+        await writeSession.abort();
         // location.assign will stop the content script context
         // We need to store that scraping needs to restart
         await this.storeOnInitScrapingFlag();
@@ -144,8 +154,8 @@ export class ScrapingContentScript {
 
       // Store post snapshot
       logger.info("Storing post snapshot");
-      const { postSnapshot, screenshots } = scrapResult;
-      await insertPostSnapshot({ postSnapshot, screenshots });
+      const postSnapshot = scrapResult;
+      await writeSession.commit(postSnapshot);
 
       if (!settings.skipSubmitForClassification) {
         logger.info("Submit for classification");
@@ -175,6 +185,7 @@ export class ScrapingContentScript {
 
       return;
     } catch (e) {
+      await this.abortWriteSession(writeSession);
       if (e === ABORT_CANCEL_SCRAPING_REASON) {
         // AbortSignal.throwIfAborted throws the reason when aborted
         logger.info("Scraping was cancelled", e, " typeof e", typeof e);
@@ -194,6 +205,16 @@ export class ScrapingContentScript {
         this.scrapingStatus = scrapingFailed(errorMessage);
         return;
       }
+    }
+  }
+
+  private async abortWriteSession(
+    writeSession: PostSnapshotWriteSession | undefined,
+  ): Promise<void> {
+    try {
+      await writeSession?.abort();
+    } catch (error) {
+      logger.error("Failed to clean up interrupted snapshot storage", error);
     }
   }
 

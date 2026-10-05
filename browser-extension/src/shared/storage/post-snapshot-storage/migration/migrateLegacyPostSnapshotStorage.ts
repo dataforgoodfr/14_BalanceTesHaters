@@ -9,10 +9,13 @@ import {
   readPostSnapshotRecord,
   readPostSnapshotStorageVersion,
   unsupportedStorageVersionError,
-  writePostSnapshot,
 } from "../post-snapshot-storage-format";
-import type { PostScrapingResult } from "@/shared/model/PostScrapingResult";
-import type { CommentSnapshot } from "@/shared/model/PostSnapshot";
+import { StoragePostSnapshotWriteSession } from "../post-snapshot-write-session";
+import type { ScrapingScreenshots } from "@/shared/model/scraping/ScrapingScreenshots";
+import type {
+  CommentSnapshot,
+  PostSnapshot,
+} from "@/shared/model/PostSnapshot";
 
 export async function migrateLegacyPostSnapshotStorage(): Promise<void> {
   const versionValue = await readPostSnapshotStorageVersion();
@@ -33,7 +36,11 @@ export async function migrateLegacyPostSnapshotStorage(): Promise<void> {
       if (await readPostSnapshotRecord(legacySnapshot.id)) {
         continue;
       }
-      await writePostSnapshot(detachLegacyScreenshots(legacySnapshot));
+      const { postSnapshot, screenshots } =
+        detachLegacyScreenshots(legacySnapshot);
+      const writeSession = new StoragePostSnapshotWriteSession(postSnapshot.id);
+      await writeSession.appendScreenshots(screenshots);
+      await writeSession.commit(postSnapshot);
     }
   }
   await browser.storage.local.set({
@@ -42,10 +49,11 @@ export async function migrateLegacyPostSnapshotStorage(): Promise<void> {
   await browser.storage.local.remove(LEGACY_POST_SNAPSHOTS_KEY);
 }
 export const LEGACY_POST_SNAPSHOTS_KEY = "posts";
-export function detachLegacyScreenshots(
-  legacySnapshot: LegacyPostSnapshot,
-): PostScrapingResult {
-  const screenshots: Record<string, string> = {};
+export function detachLegacyScreenshots(legacySnapshot: LegacyPostSnapshot): {
+  postSnapshot: PostSnapshot;
+  screenshots: ScrapingScreenshots;
+} {
+  const screenshots: ScrapingScreenshots = {};
   const detach = (comment: LegacyCommentSnapshot): CommentSnapshot => {
     const { screenshotData, replies, ...snapshot } = comment;
     if (screenshotData) {

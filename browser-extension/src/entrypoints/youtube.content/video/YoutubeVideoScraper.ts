@@ -1,9 +1,7 @@
-import {
-  detachCommentScreenshots,
-  type PostScrapingResult,
-} from "@/shared/model/PostScrapingResult";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ScrapingOutput } from "@/shared/scraping-content-script/SocialNetworkScraper";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger } from "@/shared/utils/createLogger";
@@ -24,11 +22,12 @@ export class YoutubeVideoScraper {
     private pageInfo: ScrapableSocialNetworkPage,
 
     private progressManager: ProgressManager,
+    private output: ScrapingOutput,
     private skipScreenshoting: boolean = false,
     private scrapingMaxComments?: number,
   ) {}
 
-  async scrapPost(): Promise<PostScrapingResult> {
+  async scrapPost(): Promise<PostSnapshot> {
     logger.info("Start Scraping... ", document.URL);
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
@@ -43,7 +42,7 @@ export class YoutubeVideoScraper {
 
     const url = document.URL;
     const scrapedAt = currentIsoDate();
-    const id = crypto.randomUUID();
+    const id = this.output.postSnapshotId;
     const postId = this.pageInfo.postId;
 
     logger.debug("Scraping title...");
@@ -69,32 +68,27 @@ export class YoutubeVideoScraper {
     );
     const expectedCommentCount = await this.scrapExpectedCommentCount();
 
-    const commentsWithScreenshots = await new YoutubeVideoCommentsScraper(
+    const comments = await new YoutubeVideoCommentsScraper(
       this.scrapingSupport,
       this.progressManager,
       commentsContainer,
       expectedCommentCount,
+      this.output.appendScreenshots,
       this.skipScreenshoting,
       this.scrapingMaxComments,
     ).scrapComments();
-    const { comments, screenshots } = detachCommentScreenshots(
-      commentsWithScreenshots,
-    );
     return {
-      postSnapshot: {
-        id,
-        postId,
-        socialNetwork: SocialNetwork.YouTube,
-        scrapedAt,
-        coverImageUrl: coverImageUrl(this.pageInfo.postId),
-        url,
-        author: author,
-        publishedAt: publishedAt,
-        textContent,
-        comments,
-        title,
-      },
-      screenshots,
+      id,
+      postId,
+      socialNetwork: SocialNetwork.YouTube,
+      scrapedAt,
+      coverImageUrl: coverImageUrl(this.pageInfo.postId),
+      url,
+      author: author,
+      publishedAt: publishedAt,
+      textContent,
+      comments,
+      title,
     };
   }
 
