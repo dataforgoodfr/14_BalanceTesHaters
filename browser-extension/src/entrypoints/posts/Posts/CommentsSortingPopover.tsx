@@ -16,9 +16,9 @@ type Props = {
 function getSortingLabel(sortingCategory: CommentSortingCategory): string {
   switch (sortingCategory) {
     case CommentSortingCategory.HATE_SCORE_ASC:
-      return "Niveau de malveillance (IA) : d'élevé à faible";
-    case CommentSortingCategory.HATE_SCORE_DESC:
       return "Niveau de malveillance (IA) : de faible à élevé";
+    case CommentSortingCategory.HATE_SCORE_DESC:
+      return "Niveau de malveillance (IA) : d'élevé à faible";
     case CommentSortingCategory.COMMENT_DATE_DESC:
       return "Date commentaire : d’ancien à nouveau";
     case CommentSortingCategory.COMMENT_DATE_ASC:
