@@ -67,7 +67,10 @@ function handleIncomingMessages(
     });
     return true;
   } else if (isSubmitClassificationRequestMessage(message)) {
-    void submitClassificationRequestForPost(message.postSnapshotId).then(
+    void submitClassificationRequestForPost(
+      message.postSnapshotId,
+      message.allowResubmit,
+    ).then(
       () => {
         sendResponse({ success: true });
       },

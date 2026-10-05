@@ -327,14 +327,14 @@ export function sortCommentList(
     case CommentSortingCategory.HATE_SCORE_ASC:
       return [...commentList].sort(
         (a, b) =>
-          (b.hateScore ?? Number.NEGATIVE_INFINITY) -
-          (a.hateScore ?? Number.NEGATIVE_INFINITY),
+          (a.hateScore ?? Number.NEGATIVE_INFINITY) -
+          (b.hateScore ?? Number.NEGATIVE_INFINITY),
       );
     case CommentSortingCategory.HATE_SCORE_DESC:
       return [...commentList].sort(
         (a, b) =>
-          (a.hateScore ?? Number.POSITIVE_INFINITY) -
-          (b.hateScore ?? Number.POSITIVE_INFINITY),
+          (b.hateScore ?? Number.NEGATIVE_INFINITY) -
+          (a.hateScore ?? Number.NEGATIVE_INFINITY),
       );
     case CommentSortingCategory.COMMENT_DATE_ASC:
       return [...commentList].sort((a, b) => {

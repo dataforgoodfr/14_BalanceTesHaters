@@ -11,6 +11,7 @@ const logger = createLogger("classification-submit");
 const postIdsBeingSubmitted = new Map<string, Promise<void>>();
 export async function submitClassificationRequestForPost(
   postSnapshotId: string,
+  allowResubmit: boolean = false,
 ): Promise<void> {
   logger.debug(
     "submitClassificationRequestForPost - postSnapshotId:",
@@ -25,7 +26,10 @@ export async function submitClassificationRequestForPost(
     await postIdsBeingSubmitted.get(postSnapshotId);
   } else {
     try {
-      const promise = doSubmitClassificationRequestForPost(postSnapshotId);
+      const promise = doSubmitClassificationRequestForPost(
+        postSnapshotId,
+        allowResubmit,
+      );
       postIdsBeingSubmitted.set(postSnapshotId, promise);
       await promise;
     } finally {
@@ -34,14 +38,17 @@ export async function submitClassificationRequestForPost(
   }
 }
 
-async function doSubmitClassificationRequestForPost(postSnapshotId: string) {
+async function doSubmitClassificationRequestForPost(
+  postSnapshotId: string,
+  allowResubmit: boolean,
+) {
   const post = await getPostSnapshotById(postSnapshotId);
   if (!post) {
     throw new Error(
       `Submit classification failed: PostSnapshot ${postSnapshotId} not found in storage`,
     );
   }
-  if (post.classificationJobId) {
+  if (post.classificationJobId && !allowResubmit) {
     throw new Error(
       `Submit classification failed: PostSnapshot ${postSnapshotId} already has a classificationJobId!!`,
     );

@@ -10,11 +10,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Spinner } from "@/components/ui/spinner";
 import { isRunningClassificationStatus } from "@/shared/model/ClassificationStatus";
 import { getPublicationTypeLabel } from "@/shared/utils/post-util";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useState } from "react";
+
+type ClassificationAction = "start-or-refresh" | "resubmit";
 
 function PostSnapshotDetailPage() {
   const params = useParams();
   const snapshotId = params.snapshotId || "";
   const queryClient = useQueryClient();
+  const [resubmitConfirmationOpen, setResubmitConfirmationOpen] =
+    useState(false);
 
   const queryKey = ["postSnapshots", snapshotId];
   const { data: post, isLoading } = useQuery({
@@ -23,15 +35,37 @@ function PostSnapshotDetailPage() {
   });
 
   const startOrRefreshStatusMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (action: ClassificationAction) => {
       if (!post) {
         return;
       }
 
-      if (!post.classificationStatus) {
-        await sendSubmitClassificationRequestMessage(post.id);
-      } else if (isRunningClassificationStatus(post.classificationStatus)) {
-        await sendUpdatePostWithClassificationResultMessage(post.id);
+      if (action === "resubmit") {
+        const result = await sendSubmitClassificationRequestMessage(
+          post.id,
+          true,
+        );
+        if (!result.success) {
+          throw new Error("Classification resubmission failed.");
+        }
+        return;
+      }
+
+      if (!post.classificationJobId) {
+        const result = await sendSubmitClassificationRequestMessage(post.id);
+        if (!result.success) {
+          throw new Error("Classification submission failed.");
+        }
+      } else if (
+        !post.classificationStatus ||
+        isRunningClassificationStatus(post.classificationStatus)
+      ) {
+        const result = await sendUpdatePostWithClassificationResultMessage(
+          post.id,
+        );
+        if (!result.success) {
+          throw new Error("Classification refresh failed.");
+        }
       }
     },
     onSuccess: () => {
@@ -114,13 +148,16 @@ function PostSnapshotDetailPage() {
               {post.classificationStatus && post.classificationStatus}
               {!post.classificationStatus && "Non démarrée"}
             </span>
-            {(!post.classificationStatus ||
+            {(!post.classificationJobId ||
+              !post.classificationStatus ||
               isRunningClassificationStatus(post.classificationStatus)) && (
               <Button
                 size="sm"
                 className="ml-3"
                 disabled={startOrRefreshStatusMutation.isPending}
-                onClick={() => startOrRefreshStatusMutation.mutate()}
+                onClick={() =>
+                  startOrRefreshStatusMutation.mutate("start-or-refresh")
+                }
               >
                 {startOrRefreshStatusMutation.isPending ? (
                   <Spinner data-icon="inline-start" />
@@ -130,7 +167,69 @@ function PostSnapshotDetailPage() {
                 Mettre à jour
               </Button>
             )}
+            {post.classificationJobId && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-3"
+                disabled={startOrRefreshStatusMutation.isPending}
+                onClick={() => {
+                  startOrRefreshStatusMutation.reset();
+                  setResubmitConfirmationOpen(true);
+                }}
+              >
+                <RefreshCcwIcon data-icon="inline-start" />
+                Soumettre à nouveau
+              </Button>
+            )}
           </div>
+
+          <Dialog
+            open={resubmitConfirmationOpen}
+            onOpenChange={(open) => {
+              setResubmitConfirmationOpen(open);
+              if (!open) {
+                startOrRefreshStatusMutation.reset();
+              }
+            }}
+          >
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Soumettre à nouveau ?</DialogTitle>
+              </DialogHeader>
+              <p className="text-muted-foreground mt-0!">
+                Une nouvelle classification remplacera la classification
+                actuelle.
+              </p>
+              {startOrRefreshStatusMutation.isError && (
+                <p role="alert" className="text-destructive text-sm">
+                  La nouvelle soumission a échoué.
+                </p>
+              )}
+              <DialogFooter className="mt-4 justify-end gap-2">
+                <Button
+                  variant="outline"
+                  disabled={startOrRefreshStatusMutation.isPending}
+                  onClick={() => setResubmitConfirmationOpen(false)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  disabled={startOrRefreshStatusMutation.isPending}
+                  onClick={() =>
+                    startOrRefreshStatusMutation.mutate("resubmit", {
+                      onSuccess: () => setResubmitConfirmationOpen(false),
+                    })
+                  }
+                >
+                  {startOrRefreshStatusMutation.isPending && (
+                    <Spinner data-icon="inline-start" />
+                  )}
+                  Soumettre à nouveau
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           <h2 className="text-left pt-2 my-4">Commentaires</h2>
 
