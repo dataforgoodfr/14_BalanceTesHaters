@@ -1,7 +1,8 @@
 import { z } from "zod";
-import type { CommentSnapshot } from "../../model/PostSnapshot";
-import { PostSnapshotSchema } from "../../model/PostSnapshot";
-import type { PostScrapingResult } from "../../model/PostScrapingResult";
+import {
+  PostSnapshotSchema,
+  type PostSnapshot,
+} from "../../model/PostSnapshot";
 import { createLogger } from "../../utils/createLogger";
 
 const logger = createLogger("post-snapshot-storage-format");
@@ -41,7 +42,23 @@ export function postSnapshotScreenshotChunkKey(
   postSnapshotId: string,
   chunkIndex: number,
 ): string {
-  return `${SCREENSHOT_CHUNK_KEY_PREFIX}${postSnapshotId}:${chunkIndex}`;
+  return `${postSnapshotScreenshotChunkKeyPrefix(postSnapshotId)}${chunkIndex}`;
+}
+
+export function postSnapshotScreenshotChunkKeyPrefix(
+  postSnapshotId: string,
+): string {
+  return `${SCREENSHOT_CHUNK_KEY_PREFIX}${postSnapshotId}:`;
+}
+
+export function postSnapshotIdFromScreenshotChunkKey(
+  key: string,
+): string | undefined {
+  if (!key.startsWith(SCREENSHOT_CHUNK_KEY_PREFIX)) return undefined;
+  const suffix = key.slice(SCREENSHOT_CHUNK_KEY_PREFIX.length);
+  const separatorIndex = suffix.lastIndexOf(":");
+  if (separatorIndex === -1) return undefined;
+  return suffix.slice(0, separatorIndex);
 }
 
 export async function readPostSnapshotStorageVersion(): Promise<unknown> {
@@ -54,24 +71,6 @@ export function unsupportedStorageVersionError(version: unknown): Error {
   return new Error(
     `Unsupported post snapshot storage version: ${JSON.stringify(version)}`,
   );
-}
-
-export async function writePostSnapshot({
-  postSnapshot,
-  screenshots,
-}: PostScrapingResult): Promise<void> {
-  const { chunks, chunkIndexByCommentSnapshotId } =
-    buildScreenshotChunks(screenshots);
-  for (const [chunkIndex, chunk] of chunks.entries()) {
-    await browser.storage.local.set({
-      [postSnapshotScreenshotChunkKey(postSnapshot.id, chunkIndex)]: chunk,
-    });
-  }
-  await writePostSnapshotRecord({
-    postSnapshot,
-    screenshotChunkIndexByCommentSnapshotId: chunkIndexByCommentSnapshotId,
-    screenshotChunkCount: chunks.length,
-  });
 }
 
 export async function writePostSnapshotRecord(
@@ -94,10 +93,17 @@ export async function readPostSnapshotRecord(
   return PostSnapshotRecordSchema.parse(value);
 }
 
+export async function getPostSnapshotIds(): Promise<Array<PostSnapshot["id"]>> {
+  const keys = await browser.storage.local.getKeys();
+  return keys.flatMap((key) => {
+    if (!key.startsWith(RECORD_KEY_PREFIX)) return [];
+    const postSnapshotId = key.slice(RECORD_KEY_PREFIX.length);
+    return postSnapshotId ? [postSnapshotId] : [];
+  });
+}
+
 export async function readPostSnapshotRecords(): Promise<PostSnapshotRecord[]> {
-  const keys = (await browser.storage.local.getKeys()).filter((key) =>
-    key.startsWith(RECORD_KEY_PREFIX),
-  );
+  const keys = (await getPostSnapshotIds()).map(postSnapshotRecordKey);
   if (keys.length === 0) {
     return [];
   }
@@ -112,6 +118,14 @@ export async function readPostSnapshotRecords(): Promise<PostSnapshotRecord[]> {
     }
   }
   return records;
+}
+
+export async function getPostSnapshotScreenshotChunksDataKeys(): Promise<
+  string[]
+> {
+  return (await browser.storage.local.getKeys()).filter((key) =>
+    key.startsWith(SCREENSHOT_CHUNK_KEY_PREFIX),
+  );
 }
 
 export async function getPostSnapshotDataKeys(): Promise<string[]> {
@@ -129,44 +143,4 @@ export async function getPostSnapshotStorageKeys(): Promise<string[]> {
       key.startsWith(RECORD_KEY_PREFIX) ||
       key.startsWith(SCREENSHOT_CHUNK_KEY_PREFIX),
   );
-}
-
-export function buildScreenshotChunks(
-  screenshots: Record<CommentSnapshot["id"], string>,
-): {
-  chunks: StoredScreenshotChunk[];
-  chunkIndexByCommentSnapshotId: Record<CommentSnapshot["id"], number>;
-} {
-  const chunks: StoredScreenshotChunk[] = [];
-  const chunkIndexByCommentSnapshotId: Record<string, number> = {};
-  let current: StoredScreenshotChunk = { screenshots: {} };
-
-  for (const [commentSnapshotId, data] of Object.entries(screenshots).sort(
-    ([left], [right]) => left.localeCompare(right),
-  )) {
-    if (!data) {
-      continue;
-    }
-    const candidate: StoredScreenshotChunk = {
-      screenshots: { ...current.screenshots, [commentSnapshotId]: data },
-    };
-    if (
-      Object.keys(current.screenshots).length > 0 &&
-      serializedSize(candidate) > MAX_SCREENSHOT_CHUNK_BYTES
-    ) {
-      chunks.push(current);
-      current = { screenshots: { [commentSnapshotId]: data } };
-    } else {
-      current = candidate;
-    }
-    chunkIndexByCommentSnapshotId[commentSnapshotId] = chunks.length;
-  }
-  if (Object.keys(current.screenshots).length > 0) {
-    chunks.push(current);
-  }
-  return { chunks, chunkIndexByCommentSnapshotId };
-}
-
-function serializedSize(value: unknown): number {
-  return new TextEncoder().encode(JSON.stringify(value)).byteLength;
 }

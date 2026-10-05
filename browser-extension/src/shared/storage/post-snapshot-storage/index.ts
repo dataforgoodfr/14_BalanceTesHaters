@@ -1,4 +1,5 @@
 export {
+  createPostSnapshotWriteSession,
   deleteAllPostSnapshots,
   deletePost,
   deletePostSnapshot,
@@ -11,6 +12,6 @@ export {
   getScreenshot,
   getScreenshots,
   initializeStorage,
-  insertPostSnapshot,
   updatePostSnapshot,
+  type PostSnapshotWriteSession,
 } from "./post-snapshot-storage";

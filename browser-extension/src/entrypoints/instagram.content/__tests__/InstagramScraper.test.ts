@@ -17,6 +17,10 @@ describe("InstagramScraper", () => {
     const result = await new InstagramScraper().scrapPagePost(
       new AbortController().signal,
       undefined!,
+      {
+        postSnapshotId: crypto.randomUUID(),
+        appendScreenshots: () => Promise.resolve(),
+      },
     );
 
     expect(result).toEqual({

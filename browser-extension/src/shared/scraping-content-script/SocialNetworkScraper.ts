@@ -1,4 +1,5 @@
-import type { PostScrapingResult } from "@/shared/model/PostScrapingResult";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import type { ScrapingScreenshots } from "@/shared/model/scraping/ScrapingScreenshots";
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import type { ProgressManager } from "./ProgressManager";
 
@@ -7,17 +8,23 @@ export type SocialNetworkScraperSettings = {
   scrapingMaxComments?: number;
 };
 
+export type ScrapingOutput = {
+  postSnapshotId: string;
+  appendScreenshots: (screenshots: ScrapingScreenshots) => Promise<void>;
+};
+
 export interface SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo>;
 
   scrapPagePost(
     abortSignal: AbortSignal,
     progress: ProgressManager,
+    output: ScrapingOutput,
     settings?: SocialNetworkScraperSettings,
   ): Promise<ScrapPagePostResult>;
 }
 
-export type ScrapPagePostResult = PostScrapingResult | RequestRedirectAndScrap;
+export type ScrapPagePostResult = PostSnapshot | RequestRedirectAndScrap;
 
 export type RequestRedirectAndScrap = {
   redirectUrl: string;

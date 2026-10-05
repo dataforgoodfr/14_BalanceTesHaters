@@ -13,6 +13,10 @@ describe("YoutubeScraper", () => {
     const result = await new YoutubeScraper().scrapPagePost(
       new AbortController().signal,
       undefined!,
+      {
+        postSnapshotId: crypto.randomUUID(),
+        appendScreenshots: () => Promise.resolve(),
+      },
     );
 
     expect(result).toEqual({

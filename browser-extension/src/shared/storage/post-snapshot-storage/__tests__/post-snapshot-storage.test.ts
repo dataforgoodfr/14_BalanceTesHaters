@@ -34,8 +34,16 @@ describe("post snapshot storage v2", () => {
     });
   });
 
+  async function store(result = scrapingResult()): Promise<void> {
+    const session = await storage.createPostSnapshotWriteSession(
+      result.postSnapshot.id,
+    );
+    await session.appendScreenshots(result.screenshots);
+    await session.commit(result.postSnapshot);
+  }
+
   it("stores screenshots in chunks and keeps them out of PostSnapshot", async () => {
-    await storage.insertPostSnapshot(scrapingResult());
+    await store();
 
     const [postSnapshot] = await storage.getPostSnapshots();
     expect(postSnapshot).toEqual(snapshot());
@@ -50,7 +58,7 @@ describe("post snapshot storage v2", () => {
   });
 
   it("ignores screenshot references without a chunk index", async () => {
-    await storage.insertPostSnapshot(scrapingResult());
+    await store();
 
     await expect(
       storage.getScreenshots([
@@ -71,7 +79,7 @@ describe("post snapshot storage v2", () => {
   it("writes the record after its screenshot chunks", async () => {
     const setSpy = vi.spyOn(browser.storage.local, "set");
 
-    await storage.insertPostSnapshot(scrapingResult());
+    await store();
 
     const writtenKeys = setSpy.mock.calls.map(
       ([value]) => Object.keys(value as Record<string, unknown>)[0],
@@ -87,18 +95,165 @@ describe("post snapshot storage v2", () => {
     );
   });
 
+  it("writes full screenshot chunks before the snapshot is committed", async () => {
+    const session =
+      await storage.createPostSnapshotWriteSession(POST_SNAPSHOT_ID);
+    const oversizedScreenshot = "A".repeat(
+      storageFormat.MAX_SCREENSHOT_CHUNK_BYTES,
+    );
+
+    await session.appendScreenshots({
+      [COMMENT_ID]: oversizedScreenshot,
+    });
+    await session.appendScreenshots({ [REPLY_ID]: SCREENSHOT_DATA });
+
+    await expect(
+      browser.storage.local.get(
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 0),
+      ),
+    ).resolves.toEqual({
+      [storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 0)]: {
+        screenshots: { [COMMENT_ID]: oversizedScreenshot },
+      },
+    });
+    await expect(storage.getPostSnapshots()).resolves.toEqual([]);
+
+    await session.commit(snapshot());
+
+    await expect(storage.getPostSnapshots()).resolves.toEqual([snapshot()]);
+    await expect(
+      storage.getScreenshot({
+        postSnapshotId: POST_SNAPSHOT_ID,
+        commentSnapshotId: REPLY_ID,
+      }),
+    ).resolves.toBe(SCREENSHOT_DATA);
+  });
+
+  it("keeps filling the same chunk across append calls", async () => {
+    const session =
+      await storage.createPostSnapshotWriteSession(POST_SNAPSHOT_ID);
+
+    await session.appendScreenshots({ [COMMENT_ID]: SCREENSHOT_DATA });
+    await session.appendScreenshots({ [REPLY_ID]: SCREENSHOT_DATA });
+    await session.commit(snapshot());
+
+    await expect(
+      browser.storage.local.get(
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 0),
+      ),
+    ).resolves.toEqual({
+      [storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 0)]: {
+        screenshots: {
+          [COMMENT_ID]: SCREENSHOT_DATA,
+          [REPLY_ID]: SCREENSHOT_DATA,
+        },
+      },
+    });
+    await expect(
+      browser.storage.local.get(
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 1),
+      ),
+    ).resolves.toEqual({});
+  });
+
+  it("removes chunks when a write session is aborted", async () => {
+    const session =
+      await storage.createPostSnapshotWriteSession(POST_SNAPSHOT_ID);
+    await session.appendScreenshots({
+      [COMMENT_ID]: "A".repeat(storageFormat.MAX_SCREENSHOT_CHUNK_BYTES),
+    });
+    await session.appendScreenshots({ [REPLY_ID]: SCREENSHOT_DATA });
+    getKeysMock.mockClear();
+
+    await session.abort();
+
+    expect(getKeysMock).not.toHaveBeenCalled();
+    await expect(
+      browser.storage.local.get([
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 0),
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 1),
+      ]),
+    ).resolves.toEqual({});
+  });
+
+  it("deletes all snapshot records and screenshot chunks", async () => {
+    await store();
+
+    await storage.deleteAllPostSnapshots();
+
+    await expect(storage.getPostSnapshots()).resolves.toEqual([]);
+    await expect(
+      storage.getScreenshot({
+        postSnapshotId: POST_SNAPSHOT_ID,
+        commentSnapshotId: COMMENT_ID,
+      }),
+    ).resolves.toBeUndefined();
+    await expect(
+      browser.storage.local.get(
+        storageFormat.POST_SNAPSHOTS_STORAGE_VERSION_KEY,
+      ),
+    ).resolves.toEqual({
+      [storageFormat.POST_SNAPSHOTS_STORAGE_VERSION_KEY]:
+        storageFormat.POST_SNAPSHOTS_STORAGE_VERSION,
+    });
+  });
+
+  it("chunks screenshots using their data length", async () => {
+    const session =
+      await storage.createPostSnapshotWriteSession(POST_SNAPSHOT_ID);
+    const halfChunk = "A".repeat(storageFormat.MAX_SCREENSHOT_CHUNK_BYTES / 2);
+
+    await session.appendScreenshots({
+      [COMMENT_ID]: halfChunk,
+      [REPLY_ID]: halfChunk,
+    });
+    await session.commit(snapshot());
+
+    await expect(
+      browser.storage.local.get(
+        storageFormat.postSnapshotScreenshotChunkKey(POST_SNAPSHOT_ID, 1),
+      ),
+    ).resolves.toEqual({});
+  });
+
+  it("removes screenshot chunks without a snapshot record", async () => {
+    const orphanedPostSnapshotId = "44444444-4444-4444-8444-444444444444";
+    const orphanedChunkKey = storageFormat.postSnapshotScreenshotChunkKey(
+      orphanedPostSnapshotId,
+      0,
+    );
+    await storageFormat.writePostSnapshotRecord({
+      postSnapshot: snapshot(),
+      screenshotChunkIndexByCommentSnapshotId: {},
+      screenshotChunkCount: 0,
+    });
+    await browser.storage.local.set({
+      [orphanedChunkKey]: { screenshots: { [COMMENT_ID]: SCREENSHOT_DATA } },
+    });
+    const getSpy = vi.spyOn(browser.storage.local, "get");
+
+    await storage.initializeStorage();
+
+    expect(JSON.stringify(getSpy.mock.calls)).not.toContain(
+      storageFormat.postSnapshotRecordKey(POST_SNAPSHOT_ID),
+    );
+    await expect(browser.storage.local.get(orphanedChunkKey)).resolves.toEqual(
+      {},
+    );
+  });
+
   it("rejects a screenshot that does not belong to the snapshot", async () => {
     const result = scrapingResult();
     result.screenshots["44444444-4444-4444-8444-444444444444"] =
       SCREENSHOT_DATA;
 
-    await expect(storage.insertPostSnapshot(result)).rejects.toThrow(
+    await expect(store(result)).rejects.toThrow(
       "does not belong to PostSnapshot",
     );
   });
 
   it("does not read chunks when listing snapshots", async () => {
-    await storage.insertPostSnapshot(scrapingResult());
+    await store();
     const getSpy = vi.spyOn(browser.storage.local, "get");
 
     await storage.getPostSnapshots();
@@ -106,26 +261,6 @@ describe("post snapshot storage v2", () => {
     expect(JSON.stringify(getSpy.mock.calls)).not.toContain(
       "post-snapshots:v2:screenshot-chunk:",
     );
-  });
-
-  it("keeps a screenshot larger than the target size in one chunk", () => {
-    const oversizedScreenshot = "A".repeat(
-      storageFormat.MAX_SCREENSHOT_CHUNK_BYTES,
-    );
-
-    const result = storageFormat.buildScreenshotChunks({
-      [COMMENT_ID]: oversizedScreenshot,
-      [REPLY_ID]: SCREENSHOT_DATA,
-    });
-
-    expect(result.chunks).toHaveLength(2);
-    expect(result.chunks[0]!.screenshots).toEqual({
-      [COMMENT_ID]: oversizedScreenshot,
-    });
-    expect(result.chunkIndexByCommentSnapshotId).toEqual({
-      [COMMENT_ID]: 0,
-      [REPLY_ID]: 1,
-    });
   });
 
   it("waits for migration to publish storage version 2", async () => {
@@ -147,7 +282,7 @@ describe("post snapshot storage v2", () => {
   });
 
   it("updates snapshot metadata without changing screenshot chunks", async () => {
-    await storage.insertPostSnapshot(scrapingResult());
+    await store();
     const chunkKey = storageFormat.postSnapshotScreenshotChunkKey(
       POST_SNAPSHOT_ID,
       0,

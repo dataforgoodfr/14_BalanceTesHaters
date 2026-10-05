@@ -1,9 +1,10 @@
 import {
   detachCommentScreenshots,
   type CommentSnapshotWithScreenshot,
-  type PostScrapingResult,
-} from "@/shared/model/PostScrapingResult";
+} from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
+import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ScrapingOutput } from "@/shared/scraping-content-script/SocialNetworkScraper";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { InstagramCommentThreadsScraper } from "./InstagramCommentThreadsScraper";
@@ -32,15 +33,16 @@ export class InstagramCanonicalScraper {
     private scrapingSupport: ScrapingSupport,
     private pageInfo: ScrapableSocialNetworkPage,
     private progressManager: ProgressManager,
+    private output: ScrapingOutput,
     private skipScreenshoting: boolean = false,
   ) {}
 
-  async scrapPost(): Promise<PostScrapingResult> {
+  async scrapPost(): Promise<PostSnapshot> {
     logger.debug("Start Scraping... ", document.URL);
 
     const url = document.URL;
     const scrapedAt = currentIsoDate();
-    const id = crypto.randomUUID();
+    const id = this.output.postSnapshotId;
     const postId = this.pageInfo.postId;
 
     logger.debug("Extracting og info... ");
@@ -76,21 +78,19 @@ export class InstagramCanonicalScraper {
     const { comments, screenshots } = detachCommentScreenshots(
       commentsWithScreenshots,
     );
+    await this.output.appendScreenshots(screenshots);
 
     return {
-      postSnapshot: {
-        id,
-        socialNetwork: SocialNetwork.Instagram,
-        postId,
-        author,
-        publishedAt,
-        textContent,
-        scrapedAt,
-        url,
-        coverImageUrl,
-        comments,
-      },
-      screenshots,
+      id,
+      socialNetwork: SocialNetwork.Instagram,
+      postId,
+      author,
+      publishedAt,
+      textContent,
+      scrapedAt,
+      url,
+      coverImageUrl,
+      comments,
     };
   }
 

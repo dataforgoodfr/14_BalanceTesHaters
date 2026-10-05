@@ -1,12 +1,8 @@
-import type { CommentSnapshot, PostSnapshot } from "./PostSnapshot";
-
-export type PostScrapingResult = {
-  postSnapshot: PostSnapshot;
-  screenshots: Record<CommentSnapshot["id"], string>;
-};
+import type { CommentSnapshot } from "../PostSnapshot";
+import type { ScrapingScreenshots } from "./ScrapingScreenshots";
 
 /**
- * This type is a temporary datastructure used until scraper natively split screenshots and comments.
+ * Temporary structure used while a scraper extracts screenshots from comments.
  */
 export type CommentSnapshotWithScreenshot = Omit<CommentSnapshot, "replies"> & {
   screenshotData: string;
@@ -16,10 +12,10 @@ export type CommentSnapshotWithScreenshot = Omit<CommentSnapshot, "replies"> & {
 export function detachCommentScreenshots(
   comments: CommentSnapshotWithScreenshot[],
 ): {
-  screenshots: PostScrapingResult["screenshots"];
+  screenshots: ScrapingScreenshots;
   comments: CommentSnapshot[];
 } {
-  const screenshots: Record<CommentSnapshot["id"], string> = {};
+  const screenshots: ScrapingScreenshots = {};
 
   const detach = (comment: CommentSnapshotWithScreenshot): CommentSnapshot => {
     const { screenshotData, replies, ...snapshot } = comment;

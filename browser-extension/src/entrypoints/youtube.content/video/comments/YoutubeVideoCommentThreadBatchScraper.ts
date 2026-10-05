@@ -1,4 +1,4 @@
-import type { CommentSnapshotWithScreenshot } from "@/shared/model/PostScrapingResult";
+import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import {

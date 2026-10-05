@@ -170,6 +170,22 @@ getScreenshots(
 `commentScreenshotRefKey()`. Les références sans screenshot sont absentes de
 la map.
 
+## Écriture progressive pendant le scraping
+
+`ScrapingContentScript` ouvre une `PostSnapshotWriteSession`, puis les scrapers
+ajoutent les screenshots à mesure qu'ils traitent les commentaires. La session conserve au
+plus un chunk incomplet en mémoire. Elle écrit chaque chunk plein dans
+`browser.storage.local`.
+
+Le `PostSnapshotRecord` est écrit uniquement par `commit()`, après le dernier
+chunk. Il sert ainsi de marqueur de fin. Les lectures ignorent les chunks d'une
+session interrompue puisqu'aucun record ne les référence.
+
+`abort()` supprime les chunks déjà écrits. L'initialisation du stockage supprime
+aussi les chunks sans record laissés par un arrêt brutal du navigateur. Ce
+nettoyage compare uniquement les clés de stockage et ne charge pas les
+`PostSnapshotRecord` en mémoire.
+
 ## Migration du format historique
 
 L'absence de `post-snapshots:storage-version` indique un stockage historique.
