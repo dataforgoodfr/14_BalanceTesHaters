@@ -4,7 +4,7 @@
   "version": "0.0.0-dev",
   "type": "module",
   "scripts": {
-    "dev": "tsx scripts/dev.ts",
+    "dev": "pnpm wxt",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
@@ -24,7 +24,7 @@
     "test:e2e:ui": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --ui",
     "test:e2e:debug": "PATH_TO_EXTENSION=../.output/chrome-mv3-dev playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:soak:browser": "VITE_SOAK_TEST_BUILD=true pnpm build && tsx scripts/start-chromium.ts",
+    "test:soak:browser": "VITE_SOAK_TEST_BUILD=true pnpm dev",
     "test:soak:server": "tsx soak-test/main.ts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
@@ -89,6 +89,7 @@
     "typescript-eslint": "^8.70.1",
     "vite": "^8.3.1",
     "vitest": "^4.1.11",
+    "web-ext": ">=9.2.0",
     "wxt": "^0.21.4"
   },
   "packageManager": "pnpm@12.5.1",

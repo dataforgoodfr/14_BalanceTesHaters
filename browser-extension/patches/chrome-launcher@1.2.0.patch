@@ -1,0 +1,30 @@
+diff --git a/dist/chrome-launcher.js b/dist/chrome-launcher.js
+index d7fb4cf753f817e241554438b317ec333af2e7fc..85d3f9df07311a899f05f6f8ad715b5b22f55b98 100644
+--- a/dist/chrome-launcher.js
++++ b/dist/chrome-launcher.js
+@@ -14,6 +14,14 @@ import { spawn, spawnSync } from 'child_process';
+ import log from 'lighthouse-logger';
+ const isWsl = getPlatform() === 'wsl';
+ const isWindows = getPlatform() === 'win32';
++const windowsExePathRegex = /\.exe$/iu;
++const windowsMountPathRegex = /^\/mnt\/[a-z]\//iu;
++function isWindowsChromePath(chromePath) {
++    if (!chromePath) {
++        return false;
++    }
++    return windowsExePathRegex.test(chromePath) || windowsMountPathRegex.test(chromePath);
++}
+ const _SIGINT = 'SIGINT';
+ const _SIGINT_EXIT_CODE = 130;
+ const _SUPPORTED_PLATFORMS = new Set(['darwin', 'linux', 'win32', 'wsl']);
+@@ -116,8 +124,8 @@ class Launcher {
+         }
+         if (!this.useDefaultProfile) {
+             // Place Chrome profile in a custom location we'll rm -rf later
+-            // If in WSL, we need to use the Windows format
+-            flags.push(`--user-data-dir=${isWsl ? toWin32Path(this.userDataDir) : this.userDataDir}`);
++            // If in WSL and using Windows Chrome binary, we need to use the Windows format
++            flags.push(`--user-data-dir=${isWsl && isWindowsChromePath(this.chromePath) ? toWin32Path(this.userDataDir) : this.userDataDir}`);
+         }
+         if (process.env.HEADLESS)
+             flags.push('--headless');

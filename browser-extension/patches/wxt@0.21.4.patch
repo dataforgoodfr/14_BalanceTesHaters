@@ -1,0 +1,23 @@
+diff --git a/dist/core/runners/wsl.mjs b/dist/core/runners/wsl.mjs
+index 9ed2da521ac8eeb8de3b0e68b68264cd165e1285..2e4bb72dd4927a0f441ea522cee52b58223e3255 100644
+--- a/dist/core/runners/wsl.mjs
++++ b/dist/core/runners/wsl.mjs
+@@ -1,14 +1,11 @@
+-import { wxt } from "../wxt.mjs";
+-import { relative } from "node:path";
++import { createWebExtRunner } from "./web-ext.mjs";
+ //#region src/core/runners/wsl.ts
+ /**
+-* The WSL runner just logs a warning message because `web-ext` doesn't work in
+-* WSL.
++* Use the web-ext runner in WSL. This project provides an explicit Linux
++* Chromium binary because web-ext can otherwise discover Windows Chrome.
+ */
+ function createWslRunner() {
+-	return { async openBrowser() {
+-		wxt.logger.warn(`Cannot open browser when using WSL. Load "${relative(process.cwd(), wxt.config.outDir)}" as an unpacked extension manually`);
+-	} };
++	return createWebExtRunner();
+ }
+ //#endregion
+ export { createWslRunner };
