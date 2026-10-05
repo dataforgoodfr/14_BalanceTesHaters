@@ -1,5 +1,24 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
+import { existsSync, mkdirSync } from "node:fs";
+import { resolve } from "node:path";
+
+const isWsl =
+  process.platform === "linux" &&
+  (process.env.WSL_DISTRO_NAME !== undefined ||
+    process.env.WSL_INTEROP !== undefined);
+const wslChromiumBinary = isWsl
+  ? (process.env.CHROMIUM_BIN ??
+    ["/snap/bin/chromium", "/usr/bin/chromium"].find(existsSync))
+  : undefined;
+
+const chromiumProfile = process.env.VITE_SOAK_TEST_BUILD
+  ? resolve(".wxt/chromium-data-soak")
+  : resolve(".wxt/chromium-data");
+
+if (!existsSync(chromiumProfile)) {
+  mkdirSync(chromiumProfile, { recursive: true });
+}
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -34,7 +53,9 @@ export default defineConfig({
     },
   },
   webExt: {
-    disabled: true,
+    chromiumProfile: chromiumProfile,
+    keepProfileChanges: true,
+    binaries: wslChromiumBinary ? { chrome: wslChromiumBinary } : undefined,
   },
   modules: ["@wxt-dev/module-react", "@wxt-dev/auto-icons"],
   autoIcons: {
