@@ -4,52 +4,10 @@ Teste plusieurs fois le scraping de publications YouTube et Instagram réelles.
 
 ## Lancer le test
 
-Fermez Chromium, puis lancez depuis `browser-extension` :
-
-```sh
-pnpm test:soak:browser
-```
-
-Cette commande construit l'extension une fois, puis lance Chromium sans serveur de développement ni rechargement automatique.
-
-Connectez le profil dédié à YouTube et Instagram. Laissez le navigateur ouvert, puis lancez dans un autre terminal :
-
-```sh
-pnpm test:soak:server -- --manifest soak-test/posts.json
-```
-
-Filtres combinables :
-
-```sh
-pnpm test:soak:server -- --scenario-ids youtube-small-1,youtube-large-1
-pnpm test:soak:server -- --min-expected-comments 100 --max-expected-comments 2000
-pnpm test:soak:server -- --platform youtube
-```
-
-Les snapshots sont conservés par défaut. Pour les supprimer avant chaque tentative ou une seule fois au démarrage :
-
-```sh
-pnpm test:soak:server -- --post-snapshot-cleanup before-each-attempt
-pnpm test:soak:server -- --post-snapshot-cleanup on-start
-```
-
-Les paramètres de scraping sont réinitialisés à leurs valeurs par défaut au
-démarrage de chaque exécution. Pour les remplacer :
-
-```sh
-pnpm test:soak:server -- --skip-screenshoting true
-pnpm test:soak:server -- --skip-submit-for-classification true
-pnpm test:soak:server -- --scraping-max-comments 5000
-```
-
-Ces options peuvent être combinées. Les valeurs effectivement utilisées sont
-enregistrées dans `run.json`, sous `options.scrapingSettings`.
-
-Le profil est stocké dans `.wxt/chromium-data`. Pour choisir Chromium :
-
-```sh
-CHROMIUM_BIN=/chemin/vers/chromium pnpm test:soak:browser
-```
+- Fermez Chromium, puis lancez depuis `browser-extension` `pnpm test:soak:browser`
+  - Cette commande utilise wxt en mode dev en incluant le "soak controller".
+- Authentifier le profil dédié à YouTube et Instagram dans le navigateur qui vient de s'ouvrir.
+- Laissez le navigateur ouvert, puis lancez dans un autre terminal : `pnpm test:soak:server`
 
 ## Résultats
 
@@ -60,6 +18,38 @@ Les fichiers sont écrits dans `soak-test-results/<timestamp>/` :
 - `attempts/<id>/` : résultat, publication extraite, événements et logs.
 
 Un écart entre le nombre attendu et extrait produit un `warning`, pas un échec.
+
+## Options de pnpm test:soak:server
+
+`pnpm test:soak:server` accepte des optiosn sous la forme `pnpm test:soak:server -- <options>`
+e.g. `pnpm test:soak:server -- --platform youtube`
+
+### Liste de scenarios & filtres
+
+- `--manifest`: La liste de scanario est défini dans browser-extension/soak-test/posts.json et peut être configurable avec `--manifest <path_to_posts.json>`
+- `--scanrio-ids`: permet de restraindre a une liste de scenarios: e.g. `--scenario-ids youtube-small-1,youtube-large-1`
+- `--min-expected-comments`: filtre sur la valeur de expectedComment défini dans posts.json
+- `--max-expected-comments`: filtre sur la valeur de expectedComment défini dans posts.json
+
+### Configurer les settings
+
+Les settings sontsont réinitialisés à leurs valeurs par défaut au
+démarrage de chaque exécution.
+
+Pour les remplacer utiliser les options suivante:
+`--skip-screenshoting true`
+`--skip-submit-for-classification true`
+`--scraping-max-comments 5000`
+
+### Autres options
+
+Conservation du stockage: les snapshots sont conservés par défaut.
+Pour les supprimer avant chaque tentative ou une seule fois au démarrage :
+
+```sh
+pnpm test:soak:server -- --post-snapshot-cleanup before-each-attempt
+pnpm test:soak:server -- --post-snapshot-cleanup on-start
+```
 
 ## Pourquoi pas Playwright ?
 
