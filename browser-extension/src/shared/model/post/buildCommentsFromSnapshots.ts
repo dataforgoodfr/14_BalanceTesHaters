@@ -124,6 +124,9 @@ function buildPostCommentForGroupOfSameText(
   );
   const groupOldestComment = sortedByScrapedAt[0]!;
   const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
+  const groupLatestClassifiedComment = sortedByScrapedAt.findLast(
+    ({ commentSnapshot }) => commentSnapshot.classifiedAt !== undefined,
+  );
 
   const isGroupOldestCommentFromLatestSnapshot =
     groupOldestComment.postSnapshotIndex === postSnapshotsCount - 1;
@@ -136,9 +139,10 @@ function buildPostCommentForGroupOfSameText(
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
     author: groupOldestComment.commentSnapshot.author,
     screenshotRef: selectScreenshotRef(sortedByScrapedAt),
-    classification: groupOldestComment.commentSnapshot.classification,
-    hateScore: groupOldestComment.commentSnapshot.hateScore,
-    classifiedAt: groupOldestComment.commentSnapshot.classifiedAt,
+    classification:
+      groupLatestClassifiedComment?.commentSnapshot.classification,
+    hateScore: groupLatestClassifiedComment?.commentSnapshot.hateScore,
+    classifiedAt: groupLatestClassifiedComment?.commentSnapshot.classifiedAt,
     url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
