@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { buildCommentsFromSnapshots } from "../buildCommentsFromSnapshots";
 import type { PostSnapshot, CommentSnapshot } from "../../PostSnapshot";
 import { SocialNetwork } from "../../SocialNetworkName";
+import { AnnotatedCategory } from "../../AnnotatedCategory";
 
 describe("buildCommentsFromSnapshots", () => {
   describe("empty input", () => {
@@ -85,28 +86,43 @@ describe("buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - same comment persists", () => {
-    it("should mark comment as not new and not deleted when it persists across snapshots", () => {
+    it("should keep the latest completed classification when a newer snapshot is unclassified", () => {
       const comment1 = createCommentSnapshot({
         commentId: "same-comment",
         textContent: "Same text",
         scrapedAt: "2024-01-01T00:01:00.000Z",
+        classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
+        hateScore: 0.2,
+        classifiedAt: "2024-01-01T00:01:30.000Z",
       });
       const comment2 = createCommentSnapshot({
         commentId: "same-comment",
         textContent: "Same text",
         scrapedAt: "2024-01-01T00:02:00.000Z",
+        classification: [AnnotatedCategory.MENACES],
+        hateScore: 0.8,
+        classifiedAt: "2024-01-01T00:02:30.000Z",
+      });
+      const comment3 = createCommentSnapshot({
+        commentId: "same-comment",
+        textContent: "Same text",
+        scrapedAt: "2024-01-01T00:03:00.000Z",
       });
 
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment2]);
+      const snapshot3 = createMinimalPostSnapshot([comment3]);
 
       const result = buildCommentsFromSnapshots(
-        [snapshot1, snapshot2],
+        [snapshot1, snapshot2, snapshot3],
         new Map(),
       );
 
       expect(result).toHaveLength(1);
       expect(result[0]!.textContent).toBe("Same text");
+      expect(result[0]!.classification).toEqual([AnnotatedCategory.MENACES]);
+      expect(result[0]!.hateScore).toBe(0.8);
+      expect(result[0]!.classifiedAt).toBe("2024-01-01T00:02:30.000Z");
       expect(result[0]!.isNew).toBe(false); // not from latest snapshot only
       expect(result[0]!.isDeleted).toBe(false); // still present in latest
     });
