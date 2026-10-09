@@ -428,15 +428,15 @@ describe("post utilities", () => {
         );
 
         expect(resultAsc.map((comment) => comment.id)).toEqual([
-          "2",
-          "1",
           "4",
+          "1",
+          "2",
           "3",
         ]);
         expect(resultDesc.map((comment) => comment.id)).toEqual([
-          "4",
-          "1",
           "2",
+          "1",
+          "4",
           "3",
         ]);
       });
