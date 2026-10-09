@@ -327,8 +327,8 @@ export function sortCommentList(
     case CommentSortingCategory.HATE_SCORE_ASC:
       return [...commentList].sort(
         (a, b) =>
-          (a.hateScore ?? Number.NEGATIVE_INFINITY) -
-          (b.hateScore ?? Number.NEGATIVE_INFINITY),
+          (a.hateScore ?? Number.POSITIVE_INFINITY) -
+          (b.hateScore ?? Number.POSITIVE_INFINITY),
       );
     case CommentSortingCategory.HATE_SCORE_DESC:
       return [...commentList].sort(
