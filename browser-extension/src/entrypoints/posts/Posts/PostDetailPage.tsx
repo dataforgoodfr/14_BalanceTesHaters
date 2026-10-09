@@ -59,10 +59,6 @@ function PostDetailPage() {
     commentSortingCategory,
   );
 
-  const filteredHatefulComments = filteredCommentList.filter(
-    (c) => c.isCommentHateful,
-  );
-
   const postExportCsv = () => {
     if (!post) {
       return;
@@ -188,7 +184,7 @@ function PostDetailPage() {
               </ClosableAlert>
 
               <CommentsTable
-                commentList={filteredHatefulComments}
+                commentList={filteredCommentList}
                 commentFilters={commentFilters}
                 setCommentFilters={setCommentFilters}
                 commentSortingCategory={commentSortingCategory}
