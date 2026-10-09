@@ -18,7 +18,6 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Eye, EyeOff, OctagonAlert, SearchIcon, UserRound } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import {
   InputGroup,
@@ -50,7 +49,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 import type {
   CommentFilters,
   CommentSortingCategory,
@@ -101,9 +100,6 @@ export default function CommentsTable({
   const [hatefulComments, setHatefulComments] = React.useState<Set<string>>(
     () => new Set(),
   );
-  const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
-    Set<string>
-  >(() => new Set(defaultSelectedCommentIdList));
   const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<
     string | null
@@ -128,24 +124,6 @@ export default function CommentsTable({
   const toggleHatefulComment = (id: string) => {
     setHatefulComments((prev) => addOrRemoveValueToSet(prev, id));
   };
-
-  const updateSelectedCommentList = React.useCallback(
-    (commentIdList: Set<string>) => {
-      // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
-      form.setFieldValue("commentIdList", [...commentIdList]);
-      setSelectedCommentIdList(commentIdList);
-    },
-    [form],
-  );
-
-  const toggleCommentSelection = React.useCallback(
-    (id: string) => {
-      updateSelectedCommentList(
-        addOrRemoveValueToSet(selectedCommentIdList, id),
-      );
-    },
-    [selectedCommentIdList, updateSelectedCommentList],
-  );
 
   const openScreenshotDialog = React.useCallback((screenshotData: string) => {
     setSelectedScreenshot(screenshotData);
@@ -184,49 +162,14 @@ export default function CommentsTable({
     }
   }, [visibleComments, filteredComments]);
 
-  const setAllCommentsSelection = React.useCallback(
-    (canDeselect: boolean) => {
-      if (
-        canDeselect &&
-        selectedCommentIdList.size === filteredComments.length
-      ) {
-        updateSelectedCommentList(new Set());
-      } else {
-        const allVisibleRowIds = new Set(
-          filteredComments.map((comment) => comment.id),
-        );
-        updateSelectedCommentList(allVisibleRowIds);
-      }
-    },
-    [selectedCommentIdList, filteredComments, updateSelectedCommentList],
-  );
-
   const columns = useMemo<
     ColumnDef<typeof commentsTableFeatures, PostCommentWithId>[]
   >(
     () => [
       {
-        id: "selection",
-        size: 5,
-        header: () => (
-          <Checkbox
-            className="ms-3 me-5"
-            checked={selectedCommentIdList.size === filteredComments.length}
-            onClick={() => setAllCommentsSelection(true)}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            onClick={() => toggleCommentSelection(row.id)}
-            checked={selectedCommentIdList.has(row.id)}
-            className="ms-3 me-5"
-          />
-        ),
-      },
-      {
         accessorKey: "author.name",
         header: "Auteur",
-        size: 18,
+        size: 20,
         cell: ({ row }) => (
           <div className="flex gap-2">
             <UserRound className="bg-gray-200 rounded-full" />
@@ -237,7 +180,7 @@ export default function CommentsTable({
       {
         accessorKey: "textContent",
         header: "Commentaire",
-        size: 29,
+        size: 32,
         cell: ({ row }) => (
           <div
             className={`${visibleComments.has(row.id) ? "text-wrap" : "blur-sm overflow-hidden"}`}
@@ -350,7 +293,7 @@ export default function CommentsTable({
         cell: ({ row }) => (
           <Button variant="ghost" onClick={() => toggleHatefulComment(row.id)}>
             {hatefulComments.has(row.id) ? (
-              <OctagonAlert className="text-destructive" />
+              <OctagonAlert className="text-destructive"  />
             ) : (
               <OctagonAlert className="text-muted-foreground" />
             )}
@@ -363,10 +306,7 @@ export default function CommentsTable({
     [
       filteredComments,
       openScreenshotDialog,
-      selectedCommentIdList,
-      setAllCommentsSelection,
       setAllCommentsVisibility,
-      toggleCommentSelection,
       visibleComments,
       hatefulComments,
     ],
@@ -387,7 +327,7 @@ export default function CommentsTable({
     },
   });
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return (
     <>
@@ -400,15 +340,12 @@ export default function CommentsTable({
           void form.handleSubmit();
         }}
       >
-        {selectedCommentIdList.size > 0 && (
-          <div className="px-3 pt-2">
+        {/* <div className="px-3 pt-2">
             <div className="pe-2 w-fit gap-1 bg-muted rounded-md flex items-center justify-start font-semibold ">
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => {
-                  updateSelectedCommentList(new Set());
-                }}
+                onClick={() => ()}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Déselectionner tous les commentaires"
               >
@@ -419,8 +356,8 @@ export default function CommentsTable({
                 {selectedCommentIdList.size > 1 ? "s" : ""}
               </span>
             </div>
-          </div>
-        )}
+          </div> */}
+
         <div className="p-3 flex gap-4">
           <InputGroup className=" w-1/3">
             <InputGroupInput
@@ -434,29 +371,23 @@ export default function CommentsTable({
           </InputGroup>
           {showCreateReportButton && (
             <Button
-              disabled={selectedCommentIdList.size === 0}
-              onClick={() => {
-                void navigate("/build-report", {
-                  state: {
-                    socialNetworkFilter: [filteredComments[0]!.socialNetwork],
-                    selectedPostIds: [filteredComments[0]!.postId],
-                    selectedCommentList: filteredComments.filter((comment) =>
-                      selectedCommentIdList.has(comment.id),
-                    ),
-                    skipToStep: "step-4",
-                  },
-                });
-              }}
+              disabled={hatefulComments.size === 0}
+              // onClick={() => {
+              //   void navigate("/build-report", {
+              //     state: {
+              //       socialNetworkFilter: [filteredComments[0]!.socialNetwork],
+              //       selectedPostIds: [filteredComments[0]!.postId],
+              //       selectedCommentList: filteredComments.filter((comment) =>
+              //         selectedCommentIdList.has(comment.id),
+              //       ),
+              //       skipToStep: "step-4",
+              //     },
+              //   });
+              // }}
             >
               Créer un rapport
             </Button>
           )}
-          <Button
-            variant="outline"
-            onClick={() => setAllCommentsSelection(false)}
-          >
-            Tout sélectionner
-          </Button>
 
           <CommentsFilterPopover
             authorList={authorList}
@@ -507,12 +438,7 @@ export default function CommentsTable({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      className={
-                        selectedCommentIdList.has(row.id) ? "bg-accent-2" : ""
-                      }
-                    >
+                    <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
