@@ -137,6 +137,9 @@ function getEndPeriodFromFilters(filters: PostFilters): Date | undefined {
     return undefined;
   } else {
     const endDate = new Date();
+    // The storage filter uses a strict "before" comparison. Use tomorrow
+    // as the exclusive upper bound so publications from today are included.
+    endDate.setDate(endDate.getDate() + 1);
     endDate.setHours(0, 0, 0, 0);
     return endDate;
   }
