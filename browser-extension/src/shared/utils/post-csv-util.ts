@@ -64,6 +64,7 @@ export const POST_DETAIL_CSV_COLUMNS = [
     key: "comment_classification_raw",
     label: "Catégorie(s) détectée(s) (brut)",
   },
+  { key: "comment_hate_score", label: "Malveillance (IA)" },
   {
     key: "comment_classified_at",
     label: "Date de classification du commentaire",
@@ -126,6 +127,10 @@ export function buildPostCommentRow(
     comment_text: comment.textContent,
     comment_classification: (comment.classification ?? []).join(", "),
     comment_classification_raw: JSON.stringify(comment.classification ?? []),
+    comment_hate_score:
+      comment.hateScore === undefined
+        ? ""
+        : `${(comment.hateScore * 100).toFixed(2)}%`,
     comment_classified_at: comment.classifiedAt
       ? formatDateTimeForCsv(comment.classifiedAt)
       : "",
