@@ -17,7 +17,7 @@ import {
   Table,
   TableCell,
 } from "@/components/ui/table";
-import { Eye, EyeOff, SearchIcon, UserRound } from "lucide-react";
+import { Eye, EyeOff, OctagonAlert, SearchIcon, UserRound } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import DisplayPublicationDate from "../Developer/DisplayPublicationDate";
 import {
@@ -98,6 +98,9 @@ export default function CommentsTable({
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     () => new Set(),
   );
+  const [hatefulComments, setHatefulComments] = React.useState<Set<string>>(
+    () => new Set(),
+  );
   const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
     Set<string>
   >(() => new Set(defaultSelectedCommentIdList));
@@ -118,6 +121,12 @@ export default function CommentsTable({
   //  dans le tableau, en stockant leurs IDs dans un Set
   const toggleCommentVisibility = (id: string) => {
     setVisibleComments((prev) => addOrRemoveValueToSet(prev, id));
+  };
+
+  // Permet de suivre les commentaires taggés comme malveillants (hateful)
+  //  dans le tableau, en stockant leurs IDs dans un Set
+  const toggleHatefulComment = (id: string) => {
+    setHatefulComments((prev) => addOrRemoveValueToSet(prev, id));
   };
 
   const updateSelectedCommentList = React.useCallback(
@@ -217,7 +226,7 @@ export default function CommentsTable({
       {
         accessorKey: "author.name",
         header: "Auteur",
-        size: 21,
+        size: 18,
         cell: ({ row }) => (
           <div className="flex gap-2">
             <UserRound className="bg-gray-200 rounded-full" />
@@ -228,7 +237,7 @@ export default function CommentsTable({
       {
         accessorKey: "textContent",
         header: "Commentaire",
-        size: 32,
+        size: 29,
         cell: ({ row }) => (
           <div
             className={`${visibleComments.has(row.id) ? "text-wrap" : "blur-sm overflow-hidden"}`}
@@ -334,6 +343,20 @@ export default function CommentsTable({
           <DisplayPublicationDate date={row.original.publishedAt} />
         ),
       },
+      {
+        id: "hateful",
+        size: 6,
+        header: "Malveillant",
+        cell: ({ row }) => (
+          <Button variant="ghost" onClick={() => toggleHatefulComment(row.id)}>
+            {hatefulComments.has(row.id) ? (
+              <OctagonAlert className="text-destructive" />
+            ) : (
+              <OctagonAlert className="text-muted-foreground" />
+            )}
+          </Button>
+        ),
+      },
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
@@ -345,6 +368,7 @@ export default function CommentsTable({
       setAllCommentsVisibility,
       toggleCommentSelection,
       visibleComments,
+      hatefulComments,
     ],
   );
 
