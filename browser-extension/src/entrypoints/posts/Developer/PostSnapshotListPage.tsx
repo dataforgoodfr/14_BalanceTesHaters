@@ -33,6 +33,9 @@ function PostSnapshotListPage() {
     queryKey: queryKey,
     queryFn: getPostsFromStorage,
   });
+  const postsByScrapedAt = [...(postsQuery.data ?? [])].sort(
+    (a, b) => new Date(a.scrapedAt).getTime() - new Date(b.scrapedAt).getTime(),
+  );
 
   const refreshMutation = useMutation({
     mutationFn: () => Promise.resolve(),
@@ -148,7 +151,7 @@ function PostSnapshotListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {postsQuery.data.map((post) => (
+                {postsByScrapedAt.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell className="whitespace-normal">
                       <div className="space-y-2">
@@ -189,13 +192,11 @@ function PostSnapshotListPage() {
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-normal break-all">
-                      {post.classificationStatus ? (
-                        <>
-                          {post.classificationStatus} (
-                          {post.classificationJobId})
-                        </>
-                      ) : (
-                        <>Non démarrée</>
+                      <div>{post.classificationStatus ?? "Non démarrée"}</div>
+                      {post.classificationJobId && (
+                        <div className="text-muted-foreground">
+                          {post.classificationJobId}
+                        </div>
                       )}
                     </TableCell>
                     <TableCell className="whitespace-normal">
