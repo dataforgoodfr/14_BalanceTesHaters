@@ -2,7 +2,7 @@ import datetime
 from uuid import UUID
 
 from balanceteshaters.model.base import JobStatus
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 
 class Author(BaseModel):
@@ -26,7 +26,11 @@ class ClassificationJob(BaseModel):
 
 class CommentClassificationResult(BaseModel):
     classification: list[str]
-    hate_score: float = Field(ge=0, le=1)
+    hate_score: float = Field(
+        ge=0,
+        le=1,
+        validation_alias=AliasChoices("hate_score", "score"),
+    )
     classified_at: datetime.datetime
 
 
