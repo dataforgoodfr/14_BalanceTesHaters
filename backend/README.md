@@ -1,5 +1,7 @@
 # Backend Balance tes haters
 
+Voir aussi le [document de déploiement production sur Clever Cloud](../docs/backend/deployment-production.md).
+
 ## Installation
 
 Ce projet utilise [uv](https://docs.astral.sh/uv/) pour la gestion des dépendances Python. Il est préréquis pour l'installation de ce projet.
