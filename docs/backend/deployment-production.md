@@ -34,6 +34,20 @@ Clever Cloud construit ensuite l'image avec `./docker/backend/Dockerfile` :
 
 Les variables d'environnement sont gérées dans la Console Clever Cloud ou avec `clever env`. 
 
+### Configuration capture des metrics prometheus
+Clever Cloud collecte l'endpoint Prometheus `/metrics`exposé par FastAPI et rend les séries disponibles dans ses outils d'observabilité.
+
+| Variable | Valeur |
+|----------|--------|
+| `CC_METRICS_PROMETHEUS_PORT` | Même valeur que `CC_EXPOSED_HTTP_PORT` |
+| `CC_METRICS_PROMETHEUS_PATH` | `/metrics` |
+| `BTH_METRICS_USERNAME` | Nom d'utilisateur Basic Auth |
+| `BTH_METRICS_PASSWORD` | Mot de passe Basic Auth fort, unique et secret |
+| `CC_METRICS_PROMETHEUS_USER` | Même valeur que `BTH_METRICS_USERNAME` pour que le collecteur CC puisse accéder aux métrics|
+| `CC_METRICS_PROMETHEUS_PASSWORD` | Même valeur que `BTH_METRICS_PASSWORD` pour que le collecteur CC puisse accéder aux métrics|
+
+
+
 ## Logs avancés
 
 Les logs applicatifs sont consultables dans la [Console Clever Cloud](https://console.clever-cloud.com/organisations/orga_062fdfa3-d289-4e2f-8a55-b4ebe3a40fef/applications/app_dfa6f3a5-8b75-4da0-9aa6-851fe085bcb7/logs) et avec `clever logs --since 1h`.

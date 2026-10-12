@@ -38,6 +38,8 @@ services:
       BTH_PG_DSN: postgresql+asyncpg://bth:bth@db:5432/bth
       BTH_PRIVATE_API_TOKEN: local-development-private-token
       BTH_PUBLIC_API_TOKEN: local-development-public-token
+      BTH_METRICS_USERNAME: local-development-metrics
+      BTH_METRICS_PASSWORD: local-development-metrics-password
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -55,5 +57,42 @@ services:
         "/app/.venv/bin/alembic upgrade head && exec /app/.venv/bin/fastapi dev server.py --host 0.0.0.0",
       ]
 
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=4h
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+    volumes:
+      - prometheus_data:/prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on:
+      api:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: "256M"
+
+configs:
+  prometheus_config:
+    content: |
+      global:
+        scrape_interval: 15s
+
+      scrape_configs:
+        - job_name: bth-backend
+          metrics_path: /metrics
+          basic_auth:
+            username: local-development-metrics
+            password: local-development-metrics-password
+          static_configs:
+            - targets: [api:8000]
+
 volumes:
   pgdata:
+  prometheus_data:

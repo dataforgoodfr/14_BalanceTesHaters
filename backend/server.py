@@ -3,13 +3,15 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from prometheus_fastapi_instrumentator import Instrumentator
 from balanceteshaters.infra.container import Container
 from balanceteshaters.infra.errors import register_exception_handlers
+from balanceteshaters.infra.metrics_auth import create_metrics_authentication
 from balanceteshaters.model.repositories import (
     classification_job as classification_job_repository,
 )
 from balanceteshaters.routers import classification_router
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
 container = Container()
 container.logging()
@@ -53,6 +55,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+Instrumentator(
+    should_instrument_requests_inprogress=True,
+    excluded_handlers=["/metrics"],
+).instrument(app, metric_namespace="bth", metric_subsystem="backend").expose(
+    app,
+    include_in_schema=False,
+    dependencies=[
+        Depends(
+            create_metrics_authentication(
+                container.settings().metrics_username,
+                container.settings().metrics_password,
+            )
+        )
+    ],
+)
 
 app.container = container
 app.include_router(classification_router.router, prefix="/classification")
