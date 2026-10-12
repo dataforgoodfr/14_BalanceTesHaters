@@ -16,114 +16,98 @@ A l'usage, si vous utilisez VSCode, l'environnement virtuel sera automatiquement
 source .venv/bin/activate
 ```
 
-## Configuration de l'environnement
+## Configuration du backend
 
-Exporter la configuration, comme dans l'exemple suivant:
-```
+Depuis le répertoire `backend`, exporter ces variables avant d'appliquer les migrations ou de démarrer FastAPI :
+
+```bash
 export BTH_ENGINE_ECHO=0
 export BTH_LOGGING_CONFIGURATION_FILE=logging.ini
-export BTH_PG_DSN=postgresql+asyncpg://postgres:postgres@db/postgres
-export BTH_PRIVATE_API_TOKEN="xxxxx"
-export BTH_PUBLIC_API_TOKEN="xxxxx"
+export BTH_PG_DSN=postgresql+asyncpg://bth:bth@localhost:5432/bth
+export BTH_PRIVATE_API_TOKEN=local-development-private-token
+export BTH_PUBLIC_API_TOKEN=local-development-public-token
 ```
 
-`BTH_API_TOKEN` correspond au token d'accès aux API protégées. Ce paramètres doit être fourni par l'administrateur qui déploie le backend.
+Ces valeurs sont réservées au développement local. `BTH_PUBLIC_API_TOKEN` protège les routes utilisées par l'extension et `BTH_PRIVATE_API_TOKEN` les routes d'administration.
 
 ## Création de la base de données
 
-Nécessite un serveur de base de données PostgreSQL
+### Lancer la base de données seule localement
 
-- lancer la commande: 
+Pour développer le backend sur l'hôte, démarrer uniquement PostgreSQL avec le fichier Compose commun. Depuis la racine du dépôt :
+
+```bash
+docker compose -p bth-local -f backend/compose.dev.yml up -d --wait db
 ```
-alembic upgrade head
+
+La base `bth` est accessible sur `localhost:5432`, avec l'utilisateur `bth` et le mot de passe `bth`. Depuis `backend`, exporter les variables ci-dessus puis créer les tables :
+
+```bash
+uv run alembic upgrade head
 ```
 
-### Lancer la base de données localement
+Pour inspecter la base, depuis la racine :
 
-Il est possible d'utiliser Docker pour lancer une instance locale de la base. Pour cela:
-- lancer la commande `docker compose up` dans un terminal (ajouter le paramètre `-d` pour un lancement en arrière-plan) afin de lancer l'instance Postgres
-- lancer la commande `POSTGRES_DB=bth POSTGRES_USER=bth POSTGRES_PASSWORD=bth alembic upgrade head` afin de créer toutes les tables nécessaires
-
-Une fois la base lancée en locale, il est possible d'en inspecter le contenu comme ceci (par exemple) :
-- Lancer la commande `docker exec -it backend-db-1 psql -U bth bth`
-- Entrer `\dt` -> une liste de tables devrait s'afficher
+```bash
+docker compose -p bth-local -f backend/compose.dev.yml exec db psql -U bth -d bth
+# Dans psql, saisir \dt pour lister les tables.
+```
 
 ## Lancement du backend
 
 ```
-fastapi dev server.py
+uv run fastapi dev server.py
 ```
 
 Les API sont exposées à l'URL: http://localhost:8000/
 
-## Déployer en container local (stack complète)
 
-Cette section explique comment lancer la stack complète (base de données PostgreSQL + API de classification) via Docker Compose, en reproduisant fidèlement l'environnement de staging.
+## Lancer le backend et la DB avec Docker Compose
 
-### Prérequis
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installé et démarré
-- Le fichier `docker/.env` présent et rempli (voir `docker/.env.example` ou demander les valeurs sur Mattermost)
-
-### 1. Créer le réseau externe
-
-La stack attend un réseau Docker `d4g-internal` (utilisé en production par Traefik). À créer une seule fois :
-
-```bash
-docker network create d4g-internal
-```
-
-### 2. Construire et démarrer la stack
+Le même fichier `backend/compose.dev.yml` lance PostgreSQL et l'API. Il est réservé au développement local et ne doit pas être utilisé pour un déploiement. Il ne nécessite ni fichier `.env` ni réseau externe Traefik. Docker doit être installé et démarré.
 
 Depuis la racine du dépôt :
 
 ```bash
-docker compose -f docker/compose-staging.yml up --build
+docker compose -p bth-local -f backend/compose.dev.yml up --build
 ```
 
-- `--build` recompile l'image si le code a changé ; omettre lors des relances suivantes pour aller plus vite.
-- Ajouter `-d` pour lancer en arrière-plan.
+Les migrations s'appliquent automatiquement avant le démarrage de l'API sur `http://localhost:8000`. Le token public vaut `local-development-public-token` et le token privé `local-development-private-token`. L'extension utilise le token public.
 
-La première construction prend plusieurs minutes (téléchargement du modèle Snowflake ~2 Go). Les relances suivantes sont instantanées grâce au cache Docker.
+La première construction télécharge les modèles de classification depuis Hugging Face et peut prendre plusieurs minutes. Hugging Face peut afficher un avertissement concernant les téléchargements non authentifiés.
 
-### 3. Vérifier que tout fonctionne
+Le répertoire `backend` est monté en lecture seule dans `/workspace/backend` et FastAPI fonctionne en mode `dev` : les modifications Python déclenchent automatiquement le rechargement de l'API. L'environnement Python et le cache des modèles restent dans `/app`, séparés du code monté. Le dossier `.venv` de l'hôte est masqué par un montage temporaire vide pour que ses liens symboliques ne déclenchent pas d'événements de surveillance dans le conteneur.
+Après une modification des dépendances ou du Dockerfile, relancer la commande avec `--build`. 
+Les nouvelles migrations s'appliquent au redémarrage du conteneur. 
+Ajouter `-d` pour démarrer les conteneurs en arrière-plan.
 
-L'API est exposée sur le port défini par `BTH_API_PORT` dans `docker/.env` (par défaut `8001`) :
+Pour vérifier l'API :
 
 ```bash
-# Health check
-curl http://localhost:8001/
-
-# Lister les jobs de classification (token privé)
-curl -H "X-Token: <BTH_PRIVATE_API_TOKEN>" http://localhost:8001/classification/
+curl http://localhost:8000/openapi.json
+curl -H "X-Token: local-development-private-token" http://localhost:8000/classification/
 ```
 
-### 4. Variables d'environnement
+Les ports PostgreSQL et API sont publiés uniquement sur `127.0.0.1`. Les données PostgreSQL sont conservées dans le volume `bth-local_pgdata` et partagées entre les modes base seule et stack complète.
 
-Toutes les variables sont dans `docker/.env`. Les principales :
-
-| Variable | Description |
-|----------|-------------|
-| `BTH_PG_DSN` | DSN PostgreSQL (pointe vers le service `db` en interne) |
-| `BTH_PUBLIC_API_TOKEN` | Token pour les routes publiques (POST classification) |
-| `BTH_PRIVATE_API_TOKEN` | Token pour les routes privées (GET liste des jobs) |
-| `BTH_EMBEDDING_HF_REPO_ID` | Repo HuggingFace du classifier (défaut : `gregco/balance-tes-haters-classifier`) |
-| `BTH_API_PORT` | Port exposé sur la machine hôte (défaut : `8001`) |
-| `BTH_CUTOFF_DAYS` | Durée de conservation des données de classification en base de données (défaut : `30`) |
-
-### 5. Inspecter la base de données
+Le conteneur API est limité à 4 CPU et 3 Go de mémoire par défaut. Ces limites peuvent être ajustées avec `BTH_CPU_LIMIT` et `BTH_MEMORY_LIMIT`, par exemple :
 
 ```bash
-docker exec -it balanceteshaters-db-1 psql -U bth balanceteshaters
-# Puis dans psql :
-\dt        -- liste des tables
+BTH_CPU_LIMIT=2 BTH_MEMORY_LIMIT=4G docker compose -p bth-local -f backend/compose.dev.yml up --build
 ```
 
-### 6. Arrêter la stack
+Pour arrêter la stack sans supprimer ses données :
 
 ```bash
-docker compose -f docker/compose-staging.yml down        # arrêt sans supprimer les données
-docker compose -f docker/compose-staging.yml down -v     # arrêt + suppression du volume PostgreSQL
+docker compose -p bth-local -f backend/compose.dev.yml down
+```
+
+Pour supprimer aussi les données PostgreSQL, ajouter `-v` à cette commande.
+
+Pour lancer également l'extension et son navigateur, depuis `browser-extension` :
+
+```bash
+pnpm dev:fullstack
 ```
 
 ---

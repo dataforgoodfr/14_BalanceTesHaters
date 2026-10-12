@@ -1,0 +1,58 @@
+# Docker compose pour le développement local.
+# Identifiants de test et ports exposés sur localhost.
+# Ne pas utiliser pour un déploiement.
+
+services:
+  db:
+    image: postgres:18.1-alpine3.23
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      - POSTGRES_DB=bth
+      - POSTGRES_USER=bth
+      - POSTGRES_PASSWORD=bth
+    volumes:
+      - pgdata:/var/lib/postgresql/18/docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bth -d bth"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/backend/Dockerfile
+    working_dir: /workspace/backend
+    volumes:
+      - .:/workspace/backend:ro
+      # Hide the host virtualenv and its symlinks from the reload watcher.
+      # The container uses /app/.venv from the image.
+      - type: tmpfs
+        target: /workspace/backend/.venv
+        read_only: true
+    environment:
+      BTH_ENGINE_ECHO: "0"
+      BTH_LOGGING_CONFIGURATION_FILE: /workspace/backend/logging.ini
+      BTH_PG_DSN: postgresql+asyncpg://bth:bth@db:5432/bth
+      BTH_PRIVATE_API_TOKEN: local-development-private-token
+      BTH_PUBLIC_API_TOKEN: local-development-public-token
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "${BTH_CPU_LIMIT:-4.0}"
+          memory: "${BTH_MEMORY_LIMIT:-3G}"
+    command:
+      [
+        "/bin/bash",
+        "-ec",
+        "/app/.venv/bin/alembic upgrade head && exec /app/.venv/bin/fastapi dev server.py --host 0.0.0.0",
+      ]
+
+volumes:
+  pgdata:
