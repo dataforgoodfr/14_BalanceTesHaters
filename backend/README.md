@@ -78,7 +78,7 @@ Les migrations s'appliquent automatiquement avant le démarrage de l'API sur `ht
 
 La première construction télécharge les modèles de classification depuis Hugging Face et peut prendre plusieurs minutes. Hugging Face peut afficher un avertissement concernant les téléchargements non authentifiés.
 
-Le répertoire `backend` est monté en lecture seule dans `/workspace/backend` et FastAPI fonctionne en mode `dev` : les modifications Python déclenchent automatiquement le rechargement de l'API. L'environnement Python et le cache des modèles restent dans `/app`, séparés du code monté. Le dossier `.venv` de l'hôte est masqué par un montage temporaire vide pour que ses liens symboliques ne déclenchent pas d'événements de surveillance dans le conteneur.
+Le package `balanceteshaters`, `server.py`, les migrations Alembic et les fichiers de configuration sont montés en lecture seule dans `/workspace/backend`. FastAPI fonctionne en mode `dev` : les modifications Python déclenchent automatiquement le rechargement de l'API. L'environnement Python et le cache des modèles restent dans `/app`, séparés du code monté. Le dossier `.venv` de l'hôte n'est pas monté dans le conteneur, afin que ses liens symboliques ne déclenchent pas d'événements de surveillance.
 Après une modification des dépendances ou du Dockerfile, relancer la commande avec `--build`. 
 Les nouvelles migrations s'appliquent au redémarrage du conteneur. 
 Ajouter `-d` pour démarrer les conteneurs en arrière-plan.

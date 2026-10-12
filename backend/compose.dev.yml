@@ -25,12 +25,13 @@ services:
       dockerfile: docker/backend/Dockerfile
     working_dir: /workspace/backend
     volumes:
-      - .:/workspace/backend:ro
-      # Hide the host virtualenv and its symlinks from the reload watcher.
+      # Mount source and runtime configuration without the host virtualenv.
       # The container uses /app/.venv from the image.
-      - type: tmpfs
-        target: /workspace/backend/.venv
-        read_only: true
+      - ./balanceteshaters:/workspace/backend/balanceteshaters:ro
+      - ./alembic:/workspace/backend/alembic:ro
+      - ./server.py:/workspace/backend/server.py:ro
+      - ./alembic.ini:/workspace/backend/alembic.ini:ro
+      - ./logging.ini:/workspace/backend/logging.ini:ro
     environment:
       BTH_ENGINE_ECHO: "0"
       BTH_LOGGING_CONFIGURATION_FILE: /workspace/backend/logging.ini
