@@ -6,6 +6,7 @@ from uuid import UUID
 from balanceteshaters.classification.classification_task import ClassificationTask
 from balanceteshaters.infra.container import Container
 from balanceteshaters.infra.database import Database
+from balanceteshaters.infra.metrics import track_background_task
 from balanceteshaters.infra.settings import Settings
 from balanceteshaters.model.base import JobStatus
 from balanceteshaters.model.repositories import (
@@ -50,7 +51,9 @@ async def post_classification_job(
             job.model_dump()["comments"],
         )
         await session.commit()
-        background_tasks.add_task(classificationTask.classify, classification_job.id)
+        background_tasks.add_task(
+            track_background_task, classificationTask.classify, classification_job.id
+        )
         return {"job_id": str(classification_job.id)}
 
 

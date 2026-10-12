@@ -63,10 +63,11 @@ uv run fastapi dev server.py
 
 Les API sont exposées à l'URL: http://localhost:8000/
 
+Les métriques Prometheus sont exposées à `http://localhost:8000/metrics` et protégées par HTTP Basic Auth. Définissez `BTH_METRICS_USERNAME` et `BTH_METRICS_PASSWORD` dans la configuration de l'application (sur Clever Cloud, dans ses variables d'environnement). Sans ces deux variables, l'endpoint `/metrics` répond avec une erreur `503` et ne publie aucune métrique.
 
 ## Lancer le backend et la DB avec Docker Compose
 
-Le même fichier `backend/compose.dev.yml` lance PostgreSQL et l'API. Il est réservé au développement local et ne doit pas être utilisé pour un déploiement. Il ne nécessite ni fichier `.env` ni réseau externe Traefik. Docker doit être installé et démarré.
+Le même fichier `backend/compose.dev.yml` lance PostgreSQL, l'API et Prometheus. Il est réservé au développement local et ne doit pas être utilisé pour un déploiement. Il ne nécessite ni fichier `.env` ni réseau externe Traefik. Docker doit être installé et démarré.
 
 Depuis la racine du dépôt :
 
@@ -113,6 +114,33 @@ pnpm dev:fullstack
 ```
 
 ---
+
+### Consulter les métriques en développement
+
+Prometheus démarre par défaut avec l'API et PostgreSQL, y compris avec `pnpm dev:fullstack`.
+
+Pour lancer uniquement PostgreSQL et l'API, sans Prometheus :
+
+```bash
+docker compose -p bth-local -f backend/compose.dev.yml up --build db api
+```
+
+Si Prometheus tourne déjà, l'arrêter avec `docker compose -p bth-local -f backend/compose.dev.yml stop prometheus`.
+
+L'interface Prometheus est accessible sur `http://localhost:9090`.
+Le service collecte `/metrics` sur `api:8000` toutes les 15 secondes, avec les identifiants Basic Auth de développement définis dans `backend/compose.dev.yml`.
+
+Saisir une seule expression à la fois dans l'interface Prometheus. Chaque exemple ci-dessous est une requête indépendante :
+
+
+```promql
+sum by (handler) (rate(bth_backend_http_requests_total[5m]))
+```
+
+```promql
+bth_backend_classification_background_tasks_in_progress
+```
+
 
 ## Lancer les precommit-hook localement
 
