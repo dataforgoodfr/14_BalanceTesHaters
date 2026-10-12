@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm wxt",
+    "dev:fullstack": "concurrently --kill-others --kill-signal SIGINT --kill-timeout 15000 --names backend,extension \"docker compose -p bth-local -f ../backend/compose.dev.yml up --build --abort-on-container-exit\" \"VITE_BACKEND_API_BASE_URL=http://localhost:8000 VITE_BACKEND_API_TOKEN=local-development-public-token pnpm dev\"",
     "dev:firefox": "wxt -b firefox",
     "build": "wxt build",
     "build:firefox": "wxt build -b firefox",
@@ -75,6 +76,7 @@
     "@vitest/coverage-v8": "^4.1.11",
     "@wxt-dev/auto-icons": "^1.1.2",
     "@wxt-dev/module-react": "^1.2.2",
+    "concurrently": "^10.0.6",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-storybook": "^10.6.1",

@@ -7,13 +7,14 @@
   - `pnpm install` pour installer les dependances
   - `pnpm playwright install` pour installer les navigateurs necessaire pour les tests e2e
 
-## Installer l'extension en mode dev dans Chrome
+## Installer l'extension en mode dev dans Chrome ou chromium
 
 - Lancer `pnpm dev`. WXT démarre automatiquement le navigateur avec l'extension
   chargée.
 - Le profil Chromium est conservé dans `.wxt/chromium-data`.
 - Sous WSL, `CHROMIUM_BIN` permet de choisir l'exécutable. Sinon, la commande
-  utilise `/snap/bin/chromium`, puis `/usr/bin/chromium` s'ils existent.
+  utilise `/snap/bin/chromium`, puis `/usr/bin/chromium` s'ils existent sous WSL.
+  Hors WSL, WXT choisit le navigateur automatiquement.
 
 A partir de là la plupart des changements sont propagés automatiquement dans l'extension navigateur sans besoin de rafraichir manuellement l'extension.
 
@@ -37,15 +38,20 @@ Vérifier le formatage et le lint de code:
 
 # Configurer l'extension pour pointer vers le backend de classification locale
 
-Par défaut l'extension utilise le backend de classification déployé en staging.
-Pour utiliser un backend déployé localement: copier `.env.example` vers `.env` et décommenter la ligne `VITE_BACKEND_API_BASE_URL=http://localhost:8000`
+Depuis `browser-extension`, lancer `pnpm dev:fullstack` pour démarrer le backend et PostgreSQL avec Docker Compose, ainsi que l'extension et son navigateur avec WXT. Docker doit être démarré. Cette commande configure automatiquement l'URL locale et le token public, sans fichier `.env`.
 
-Voir dans [](../backend/README.md) pour comment démarrer le backend.
+Pour lancer l'extension séparément avec `pnpm dev`, copier `.env.example` vers `.env` et activer les deux variables locales :
 
-# Configurer l'extension pour pointer vers le backend en staging
+```dotenv
+VITE_BACKEND_API_BASE_URL=http://localhost:8000
+VITE_BACKEND_API_TOKEN=local-development-public-token
+```
 
-Le serveur backend en staging à besoin d'un token pour contacter l'api.
-Copier `.env.example` vers `.env` et décommenter la ligne `VITE_BACKEND_API_TOKEN=...` puis remplacer par le token dont la valeur retrouvable sur Mattermost.
+Le token doit correspondre à `BTH_PUBLIC_API_TOKEN` du backend. Voir la [documentation backend](../backend/README.md) pour démarrer l'API en conteneur ou sur l'hôte.
+
+# Configurer l'extension pour pointer vers le backend distant
+
+Sans configuration, l'extension appelle `https://bth.cleverapps.io`. Pour utiliser le backend distant, définir son URL et son token public dans `.env`. Les valeurs d'accès sont disponibles sur Mattermost. Ne pas utiliser le token privé dans l'extension.
 
 # Ajouter des composants de la library UI shadcn
 
