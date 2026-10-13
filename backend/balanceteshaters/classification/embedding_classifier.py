@@ -8,7 +8,7 @@ from balanceteshaters.classification.category import BinaryLabel
 
 logger = logging.getLogger(__name__)
 
-# SentenceTransformer truncates at 512 tokens internally; set n_ctx high so
+# Explicitly cap max_seq_length to 512 tokens (default is 8192); set n_ctx high so
 # BatchClassifier's token-budget guard never fires (comments are short anyway).
 _N_CTX = 32768
 
@@ -27,6 +27,7 @@ class EmbeddingClassifier:
         clf_path = hf_hub_download(repo_id=repo_id, filename="harassment_arctic_mlp.joblib")
         self.clf = joblib.load(clf_path)
         self.encoder = SentenceTransformer("Snowflake/snowflake-arctic-embed-l-v2.0")
+        self.encoder.max_seq_length = 512
         self.threshold = threshold
         logger.info("Embedding classifier loaded")
 
@@ -34,7 +35,7 @@ class EmbeddingClassifier:
         return max(1, len(text) // 4)
 
     def truncate(self, text: str, max_tokens: int) -> str:
-        return text[: max_tokens * 4]
+        return text[: min(max_tokens, 512) * 4]
 
     def classify(self, text: str) -> ClassificationResult:
         return self.classify_batch([text])[0]
@@ -42,7 +43,9 @@ class EmbeddingClassifier:
     def classify_batch(self, texts: list[str]) -> list[ClassificationResult]:
         if not texts:
             return []
-        embeddings = self.encoder.encode(texts, convert_to_numpy=True, show_progress_bar=False)
+        embeddings = self.encoder.encode(
+            texts, batch_size=16, convert_to_numpy=True, show_progress_bar=False
+        )
         probas = self.clf.predict_proba(embeddings)[:, 1]
         return [
             (
