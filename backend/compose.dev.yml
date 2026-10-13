@@ -45,6 +45,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Match Clever Cloud ressources: 
+    # * disabling swap by setting memswap_limit: combined RAM + swap equals RAM.
+    # * restricting CPU and Memory
+    memswap_limit: "${BTH_MEMORY_LIMIT:-3G}"
     deploy:
       resources:
         limits:
