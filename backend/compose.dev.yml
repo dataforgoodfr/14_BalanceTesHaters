@@ -34,6 +34,10 @@ services:
       - ./logging.ini:/workspace/backend/logging.ini:ro
     environment:
       BTH_ENGINE_ECHO: "0"
+      # Limit native compute pools within the default four-CPU quota.
+      OMP_NUM_THREADS: "3"
+      MKL_NUM_THREADS: "3"
+      OPENBLAS_NUM_THREADS: "1"
       BTH_LOGGING_CONFIGURATION_FILE: /workspace/backend/logging.ini
       BTH_PG_DSN: postgresql+asyncpg://bth:bth@db:5432/bth
       BTH_PRIVATE_API_TOKEN: local-development-private-token
