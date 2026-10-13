@@ -93,7 +93,9 @@ curl -H "X-Token: local-development-private-token" http://localhost:8000/classif
 
 Les ports PostgreSQL et API sont publiés uniquement sur `127.0.0.1`. Les données PostgreSQL sont conservées dans le volume `bth-local_pgdata` et partagées entre les modes base seule et stack complète.
 
-Le conteneur API est limité à 4 CPU et 3 Go de mémoire par défaut. Ces limites peuvent être ajustées avec `BTH_CPU_LIMIT` et `BTH_MEMORY_LIMIT`, par exemple :
+Le conteneur API est limité à 4 CPU et 3 Go de mémoire par défaut avec ke  swap désactivé pour suivre la prod. 
+
+Les limites CPU et mémoire peuvent être ajustées avec `BTH_CPU_LIMIT` et `BTH_MEMORY_LIMIT`, par exemple :
 
 ```bash
 BTH_CPU_LIMIT=2 BTH_MEMORY_LIMIT=4G docker compose -p bth-local -f backend/compose.dev.yml up --build
