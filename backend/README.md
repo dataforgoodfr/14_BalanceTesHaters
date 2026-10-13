@@ -95,6 +95,8 @@ Les ports PostgreSQL et API sont publiés uniquement sur `127.0.0.1`. Les donné
 
 Le conteneur API est limité à 4 CPU et 3 Go de mémoire par défaut avec ke  swap désactivé pour suivre la prod. 
 
+Les pools de calcul sont limités par `OMP_NUM_THREADS=3`, `MKL_NUM_THREADS=3` et `OPENBLAS_NUM_THREADS=1` dans Compose afin de garder la concurrence entre threads sous la limite CPU.
+
 Les limites CPU et mémoire peuvent être ajustées avec `BTH_CPU_LIMIT` et `BTH_MEMORY_LIMIT`, par exemple :
 
 ```bash
