@@ -67,7 +67,7 @@ Les métriques Prometheus sont exposées à `http://localhost:8000/metrics` et p
 
 ## Lancer le backend et la DB avec Docker Compose
 
-Le même fichier `backend/compose.dev.yml` lance PostgreSQL, l'API et Prometheus. Il est réservé au développement local et ne doit pas être utilisé pour un déploiement. Il ne nécessite ni fichier `.env` ni réseau externe Traefik. Docker doit être installé et démarré.
+Le même fichier `backend/compose.dev.yml` lance PostgreSQL, l'API, Prometheus et cAdvisor. Il est réservé au développement local et ne doit pas être utilisé pour un déploiement. Il ne nécessite ni fichier `.env` ni réseau externe Traefik. Docker doit être installé et démarré.
 
 Depuis la racine du dépôt :
 
@@ -121,28 +121,42 @@ pnpm dev:fullstack
 
 ### Consulter les métriques en développement
 
-Prometheus démarre par défaut avec l'API et PostgreSQL, y compris avec `pnpm dev:fullstack`.
-
-Pour lancer uniquement PostgreSQL et l'API, sans Prometheus :
-
-```bash
-docker compose -p bth-local -f backend/compose.dev.yml up --build db api
-```
-
-Si Prometheus tourne déjà, l'arrêter avec `docker compose -p bth-local -f backend/compose.dev.yml stop prometheus`.
+Prometheus et cAdvisor démarrent par défaut avec l'API et PostgreSQL, y compris avec `pnpm dev:fullstack`.
 
 L'interface Prometheus est accessible sur `http://localhost:9090`.
-Le service collecte `/metrics` sur `api:8000` toutes les 15 secondes, avec les identifiants Basic Auth de développement définis dans `backend/compose.dev.yml`.
 
-Saisir une seule expression à la fois dans l'interface Prometheus. Chaque exemple ci-dessous est une requête indépendante :
+Prometheuse collecte:
+* le backend `/metrics` sur `api:8000`, avec les identifiants Basic Auth de développement définis dans `backend/compose.dev.yml`.
+* les infos conainer avec cAdvisor
 
+Examples de query prometheus utiles:
 
+**Nombre de requete par handler**
 ```promql
 sum by (handler) (rate(bth_backend_http_requests_total[5m]))
 ```
 
+**Nombre de classification en cours**
 ```promql
 bth_backend_classification_background_tasks_in_progress
+```
+
+**Monitoring mémoire du container backend et sa limite:**
+```promql
+{job="cadvisor",
+ container_label_com_docker_compose_project="bth-local",
+ container_label_com_docker_compose_service="api",
+ __name__=~"container_memory_(usage_bytes|working_set_bytes)|container_spec_memory_limit_bytes"}
+ ```
+
+**Detection OOMKilled:**
+```promql
+increase(container_oom_events_total{name="bth-local-api-1"}[5m])
+```
+
+**Mémoire du processus python**
+```promql
+process_resident_memory_bytes{job="bth-backend"}
 ```
 
 
