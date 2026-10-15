@@ -115,14 +115,14 @@ export class YoutubeVideoScraper {
           predicate: (e) => this.scrapingSupport.isVisible(e),
         },
       );
-    const snippetText = await this.scrapingSupport.waitForSelectorOrThrow(
+    // YouTube may omit the snippet entirely when the description is empty.
+    const snippetText = this.scrapingSupport.select(
       descriptionElement,
       "#snippet-text",
       HTMLElement,
-      // Snippet text is hidden and empty when no video description
     );
 
-    return snippetText.innerText;
+    return snippetText?.innerText ?? "";
   }
 
   private async scrapPostPublishedAt(): Promise<PublicationDate> {
