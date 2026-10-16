@@ -2,6 +2,10 @@ import type { PostComment } from "./Post";
 import type { CommentSnapshot, PostSnapshot } from "../PostSnapshot";
 import { flattenCommentsSnapshotReplies } from "../PostSnapshot";
 import type { CommentScreenshotRef } from "../CommentScreenshot";
+import {
+  commentHateFlagKey,
+  type HateFlags,
+} from "@/shared/storage/hate-flags-storage";
 
 /**
  * Extra information needed to track which comments have screenshot
@@ -19,10 +23,11 @@ export type ScreenshotCommentIdsByPostSnapshotId = ReadonlyMap<
  * @param postSnapshots list of post sanpshot to merge.
  * @returns
  */
-export function buildCommentsFromSnapshots(
+export async function buildCommentsFromSnapshots(
   postSnapshots: PostSnapshot[],
+  hateFlags: HateFlags,
   screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
-): PostComment[] {
+): Promise<PostComment[]> {
   // Flatten all comments from all snapshots adding  post index info
   const flattenedCommentSnapshots: CommentSnapshotWithPostInfo[] =
     buildFlattenCommentSnapshotsWithPostInfo(
@@ -41,8 +46,10 @@ export function buildCommentsFromSnapshots(
     );
 
   // For each group build the resulting comments
-  return commentSnapshotsGroupedByCommentIdAndTextContent.map((group) =>
-    buildPostCommentForGroupOfSameText(group, postSnapshots.length),
+  return Promise.all(
+    commentSnapshotsGroupedByCommentIdAndTextContent.map(async (group) =>
+      await buildPostCommentForGroupOfSameText(group, hateFlags, postSnapshots.length),
+    ),
   );
 }
 
@@ -115,10 +122,11 @@ function splitOnTextContentChanges(
   return groups;
 }
 
-function buildPostCommentForGroupOfSameText(
+async function buildPostCommentForGroupOfSameText(
   commentSnapshotsGroup: CommentSnapshotWithPostInfo[],
+  hateFlags: HateFlags,
   postSnapshotsCount: number,
-): PostComment {
+): Promise<PostComment> {
   const sortedByScrapedAt = commentSnapshotsGroup.toSorted((a, b) =>
     a.commentSnapshot.scrapedAt.localeCompare(b.commentSnapshot.scrapedAt),
   );
@@ -134,6 +142,14 @@ function buildPostCommentForGroupOfSameText(
   const isGroupLatestCommentFromLatestSnapshot =
     groupLatestComment.postSnapshotIndex === postSnapshotsCount - 1;
 
+  const hateFlag =
+    hateFlags[
+      await commentHateFlagKey(
+        groupLatestComment.commentSnapshot.id,
+        groupLatestComment.commentSnapshot.textContent,
+      )
+    ];
+
   return {
     textContent: groupOldestComment.commentSnapshot.textContent,
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
@@ -146,6 +162,7 @@ function buildPostCommentForGroupOfSameText(
     url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
+    IsFlagged: hateFlag ?? false,
   };
 }
 

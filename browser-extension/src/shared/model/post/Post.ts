@@ -31,6 +31,12 @@ export type Post = PostSharedProperties & {
 };
 
 export type PostComment = CommentSharedProperties & {
+  
+  /**
+   * True if comment with the same text content was flagged hateful in any of the snapshots
+   */
+  IsFlagged: boolean;
+  
   /**
    * Screenshot selected as evidence for this consolidated comment.
    */
