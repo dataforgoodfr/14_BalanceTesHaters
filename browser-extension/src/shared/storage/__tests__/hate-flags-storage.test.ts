@@ -14,13 +14,22 @@ describe("hate flags storage", () => {
   let getKeysMock: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
 
   const hateFlag1: PostHateFlags = {
-    commentIdPlusHash: true,
+    postId: "first",
+    hateFlags: {
+      commentIdPlusHash: true,
+    },
   };
   const hateFlag2: PostHateFlags = {
-    commentIdPlusHash: false,
+    postId: "second",
+    hateFlags: {
+      commentIdPlusHash: false,
+    },
   };
   const hateFlag3: PostHateFlags = {
-    commentIdPlusHash: false,
+    postId: "third",
+    hateFlags: {
+      commentIdPlusHash: false,
+    },
   };
 
   beforeEach(() => {
@@ -35,38 +44,42 @@ describe("hate flags storage", () => {
   });
 
   it("stores and returns defaults when no post stored", async () => {
-    await expect(getPostHateFlags("test-id")).resolves.toEqual({});
+    await expect(getPostHateFlags("test-id")).resolves.toEqual({
+      postId: "test-id",
+      hateFlags: {}
+    });
   });
 
   it("stores and returns defaults when no comments are stored", async () => {
-    const hateFlags: PostHateFlags = {};
-    await setPostHateFlags("test-id", hateFlags);
-    await expect(getPostHateFlags("test-id")).resolves.toEqual({});
-  });
-
-  it("returns stored hate flags", async () => {
     const hateFlags: PostHateFlags = {
-      commentIdPlusHash: true,
+      postId: "test-id",
+      hateFlags: {}
     };
     await setPostHateFlags("test-id", hateFlags);
-
     await expect(getPostHateFlags("test-id")).resolves.toEqual(hateFlags);
   });
 
-  it("returns stored hate flags list", async () => {
-    await setPostHateFlags("first", hateFlag1);
-    await setPostHateFlags("second", hateFlag2);
-    await setPostHateFlags("third", hateFlag3);
+  it("returns stored hate flags", async () => {
 
-    await expect(getPostHateFlagsList(["first", "second"])).resolves.toEqual([
+    await setPostHateFlags(hateFlag1.postId, hateFlag1);
+
+    await expect(getPostHateFlags(hateFlag1.postId)).resolves.toEqual(hateFlag1);
+  });
+
+  it("returns stored hate flags list", async () => {
+    await setPostHateFlags(hateFlag1.postId, hateFlag1);
+    await setPostHateFlags(hateFlag2.postId, hateFlag2);
+    await setPostHateFlags(hateFlag3.postId, hateFlag3);
+
+    await expect(getPostHateFlagsList([hateFlag1.postId, hateFlag2.postId])).resolves.toEqual([
       hateFlag1,
       hateFlag2,
     ]);
   });
 
   it("deletes all hate flags without deleting other storage data", async () => {
-    await setPostHateFlags("first", hateFlag1);
-    await setPostHateFlags("second", hateFlag2);
+    await setPostHateFlags(hateFlag1.postId, hateFlag1);
+    await setPostHateFlags(hateFlag2.postId, hateFlag2);
     await browser.storage.local.set({ unrelated: "preserved" });
 
     await deleteAllPostHateFlags();
@@ -80,24 +93,24 @@ describe("hate flags storage", () => {
   });
 
   it("deletes hate flags for one post only", async () => {
-    await setPostHateFlags("first", hateFlag1);
-    await setPostHateFlags("second", hateFlag2);
+    await setPostHateFlags(hateFlag1.postId, hateFlag1);
+    await setPostHateFlags(hateFlag2.postId, hateFlag2);
 
-    await deletePostHateFlags("first");
+    await deletePostHateFlags(hateFlag1.postId);
 
-    await expect(getPostHateFlags("first")).resolves.toEqual({});
-    await expect(getPostHateFlags("second")).resolves.toEqual(hateFlag2);
+    await expect(getPostHateFlags(hateFlag1.postId)).resolves.toEqual({postId: hateFlag1.postId, hateFlags: {}});
+    await expect(getPostHateFlags(hateFlag2.postId)).resolves.toEqual(hateFlag2);
   });
 
   it("deletes hate flags for the given post list only", async () => {
-    await setPostHateFlags("first", hateFlag1);
-    await setPostHateFlags("second", hateFlag2);
-    await setPostHateFlags("third", hateFlag3);
+    await setPostHateFlags(hateFlag1.postId, hateFlag1);
+    await setPostHateFlags(hateFlag2.postId, hateFlag2);
+    await setPostHateFlags(hateFlag3.postId, hateFlag3);
 
-    await deletePostHateFlagsList(["first", "third"]);
+    await deletePostHateFlagsList([hateFlag1.postId, hateFlag3.postId]);
 
-    await expect(getPostHateFlags("first")).resolves.toEqual({});
-    await expect(getPostHateFlags("second")).resolves.toEqual(hateFlag2);
-    await expect(getPostHateFlags("third")).resolves.toEqual({});
+    await expect(getPostHateFlags(hateFlag1.postId)).resolves.toEqual({postId: hateFlag1.postId, hateFlags: {}});
+    await expect(getPostHateFlags(hateFlag2.postId)).resolves.toEqual(hateFlag2);
+    await expect(getPostHateFlags(hateFlag3.postId)).resolves.toEqual({postId: hateFlag3.postId, hateFlags: {}});
   });
 });

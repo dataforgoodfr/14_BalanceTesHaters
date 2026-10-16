@@ -98,7 +98,7 @@ export default function CommentsTable({
     () => new Set(),
   );
   const [hatefulComments, setHatefulComments] = React.useState<Set<string>>(
-    () => new Set(),
+    () => new Set(commentList.filter((c) => c.IsFlagged).map((c) => c.id)),
   );
   const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<

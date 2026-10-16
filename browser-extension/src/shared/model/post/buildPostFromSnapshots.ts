@@ -4,11 +4,13 @@ import {
 } from "./buildCommentsFromSnapshots";
 import type { Post } from "./Post";
 import type { PostSnapshot } from "../PostSnapshot";
+import { type PostHateFlags } from "@/shared/storage/hate-flags-storage";
 
-export function buildPostFromSnapshots(
+export async function buildPostFromSnapshots(
   snapshots: PostSnapshot[],
+  hateFlags: PostHateFlags[],
   screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
-): Post {
+): Promise<Post> {
   if (snapshots.length === 0) {
     throw new Error("At least one snapshot required");
   }
@@ -25,6 +27,10 @@ export function buildPostFromSnapshots(
   const oldest = oldestFirst[0]!;
   const latest = oldestFirst[oldestFirst.length - 1]!;
 
+  const matchingHateFlags = hateFlags.find(
+    (hf) => hf.postId === oldest.postId,
+  );
+
   return {
     postId: oldest.postId,
     socialNetwork: oldest.socialNetwork,
@@ -35,8 +41,9 @@ export function buildPostFromSnapshots(
     coverImageUrl: latest.coverImageUrl,
     textContent: latest.textContent,
     title: latest.title,
-    comments: buildCommentsFromSnapshots(
+    comments: await buildCommentsFromSnapshots(
       oldestFirst,
+      matchingHateFlags?.hateFlags || {},
       screenshotCommentIdsByPostSnapshotId,
     ),
     firstAnalysisDate: oldest.scrapedAt,
