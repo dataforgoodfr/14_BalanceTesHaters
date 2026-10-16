@@ -10,6 +10,10 @@ export const PostHateFlagsSchema = z
 
 export type PostHateFlags = z.infer<typeof PostHateFlagsSchema>;
 
+export function postHateFlagsRecordKey(postSnapshotId: string): string {
+  return `${HATE_FLAGS_STORAGE_KEY_PREFIX}${postSnapshotId}`;
+}
+
 export async function getPostHateFlags(
   postSnapshotId: string,
 ): Promise<PostHateFlags> {
@@ -34,4 +38,27 @@ export async function setPostHateFlags(
   await browser.storage.local.set({
     [`${HATE_FLAGS_STORAGE_KEY_PREFIX}${postSnapshotId}`]: parsedHateFlags,
   });
+}
+
+export async function deleteAllPostHateFlags() {
+  const keys = await getPostHateFlagsDataKeys();
+  if (keys.length > 0) {
+    await browser.storage.local.remove(keys);
+  }
+}
+
+export async function deletePostHateFlags(postSnapshotId: string) {
+  await browser.storage.local.remove(postHateFlagsRecordKey(postSnapshotId));
+}
+
+export async function deletePostHateFlagsList(postSnapshotIdList: string[]) {
+  const keys = postSnapshotIdList.map(postHateFlagsRecordKey);
+  await browser.storage.local.remove(keys);
+}
+
+export async function getPostHateFlagsDataKeys(): Promise<string[]> {
+  return (await browser.storage.local.getKeys()).filter(
+    (key) =>
+      key.startsWith(HATE_FLAGS_STORAGE_KEY_PREFIX),
+  );
 }
