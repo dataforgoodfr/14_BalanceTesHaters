@@ -5,12 +5,23 @@ import {
   deletePostHateFlags,
   deletePostHateFlagsList,
   getPostHateFlags,
-  HATE_FLAGS_STORAGE_KEY_PREFIX,
+  getPostHateFlagsList,
+  setPostHateFlags,
   type PostHateFlags,
 } from "../hate-flags-storage";
 
 describe("hate flags storage", () => {
   let getKeysMock: ReturnType<typeof vi.fn<() => Promise<string[]>>>;
+
+  const hateFlag1: PostHateFlags = {
+    commentIdPlusHash: true,
+  };
+  const hateFlag2: PostHateFlags = {
+    commentIdPlusHash: false,
+  };
+  const hateFlag3: PostHateFlags = {
+    commentIdPlusHash: false,
+  };
 
   beforeEach(() => {
     fakeBrowser.reset();
@@ -29,9 +40,7 @@ describe("hate flags storage", () => {
 
   it("stores and returns defaults when no comments are stored", async () => {
     const hateFlags: PostHateFlags = {};
-    await browser.storage.local.set({
-      [HATE_FLAGS_STORAGE_KEY_PREFIX + "test-id"]: hateFlags,
-    });
+    await setPostHateFlags("test-id", hateFlags);
     await expect(getPostHateFlags("test-id")).resolves.toEqual({});
   });
 
@@ -39,19 +48,26 @@ describe("hate flags storage", () => {
     const hateFlags: PostHateFlags = {
       commentIdPlusHash: true,
     };
-    await browser.storage.local.set({
-      [HATE_FLAGS_STORAGE_KEY_PREFIX + "test-id"]: hateFlags,
-    });
+    await setPostHateFlags("test-id", hateFlags);
 
     await expect(getPostHateFlags("test-id")).resolves.toEqual(hateFlags);
   });
 
+  it("returns stored hate flags list", async () => {
+    await setPostHateFlags("first", hateFlag1);
+    await setPostHateFlags("second", hateFlag2);
+    await setPostHateFlags("third", hateFlag3);
+
+    await expect(getPostHateFlagsList(["first", "second"])).resolves.toEqual([
+      hateFlag1,
+      hateFlag2,
+    ]);
+  });
+
   it("deletes all hate flags without deleting other storage data", async () => {
-    await browser.storage.local.set({
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}first`]: { first: true },
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}second`]: { second: false },
-      unrelated: "preserved",
-    });
+    await setPostHateFlags("first", hateFlag1);
+    await setPostHateFlags("second", hateFlag2);
+    await browser.storage.local.set({ unrelated: "preserved" });
 
     await deleteAllPostHateFlags();
 
@@ -64,32 +80,24 @@ describe("hate flags storage", () => {
   });
 
   it("deletes hate flags for one post only", async () => {
-    await browser.storage.local.set({
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}first`]: { first: true },
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}second`]: { second: false },
-    });
+    await setPostHateFlags("first", hateFlag1);
+    await setPostHateFlags("second", hateFlag2);
 
     await deletePostHateFlags("first");
 
     await expect(getPostHateFlags("first")).resolves.toEqual({});
-    await expect(getPostHateFlags("second")).resolves.toEqual({
-      second: false,
-    });
+    await expect(getPostHateFlags("second")).resolves.toEqual(hateFlag2);
   });
 
   it("deletes hate flags for the given post list only", async () => {
-    await browser.storage.local.set({
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}first`]: { first: true },
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}second`]: { second: false },
-      [`${HATE_FLAGS_STORAGE_KEY_PREFIX}third`]: { third: true },
-    });
+    await setPostHateFlags("first", hateFlag1);
+    await setPostHateFlags("second", hateFlag2);
+    await setPostHateFlags("third", hateFlag3);
 
     await deletePostHateFlagsList(["first", "third"]);
 
     await expect(getPostHateFlags("first")).resolves.toEqual({});
-    await expect(getPostHateFlags("second")).resolves.toEqual({
-      second: false,
-    });
+    await expect(getPostHateFlags("second")).resolves.toEqual(hateFlag2);
     await expect(getPostHateFlags("third")).resolves.toEqual({});
   });
 });

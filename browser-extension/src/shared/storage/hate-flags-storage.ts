@@ -30,6 +30,13 @@ export async function getPostHateFlags(
   return result.data ?? {};
 }
 
+export async function getPostHateFlagsList(
+  postSnapshotIdList: string[],
+): Promise<PostHateFlags[]> {
+  const hateFlagsPromises = postSnapshotIdList.map(getPostHateFlags);
+  return Promise.all(hateFlagsPromises);
+}
+
 export async function setPostHateFlags(
   postSnapshotId: string,
   hateFlags: PostHateFlags,
