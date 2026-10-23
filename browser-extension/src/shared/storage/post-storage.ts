@@ -3,7 +3,6 @@ import { buildPostFromSnapshots } from "../model/post/buildPostFromSnapshots";
 import { buildPostsFromSnapshots } from "../model/post/buildPostsFromSnapshots";
 import type { Post } from "../model/post/Post";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
-import { getPostHateFlagsList, type PostHateFlags } from "./hate-flags-storage";
 import {
   getPostSnapshotRecordsByPostIdList,
   getPostSnapshotRecordsBySocialNetworkAndPeriod,
@@ -21,17 +20,14 @@ export async function getPostsBySocialNetworkAndPeriod(
     from,
     to,
   );
-  const postIdList = records.map((record) => record.postSnapshot.id);
-  const hateFlags = await getPostHateFlagsList(postIdList);
-  return buildPostsFromRecords(records, hateFlags);
+  return buildPostsFromRecords(records);
 }
 
 export async function getPostsByPostIdList(
   postIdList: string[],
 ): Promise<Post[]> {
   return buildPostsFromRecords(
-    await getPostSnapshotRecordsByPostIdList(postIdList),
-    await getPostHateFlagsList(postIdList),
+    await getPostSnapshotRecordsByPostIdList(postIdList)
   );
 }
 
@@ -44,22 +40,17 @@ export async function getPostByPostId(
     return undefined;
   }
 
-  const postSnapshotIds = records.map((record) => record.postSnapshot.id);
-
   return buildPostFromSnapshots(
     records.map((record) => record.postSnapshot),
-    await getPostHateFlagsList(postSnapshotIds),
     buildScreenshotCommentIdsByPostSnapshotId(records),
   );
 }
 
-async function buildPostsFromRecords(
+function buildPostsFromRecords(
   records: PostSnapshotRecord[],
-  hateFlags: PostHateFlags[],
-): Promise<Post[]> {
-  return await buildPostsFromSnapshots(
+): Post[] {
+  return buildPostsFromSnapshots(
     records.map((record) => record.postSnapshot),
-    hateFlags,
     buildScreenshotCommentIdsByPostSnapshotId(records),
   );
 }

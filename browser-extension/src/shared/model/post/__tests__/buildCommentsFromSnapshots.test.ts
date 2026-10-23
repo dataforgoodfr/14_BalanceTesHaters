@@ -4,19 +4,18 @@ import type { PostSnapshot, CommentSnapshot } from "../../PostSnapshot";
 import { SocialNetwork } from "../../SocialNetworkName";
 import { AnnotatedCategory } from "../../AnnotatedCategory";
 
-describe("await buildCommentsFromSnapshots", () => {
+describe("buildCommentsFromSnapshots", () => {
   describe("empty input", () => {
-    it("should return empty array when given empty postSnapshots array", async () => {
-      const result = await buildCommentsFromSnapshots([], {}, new Map());
+    it("should return empty array when given empty postSnapshots array", () => {
+      const result = buildCommentsFromSnapshots([], new Map());
       expect(result).toEqual([]);
     });
 
-    it("should return empty array when snapshots have no comments", async () => {
+    it("should return empty array when snapshots have no comments", () => {
       const snapshot1 = createMinimalPostSnapshot([]);
       const snapshot2 = createMinimalPostSnapshot([]);
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
         new Map(),
       );
       expect(result).toEqual([]);
@@ -24,10 +23,10 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("single snapshot", () => {
-    it("should return single comment when given single snapshot with one comment", async () => {
+    it("should return single comment when given single snapshot with one comment", () => {
       const comment = createCommentSnapshot({ textContent: "Hello World" });
       const snapshot = createMinimalPostSnapshot([comment]);
-      const result = await buildCommentsFromSnapshots([snapshot], {}, new Map());
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       expect(result).toHaveLength(1);
       expect(result[0]!.author).toBe(comment.author);
@@ -36,7 +35,7 @@ describe("await buildCommentsFromSnapshots", () => {
       expect(result[0]!.isDeleted).toBe(false);
     });
 
-    it("should return multiple comments when given single snapshot with multiple comments", async () => {
+    it("should return multiple comments when given single snapshot with multiple comments", () => {
       const comment1 = createCommentSnapshot({ textContent: "First comment" });
       const comment2 = createCommentSnapshot({ textContent: "Second comment" });
       const comment3 = createCommentSnapshot({ textContent: "Third comment" });
@@ -46,7 +45,7 @@ describe("await buildCommentsFromSnapshots", () => {
         comment3,
       ]);
 
-      const result = await buildCommentsFromSnapshots([snapshot], {}, new Map());
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       expect(result).toHaveLength(3);
       expect(result[0]!.textContent).toBe(comment1.textContent);
@@ -57,7 +56,7 @@ describe("await buildCommentsFromSnapshots", () => {
       expect(result.every((c) => c.isDeleted)).toBe(false);
     });
 
-    it("should flatten nested replies", async () => {
+    it("should flatten nested replies", () => {
       const reply1 = createCommentSnapshot({
         commentId: "reply-1",
         textContent: "Reply 1",
@@ -75,7 +74,7 @@ describe("await buildCommentsFromSnapshots", () => {
       });
 
       const snapshot = createMinimalPostSnapshot([parentComment]);
-      const result = await buildCommentsFromSnapshots([snapshot], {}, new Map());
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       // Should have 3 comments: parent + 2 replies (flattened)
       expect(result).toHaveLength(3);
@@ -87,7 +86,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - same comment persists", () => {
-    it("should keep the latest completed classification when a newer snapshot is unclassified", async () => {
+    it("should keep the latest completed classification when a newer snapshot is unclassified", () => {
       const comment1 = createCommentSnapshot({
         commentId: "same-comment",
         textContent: "Same text",
@@ -114,9 +113,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([comment2]);
       const snapshot3 = createMinimalPostSnapshot([comment3]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3],
-        {},
+        
         new Map(),
       );
 
@@ -131,7 +130,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - text content changes", () => {
-    it("should create separate comments when text content changes", async () => {
+    it("should create separate comments when text content changes", () => {
       const comment1 = createCommentSnapshot({
         commentId: "edited-comment",
         textContent: "Original text",
@@ -146,9 +145,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment2]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map(),
       );
 
@@ -166,7 +165,7 @@ describe("await buildCommentsFromSnapshots", () => {
       expect(result[1]!.isDeleted).toBe(false);
     });
 
-    it("should handle multiple edits of same comment", async () => {
+    it("should handle multiple edits of same comment", () => {
       const comment1 = createCommentSnapshot({
         commentId: "multi-edit",
         textContent: "Version 1",
@@ -187,9 +186,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([comment2]);
       const snapshot3 = createMinimalPostSnapshot([comment3]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3],
-        {},
+        
         new Map(),
       );
 
@@ -211,7 +210,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - isNew flag", () => {
-    it("should mark comment as isNew=true when added in latest snapshot only", async () => {
+    it("should mark comment as isNew=true when added in latest snapshot only", () => {
       const comment1 = createCommentSnapshot({
         commentId: "old-comment",
         textContent: "Old comment",
@@ -226,9 +225,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([comment1, comment2]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map(),
       );
 
@@ -244,7 +243,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - isDeleted flag", () => {
-    it("should mark comment as isDeleted=true when removed in latest snapshot", async () => {
+    it("should mark comment as isDeleted=true when removed in latest snapshot", () => {
       const comment1 = createCommentSnapshot({
         commentId: "deleted-comment",
         textContent: "Will be deleted",
@@ -254,9 +253,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([comment1]);
       const snapshot2 = createMinimalPostSnapshot([]); // No comments in latest
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map(),
       );
 
@@ -267,7 +266,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("multiple snapshots - combination of new and deleted", () => {
-    it("should correctly handle mix of new, deleted, and persisted comments", async () => {
+    it("should correctly handle mix of new, deleted, and persisted comments", () => {
       // Snapshot 1: comment A, comment B
       const commentA_v1 = createCommentSnapshot({
         commentId: "comment-a",
@@ -295,9 +294,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot1 = createMinimalPostSnapshot([commentA_v1, commentB_v1]);
       const snapshot2 = createMinimalPostSnapshot([commentA_v2, commentC_v2]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map(),
       );
 
@@ -321,7 +320,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("fallback commentId (author + date)", () => {
-    it("should use author@date as commentId when commentId is not provided but absolute date is", async () => {
+    it("should use author@date as commentId when commentId is not provided but absolute date is", () => {
       const comment1 = createCommentSnapshot({
         commentId: undefined,
         publishedAt: {
@@ -345,9 +344,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([comment2]);
 
       // Both comments have same author and same absolute date, so they should be grouped
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map(),
       );
 
@@ -357,7 +356,7 @@ describe("await buildCommentsFromSnapshots", () => {
       expect(result[0]!.isDeleted).toBe(false);
     });
 
-    it("should throw error when no commentId and no absolute date", async () => {
+    it("should throw error when no commentId and no absolute date", () => {
       const comment = createCommentSnapshot({
         commentId: undefined,
         publishedAt: {
@@ -373,14 +372,13 @@ describe("await buildCommentsFromSnapshots", () => {
 
       const snapshot = createMinimalPostSnapshot([comment]);
 
-      await expect(async () => await buildCommentsFromSnapshots([snapshot], {}, new Map())).rejects.toThrowError(
-        "Need a comment id or an absolute date",
+      expect(() => buildCommentsFromSnapshots([snapshot], new Map())).toThrow(        "Need a comment id or an absolute date",
       );
     });
   });
 
   describe("ordering", () => {
-    it("should maintain order of comments as they appear in snapshots", async () => {
+    it("should maintain order of comments as they appear in snapshots", () => {
       const comment1 = createCommentSnapshot({
         commentId: "c1",
         textContent: "First",
@@ -403,7 +401,7 @@ describe("await buildCommentsFromSnapshots", () => {
         comment2,
       ]);
 
-      const result = await buildCommentsFromSnapshots([snapshot], {}, new Map());
+      const result = buildCommentsFromSnapshots([snapshot],  new Map());
 
       // Comments maintain the order they appear in the snapshot
       expect(result).toHaveLength(3);
@@ -414,7 +412,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("deduplication of consecutive same text", () => {
-    it("should deduplicate comments with same commentId and consecutive same text", async() => {
+    it("should deduplicate comments with same commentId and consecutive same text", () => {
       const comment1 = createCommentSnapshot({
         commentId: "dedup-test",
         textContent: "Same text",
@@ -441,9 +439,9 @@ describe("await buildCommentsFromSnapshots", () => {
       const snapshot3 = createMinimalPostSnapshot([comment3]);
       const snapshot4 = createMinimalPostSnapshot([comment4]);
 
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3, snapshot4],
-        {},
+        
         new Map(),
       );
 
@@ -461,7 +459,7 @@ describe("await buildCommentsFromSnapshots", () => {
   });
 
   describe("screenshot selection", () => {
-    it("should keep the latest screenshot when latest snapshot has one", async() => {
+    it("should keep the latest screenshot when latest snapshot has one", () => {
       const commentV1 = createCommentSnapshot({
         commentId: "screenshot-latest",
         textContent: "Same text",
@@ -475,9 +473,9 @@ describe("await buildCommentsFromSnapshots", () => {
 
       const snapshot1 = createMinimalPostSnapshot([commentV1]);
       const snapshot2 = createMinimalPostSnapshot([commentV2]);
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map([
           [snapshot1.id, new Set([commentV1.id])],
           [snapshot2.id, new Set([commentV2.id])],
@@ -491,7 +489,7 @@ describe("await buildCommentsFromSnapshots", () => {
       });
     });
 
-    it("should fallback to latest non-empty screenshot when latest is empty", async () => {
+    it("should fallback to latest non-empty screenshot when latest is empty", () => {
       const commentV1 = createCommentSnapshot({
         commentId: "screenshot-fallback",
         textContent: "Same text",
@@ -505,9 +503,9 @@ describe("await buildCommentsFromSnapshots", () => {
 
       const snapshot1 = createMinimalPostSnapshot([commentV1]);
       const snapshot2 = createMinimalPostSnapshot([commentV2]);
-      const result = await buildCommentsFromSnapshots(
+      const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        {},
+        
         new Map([[snapshot1.id, new Set([commentV1.id])]]),
       );
 
