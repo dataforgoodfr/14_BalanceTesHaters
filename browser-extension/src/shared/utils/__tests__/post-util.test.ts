@@ -72,6 +72,7 @@ function createHatefulComment(
     classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
     isNew: false,
     isDeleted: false,
+    isFlagged: false,
   };
 }
 
@@ -92,6 +93,7 @@ function createDummyCommentWithId(
     },
     isNew: false,
     isDeleted: false,
+    isFlagged: false,
     ...overrides,
   };
 }
@@ -241,6 +243,7 @@ describe("post utilities", () => {
                 },
                 isNew: false,
                 isDeleted: false,
+                isFlagged: false,
               },
             ],
           }),
@@ -255,6 +258,7 @@ describe("post utilities", () => {
                 },
                 isNew: false,
                 isDeleted: false,
+                isFlagged: false,
               },
             ],
           }),
