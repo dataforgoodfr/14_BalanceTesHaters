@@ -47,8 +47,13 @@ export async function buildCommentsFromSnapshots(
 
   // For each group build the resulting comments
   return Promise.all(
-    commentSnapshotsGroupedByCommentIdAndTextContent.map(async (group) =>
-      await buildPostCommentForGroupOfSameText(group, hateFlags, postSnapshots.length),
+    commentSnapshotsGroupedByCommentIdAndTextContent.map(
+      async (group) =>
+        await buildPostCommentForGroupOfSameText(
+          group,
+          hateFlags,
+          postSnapshots.length,
+        ),
     ),
   );
 }
@@ -73,22 +78,25 @@ function buildFlattenCommentSnapshotsWithPostInfo(
   return postSnapshots.flatMap((postSnapshot, postSnapshotIndex) =>
     flattenCommentsSnapshotReplies(
       postSnapshot.comments,
-    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => ({
-      commentSnapshot,
-      postSnapshotIndex,
-      postSnapshotId: postSnapshot.id,
-      hasScreenshot:
-        screenshotCommentIdsByPostSnapshotId
+    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => {
+      return {
+        commentSnapshot,
+        postSnapshotIndex,
+        postSnapshotId: postSnapshot.id,
+        hasScreenshot:
+          screenshotCommentIdsByPostSnapshotId
           .get(postSnapshot.id)
           ?.has(commentSnapshot.id) ?? false,
-    })),
+      };
+    }),
   );
 }
 
 function groupByCommentId(
   flattenedCommentSnapshots: CommentSnapshotWithPostInfo[],
 ): CommentSnapshotWithPostInfo[][] {
-  const groups = Object.groupBy(flattenedCommentSnapshots, (cs) =>
+  const groups = Object.groupBy(
+    flattenedCommentSnapshots,(cs) =>
     commentId(cs.commentSnapshot),
   );
 
@@ -131,7 +139,7 @@ async function buildPostCommentForGroupOfSameText(
     a.commentSnapshot.scrapedAt.localeCompare(b.commentSnapshot.scrapedAt),
   );
   const groupOldestComment = sortedByScrapedAt[0]!;
-  const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
+  const groupLatestComment = sortedByScrapedAt.at(-1)!;
   const groupLatestClassifiedComment = sortedByScrapedAt.findLast(
     ({ commentSnapshot }) => commentSnapshot.classifiedAt !== undefined,
   );
@@ -145,7 +153,6 @@ async function buildPostCommentForGroupOfSameText(
   const hateFlag =
     hateFlags[
       await commentHateFlagKey(
-        groupLatestComment.commentSnapshot.id,
         groupLatestComment.commentSnapshot.textContent,
       )
     ];

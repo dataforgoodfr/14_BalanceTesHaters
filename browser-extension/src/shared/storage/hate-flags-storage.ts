@@ -15,48 +15,62 @@ export const PostHateFlagsSchema = z.object({
 });
 export type PostHateFlags = z.infer<typeof PostHateFlagsSchema>;
 
-
-export function postHateFlagsRecordKey(postSnapshotId: string): string {
-  return `${HATE_FLAGS_STORAGE_KEY_PREFIX}${postSnapshotId}`;
+export function postHateFlagsRecordKey(postId: string): string {
+  return `${HATE_FLAGS_STORAGE_KEY_PREFIX}${postId}`;
 }
 
-export async function commentHateFlagKey(commentId :string, textContent: string): Promise<string> {
-  return `${commentId}:${await hashString(textContent)}`;
+export async function commentHateFlagKey(
+  textContent: string,
+): Promise<string> {
+  return `${await hashString(textContent)}`;
 }
 
 export async function getPostHateFlags(
-  postSnapshotId: string,
+  postId: string,
 ): Promise<PostHateFlags> {
   const stored = await browser.storage.local.get(
-    postHateFlagsRecordKey(postSnapshotId),
+    postHateFlagsRecordKey(postId),
   );
-  const value = stored[postHateFlagsRecordKey(postSnapshotId)];
+  const value = stored[postHateFlagsRecordKey(postId)];
   const result = PostHateFlagsSchema.safeParse(value);
   if (!result.success) {
     logger.warn("Ignoring invalid hate flags", value);
     return {
-      postId: postSnapshotId,
+      postId: postId,
       hateFlags: {},
     };
   }
-
   return result.data ?? {};
 }
 
 export async function getPostHateFlagsList(
-  postSnapshotIdList: string[],
+  postIdList: string[],
 ): Promise<PostHateFlags[]> {
-  const hateFlagsPromises = postSnapshotIdList.map(getPostHateFlags);
+  const hateFlagsPromises = postIdList.map(getPostHateFlags);
   return Promise.all(hateFlagsPromises);
 }
 
+export async function updateCommentHateFlags(
+  postId: string,
+  hateFlags: { textContent: string; isFlagged: boolean }[],
+): Promise<void> {
+  const postHateFlags = await getPostHateFlags(postId);
+
+  for (const { textContent, isFlagged } of hateFlags) {
+    const key = await commentHateFlagKey(textContent);
+    postHateFlags.hateFlags[key] = isFlagged;
+  }
+  
+  await setPostHateFlags(postId, postHateFlags);
+}
+
 export async function setPostHateFlags(
-  postSnapshotId: string,
+  postId: string,
   hateFlags: PostHateFlags,
 ): Promise<void> {
   const parsedHateFlags = PostHateFlagsSchema.parse(hateFlags);
   await browser.storage.local.set({
-    [postHateFlagsRecordKey(postSnapshotId)]: parsedHateFlags,
+    [postHateFlagsRecordKey(postId)]: parsedHateFlags,
   });
 }
 
@@ -67,12 +81,12 @@ export async function deleteAllPostHateFlags() {
   }
 }
 
-export async function deletePostHateFlags(postSnapshotId: string) {
-  await browser.storage.local.remove(postHateFlagsRecordKey(postSnapshotId));
+export async function deletePostHateFlags(postId: string) {
+  await browser.storage.local.remove(postHateFlagsRecordKey(postId));
 }
 
-export async function deletePostHateFlagsList(postSnapshotIdList: string[]) {
-  const keys = postSnapshotIdList.map(postHateFlagsRecordKey);
+export async function deletePostHateFlagsList(postIdList: string[]) {
+  const keys = postIdList.map(postHateFlagsRecordKey);
   await browser.storage.local.remove(keys);
 }
 
