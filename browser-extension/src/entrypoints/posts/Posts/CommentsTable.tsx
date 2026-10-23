@@ -107,7 +107,7 @@ export default function CommentsTable({
     () =>
       new Set(
         commentList
-          .filter((comment) => comment.isFlagged)
+          .filter((comment) => comment.IsFlagged)
           .map((comment) => comment.id),
       ),
     [commentList],
