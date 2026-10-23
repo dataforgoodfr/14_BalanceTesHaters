@@ -27,7 +27,7 @@ export async function getPostsByPostIdList(
   postIdList: string[],
 ): Promise<Post[]> {
   return buildPostsFromRecords(
-    await getPostSnapshotRecordsByPostIdList(postIdList)
+    await getPostSnapshotRecordsByPostIdList(postIdList),
   );
 }
 
@@ -46,9 +46,7 @@ export async function getPostByPostId(
   );
 }
 
-function buildPostsFromRecords(
-  records: PostSnapshotRecord[],
-): Post[] {
+function buildPostsFromRecords(records: PostSnapshotRecord[]): Post[] {
   return buildPostsFromSnapshots(
     records.map((record) => record.postSnapshot),
     buildScreenshotCommentIdsByPostSnapshotId(records),

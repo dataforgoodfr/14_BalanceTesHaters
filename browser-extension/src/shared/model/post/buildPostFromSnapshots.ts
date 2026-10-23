@@ -25,7 +25,6 @@ export function buildPostFromSnapshots(
   const oldest = oldestFirst[0]!;
   const latest = oldestFirst[oldestFirst.length - 1]!;
 
-
   return {
     postId: oldest.postId,
     socialNetwork: oldest.socialNetwork,

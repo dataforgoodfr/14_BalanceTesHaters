@@ -115,7 +115,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3],
-        
+
         new Map(),
       );
 
@@ -147,7 +147,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map(),
       );
 
@@ -188,7 +188,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3],
-        
+
         new Map(),
       );
 
@@ -227,7 +227,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map(),
       );
 
@@ -255,7 +255,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map(),
       );
 
@@ -296,7 +296,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map(),
       );
 
@@ -346,7 +346,7 @@ describe("buildCommentsFromSnapshots", () => {
       // Both comments have same author and same absolute date, so they should be grouped
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map(),
       );
 
@@ -372,7 +372,8 @@ describe("buildCommentsFromSnapshots", () => {
 
       const snapshot = createMinimalPostSnapshot([comment]);
 
-      expect(() => buildCommentsFromSnapshots([snapshot], new Map())).toThrow(        "Need a comment id or an absolute date",
+      expect(() => buildCommentsFromSnapshots([snapshot], new Map())).toThrow(
+        "Need a comment id or an absolute date",
       );
     });
   });
@@ -401,7 +402,7 @@ describe("buildCommentsFromSnapshots", () => {
         comment2,
       ]);
 
-      const result = buildCommentsFromSnapshots([snapshot],  new Map());
+      const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       // Comments maintain the order they appear in the snapshot
       expect(result).toHaveLength(3);
@@ -441,7 +442,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2, snapshot3, snapshot4],
-        
+
         new Map(),
       );
 
@@ -475,7 +476,7 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([commentV2]);
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map([
           [snapshot1.id, new Set([commentV1.id])],
           [snapshot2.id, new Set([commentV2.id])],
@@ -505,7 +506,7 @@ describe("buildCommentsFromSnapshots", () => {
       const snapshot2 = createMinimalPostSnapshot([commentV2]);
       const result = buildCommentsFromSnapshots(
         [snapshot1, snapshot2],
-        
+
         new Map([[snapshot1.id, new Set([commentV1.id])]]),
       );
 

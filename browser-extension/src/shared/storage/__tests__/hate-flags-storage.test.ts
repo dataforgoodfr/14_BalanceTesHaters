@@ -139,9 +139,7 @@ describe("hate flags storage", () => {
     expect(postHateFlags.postId).toEqual("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent1")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
     ).toEqual(true);
   });
 
@@ -154,9 +152,7 @@ describe("hate flags storage", () => {
     expect(postHateFlags.postId).toEqual("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent1")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
     ).toEqual(false);
   });
 
@@ -175,9 +171,7 @@ describe("hate flags storage", () => {
     const postHateFlags = await getPostHateFlags("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent1")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
     ).toEqual(true);
   });
 
@@ -199,19 +193,13 @@ describe("hate flags storage", () => {
     const postHateFlags = await getPostHateFlags("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(3);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent1")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
     ).toEqual(true);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent2")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent2")],
     ).toEqual(true);
     expect(
-      postHateFlags.hateFlags[
-        await commentHateFlagKey("textContent3")
-      ],
+      postHateFlags.hateFlags[await commentHateFlagKey("textContent3")],
     ).toEqual(false);
   });
 });

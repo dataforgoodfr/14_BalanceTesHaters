@@ -3,7 +3,7 @@ import type { PostSnapshot } from "../PostSnapshot";
 import { buildPostFromSnapshots } from "./buildPostFromSnapshots";
 import type { ScreenshotCommentIdsByPostSnapshotId } from "./buildCommentsFromSnapshots";
 
-export  function buildPostsFromSnapshots(
+export function buildPostsFromSnapshots(
   snapshots: PostSnapshot[],
   screenshotCommentIdsByPostSnapshotId: ScreenshotCommentIdsByPostSnapshotId,
 ): Post[] {
@@ -17,6 +17,6 @@ export  function buildPostsFromSnapshots(
       buildPostFromSnapshots(
         postSnapshotGroup,
         screenshotCommentIdsByPostSnapshotId,
-      )
+      ),
     );
 }

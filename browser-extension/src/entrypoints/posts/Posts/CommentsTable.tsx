@@ -475,25 +475,24 @@ export default function CommentsTable({
                 {selectedCommentIdList.size} sélectionné
                 {selectedCommentIdList.size > 1 ? "s" : ""}
               </span>
-
             </div>
             <Button
-                type="button"
-                variant="destructive"
-                onClick={() => void flagSelectedComment(true)}
-                aria-label="Déclarer malveillant"
-              >
-                Déclarer malveillant
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => void flagSelectedComment(false)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Déclarer neutre"
-              >
-                Déclarer neutre
-              </Button>
+              type="button"
+              variant="destructive"
+              onClick={() => void flagSelectedComment(true)}
+              aria-label="Déclarer malveillant"
+            >
+              Déclarer malveillant
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void flagSelectedComment(false)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Déclarer neutre"
+            >
+              Déclarer neutre
+            </Button>
           </div>
         )}
 
@@ -571,7 +570,12 @@ export default function CommentsTable({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id} className={hatefulComments.has(row.id) ? "bg-red-100" : ""}>
+                    <TableRow
+                      key={row.id}
+                      className={
+                        hatefulComments.has(row.id) ? "bg-red-100" : ""
+                      }
+                    >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
