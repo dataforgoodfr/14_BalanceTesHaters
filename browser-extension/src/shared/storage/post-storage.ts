@@ -53,11 +53,11 @@ export async function getPostByPostId(
   );
 }
 
-function buildPostsFromRecords(
+async function buildPostsFromRecords(
   records: PostSnapshotRecord[],
   hateFlags: PostHateFlags[],
-): Post[] {
-  return buildPostsFromSnapshots(
+): Promise<Post[]> {
+  return await buildPostsFromSnapshots(
     records.map((record) => record.postSnapshot),
     hateFlags,
     buildScreenshotCommentIdsByPostSnapshotId(records),

@@ -68,6 +68,7 @@ export function useFilteredCommentList(
           return { ...comment, id: i.toString() };
         });
 
+
       const hatefulAuthorList: string[] = allComments
         .filter((comment) => comment.isCommentHateful)
         .map((comment) => comment.author.name);

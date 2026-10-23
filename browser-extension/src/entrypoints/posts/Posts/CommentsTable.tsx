@@ -59,6 +59,7 @@ import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
 import { CommentScreenshotImage } from "../Shared/CommentScreenshotImage";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
+import { updateCommentHateFlags } from "@/shared/storage/hate-flags-storage";
 
 const commentsTableFeatures = tableFeatures({
   columnSizingFeature,
@@ -121,7 +122,19 @@ export default function CommentsTable({
 
   // Permet de suivre les commentaires taggés comme malveillants (hateful)
   //  dans le tableau, en stockant leurs IDs dans un Set
-  const toggleHatefulComment = (id: string) => {
+  const toggleHatefulComment = async (id: string): Promise<void> => {
+    const comment = commentList.find((c) => c.id === id);
+    if (!comment) {
+      console.error(`Comment with id ${id} not found`);
+      return;
+    }
+
+    await updateCommentHateFlags(comment.postId, [
+      {
+        textContent: comment.textContent,
+        isFlagged: !hatefulComments.has(id),
+      },
+    ]);
     setHatefulComments((prev) => addOrRemoveValueToSet(prev, id));
   };
 
@@ -291,9 +304,12 @@ export default function CommentsTable({
         size: 6,
         header: "Malveillant",
         cell: ({ row }) => (
-          <Button variant="ghost" onClick={() => toggleHatefulComment(row.id)}>
+          <Button
+            variant="ghost"
+            onClick={() => void toggleHatefulComment(row.id)}
+          >
             {hatefulComments.has(row.id) ? (
-              <OctagonAlert className="text-destructive"  />
+              <OctagonAlert className="text-destructive" />
             ) : (
               <OctagonAlert className="text-muted-foreground" />
             )}
