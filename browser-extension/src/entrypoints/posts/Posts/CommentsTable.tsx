@@ -571,7 +571,7 @@ export default function CommentsTable({
                 </TableHeader>
                 <TableBody>
                   {table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow key={row.id} className={hatefulComments.has(row.id) ? "bg-red-100" : ""}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id}>
                           {flexRender(
