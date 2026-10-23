@@ -49,7 +49,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// import { useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import type {
   CommentFilters,
   CommentSortingCategory,
@@ -60,6 +60,8 @@ import CommentsSortingPopover from "./CommentsSortingPopover";
 import { CommentScreenshotImage } from "../Shared/CommentScreenshotImage";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { updateCommentHateFlags } from "@/shared/storage/hate-flags-storage";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useQueryClient } from "@tanstack/react-query";
 
 const commentsTableFeatures = tableFeatures({
   columnSizingFeature,
@@ -98,9 +100,19 @@ export default function CommentsTable({
   const [visibleComments, setVisibleComments] = React.useState<Set<string>>(
     () => new Set(),
   );
-  const [hatefulComments, setHatefulComments] = React.useState<Set<string>>(
-    () => new Set(commentList.filter((c) => c.IsFlagged).map((c) => c.id)),
+  const [selectedCommentIdList, setSelectedCommentIdList] = React.useState<
+    Set<string>
+  >(() => new Set(defaultSelectedCommentIdList));
+  const hatefulComments = React.useMemo(
+    () =>
+      new Set(
+        commentList
+          .filter((comment) => comment.IsFlagged)
+          .map((comment) => comment.id),
+      ),
+    [commentList],
   );
+  const queryClient = useQueryClient();
   const [screenshotDialogOpen, setScreenshotDialogOpen] = React.useState(false);
   const [selectedScreenshot, setSelectedScreenshot] = React.useState<
     string | null
@@ -114,6 +126,24 @@ export default function CommentsTable({
     },
   });
 
+  const updateSelectedCommentList = React.useCallback(
+    (commentIdList: Set<string>) => {
+      // La gestion du formulaire est complexe avec le tableau. La valeur est donc mise à jour manuellement.
+      form.setFieldValue("commentIdList", [...commentIdList]);
+      setSelectedCommentIdList(commentIdList);
+    },
+    [form],
+  );
+
+  const toggleCommentSelection = React.useCallback(
+    (id: string) => {
+      updateSelectedCommentList(
+        addOrRemoveValueToSet(selectedCommentIdList, id),
+      );
+    },
+    [selectedCommentIdList, updateSelectedCommentList],
+  );
+
   // Permet de suivre les commentaires actuellement affichés (non floutés)
   //  dans le tableau, en stockant leurs IDs dans un Set
   const toggleCommentVisibility = (id: string) => {
@@ -122,21 +152,24 @@ export default function CommentsTable({
 
   // Permet de suivre les commentaires taggés comme malveillants (hateful)
   //  dans le tableau, en stockant leurs IDs dans un Set
-  const toggleHatefulComment = async (id: string): Promise<void> => {
-    const comment = commentList.find((c) => c.id === id);
-    if (!comment) {
-      console.error(`Comment with id ${id} not found`);
-      return;
-    }
+  const toggleHatefulComment = React.useCallback(
+    async (id: string): Promise<void> => {
+      const comment = commentList.find((c) => c.id === id);
+      if (!comment) {
+        console.error(`Comment with id ${id} not found`);
+        return;
+      }
 
-    await updateCommentHateFlags(comment.postId, [
-      {
-        textContent: comment.textContent,
-        isFlagged: !hatefulComments.has(id),
-      },
-    ]);
-    setHatefulComments((prev) => addOrRemoveValueToSet(prev, id));
-  };
+      await updateCommentHateFlags(comment.postId, [
+        {
+          textContent: comment.textContent,
+          isFlagged: !hatefulComments.has(id),
+        },
+      ]);
+      await queryClient.invalidateQueries({ queryKey: ["postHateFlags"] });
+    },
+    [commentList, hatefulComments, queryClient],
+  );
 
   const openScreenshotDialog = React.useCallback((screenshotData: string) => {
     setSelectedScreenshot(screenshotData);
@@ -175,10 +208,76 @@ export default function CommentsTable({
     }
   }, [visibleComments, filteredComments]);
 
+  const setAllCommentsSelection = React.useCallback(
+    (canDeselect: boolean) => {
+      if (
+        canDeselect &&
+        selectedCommentIdList.size === filteredComments.length
+      ) {
+        updateSelectedCommentList(new Set());
+      } else {
+        const allVisibleRowIds = new Set(
+          filteredComments.map((comment) => comment.id),
+        );
+        updateSelectedCommentList(allVisibleRowIds);
+      }
+    },
+    [selectedCommentIdList, filteredComments, updateSelectedCommentList],
+  );
+
+  const flagSelectedComment = async (isFlagged: boolean) => {
+    const selectedComments = commentList.filter((comment) =>
+      selectedCommentIdList.has(comment.id),
+    );
+    if (selectedComments.length === 0) {
+      return;
+    }
+
+    const commentsByPostId = new Map<
+      string,
+      { textContent: string; isFlagged: boolean }[]
+    >();
+    for (const comment of selectedComments) {
+      const postFlags = commentsByPostId.get(comment.postId) ?? [];
+      postFlags.push({
+        textContent: comment.textContent,
+        isFlagged,
+      });
+      commentsByPostId.set(comment.postId, postFlags);
+    }
+
+    await Promise.all(
+      [...commentsByPostId].map(([postId, postFlags]) =>
+        updateCommentHateFlags(postId, postFlags),
+      ),
+    );
+    await queryClient.invalidateQueries({ queryKey: ["postHateFlags"] });
+
+    updateSelectedCommentList(new Set());
+  };
+
   const columns = useMemo<
     ColumnDef<typeof commentsTableFeatures, PostCommentWithId>[]
   >(
     () => [
+      {
+        id: "selection",
+        size: 5,
+        header: () => (
+          <Checkbox
+            className="ms-3 me-5"
+            checked={selectedCommentIdList.size === filteredComments.length}
+            onClick={() => setAllCommentsSelection(true)}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            onClick={() => toggleCommentSelection(row.id)}
+            checked={selectedCommentIdList.has(row.id)}
+            className="ms-3 me-5"
+          />
+        ),
+      },
       {
         accessorKey: "author.name",
         header: "Auteur",
@@ -322,7 +421,11 @@ export default function CommentsTable({
     [
       filteredComments,
       openScreenshotDialog,
+      setAllCommentsSelection,
       setAllCommentsVisibility,
+      toggleCommentSelection,
+      toggleHatefulComment,
+      selectedCommentIdList,
       visibleComments,
       hatefulComments,
     ],
@@ -343,7 +446,7 @@ export default function CommentsTable({
     },
   });
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -356,12 +459,13 @@ export default function CommentsTable({
           void form.handleSubmit();
         }}
       >
-        {/* <div className="px-3 pt-2">
+        {selectedCommentIdList.size > 0 && (
+          <div className="px-3 pt-2 flex items-center gap-4 ">
             <div className="pe-2 w-fit gap-1 bg-muted rounded-md flex items-center justify-start font-semibold ">
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => ()}
+                onClick={() => setAllCommentsSelection(true)}
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 aria-label="Déselectionner tous les commentaires"
               >
@@ -371,8 +475,27 @@ export default function CommentsTable({
                 {selectedCommentIdList.size} sélectionné
                 {selectedCommentIdList.size > 1 ? "s" : ""}
               </span>
+
             </div>
-          </div> */}
+            <Button
+                type="button"
+                variant="destructive"
+                onClick={() => void flagSelectedComment(true)}
+                aria-label="Déclarer malveillant"
+              >
+                Déclarer malveillant
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void flagSelectedComment(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Déclarer neutre"
+              >
+                Déclarer neutre
+              </Button>
+          </div>
+        )}
 
         <div className="p-3 flex gap-4">
           <InputGroup className=" w-1/3">
@@ -387,19 +510,21 @@ export default function CommentsTable({
           </InputGroup>
           {showCreateReportButton && (
             <Button
-              disabled={hatefulComments.size === 0}
-              // onClick={() => {
-              //   void navigate("/build-report", {
-              //     state: {
-              //       socialNetworkFilter: [filteredComments[0]!.socialNetwork],
-              //       selectedPostIds: [filteredComments[0]!.postId],
-              //       selectedCommentList: filteredComments.filter((comment) =>
-              //         selectedCommentIdList.has(comment.id),
-              //       ),
-              //       skipToStep: "step-4",
-              //     },
-              //   });
-              // }}
+              disabled={
+                hatefulComments.size === 0 || selectedCommentIdList.size > 0
+              }
+              onClick={() => {
+                void navigate("/build-report", {
+                  state: {
+                    socialNetworkFilter: [filteredComments[0]!.socialNetwork],
+                    selectedPostIds: [filteredComments[0]!.postId],
+                    selectedCommentList: filteredComments.filter((comment) =>
+                      hatefulComments.has(comment.id),
+                    ),
+                    skipToStep: "step-4",
+                  },
+                });
+              }}
             >
               Créer un rapport
             </Button>
@@ -416,15 +541,7 @@ export default function CommentsTable({
             onChange={setCommentSortingCategory}
           />
         </div>
-        <form.Field
-          name="commentIdList"
-          validators={{
-            onChange: ({ value }) =>
-              value.length < 1
-                ? "Sélectionner au moins un commentaire"
-                : undefined,
-          }}
-        >
+        <form.Field name="commentIdList">
           {(field) => (
             <>
               {field.state.meta.errors.length > 0 && (
