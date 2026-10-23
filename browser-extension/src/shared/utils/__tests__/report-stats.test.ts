@@ -22,6 +22,7 @@ const buildComment = (
   classification,
   isNew: false,
   isDeleted: false,
+  IsFlagged: false,
 });
 
 describe("report-stats", () => {
