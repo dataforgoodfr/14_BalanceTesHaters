@@ -148,7 +148,7 @@ function buildPostCommentForGroupOfSameText(
     url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
-    isFlagged: false, // This will be set later in the useFilteredCommentList hook
+    IsFlagged: false, // This will be set later in the useFilteredCommentList hook
   };
 }
 
