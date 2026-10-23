@@ -53,8 +53,10 @@ export function useFilteredCommentList(
     queryFn: () => getPostsByPostIdList(postIdList),
   });
 
-const { data: flaggedCommentIds = new Set<string>(), isLoading: isLoadingFlags } =
-  useQuery({
+  const {
+    data: flaggedCommentIds = new Set<string>(),
+    isLoading: isLoadingFlags,
+  } = useQuery({
     queryKey: hateFlagsQueryKey,
     queryFn: async () => {
       const hateFlags = await getPostHateFlagsList(postIdList);
@@ -64,7 +66,9 @@ const { data: flaggedCommentIds = new Set<string>(), isLoading: isLoadingFlags }
 
       const flagResults = await Promise.all(
         comments.map(async ({ postId, comment }) => {
-          const flagsForPost = hateFlags.find((flags) => flags.postId === postId);
+          const flagsForPost = hateFlags.find(
+            (flags) => flags.postId === postId,
+          );
           const key = await commentHateFlagKey(comment.textContent);
           return flagsForPost?.hateFlags[key] ?? false;
         }),

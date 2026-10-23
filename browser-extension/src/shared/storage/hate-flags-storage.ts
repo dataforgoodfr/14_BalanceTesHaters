@@ -19,15 +19,11 @@ export function postHateFlagsRecordKey(postId: string): string {
   return `${HATE_FLAGS_STORAGE_KEY_PREFIX}${postId}`;
 }
 
-export async function commentHateFlagKey(
-  textContent: string,
-): Promise<string> {
+export async function commentHateFlagKey(textContent: string): Promise<string> {
   return `${await hashString(textContent)}`;
 }
 
-export async function getPostHateFlags(
-  postId: string,
-): Promise<PostHateFlags> {
+export async function getPostHateFlags(postId: string): Promise<PostHateFlags> {
   const stored = await browser.storage.local.get(
     postHateFlagsRecordKey(postId),
   );
@@ -60,7 +56,7 @@ export async function updateCommentHateFlags(
     const key = await commentHateFlagKey(textContent);
     postHateFlags.hateFlags[key] = isFlagged;
   }
-  
+
   await setPostHateFlags(postId, postHateFlags);
 }
 
