@@ -5,7 +5,7 @@ import { InstagramCommentsLoader } from "./InstagramCommentsLoader";
 import type { InstagramCommentThread } from "./InstagramLoadedCommentThreadsScraper";
 import { InstagramLoadedCommentThreadsScraper } from "./InstagramLoadedCommentThreadsScraper";
 import {
-  createScreenshotProviderForScrollableDescendants,
+  ElementDescendantsScreenshotProvider,
   EmptyElementScreenshotProvider,
 } from "@/shared/screenshoting";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
@@ -56,36 +56,31 @@ export class InstagramCommentThreadsScraper {
     // Create screenshot provider by screenshoting scrollable container
     // Consider screenshoting to take 50% of time
     const screenshotProvider: ElementScreenshotProvider =
-      await this.createScreenshotProvider(
-        scrollableSection,
-        this.progressManager.subTaskProgressManager({ from: 50, to: 90 }),
-      );
+      this.createScreenshotProvider(scrollableSection);
 
     return await new InstagramLoadedCommentThreadsScraper(
       commentsContainer,
       this.scrapingSupport,
       this.progressManager.subTaskProgressManager({
-        from: this.skipScreenshoting ? 50 : 90,
+        from: 50,
         to: 100,
       }),
       screenshotProvider,
     ).scrapLoadedCommentThreads();
   }
 
-  private async createScreenshotProvider(
+  private createScreenshotProvider(
     scrollableSection: HTMLElement,
-    progressManager: ProgressManager,
-  ): Promise<ElementScreenshotProvider> {
+  ): ElementScreenshotProvider {
     if (this.skipScreenshoting) {
       logger.warn(
         "skipScreenshoting=true - using EmptyElementScreenshotProvider",
       );
       return new EmptyElementScreenshotProvider();
     }
-    return await createScreenshotProviderForScrollableDescendants(
+    return new ElementDescendantsScreenshotProvider(
       scrollableSection,
       this.scrapingSupport,
-      progressManager,
     );
   }
 }

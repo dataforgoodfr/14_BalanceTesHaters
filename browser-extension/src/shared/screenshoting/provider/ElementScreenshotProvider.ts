@@ -1,4 +1,5 @@
 import type { Image } from "image-js";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 
 /**
  * Interface abstracting away the capture of Element screenshots
@@ -6,11 +7,10 @@ import type { Image } from "image-js";
 export interface ElementScreenshotProvider {
   /**
    *
-   * @param element
-   * @throws ObsoleteScreenshotError
+   * @param elements
    */
-  buildElementScreenshot(element: HTMLElement): Promise<Image>;
+  buildElementScreenshots(
+    elements: HTMLElement[],
+    progressManager: ProgressManager,
+  ): Promise<Image[]>;
 }
-
-/** Thrown when screenshot is obsoleted due for instance to client resize*/
-export class ObsoleteScreenshotError extends Error {}

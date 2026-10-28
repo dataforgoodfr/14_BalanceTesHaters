@@ -1,7 +1,4 @@
-export { createScreenshotProviderForDocument } from "./createScreenshotProviderForDocument";
-export { createScreenshotProviderForDocumentArea } from "./createScreenshotProviderForDocumentArea";
-export { createScreenshotProviderForScrollableDescendants } from "./createScreenshotProviderForScrollableDescendants";
+export { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
 export { DocumentDescendantsScreenshotProvider } from "./DocumentDescendantsScreenshotProvider";
 export { ElementDescendantsScreenshotProvider } from "./ElementDescendantsScreenshotProvider";
-export { type ElementScreenshotProvider } from "./ElementScreenshotProvider";
 export { EmptyElementScreenshotProvider } from "./EmptyElementScreenshotProvider";

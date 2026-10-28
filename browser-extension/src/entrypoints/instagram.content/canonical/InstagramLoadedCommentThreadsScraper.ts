@@ -5,6 +5,7 @@ import { InstagramLoadedCommentScraper } from "./InstagramLoadedCommentScraper";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import { MASQUES_LES_COMMENTAIRES_BUTTON_REGEX } from "./instagramElementsTexts";
+import type { Image } from "image-js";
 
 const logger = createLogger("ig-comment-threads", scrapingLogger);
 /**
@@ -36,14 +37,39 @@ export class InstagramLoadedCommentThreadsScraper {
     commentThreadElements: HTMLElement[],
   ): Promise<InstagramCommentThread[]> {
     logger.debug("Scraping ", commentThreadElements.length, " comment threads");
+    const commentElements = commentThreadElements.flatMap((threadElement) => [
+      this.selectCommentElement(threadElement),
+      ...this.selectReplyElements(threadElement),
+    ]);
+    const screenshotProgressMgr = this.progressManager.subTaskProgressManager({
+      from: 0,
+      to: 90,
+    });
+    const scrapCommentsProgressMgr =
+      this.progressManager.subTaskProgressManager({
+        from: 90,
+        to: 100,
+      });
+    const screenshots = await this.screenshotProvider.buildElementScreenshots(
+      commentElements,
+      screenshotProgressMgr,
+    );
+    const screenshotsByElement = new Map(
+      commentElements.map(
+        (element, index) => [element, screenshots[index]!] as const,
+      ),
+    );
     const commentThreads = [];
     for (const commentThreadEl of commentThreadElements) {
       logger.debug(
         `Scraping comment threads  ${commentThreads.length + 1}/${commentThreadElements.length}`,
       );
-      const commentThread = await this.scrapCommentThread(commentThreadEl);
+      const commentThread = this.scrapCommentThread(
+        commentThreadEl,
+        screenshotsByElement,
+      );
       commentThreads.push(commentThread);
-      this.progressManager.setProgress(
+      scrapCommentsProgressMgr.setProgress(
         (commentThreads.length / commentThreadElements.length) * 100,
       );
     }
@@ -51,13 +77,50 @@ export class InstagramLoadedCommentThreadsScraper {
     return commentThreads;
   }
 
-  private async scrapCommentThread(
+  private scrapCommentThread(
     commentThreadElement: HTMLElement,
-  ): Promise<InstagramCommentThread> {
+    screenshotsByElement: Map<HTMLElement, Image>,
+  ): InstagramCommentThread {
     // Comment thread is composed of 1 or 2 divs:
     // * Comment Thread div
     // * Optionnal replies div
-    const commentDiv = this.scrapingSupport.selectOrThrow(
+    const commentDiv = this.selectCommentElement(commentThreadElement);
+    const comment: InstagramComment = new InstagramLoadedCommentScraper(
+      commentDiv,
+      screenshotsByElement.get(commentDiv)!,
+      this.scrapingSupport,
+    ).scrapLoadedComment();
+
+    const replyThreadElements = this.selectReplyElements(commentThreadElement);
+
+    const replies: InstagramComment[] = this.scrapCommentThreadReplies(
+      replyThreadElements,
+      screenshotsByElement,
+    );
+    return {
+      comment,
+      replies,
+    };
+  }
+
+  private scrapCommentThreadReplies(
+    replyElements: HTMLElement[],
+    screenshotsByElement: Map<HTMLElement, Image>,
+  ): InstagramComment[] {
+    const comments = [];
+    for (const replyElement of replyElements) {
+      const comment: InstagramComment = new InstagramLoadedCommentScraper(
+        replyElement,
+        screenshotsByElement.get(replyElement)!,
+        this.scrapingSupport,
+      ).scrapLoadedComment();
+      comments.push(comment);
+    }
+    return comments;
+  }
+
+  private selectCommentElement(commentThreadElement: HTMLElement): HTMLElement {
+    return this.scrapingSupport.selectOrThrow(
       commentThreadElement,
       ":scope > div:nth-of-type(1)",
       HTMLElement,
@@ -66,39 +129,16 @@ export class InstagramLoadedCommentThreadsScraper {
         selectedElementDescriptor: "commentDiv",
       },
     );
-    const comment: InstagramComment = await new InstagramLoadedCommentScraper(
-      commentDiv,
-      this.screenshotProvider,
-      this.scrapingSupport,
-    ).scrapLoadedComment();
+  }
 
-    const replyThreadElements = this.scrapingSupport.selectAll(
+  private selectReplyElements(
+    commentThreadElement: HTMLElement,
+  ): HTMLElement[] {
+    return this.scrapingSupport.selectAll(
       commentThreadElement,
       ":scope > div:nth-of-type(2) > ul > div",
       HTMLElement,
     );
-
-    const replies: InstagramComment[] =
-      await this.scrapCommentThreadReplies(replyThreadElements);
-    return {
-      comment,
-      replies,
-    };
-  }
-
-  private async scrapCommentThreadReplies(
-    replyElements: HTMLElement[],
-  ): Promise<InstagramComment[]> {
-    const comments = [];
-    for (const replyElement of replyElements) {
-      const comment: InstagramComment = await new InstagramLoadedCommentScraper(
-        replyElement,
-        this.screenshotProvider,
-        this.scrapingSupport,
-      ).scrapLoadedComment();
-      comments.push(comment);
-    }
-    return comments;
   }
 }
 
