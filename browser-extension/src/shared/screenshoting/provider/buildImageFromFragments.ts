@@ -1,6 +1,6 @@
 import { decodePng, Image } from "image-js";
-import type { ScreenshotFragment } from "./ScreenshotFragment";
-import type { Rect } from "./ScreenshotFragment";
+import type { ScreenshotFragment } from "./scrollable/ScreenshotFragment";
+import type { Box } from "../box/Box";
 
 /**
  * Builds an image for one document rectangle from the screenshot fragments.
@@ -9,7 +9,7 @@ import type { Rect } from "./ScreenshotFragment";
  */
 export function buildImageFromFragments(
   screenshotFragments: ScreenshotFragment[],
-  requestedArea: Rect,
+  requestedArea: Box,
 ): Image {
   const missingAreas = findMissingAreas(requestedArea, screenshotFragments);
   if (missingAreas.length > 0) {
@@ -65,8 +65,8 @@ export function buildImageFromFragments(
 
 export class MissingScreenshotFragmentsError extends Error {
   constructor(
-    readonly requestedArea: Rect,
-    readonly missingAreas: Rect[],
+    readonly requestedArea: Box,
+    readonly missingAreas: Box[],
   ) {
     super(
       "Cannot build screenshot because captured fragments do not cover the requested area.",
@@ -74,7 +74,7 @@ export class MissingScreenshotFragmentsError extends Error {
   }
 }
 
-function intersectRects(first: Rect, second: Rect): Rect | undefined {
+function intersectRects(first: Box, second: Box): Box | undefined {
   const left = Math.max(first.x, second.x);
   const top = Math.max(first.y, second.y);
   const right = Math.min(first.x + first.width, second.x + second.width);
@@ -88,9 +88,9 @@ function intersectRects(first: Rect, second: Rect): Rect | undefined {
 }
 
 function findMissingAreas(
-  requestedArea: Rect,
+  requestedArea: Box,
   screenshotFragments: ScreenshotFragment[],
-): Rect[] {
+): Box[] {
   let uncoveredAreas = [requestedArea];
 
   for (const fragment of screenshotFragments) {
@@ -106,13 +106,13 @@ function findMissingAreas(
 }
 
 /** Returns the parts of `source` which are not covered by `cover`. */
-function subtractRect(source: Rect, cover: Rect): Rect[] {
+function subtractRect(source: Box, cover: Box): Box[] {
   const intersection = intersectRects(source, cover);
   if (!intersection) {
     return [source];
   }
 
-  const remainingAreas: Rect[] = [
+  const remainingAreas: Box[] = [
     {
       x: source.x,
       y: source.y,
@@ -142,6 +142,6 @@ function subtractRect(source: Rect, cover: Rect): Rect[] {
   return remainingAreas;
 }
 
-function isEmptyRect(rect: Rect): boolean {
+function isEmptyRect(rect: Box): boolean {
   return rect.width > 0 && rect.height > 0;
 }

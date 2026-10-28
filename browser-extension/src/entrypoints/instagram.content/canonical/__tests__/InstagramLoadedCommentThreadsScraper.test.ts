@@ -6,6 +6,7 @@ import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import type { InstagramComment } from "../InstagramLoadedCommentScraper";
 import { InstagramLoadedCommentScraper } from "../InstagramLoadedCommentScraper";
 import { InstagramLoadedCommentThreadsScraper } from "../InstagramLoadedCommentThreadsScraper";
+import { Image } from "image-js";
 
 vi.mock("../InstagramLoadedCommentScraper", () => ({
   InstagramLoadedCommentScraper: vi.fn(),
@@ -17,8 +18,11 @@ const commentsByElementId: Record<string, InstagramComment> = {
   "reply-2": { type: "fb-comments", data: undefined },
   "comment-2": { type: "fb-comments", data: undefined },
 };
-
-const unusedScreenshotProvider = {} as ElementScreenshotProvider;
+const dummyScreenshotImage = new Image(5, 5);
+const dummyScreenshotProvider: ElementScreenshotProvider = {
+  buildElementScreenshots: (elements) =>
+    Promise.resolve(elements.map(() => dummyScreenshotImage)),
+};
 
 describe("InstagramLoadedCommentThreadsScraper", () => {
   const setProgress = vi.fn();
@@ -30,7 +34,7 @@ describe("InstagramLoadedCommentThreadsScraper", () => {
         return {
           scrapLoadedComment: vi
             .fn()
-            .mockResolvedValue(commentsByElementId[commentElement.id]),
+            .mockReturnValue(commentsByElementId[commentElement.id]),
         } as unknown as InstagramLoadedCommentScraper;
       },
     );
@@ -51,7 +55,7 @@ describe("InstagramLoadedCommentThreadsScraper", () => {
       commentsContainer,
       new ScrapingSupport(new AbortController().signal),
       new ProgressManager(setProgress),
-      unusedScreenshotProvider,
+      dummyScreenshotProvider,
     );
 
     const result = await scraper.scrapLoadedCommentThreads();
@@ -76,11 +80,11 @@ describe("InstagramLoadedCommentThreadsScraper", () => {
       "reply-2",
       "comment-2",
     ]);
-    scraperCalls.forEach(([, screenshotProvider, scrapingSupport]) => {
-      expect(screenshotProvider).toBe(unusedScreenshotProvider);
+    scraperCalls.forEach(([, screenshotImage, scrapingSupport]) => {
+      expect(screenshotImage).toBe(dummyScreenshotImage);
       expect(scrapingSupport).toBeInstanceOf(ScrapingSupport);
     });
-    expect(setProgress).toHaveBeenNthCalledWith(1, 50);
+    expect(setProgress).toHaveBeenNthCalledWith(1, 95);
     expect(setProgress).toHaveBeenNthCalledWith(2, 100);
   });
 });

@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Toggle } from "@/components/ui/toggle";
-import type { DebugScreenshot } from "@/shared/screenshoting";
+import type { DebugScreenshotType } from "@/shared/screenshoting";
 import {
   clearDebugScreenshots,
+  debugScreenshotTypes,
   getDebugScreenshots,
   isStoreDebugScreenshots,
   setStoreDebugScreenshots,
@@ -35,12 +36,6 @@ function downloadScreenshot(screenshotDataUrl: string) {
 }
 const enableScreenshotQueryKey = ["debug", "enable-screenshot"];
 const getScreenshotsQueyrKey = ["debug", "screenshots"];
-const screenshotTypes: Array<DebugScreenshot["type"]> = [
-  "tab-image",
-  "scrollable-fragment",
-  "scrollable-full",
-  "scrollable-cropped",
-];
 
 export function ScreenshotDebugPage() {
   const {
@@ -76,7 +71,7 @@ export function ScreenshotDebugPage() {
   });
 
   const [displayedTypes, setDisplayedTypes] =
-    useState<Array<DebugScreenshot["type"]>>(screenshotTypes);
+    useState<ReadonlyArray<DebugScreenshotType>>(debugScreenshotTypes);
 
   const filtered = useMemo(() => {
     return (screenshots || []).filter((s) => displayedTypes.includes(s.type));
@@ -137,7 +132,7 @@ export function ScreenshotDebugPage() {
       ) : (
         <>
           <div>
-            {screenshotTypes.map((toggleSt) => (
+            {debugScreenshotTypes.map((toggleSt) => (
               <Toggle
                 key={toggleSt}
                 size="sm"

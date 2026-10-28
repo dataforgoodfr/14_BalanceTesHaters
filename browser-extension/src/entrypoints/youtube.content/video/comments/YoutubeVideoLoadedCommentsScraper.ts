@@ -1,6 +1,6 @@
 import type { Author } from "@/shared/model/Author";
 import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
-import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { createLogger } from "@/shared/utils/createLogger";
@@ -8,7 +8,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { parseCommentPublishedTime } from "./utils/parseCommentPublishedTime";
 import { extractCommentIdFromCommentHref } from "./utils/extractCommentIdFromCommentHref";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
-import { encodePng } from "image-js";
+import { encodePng, type Image } from "image-js";
 import { parseIntegerSwallowingSeparators } from "../utils/parseIntegerSwallowingSeparators";
 import { ytBaseLogger } from "../../ytBaseLogger";
 
@@ -19,7 +19,7 @@ export class YoutubeVideoLoadedCommentsScraper {
     private scrapingSupport: ScrapingSupport,
     private screenshotProvider: ElementScreenshotProvider,
     private targetCommentsCount: number,
-    private progressManager: ProgressManager,
+    private globalProgressManager: ProgressManager,
     private readonly collectedCommentIds = new Set<string>(),
   ) {}
 
@@ -34,9 +34,25 @@ export class YoutubeVideoLoadedCommentsScraper {
   private async scrapCommentThreads(
     threadContainers: HTMLElement[],
   ): Promise<CommentSnapshotWithScreenshot[]> {
+    const commentContainers = threadContainers.map((threadContainer) =>
+      this.selectCommentContainer(threadContainer),
+    );
+    const screenshots = await this.screenshotProvider.buildElementScreenshots(
+      commentContainers,
+      // Progress is only reported globally based on scraped comments
+      new ProgressManager(() => {}),
+    );
+    const screenshotsByElement = new Map(
+      commentContainers.map(
+        (element, index) => [element, screenshots[index]!] as const,
+      ),
+    );
     const comments: CommentSnapshotWithScreenshot[] = [];
     for (const threadContainer of threadContainers) {
-      const thread = await this.scrapCommentThread(threadContainer);
+      const thread = await this.scrapCommentThread(
+        threadContainer,
+        screenshotsByElement,
+      );
       if (thread.scrapingStatus === "success") {
         comments.push(thread.comment);
       }
@@ -46,11 +62,10 @@ export class YoutubeVideoLoadedCommentsScraper {
 
   private async scrapCommentThread(
     commentThreadContainer: HTMLElement,
+    screenshotsByElement: Map<HTMLElement, Image>,
   ): Promise<ScrapCommentThreadResult> {
-    const commentContainer = this.scrapingSupport.selectOrThrow(
+    const commentContainer = this.selectCommentContainer(
       commentThreadContainer,
-      ":scope > #comment-container",
-      HTMLElement,
     );
 
     // Comments in replies are sometime duplicated in other threads they don't belong to.
@@ -64,7 +79,10 @@ export class YoutubeVideoLoadedCommentsScraper {
       };
     }
 
-    const comment = await this.scrapCommentWithoutReplies(commentContainer);
+    const comment = this.scrapCommentWithoutReplies(
+      commentContainer,
+      screenshotsByElement.get(commentContainer)!,
+    );
 
     // Youtube sometimes has duplicate
     if (!comment.commentId) {
@@ -83,7 +101,7 @@ export class YoutubeVideoLoadedCommentsScraper {
       };
     }
     this.collectedCommentIds.add(comment.commentId);
-    this.progressManager.setProgress(
+    this.globalProgressManager.setProgress(
       (100 * this.collectedCommentIds.size) / this.targetCommentsCount,
     );
 
@@ -129,9 +147,10 @@ export class YoutubeVideoLoadedCommentsScraper {
     return this.scrapRootCommentThreads(repliesThreads);
   }
 
-  private async scrapCommentWithoutReplies(
+  private scrapCommentWithoutReplies(
     commentContainer: HTMLElement,
-  ): Promise<CommentSnapshotWithScreenshot> {
+    screenshot: Image,
+  ): CommentSnapshotWithScreenshot {
     const scrapDate = currentIsoDate();
 
     const author: Author = this.scrapCommentAuthor(commentContainer);
@@ -160,9 +179,6 @@ export class YoutubeVideoLoadedCommentsScraper {
 
     const commentText = this.scrapCommentText(commentTextHandle);
 
-    const screenshot =
-      await this.screenshotProvider.buildElementScreenshot(commentContainer);
-
     const screenshotData = uint8ArrayToBase64(encodePng(screenshot));
 
     return {
@@ -178,6 +194,14 @@ export class YoutubeVideoLoadedCommentsScraper {
       // replies are captured in other method
       replies: [],
     };
+  }
+
+  private selectCommentContainer(threadContainer: HTMLElement): HTMLElement {
+    return this.scrapingSupport.selectOrThrow(
+      threadContainer,
+      ":scope > #comment-container",
+      HTMLElement,
+    );
   }
 
   private scrapCommentAuthor(commentContainer: HTMLElement): Author {

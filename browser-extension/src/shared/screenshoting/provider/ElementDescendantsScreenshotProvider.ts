@@ -1,49 +1,37 @@
-import type { Image } from "image-js";
-import {
-  ObsoleteScreenshotError,
-  type ElementScreenshotProvider,
-} from "./ElementScreenshotProvider";
-import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
-import type { ScrollableScreenshot } from "../scrollable";
-import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
-import { buildImageFromFragments } from "../scrollable/buildImageFromFragments";
+import { HTMLElementScrollable, type Scrollable } from "./scrollable";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import { BaseScreenshotProvider } from "./BaseScreenshotProvider";
+import type { Box } from "../box/Box";
+import type { Position } from "../box/Position";
 
-const logger = createLogger("screenshot-provider", scrapingLogger);
 /**
  * Screenshot provider cropping screenshot of an ancestor element to build descendant screenshots.
  */
-export class ElementDescendantsScreenshotProvider implements ElementScreenshotProvider {
+export class ElementDescendantsScreenshotProvider extends BaseScreenshotProvider {
   constructor(
     private readonly parentElement: HTMLElement,
-    private readonly parentElementScreenshot: ScrollableScreenshot,
-  ) {}
-
-  async buildElementScreenshot(element: HTMLElement): Promise<Image> {
-    this.ensureScreenshotStillRelevant();
-    const { left, top } = this.computeElementOffsetComparedToAncestor(element);
-    const height = element.clientHeight;
-    const width = element.clientWidth;
-    logger.debug("cropForElement - ", { top, left, height, width });
-
-    const result = buildImageFromFragments(
-      this.parentElementScreenshot.fragments,
-      {
-        x: left,
-        y: top,
-        height: Math.round(height),
-        width: Math.round(width),
-      },
-    );
-
-    // Artificially Keep async to facilitate storing cropped element for debug
-    await maybeStoreDebugScreenshot(result, { type: "scrollable-cropped" });
-    return result;
+    scrapingSupport: ScrapingSupport,
+  ) {
+    super(scrapingSupport);
   }
 
-  private computeElementOffsetComparedToAncestor(element: HTMLElement): {
-    left: number;
-    top: number;
-  } {
+  override computeElementBoxInContainer(element: HTMLElement): Box {
+    const positionInParent =
+      this.computeElementOffsetComparedToAncestor(element);
+    return {
+      ...positionInParent,
+      height: element.clientHeight,
+      width: element.clientWidth,
+    };
+  }
+
+  override createScrollable(): Scrollable {
+    return new HTMLElementScrollable(this.parentElement);
+  }
+
+  private computeElementOffsetComparedToAncestor(
+    element: HTMLElement,
+  ): Position {
     let left = 0;
     let top = 0;
 
@@ -58,22 +46,9 @@ export class ElementDescendantsScreenshotProvider implements ElementScreenshotPr
       }
 
       if (offsetParent === this.parentElement) {
-        return { left, top };
+        return { x: left, y: top };
       }
       currentElement = offsetParent;
-    }
-  }
-
-  private ensureScreenshotStillRelevant() {
-    if (
-      this.parentElement.clientWidth !=
-        this.parentElementScreenshot.clientSize.width ||
-      this.parentElement.clientHeight !=
-        this.parentElementScreenshot.clientSize.height
-    ) {
-      throw new ObsoleteScreenshotError(
-        "Cannot extract sub element screenshot: Parent screenshot is obsolete because parent client size changed!!",
-      );
     }
   }
 }
