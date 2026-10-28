@@ -105,17 +105,26 @@ export class InstagramLoadedCommentScraper {
   }
 
   private scrapTextContent(commentCentralDiv: HTMLElement) {
-    const commentContentDiv = this.scrapingSupport.selectOrThrow(
+    const commentContentContainer = this.scrapingSupport.selectOrThrow(
       commentCentralDiv,
-      ":scope > div:nth-of-type(1) > div > div:nth-of-type(2)",
+      ":scope > div:nth-of-type(1) > div",
       HTMLElement,
       {
         parentElementDescriptor: "commentCentralDiv",
-        selectedElementDescriptor: "commentContentDiv",
+        selectedElementDescriptor: "commentBody",
       },
     );
-    const textContent = commentContentDiv.innerText.trim();
-    return textContent;
+
+    return this.scrapingSupport
+      .selectOrThrow(
+        commentContentContainer,
+        // Use 2 selectors:
+        //  > div:nth-of-type(2)  for Unauthenticated
+        //  > div > div:nth-of-type(2) for Authenticated (which has an extra div encapsulating content)
+        ":scope > div:nth-of-type(2), :scope > div > div:nth-of-type(2)",
+        HTMLElement,
+      )
+      .innerText.trim();
   }
 
   private scrapPublishedAt(commentCentralDiv: HTMLElement) {

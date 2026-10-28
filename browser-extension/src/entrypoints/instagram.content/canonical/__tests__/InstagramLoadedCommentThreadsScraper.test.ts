@@ -1,112 +1,86 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, beforeAll } from "vitest";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import type { InstagramCommentThread } from "../InstagramLoadedCommentThreadsScraper";
-import { InstagramLoadedCommentThreadsScraper } from "../InstagramLoadedCommentThreadsScraper";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
-import { Image } from "image-js";
+import type { InstagramComment } from "../InstagramLoadedCommentScraper";
+import { InstagramLoadedCommentScraper } from "../InstagramLoadedCommentScraper";
+import { InstagramLoadedCommentThreadsScraper } from "../InstagramLoadedCommentThreadsScraper";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+vi.mock("../InstagramLoadedCommentScraper", () => ({
+  InstagramLoadedCommentScraper: vi.fn(),
+}));
 
-const dummyScreenshotImage = new Image(5, 5);
-const dummyScreenshotProvider: ElementScreenshotProvider = {
-  buildElementScreenshot: () => Promise.resolve(dummyScreenshotImage),
+const commentsByElementId: Record<string, InstagramComment> = {
+  "comment-1": { type: "fb-comments", data: undefined },
+  "reply-1": { type: "fb-comments", data: undefined },
+  "reply-2": { type: "fb-comments", data: undefined },
+  "comment-2": { type: "fb-comments", data: undefined },
 };
 
-async function scrapLoadedCommentThreads(
-  htmlFragmentFile: string,
-): Promise<InstagramCommentThread[]> {
-  const commentsContainerHTML = readFileSync(
-    resolve(__dirname, htmlFragmentFile),
-    "utf-8",
-  );
-
-  document.location.assign("https://www.instagram.com/");
-
-  const wrapper = document.createElement("div");
-  wrapper.innerHTML = commentsContainerHTML;
-
-  const commentsContainer = wrapper.firstElementChild as HTMLElement;
-
-  const abortController = new AbortController();
-  const scrapingSupport = new ScrapingSupport(abortController.signal);
-  const progressManager = new ProgressManager(vi.fn());
-
-  const scraper = new InstagramLoadedCommentThreadsScraper(
-    commentsContainer,
-    scrapingSupport,
-    progressManager,
-    dummyScreenshotProvider,
-  );
-
-  return await scraper.scrapLoadedCommentThreads();
-}
+const unusedScreenshotProvider = {} as ElementScreenshotProvider;
 
 describe("InstagramLoadedCommentThreadsScraper", () => {
-  describe("comment-thread-with-replies", () => {
-    let result: InstagramCommentThread[];
-    beforeAll(async () => {
-      result = await scrapLoadedCommentThreads(
-        "commentsContainer-with-replies.html",
-      );
-    });
-    it("should contain an text comment with 14 replies", () => {
-      expect(result).toHaveLength(1);
-      expect(result[0]!.comment).toMatchObject({
-        type: "text",
-        data: {
-          author: {
-            accountHref: "https://www.instagram.com/davi_na_dagher/",
-            name: "davi_na_dagher",
-          },
-          commentId: "18109876459691320",
-          nbLikes: 79,
-          publishedAt: {
-            date: "2026-03-19T09:39:23.000Z",
-            type: "absolute",
-          },
-        },
-      });
-      expect(result[0]!.replies).toHaveLength(14);
-    });
+  const setProgress = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(InstagramLoadedCommentScraper).mockImplementation(
+      function (commentElement) {
+        return {
+          scrapLoadedComment: vi
+            .fn()
+            .mockResolvedValue(commentsByElementId[commentElement.id]),
+        } as unknown as InstagramLoadedCommentScraper;
+      },
+    );
   });
 
-  describe("comment-thread-with-image-comment", () => {
-    let result: InstagramCommentThread[];
-    beforeAll(async () => {
-      result = await scrapLoadedCommentThreads(
-        "commentsContainer-with-image-comment.html",
-      );
-    });
-    it("should contain an image comment  ", () => {
-      expect(result[0]).toMatchObject({
-        comment: {
-          type: "image",
-        },
-        replies: [],
-      });
-    });
-  });
+  it("identifies threads, their comments and their replies", async () => {
+    const commentsContainer = document.createElement("div");
+    commentsContainer.innerHTML = `
+      <div id="thread-1">
+        <div id="comment-1"></div>
+        <div><ul><div id="reply-1"></div><div id="reply-2"></div></ul></div>
+      </div>
+      <div>Masqués par Instagram</div>
+      <div id="thread-2"><div id="comment-2"></div></div>
+    `;
 
-  describe("comment-thread-with-fb-comments", () => {
-    let result: InstagramCommentThread[];
-    beforeAll(async () => {
-      result = await scrapLoadedCommentThreads(
-        "commentsContainer-with-fb-comments.html",
-      );
-    });
-    it("should contain a fb comment placeholder ", () => {
-      expect(result[0]).toMatchObject({
-        comment: {
-          type: "fb-comments",
-        },
+    const scraper = new InstagramLoadedCommentThreadsScraper(
+      commentsContainer,
+      new ScrapingSupport(new AbortController().signal),
+      new ProgressManager(setProgress),
+      unusedScreenshotProvider,
+    );
+
+    const result = await scraper.scrapLoadedCommentThreads();
+
+    expect(result).toEqual([
+      {
+        comment: commentsByElementId["comment-1"],
+        replies: [
+          commentsByElementId["reply-1"],
+          commentsByElementId["reply-2"],
+        ],
+      },
+      {
+        comment: commentsByElementId["comment-2"],
         replies: [],
-      });
+      },
+    ]);
+    const scraperCalls = vi.mocked(InstagramLoadedCommentScraper).mock.calls;
+    expect(scraperCalls.map(([element]) => element.id)).toEqual([
+      "comment-1",
+      "reply-1",
+      "reply-2",
+      "comment-2",
+    ]);
+    scraperCalls.forEach(([, screenshotProvider, scrapingSupport]) => {
+      expect(screenshotProvider).toBe(unusedScreenshotProvider);
+      expect(scrapingSupport).toBeInstanceOf(ScrapingSupport);
     });
+    expect(setProgress).toHaveBeenNthCalledWith(1, 50);
+    expect(setProgress).toHaveBeenNthCalledWith(2, 100);
   });
 });

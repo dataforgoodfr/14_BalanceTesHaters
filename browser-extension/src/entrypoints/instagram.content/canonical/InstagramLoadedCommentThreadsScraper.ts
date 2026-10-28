@@ -61,6 +61,10 @@ export class InstagramLoadedCommentThreadsScraper {
       commentThreadElement,
       ":scope > div:nth-of-type(1)",
       HTMLElement,
+      {
+        parentElementDescriptor: "commentThread",
+        selectedElementDescriptor: "commentDiv",
+      },
     );
     const comment: InstagramComment = await new InstagramLoadedCommentScraper(
       commentDiv,
