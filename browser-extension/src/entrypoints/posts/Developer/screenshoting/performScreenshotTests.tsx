@@ -8,9 +8,9 @@ import {
 import type {
   ScreenshotWaitOptions,
   ScrollableScreenshot,
-} from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
-import { defaultWaitOptions } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
-import { buildImageFromFragments } from "@/shared/screenshoting/scrollable/buildImageFromFragments";
+} from "@/shared/screenshoting/provider/scrollable/captureScrollableScreenshot";
+import { defaultWaitOptions } from "@/shared/screenshoting/provider/scrollable/captureScrollableScreenshot";
+import { buildImageFromFragments } from "@/shared/screenshoting/provider/buildImageFromFragments";
 import { createLogger } from "@/shared/utils/createLogger";
 
 const logger = createLogger("screenshot-tests");
@@ -125,6 +125,12 @@ async function captureScreenshot(
 ): Promise<ScrollableScreenshot> {
   const ctrl = new AbortController();
   const support = new ScrapingSupport(ctrl.signal);
+  const screenshotArea = {
+    x: 0,
+    y: 0,
+    height: scrollable.getScrollSize().height,
+    width: scrollable.getScrollSize().width,
+  };
   const screenshot = await captureScrollableScreenshot(
     scrollable,
     support,
@@ -133,7 +139,7 @@ async function captureScreenshot(
         `performScreenshotTests - ${captureId} - in progress: ${Math.round(progress)}%`,
       ),
     ),
-    undefined,
+    screenshotArea,
     waitOptions,
   );
   return screenshot;

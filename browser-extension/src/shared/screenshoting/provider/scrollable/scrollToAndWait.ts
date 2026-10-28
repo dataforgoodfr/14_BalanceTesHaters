@@ -1,11 +1,11 @@
 import { createLogger } from "@/shared/utils/createLogger";
-import type { Position, ScrollableScrollToOptions } from "./Scrollable";
+import type { ScrollPosition, ScrollableScrollToOptions } from "./Scrollable";
 
 const logger = createLogger("screenshoting-scrollToAndWait");
 export async function scrollToAndWait(
   scrollable: Window | HTMLElement,
   scrollEndEventSource: Document | HTMLElement,
-  currentScrollPosition: Position,
+  currentScrollPosition: ScrollPosition,
   scrollableScrollToOptions: ScrollableScrollToOptions,
 ): Promise<void> {
   logger.debug("scrolling to: ", scrollableScrollToOptions);

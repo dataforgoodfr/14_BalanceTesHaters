@@ -41,14 +41,18 @@ export async function maybeStoreDebugScreenshot(
   });
 }
 
+export const debugScreenshotTypes = [
+  "tab-image",
+  "scrollable-fragment",
+  "scrollable-fragment-requested-area",
+  "element",
+] as const;
+export type DebugScreenshotType = (typeof debugScreenshotTypes)[number];
+
 export type DebugScreenshot = {
   screenshotDataUrl: string;
   screenshotDate: string;
-  type:
-    | "tab-image"
-    | "scrollable-fragment"
-    | "scrollable-full"
-    | "scrollable-cropped";
+  type: DebugScreenshotType;
   desc?: string;
 };
 

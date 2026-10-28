@@ -5,14 +5,11 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Image } from "image-js";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import type { InstagramComment } from "../InstagramLoadedCommentScraper";
 import { InstagramLoadedCommentScraper } from "../InstagramLoadedCommentScraper";
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
-const dummyScreenshotProvider: ElementScreenshotProvider = {
-  buildElementScreenshot: () => Promise.resolve(new Image(5, 5)),
-};
+const dummyScreenshotImage = new Image(5, 5);
 
 function loadCommentElement(fixtureName: string): HTMLElement {
   const wrapper = document.createElement("div");
@@ -23,14 +20,14 @@ function loadCommentElement(fixtureName: string): HTMLElement {
   return wrapper.firstElementChild as HTMLElement;
 }
 
-async function scrapComment(
-  commentElement: HTMLElement,
-): Promise<InstagramComment> {
-  return await new InstagramLoadedCommentScraper(
-    commentElement,
-    dummyScreenshotProvider,
-    new ScrapingSupport(new AbortController().signal),
-  ).scrapLoadedComment();
+function scrapComment(commentElement: HTMLElement): Promise<InstagramComment> {
+  return Promise.resolve(
+    new InstagramLoadedCommentScraper(
+      commentElement,
+      dummyScreenshotImage,
+      new ScrapingSupport(new AbortController().signal),
+    ).scrapLoadedComment(),
+  );
 }
 
 function expectTextComment(result: InstagramComment): void {
