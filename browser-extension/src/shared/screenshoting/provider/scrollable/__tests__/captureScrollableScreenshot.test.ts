@@ -5,15 +5,16 @@ import { describe, expect, test, vi } from "vitest";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { uint8ArrayToBase64 } from "@/shared/utils/base-64";
-import type { Size } from "../../Size";
+import type { Size } from "../../../box/Size";
 import type {
-  Position,
+  ScrollPosition,
   Scrollable,
   ScrollableScrollToOptions,
 } from "../Scrollable";
 import { captureScrollableScreenshot } from "../captureScrollableScreenshot";
+import type { Box } from "@/shared/screenshoting/box/Box";
 
-vi.mock("../../tab/captureTabScreenshotAsDataUrl", () => ({
+vi.mock("../../../tab/captureTabScreenshotAsDataUrl", () => ({
   captureTabScreenshotAsDataUrl: vi.fn(() => {
     const image = new Image(4, 2);
     return Promise.resolve(
@@ -29,25 +30,21 @@ vi.mock("../../debug/debugScreenshots", () => ({
 class FakeScrollable implements Scrollable {
   private top = 0;
 
-  getClientSize(): Size {
-    return { width: 4, height: 2 };
+  getClientBoxInViewport(): Box {
+    return { x: 0, y: 0, width: 4, height: 2 };
   }
 
   getScrollSize(): Size {
     return { width: 4, height: 10 };
   }
 
-  getScrollPosition(): Position {
+  getScrollPosition(): ScrollPosition {
     return { top: this.top, left: 0 };
   }
 
   scrollTo(options: ScrollableScrollToOptions): Promise<void> {
     this.top = options.top ?? this.top;
     return Promise.resolve();
-  }
-
-  cropToElement(image: Image, _tabInnerSize: Size): Image {
-    return image;
   }
 }
 
