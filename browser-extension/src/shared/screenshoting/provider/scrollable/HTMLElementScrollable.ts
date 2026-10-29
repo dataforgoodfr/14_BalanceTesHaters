@@ -1,13 +1,24 @@
 import type { Image, CropOptions } from "image-js";
-import type { Size } from "../Size";
-import type { Scrollable, Position } from "./Scrollable";
+import type { Size } from "../../box/Size";
+import type { Scrollable, ScrollPosition } from "./Scrollable";
 import { scrollToAndWait } from "./scrollToAndWait";
+import type { Box } from "../../box/Box";
 
 export class HTMLElementScrollable implements Scrollable {
   constructor(readonly scrollableElement: HTMLElement) {}
 
-  getClientSize(): Size {
+  getClientBoxInViewport(): Box {
+    const scrollableElementRect =
+      this.scrollableElement.getBoundingClientRect();
+
+    const topBorderWidth = this.scrollableElement.clientTop;
+    const leftBorderWidth = this.scrollableElement.clientLeft;
+
+    const elementInnerLeft = scrollableElementRect.x + leftBorderWidth;
+    const elementInnerTop = scrollableElementRect.y + topBorderWidth;
     return {
+      x: elementInnerLeft,
+      y: elementInnerTop,
       width: this.scrollableElement.clientWidth,
       height: this.scrollableElement.clientHeight,
     };
@@ -29,7 +40,7 @@ export class HTMLElementScrollable implements Scrollable {
     );
   }
 
-  getScrollPosition(): Position {
+  getScrollPosition(): ScrollPosition {
     return {
       top: this.scrollableElement.scrollTop,
       left: this.scrollableElement.scrollLeft,

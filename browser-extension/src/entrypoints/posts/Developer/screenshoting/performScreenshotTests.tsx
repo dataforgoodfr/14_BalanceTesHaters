@@ -8,9 +8,9 @@ import {
 import type {
   ScreenshotWaitOptions,
   ScrollableScreenshot,
-} from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
-import { defaultWaitOptions } from "@/shared/screenshoting/scrollable/captureScrollableScreenshot";
-import { buildImageFromFragments } from "@/shared/screenshoting/scrollable/buildImageFromFragments";
+} from "@/shared/screenshoting/provider/scrollable/captureScrollableScreenshot";
+import { defaultWaitOptions } from "@/shared/screenshoting/provider/scrollable/captureScrollableScreenshot";
+import { buildImageFromFragments } from "@/shared/screenshoting/provider/buildImageFromFragments";
 import { createLogger } from "@/shared/utils/createLogger";
 
 const logger = createLogger("screenshot-tests");

@@ -4,7 +4,7 @@ import {
   buildImageFromFragments,
   MissingScreenshotFragmentsError,
 } from "../buildImageFromFragments";
-import type { ScreenshotFragment } from "../ScreenshotFragment";
+import type { ScreenshotFragment } from "../scrollable/ScreenshotFragment";
 
 function createFragment(
   y: number,

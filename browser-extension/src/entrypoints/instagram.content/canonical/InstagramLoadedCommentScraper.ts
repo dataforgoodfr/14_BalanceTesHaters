@@ -2,7 +2,7 @@ import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import type { Author } from "@/shared/model/Author";
-import type { ElementScreenshotProvider } from "@/shared/screenshoting";
+import type { Image } from "image-js";
 import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import {
   FB_COMMENTS_TEXT_REGEX,
@@ -13,11 +13,11 @@ import { imageToPngBase64 } from "@/shared/screenshoting/";
 export class InstagramLoadedCommentScraper {
   constructor(
     private readonly commentElement: HTMLElement,
-    private readonly screenshotProvider: ElementScreenshotProvider,
+    private readonly screenshotImage: Image,
     private readonly scrapingSupport: ScrapingSupport,
   ) {}
 
-  async scrapLoadedComment(): Promise<InstagramComment> {
+  scrapLoadedComment(): InstagramComment {
     if (this.isFacebookCommentsPlaceholder()) {
       return {
         type: "fb-comments",
@@ -26,9 +26,7 @@ export class InstagramLoadedCommentScraper {
     }
     const id = crypto.randomUUID();
     const scrapedAt = currentIsoDate();
-    const screenshotImage =
-      await this.screenshotProvider.buildElementScreenshot(this.commentElement);
-    const screenshotData = imageToPngBase64(screenshotImage);
+    const screenshotData = imageToPngBase64(this.screenshotImage);
 
     // digg into comment structure to exclude :
     //  - author profile picture

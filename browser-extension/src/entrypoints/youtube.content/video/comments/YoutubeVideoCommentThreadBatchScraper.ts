@@ -1,14 +1,12 @@
 import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
-import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import {
-  createScreenshotProviderForDocumentArea,
+  DocumentDescendantsScreenshotProvider,
   EmptyElementScreenshotProvider,
   type ElementScreenshotProvider,
 } from "@/shared/screenshoting";
-import { ObsoleteScreenshotError } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
 import { createLogger } from "@/shared/utils/createLogger";
-import { withRetry } from "@/shared/utils/withRetry";
 import type { YoutubeVideoCommentThreadBatch } from "./YoutubeVideoCommentThreadBatch";
 import { YoutubeVideoLoadedCommentsScraper } from "./YoutubeVideoLoadedCommentsScraper";
 import { ytBaseLogger } from "../../ytBaseLogger";
@@ -20,7 +18,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
 
   constructor(
     private readonly scrapingSupport: ScrapingSupport,
-    private readonly progressManager: ProgressManager,
+    private readonly globalProgressManager: ProgressManager,
     private readonly targetCommentsCount: number,
     private readonly skipScreenshoting: boolean = false,
   ) {}
@@ -41,53 +39,34 @@ export class YoutubeVideoCommentThreadBatchScraper {
     await this.scrapingSupport.resumeHostPage();
 
     try {
-      const result = await withRetry({
-        maxAttempts: 10,
-        retryOn: (error) => error instanceof ObsoleteScreenshotError,
-        beforeRetry: ({ remainingAttempts }) => {
-          logger.warn(
-            `Window resized while scraping a batch. ${remainingAttempts} attempts remain`,
-          );
-        },
-        retry: async () => {
-          const attemptCommentIds = new Set(this.collectedCommentIds);
-          const screenshotProvider =
-            await this.createScreenshotProvider(threadElements);
-          const comments = await new YoutubeVideoLoadedCommentsScraper(
-            this.scrapingSupport,
-            screenshotProvider,
-            this.targetCommentsCount,
-            this.progressManager,
-            attemptCommentIds,
-          ).scrapRootCommentThreads(threadElements);
-          return { comments, attemptCommentIds };
-        },
-      });
+      const attemptCommentIds = new Set(this.collectedCommentIds);
+      const screenshotProvider = this.createScreenshotProvider();
+      const comments = await new YoutubeVideoLoadedCommentsScraper(
+        this.scrapingSupport,
+        screenshotProvider,
+        this.targetCommentsCount,
+        this.globalProgressManager,
+        attemptCommentIds,
+      ).scrapRootCommentThreads(threadElements);
 
-      for (const commentId of result.attemptCommentIds) {
+      for (const commentId of attemptCommentIds) {
         this.collectedCommentIds.add(commentId);
       }
 
-      return result.comments;
+      return comments;
     } finally {
       masthead.style.visibility = "visible";
       await this.scrapingSupport.resumeHostPage();
     }
   }
 
-  private async createScreenshotProvider(
-    threadElements: HTMLElement[],
-  ): Promise<ElementScreenshotProvider> {
+  private createScreenshotProvider(): ElementScreenshotProvider {
     if (this.skipScreenshoting) {
       logger.warn(
         "skipScreenshoting=true - using EmptyElementScreenshotProvider",
       );
       return new EmptyElementScreenshotProvider();
     }
-    return createScreenshotProviderForDocumentArea(
-      threadElements,
-      this.scrapingSupport,
-      new ProgressManager(() => undefined),
-    );
+    return new DocumentDescendantsScreenshotProvider(this.scrapingSupport);
   }
 }
