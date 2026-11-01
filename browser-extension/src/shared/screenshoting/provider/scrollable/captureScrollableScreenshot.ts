@@ -1,16 +1,16 @@
-import { decodePng, encodePng, type Image } from "image-js";
-import { captureTabScreenshotAsDataUrl } from "../tab/captureTabScreenshotAsDataUrl";
-import type { Rect, ScreenshotFragment } from "./ScreenshotFragment";
-import type { ScrapingSupport } from "../../scraping/ScrapingSupport";
+import { decodePng, encodePng, type CropOptions, type Image } from "image-js";
+import { captureTabScreenshotAsDataUrl } from "../../tab/captureTabScreenshotAsDataUrl";
+import type { ScreenshotFragment } from "./ScreenshotFragment";
+import type { ScrapingSupport } from "../../../scraping/ScrapingSupport";
 import { base64ToUint8Array } from "@/shared/utils/base-64";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import { withRetry } from "@/shared/utils/withRetry";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
-import { createLogger } from "../../utils/createLogger";
+import { createLogger } from "../../../utils/createLogger";
 import type { Scrollable } from "./Scrollable";
-import { sleep } from "../../utils/sleep";
-import type { Size } from "../Size";
+import { sleep } from "../../../utils/sleep";
+import type { Size } from "../../box/Size";
+import type { Box } from "../../box/Box";
 
 const logger = createLogger("capture-screenshot");
 
@@ -52,7 +52,7 @@ export async function captureScrollableScreenshot(
   scrollableElement: Scrollable,
   scrapingSupport: ScrapingSupport,
   progressManager: ProgressManager,
-  screenshotArea?: Rect,
+  screenshotArea?: Box,
   customWaitOptions?: ScreenshotWaitOptions,
 ): Promise<ScrollableScreenshot> {
   logger.debug(
@@ -60,39 +60,14 @@ export async function captureScrollableScreenshot(
     "customWaitOptions",
     customWaitOptions,
   );
-  return await withRetry<ScrollableScreenshot>({
-    maxAttempts: 10,
-    retryOn: (e) =>
-      e instanceof ScrollableElementClientSizeChangedException ||
-      e instanceof ScrollableElementScrollSizeChangedException ||
-      e instanceof ScrollableElementScrolledException,
-    beforeRetry: async ({ latestError, remainingAttempts }) => {
-      const error = latestError as
-        | ScrollableElementClientSizeChangedException
-        | ScrollableElementScrollSizeChangedException
-        | ScrollableElementScrolledException;
-      logger.warn(
-        "Error: ",
-        error.message,
-        ". Retrying in 2s: " + remainingAttempts + " attempts remaining.",
-      );
-      await scrapingSupport.sleep(2000);
-    },
-    retry: async () => {
-      const { fragments, clientSize: viewPortSize } =
-        await captureElementScreenshotFragments(
-          scrollableElement,
-          scrapingSupport,
-          // Consider that capturing screenshots amount for 90% of screenshoting work
-          progressManager.subTaskProgressManager({ from: 0, to: 90 }),
-          screenshotArea,
-          customWaitOptions,
-        );
-      scrapingSupport.throwIfAborted();
-      progressManager.setProgress(100);
-      return { fragments, clientSize: viewPortSize };
-    },
-  });
+
+  return await captureElementScreenshotFragments(
+    scrollableElement,
+    scrapingSupport,
+    progressManager,
+    screenshotArea,
+    customWaitOptions,
+  );
 }
 
 export class ScrollableElementClientSizeChangedException extends Error {
@@ -123,14 +98,26 @@ export class ScrollableElementScrolledException extends Error {
   }
 }
 
+export class ScreenshotAreaOutsideScrollSize extends Error {
+  constructor(screenshotArea: Box, scrollSize: Size) {
+    super(
+      "Screenshoting failed: ScreenshotAreaOutsideScrollSize screenshotArea " +
+        JSON.stringify(screenshotArea) +
+        " scrollSize: " +
+        JSON.stringify(scrollSize) +
+        ".",
+    );
+  }
+}
+
 async function captureElementScreenshotFragments(
   scrollableElement: Scrollable,
   scrapingSupport: ScrapingSupport,
   progressManager: ProgressManager,
-  requestedScreenshotArea?: Rect,
+  requestedScreenshotArea?: Box,
   customWaitOptions?: ScreenshotWaitOptions,
-): Promise<{ fragments: ScreenshotFragment[]; clientSize: Size }> {
-  const onStartClientSize = scrollableElement.getClientSize();
+): Promise<ScrollableScreenshot> {
+  const onStartClientBox = scrollableElement.getClientBoxInViewport();
   const onStartScrollSize = scrollableElement.getScrollSize();
 
   if (requestedScreenshotArea) {
@@ -158,20 +145,20 @@ async function captureElementScreenshotFragments(
         : customWaitOptions?.extraWait,
   };
 
-  if (onStartScrollSize.width > onStartClientSize.width) {
+  if (onStartScrollSize.width > onStartClientBox.width) {
     throw new Error(
       "scroll width > client width. Horizontal scrolling not currently handled by screenshoting.",
     );
   }
 
   logger.debug(
-    "Screenshoting element with clientSize ",
-    onStartClientSize,
-    " scrollSize",
+    "Screenshoting scrollable  with box:",
+    onStartClientBox,
+    " and scrollSize:",
     onStartScrollSize,
   );
   const expectedFragmentsCount = Math.ceil(
-    screenshotArea.height / onStartClientSize.height,
+    screenshotArea.height / onStartClientBox.height,
   );
   const progressPerFragment = 100 / expectedFragmentsCount;
 
@@ -187,7 +174,7 @@ async function captureElementScreenshotFragments(
   const screenshotBottom = screenshotArea.y + screenshotArea.height;
   const maxScrollTopAcceptableValue = Math.max(
     0,
-    onStartScrollSize.height - onStartClientSize.height,
+    onStartScrollSize.height - onStartClientBox.height,
   );
   while (nextTop < screenshotBottom) {
     scrapingSupport.throwIfAborted();
@@ -221,9 +208,9 @@ async function captureElementScreenshotFragments(
       "Capture Fragment - requestedTop:",
       requestedTop,
       "height:",
-      onStartClientSize.height,
+      onStartClientBox.height,
       "width:",
-      onStartClientSize.width,
+      onStartClientBox.width,
     );
 
     const dataUrl: string = await captureTabScreenshotAsDataUrl();
@@ -232,8 +219,8 @@ async function captureElementScreenshotFragments(
       requestedTop,
     );
     assertClientSizeDidntChange(
-      scrollableElement.getClientSize(),
-      onStartClientSize,
+      scrollableElement.getClientBoxInViewport(),
+      onStartClientBox,
     );
 
     // Loading content outside a fixed capture area does not invalidate it.
@@ -257,17 +244,23 @@ async function captureElementScreenshotFragments(
       desc: "scrollTop:" + requestedTop,
     });
 
-    const visibleElementImage = scrollableElement.cropToElement(
+    const scrollableScreenshot = cropViewportImageToScrollable(
       tabImage,
       tabInnerSize,
+      onStartClientBox,
     );
-    const visibleArea: Rect = {
+    await maybeStoreDebugScreenshot(scrollableScreenshot, {
+      type: "scrollable-fragment",
+      desc: "scrollTop:" + requestedTop,
+    });
+
+    const visibleArea: Box = {
       x: 0,
       y: requestedTop,
-      width: onStartClientSize.width,
-      height: onStartClientSize.height,
+      width: onStartClientBox.width,
+      height: onStartClientBox.height,
     };
-    const remainingArea: Rect = {
+    const remainingArea: Box = {
       ...screenshotArea,
       y: nextTop,
       height: screenshotBottom - nextTop,
@@ -279,12 +272,12 @@ async function captureElementScreenshotFragments(
       );
     }
     const fragmentImage = cropImageToCssArea(
-      visibleElementImage,
+      scrollableScreenshot,
       visibleArea,
       capturedArea,
     );
-    await maybeStoreDebugScreenshot(fragmentImage, {
-      type: "scrollable-fragment",
+    await maybeStoreDebugScreenshot(tabImage, {
+      type: "scrollable-fragment-requested-area",
       desc: "scrollTop:" + requestedTop,
     });
 
@@ -297,28 +290,81 @@ async function captureElementScreenshotFragments(
     nextTop = capturedArea.y + capturedArea.height;
   }
   return {
-    clientSize: onStartClientSize,
+    clientSize: onStartClientBox,
     fragments: screenshots,
   };
 }
 
-function checkScreenshotAreaValid(area: Rect, scrollSize: Size): Rect {
+function cropViewportImageToScrollable(
+  tabImage: Image,
+  tabInnerSize: Size,
+  scrollableBox: Box,
+): Image {
+  ensureScrollableFullyVisibleInViewport(scrollableBox, tabInnerSize);
+  if (
+    tabImage.width === scrollableBox.width &&
+    tabImage.height == scrollableBox.height &&
+    scrollableBox.x === 0 &&
+    scrollableBox.y === 0
+  ) {
+    // scrollable exactly matches tabInnerContent
+    // No need to crop
+    return tabImage;
+  }
+  const imgScaleX = tabImage.width / tabInnerSize.width;
+  const imgScaleY = tabImage.height / tabInnerSize.height;
+
+  const cropOptions: CropOptions = {
+    origin: {
+      column: Math.floor(scrollableBox.x * imgScaleX),
+      row: Math.floor(scrollableBox.y * imgScaleY),
+    },
+    width: Math.floor(scrollableBox.width * imgScaleX),
+    height: Math.floor(scrollableBox.height * imgScaleY),
+  };
+  logger.debug(
+    "croping tabImage - scrollableBox:",
+    scrollableBox,
+    " tabImageSize:",
+    {
+      width: tabImage.width,
+      height: tabImage.height,
+    },
+    " scale:",
+    { imgScaleX, imgScaleY },
+    " cropOptions:",
+    cropOptions,
+  );
+  return tabImage.crop(cropOptions);
+}
+
+function ensureScrollableFullyVisibleInViewport(
+  scrollableBox: Box,
+  windowSize: Size,
+) {
+  if (
+    scrollableBox.y < 0 ||
+    scrollableBox.x < 0 ||
+    scrollableBox.width > windowSize.width ||
+    scrollableBox.height > windowSize.height
+  ) {
+    throw new Error("ScrollableElement extends beyond viewport display.");
+  }
+}
+
+function checkScreenshotAreaValid(area: Box, scrollSize: Size): Box {
   if (
     area.x < 0 ||
     area.y < 0 ||
-    area.width <= 0 ||
-    area.height <= 0 ||
     area.x + area.width > scrollSize.width ||
     area.y + area.height > scrollSize.height
   ) {
-    throw new Error(
-      `Screenshot area ${JSON.stringify(area)} is outside scrollable size ${JSON.stringify(scrollSize)}.`,
-    );
+    throw new ScreenshotAreaOutsideScrollSize(area, scrollSize);
   }
   return area;
 }
 
-function intersectRects(first: Rect, second: Rect): Rect | undefined {
+function intersectRects(first: Box, second: Box): Box | undefined {
   const left = Math.max(first.x, second.x);
   const top = Math.max(first.y, second.y);
   const right = Math.min(first.x + first.width, second.x + second.width);
@@ -329,8 +375,8 @@ function intersectRects(first: Rect, second: Rect): Rect | undefined {
 
 function cropImageToCssArea(
   image: Image,
-  imageArea: Rect,
-  requestedArea: Rect,
+  imageArea: Box,
+  requestedArea: Box,
 ): Image {
   const scaleX = image.width / imageArea.width;
   const scaleY = image.height / imageArea.height;

@@ -1,49 +1,41 @@
-import type { Image } from "image-js";
-import {
-  ObsoleteScreenshotError,
-  type ElementScreenshotProvider,
-} from "./ElementScreenshotProvider";
-import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
-import type { ScrollableScreenshot } from "../scrollable";
-import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
-import { buildImageFromFragments } from "../scrollable/buildImageFromFragments";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
+import type { Box } from "../box/Box";
+import { DocumentScrollable, type Scrollable } from "./scrollable";
+import { BaseScreenshotProvider } from "./BaseScreenshotProvider";
 
-const logger = createLogger("screenshot-provider", scrapingLogger);
 /**
- * Screenshot provider cropping a scrollable Document full screenshot to build descendant elements screenshots.
+ * Screenshot provider for elements inside a scrollable Document.
  */
-export class DocumentDescendantsScreenshotProvider implements ElementScreenshotProvider {
-  constructor(private readonly documentScreenshot: ScrollableScreenshot) {}
-
-  async buildElementScreenshot(element: HTMLElement): Promise<Image> {
-    this.ensureScreenshotStillRelevant();
-    const elementBox = element.getBoundingClientRect();
-    const left = window.scrollX + elementBox.left;
-    const top = window.scrollY + elementBox.top;
-    const height = elementBox.height;
-    const width = elementBox.width;
-    logger.debug("cropForElement - ", { top, left, height, width });
-
-    const result = buildImageFromFragments(this.documentScreenshot.fragments, {
-      x: left,
-      y: top,
-      height: Math.round(height),
-      width: Math.round(width),
-    });
-
-    // Artificially Keep async to facilitate storing cropped element for debug
-    await maybeStoreDebugScreenshot(result, { type: "scrollable-cropped" });
-    return result;
+export class DocumentDescendantsScreenshotProvider extends BaseScreenshotProvider {
+  constructor(scrapingSupport: ScrapingSupport) {
+    super(scrapingSupport);
+  }
+  override createScrollable(): Scrollable {
+    return new DocumentScrollable();
   }
 
-  private ensureScreenshotStillRelevant() {
-    if (
-      window.innerWidth !== this.documentScreenshot.clientSize.width ||
-      window.innerHeight !== this.documentScreenshot.clientSize.height
-    ) {
-      throw new ObsoleteScreenshotError(
-        "Cannot extract sub element screenshot: Document screenshot is obsolete because window inner size changed!!",
-      );
-    }
+  override computeElementBoxInContainer(element: HTMLElement): Box {
+    const { x, y, width, height } = element.getBoundingClientRect();
+    return {
+      x: window.scrollX + x,
+      y: window.scrollY + y,
+      width,
+      height,
+    };
+  }
+}
+
+export class UnstableElementBox extends Error {
+  constructor(
+    private readonly htmlElement: HTMLElement,
+    private readonly beforeBox: Box,
+    private readonly afterBox: Box,
+  ) {
+    super(
+      "Element box is unstabled box beforeBox:" +
+        JSON.stringify(beforeBox) +
+        " afterBox:" +
+        JSON.stringify(afterBox),
+    );
   }
 }

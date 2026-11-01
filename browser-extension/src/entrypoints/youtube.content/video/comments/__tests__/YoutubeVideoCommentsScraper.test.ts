@@ -4,14 +4,21 @@ import { Image } from "image-js";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { createScreenshotProviderForDocumentArea } from "@/shared/screenshoting";
+import { DocumentDescendantsScreenshotProvider } from "@/shared/screenshoting";
 import { YoutubeVideoCommentsScraper } from "../YoutubeVideoCommentsScraper";
+import { YoutubeVideoLoadedCommentsScraper } from "../YoutubeVideoLoadedCommentsScraper";
+
+const { buildElementScreenshots } = vi.hoisted(() => ({
+  buildElementScreenshots: vi.fn((elements: HTMLElement[]) =>
+    Promise.resolve(elements.map(() => new Image(2, 2))),
+  ),
+}));
 
 vi.mock("@/shared/screenshoting", () => ({
-  createScreenshotProviderForDocumentArea: vi.fn(() =>
-    Promise.resolve({
-      buildElementScreenshot: vi.fn(() => Promise.resolve(new Image(2, 2))),
-    }),
+  DocumentDescendantsScreenshotProvider: vi.fn(
+    function MockDocumentDescendantsScreenshotProvider() {
+      return { buildElementScreenshots };
+    },
   ),
 }));
 
@@ -76,13 +83,38 @@ describe("YoutubeVideoCommentsScraper", () => {
       "second",
     ]);
     expect(JSON.stringify(comments)).not.toContain("screenshotData");
-    expect(createScreenshotProviderForDocumentArea).toHaveBeenCalledTimes(2);
+    expect(DocumentDescendantsScreenshotProvider).toHaveBeenCalledTimes(2);
     expect(appendScreenshots).toHaveBeenCalledTimes(2);
-    expect(
-      vi.mocked(createScreenshotProviderForDocumentArea).mock.calls[0]?.[0],
-    ).toEqual([firstThread]);
-    expect(
-      vi.mocked(createScreenshotProviderForDocumentArea).mock.calls[1]?.[0],
-    ).toEqual([secondThread]);
+    expect(buildElementScreenshots.mock.calls[0]?.[0]).toEqual([
+      firstThread.querySelector("#comment-container"),
+    ]);
+    expect(buildElementScreenshots.mock.calls[1]?.[0]).toEqual([
+      secondThread.querySelector("#comment-container"),
+    ]);
+  });
+
+  test("does not capture invisible duplicate comments", async () => {
+    const visibleThread = commentThread("visible", "Visible comment");
+    const invisibleThread = commentThread("duplicate", "Invisible duplicate");
+    const invisibleContainer =
+      invisibleThread.querySelector<HTMLElement>("#comment-container")!;
+    const support = new ScrapingSupport(new AbortController().signal);
+    vi.spyOn(support, "isVisible").mockImplementation(
+      (element) => element !== invisibleContainer,
+    );
+    const screenshotProvider = { buildElementScreenshots };
+
+    const comments = await new YoutubeVideoLoadedCommentsScraper(
+      support,
+      screenshotProvider,
+      2,
+      new ProgressManager(vi.fn()),
+    ).scrapRootCommentThreads([visibleThread, invisibleThread]);
+
+    expect(comments.map((comment) => comment.commentId)).toEqual(["visible"]);
+    expect(buildElementScreenshots).toHaveBeenCalledWith(
+      [visibleThread.querySelector("#comment-container")],
+      expect.any(ProgressManager),
+    );
   });
 });
