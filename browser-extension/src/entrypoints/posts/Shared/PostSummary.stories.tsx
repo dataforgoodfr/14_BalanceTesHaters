@@ -17,6 +17,7 @@ const exampleComment: PostComment = {
   textContent: "",
   isDeleted: false,
   isNew: false,
+  IsFlagged: false,
   publishedAt: {
     type: "absolute",
     date: "2026-03-22T00:00:00.000Z",

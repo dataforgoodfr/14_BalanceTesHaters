@@ -51,7 +51,7 @@ Le token doit correspondre à `BTH_PUBLIC_API_TOKEN` du backend. Voir la [docume
 
 # Configurer l'extension pour pointer vers le backend distant
 
-Sans configuration, l'extension appelle `https://bth.cleverapps.io`. Pour utiliser le backend distant, définir son URL et son token public dans `.env`. Les valeurs d'accès sont disponibles sur Mattermost. Ne pas utiliser le token privé dans l'extension.
+Sans configuration, l'extension appelle `https://bth.cleverapps.io`. Pour utiliser le backend distant, définir son URL et son token public dans `.env`. Les valeurs d'accès sont disponibles sur Vaultwarden. Ne pas utiliser le token privé dans l'extension.
 
 # Ajouter des composants de la library UI shadcn
 

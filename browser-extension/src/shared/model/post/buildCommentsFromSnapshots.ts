@@ -66,15 +66,17 @@ function buildFlattenCommentSnapshotsWithPostInfo(
   return postSnapshots.flatMap((postSnapshot, postSnapshotIndex) =>
     flattenCommentsSnapshotReplies(
       postSnapshot.comments,
-    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => ({
-      commentSnapshot,
-      postSnapshotIndex,
-      postSnapshotId: postSnapshot.id,
-      hasScreenshot:
-        screenshotCommentIdsByPostSnapshotId
-          .get(postSnapshot.id)
-          ?.has(commentSnapshot.id) ?? false,
-    })),
+    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => {
+      return {
+        commentSnapshot,
+        postSnapshotIndex,
+        postSnapshotId: postSnapshot.id,
+        hasScreenshot:
+          screenshotCommentIdsByPostSnapshotId
+            .get(postSnapshot.id)
+            ?.has(commentSnapshot.id) ?? false,
+      };
+    }),
   );
 }
 
@@ -123,7 +125,7 @@ function buildPostCommentForGroupOfSameText(
     a.commentSnapshot.scrapedAt.localeCompare(b.commentSnapshot.scrapedAt),
   );
   const groupOldestComment = sortedByScrapedAt[0]!;
-  const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
+  const groupLatestComment = sortedByScrapedAt.at(-1)!;
   const groupLatestClassifiedComment = sortedByScrapedAt.findLast(
     ({ commentSnapshot }) => commentSnapshot.classifiedAt !== undefined,
   );
@@ -146,6 +148,7 @@ function buildPostCommentForGroupOfSameText(
     url: groupLatestComment.commentSnapshot.url,
     isNew: postSnapshotsCount > 1 && isGroupOldestCommentFromLatestSnapshot,
     isDeleted: !isGroupLatestCommentFromLatestSnapshot,
+    IsFlagged: false, // This will be set later in the useFilteredCommentList hook
   };
 }
 

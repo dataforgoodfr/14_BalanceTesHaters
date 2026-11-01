@@ -201,7 +201,6 @@ function PostListPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          disabled={post.latestAnalysisStatus !== "COMPLETED"}
                           render={
                             <Link
                               to={
