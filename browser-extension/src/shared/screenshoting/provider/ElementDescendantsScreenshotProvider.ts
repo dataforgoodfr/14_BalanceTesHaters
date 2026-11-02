@@ -42,7 +42,17 @@ export class ElementDescendantsScreenshotProvider extends BaseScreenshotProvider
 
       const offsetParent = currentElement.offsetParent;
       if (offsetParent === null || !(offsetParent instanceof HTMLElement)) {
-        throw new Error("Cannot relate element to screenshot.");
+        const message = "Cannot relate element to screenshot.";
+        console.error(
+          "Cannot relate element: ",
+          element,
+          "to screenshot root: ",
+          this.parentElement,
+          ". currentElement:",
+          currentElement,
+          "does not have an offSetParent",
+        );
+        throw new Error(message);
       }
 
       if (offsetParent === this.parentElement) {
