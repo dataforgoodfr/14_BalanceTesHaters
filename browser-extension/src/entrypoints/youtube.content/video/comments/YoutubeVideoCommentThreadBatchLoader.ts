@@ -101,9 +101,7 @@ export class YoutubeVideoCommentThreadBatchLoader {
     let lastShake = startedAt;
     let continuationMissingSince: number | undefined;
     while (Date.now() - startedAt < timeout) {
-      if (continuationElement.isConnected) {
-        continuationElement.scrollIntoView({ block: "center" });
-      }
+      continuationElement.scrollIntoView({ block: "center" });
       await this.scrapingSupport.resumeHostPage();
 
       const hasNewCommentThreads = this.buildAllThreadRoots().some(

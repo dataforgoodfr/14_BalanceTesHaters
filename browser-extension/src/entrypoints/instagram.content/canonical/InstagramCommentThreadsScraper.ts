@@ -1,41 +1,60 @@
-import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
-import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
-import { InstagramCommentsLoader } from "./InstagramCommentsLoader";
-
-import type { InstagramCommentThread } from "./InstagramLoadedCommentThreadsScraper";
-import { InstagramLoadedCommentThreadsScraper } from "./InstagramLoadedCommentThreadsScraper";
+import {
+  countAllComments,
+  type CommentSnapshot,
+} from "@/shared/model/PostSnapshot";
+import {
+  detachCommentScreenshots,
+  type CommentSnapshotWithScreenshot,
+} from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import {
   ElementDescendantsScreenshotProvider,
   EmptyElementScreenshotProvider,
+  type ElementScreenshotProvider,
 } from "@/shared/screenshoting";
-import type { ElementScreenshotProvider } from "@/shared/screenshoting/provider/ElementScreenshotProvider";
+import type { ScrapingScreenshots } from "@/shared/model/scraping/ScrapingScreenshots";
+import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
+import { InstagramCommentThreadBatchLoader } from "./InstagramCommentThreadBatchLoader";
+import {
+  InstagramLoadedCommentThreadBatchScraper,
+  type InstagramCommentThread,
+} from "./InstagramLoadedCommentThreadBatchScraper";
+import { InstagramCommentThreadContentLoader } from "./InstagramCommentThreadContentLoader";
+import type {
+  InstagramComment,
+  InstagramTextComment,
+} from "./InstagramLoadedCommentScraper";
 
 const logger = createLogger("ig-comment-threads-scraper", scrapingLogger);
 
 export class InstagramCommentThreadsScraper {
+  public static readonly DEFAULT_MAX_SCRAPING_COMMENTS = 4000;
+
   public constructor(
-    private scrapingSupport: ScrapingSupport,
-    private progressManager: ProgressManager,
-    private expectedCommentsCount: number,
-    private skipScreenshoting: boolean = false,
+    private readonly scrapingSupport: ScrapingSupport,
+    private readonly progressManager: ProgressManager,
+    private readonly expectedCommentsCount: number,
+    private readonly appendScreenshots: (
+      screenshots: ScrapingScreenshots,
+    ) => Promise<void>,
+    private readonly skipScreenshoting = false,
+    private readonly maxScrapingComments = InstagramCommentThreadsScraper.DEFAULT_MAX_SCRAPING_COMMENTS,
   ) {}
 
-  async scrapCommentThreads(): Promise<InstagramCommentThread[]> {
-    // hr separates the account info from the scrollable section
-    // The scrollable section contains a div that  contains 2 or 3 divs:
-    // * post info (absent if no text content)
-    // * comments sorting menu
-    // * comments
+  async scrapCommentThreads(): Promise<CommentSnapshot[]> {
+    logger.info(
+      `Scraping comments (expectedCommentsCount: ${this.expectedCommentsCount}, maxScrapingComments: ${this.maxScrapingComments})`,
+    );
+    if (this.expectedCommentsCount === 0) return [];
+
     const scrollableSection = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
       "main hr + div",
       HTMLElement,
     );
-
     const commentsContainer = this.scrapingSupport.selectOrThrow(
       scrollableSection,
-      // Comments are the
       ":scope > div > div:last-of-type",
       HTMLElement,
       {
@@ -44,33 +63,61 @@ export class InstagramCommentThreadsScraper {
       },
     );
 
-    // Load comment threads
-    await new InstagramCommentsLoader(
+    const batchLoader = new InstagramCommentThreadBatchLoader(
       this.scrapingSupport,
-      this.progressManager.subTaskProgressManager({ from: 0, to: 50 }),
-      this.expectedCommentsCount,
       scrollableSection,
       commentsContainer,
-    ).loadCommentsAndReplies();
-
-    // Create screenshot provider by screenshoting scrollable container
-    // Consider screenshoting to take 50% of time
-    const screenshotProvider: ElementScreenshotProvider =
-      this.createScreenshotProvider(scrollableSection);
-
-    return await new InstagramLoadedCommentThreadsScraper(
-      commentsContainer,
+    );
+    const contentLoader = new InstagramCommentThreadContentLoader(
       this.scrapingSupport,
-      this.progressManager.subTaskProgressManager({
-        from: 50,
-        to: 100,
-      }),
-      screenshotProvider,
-    ).scrapLoadedCommentThreads();
+    );
+    const batchScraper = new InstagramLoadedCommentThreadBatchScraper(
+      this.scrapingSupport,
+      this.createScreenshotProvider(scrollableSection),
+    );
+    const targetCommentsCount = Math.min(
+      this.expectedCommentsCount,
+      this.maxScrapingComments,
+    );
+    const comments: CommentSnapshot[] = [];
+
+    for (;;) {
+      const batch = await batchLoader.loadAndIdentifyNextBatch();
+      if (batch.threadElements.length === 0) break;
+
+      await contentLoader.loadReplies(batch);
+      const commentThreads = await batchScraper.scrapBatch(batch);
+      const commentsWithScreenshots =
+        this.mapToCommentSnapshots(commentThreads);
+      const { comments: batchComments, screenshots } = detachCommentScreenshots(
+        commentsWithScreenshots,
+      );
+      await this.appendScreenshots(screenshots);
+      comments.push(...batchComments);
+
+      const scrapedCommentsCount = countAllComments(comments);
+      this.progressManager.setProgress(
+        (100 * scrapedCommentsCount) / targetCommentsCount,
+      );
+      logger.info(
+        `Scraped ${countAllComments(batchComments)} comments in batch`,
+      );
+      await this.scrapingSupport.resumeHostPage();
+
+      if (scrapedCommentsCount >= this.maxScrapingComments) {
+        logger.warn(
+          `Maximum number of comments reached ${this.maxScrapingComments}. Stopping`,
+        );
+        break;
+      }
+    }
+
+    this.progressManager.setProgress(100);
+    return comments;
   }
 
   private createScreenshotProvider(
-    scrollableSection: HTMLElement,
+    scrollableContainer: HTMLElement,
   ): ElementScreenshotProvider {
     if (this.skipScreenshoting) {
       logger.warn(
@@ -79,8 +126,33 @@ export class InstagramCommentThreadsScraper {
       return new EmptyElementScreenshotProvider();
     }
     return new ElementDescendantsScreenshotProvider(
-      scrollableSection,
+      scrollableContainer,
       this.scrapingSupport,
     );
+  }
+
+  private mapToCommentSnapshots(
+    instagramCommentThreads: InstagramCommentThread[],
+  ): CommentSnapshotWithScreenshot[] {
+    return instagramCommentThreads
+      .map((thread) => {
+        if (thread.comment.type !== "text") return undefined;
+        return {
+          ...thread.comment.data,
+          replies: this.mapRepliesToCommentSnapshots(thread.replies),
+        };
+      })
+      .filter((comment) => comment !== undefined);
+  }
+
+  private mapRepliesToCommentSnapshots(
+    replies: InstagramComment[],
+  ): CommentSnapshotWithScreenshot[] {
+    return replies
+      .filter((reply) => reply.type === "text")
+      .map((reply: InstagramTextComment) => ({
+        ...reply.data,
+        replies: [],
+      }));
   }
 }

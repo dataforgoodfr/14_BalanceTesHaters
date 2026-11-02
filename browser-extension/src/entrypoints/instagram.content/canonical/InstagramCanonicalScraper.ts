@@ -1,7 +1,3 @@
-import {
-  detachCommentScreenshots,
-  type CommentSnapshotWithScreenshot,
-} from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingOutput } from "@/shared/scraping-content-script/SocialNetworkScraper";
@@ -13,11 +9,6 @@ import { ogImageUrl } from "../og/ogImageUrl";
 import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractOgDescriptionInfo } from "../og/extractOgDescriptionInfo";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
-import type { InstagramCommentThread } from "./InstagramLoadedCommentThreadsScraper";
-import type {
-  InstagramComment,
-  InstagramTextComment,
-} from "./InstagramLoadedCommentScraper";
 import { extractInstagramCommentsCount } from "./extractInstagramCommentsCount";
 
 const logger = createLogger("ig-canonical", scrapingLogger);
@@ -36,6 +27,7 @@ export class InstagramCanonicalScraper {
     private progressManager: ProgressManager,
     private output: ScrapingOutput,
     private skipScreenshoting: boolean = false,
+    private scrapingMaxComments?: number,
   ) {}
 
   async scrapPost(): Promise<PostSnapshot> {
@@ -67,20 +59,14 @@ export class InstagramCanonicalScraper {
     });
 
     logger.debug("Extracting comment threads... ");
-    const instagramCommentThreads = await new InstagramCommentThreadsScraper(
+    const comments = await new InstagramCommentThreadsScraper(
       this.scrapingSupport,
       this.progressManager,
       expectedCommentsCount,
+      this.output.appendScreenshots,
       this.skipScreenshoting,
+      this.scrapingMaxComments,
     ).scrapCommentThreads();
-
-    const commentsWithScreenshots = this.mapToCommentSnapshots(
-      instagramCommentThreads,
-    );
-    const { comments, screenshots } = detachCommentScreenshots(
-      commentsWithScreenshots,
-    );
-    await this.output.appendScreenshots(screenshots);
 
     return {
       id,
@@ -94,37 +80,5 @@ export class InstagramCanonicalScraper {
       coverImageUrl,
       comments,
     };
-  }
-
-  private mapToCommentSnapshots(
-    instagramCommentThreads: InstagramCommentThread[],
-  ): CommentSnapshotWithScreenshot[] {
-    const commentSnapshots = instagramCommentThreads
-      .map((ict) => {
-        if (ict.comment.type !== "text") {
-          // Remove non text comment
-          return undefined;
-        }
-
-        const commentSnapshot: CommentSnapshotWithScreenshot = {
-          ...ict.comment.data,
-          replies: this.mapRepliesToCommentSnapshots(ict.replies),
-        };
-        return commentSnapshot;
-      })
-      .filter((c) => c !== undefined);
-    return commentSnapshots;
-  }
-
-  private mapRepliesToCommentSnapshots(
-    instagramCommentReplies: InstagramComment[],
-  ): CommentSnapshotWithScreenshot[] {
-    return instagramCommentReplies
-      .filter((r) => r.type === "text")
-      .map((r: InstagramTextComment) => ({
-        ...r.data,
-        // Only one level of replies in Instagram
-        replies: [],
-      }));
   }
 }
