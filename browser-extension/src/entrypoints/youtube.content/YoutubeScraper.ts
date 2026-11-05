@@ -11,6 +11,7 @@ import { isYoutubeShortUrl } from "./url/isYoutubeShortUrl";
 import { YoutubeVideoScraper } from "./video";
 import { youtubePageInfo } from "./url/youtubePageInfo";
 import { youtubeVideoUrl } from "./url/youtubeVideoUrl";
+import { assertYoutubeLanguageIsSupported } from "./language/youtubeLanguage";
 
 export class YoutubeScraper implements SocialNetworkScraper {
   getSocialNetworkPageInfo(): Promise<SocialNetworkPageInfo> {
@@ -30,6 +31,8 @@ export class YoutubeScraper implements SocialNetworkScraper {
         "Url does not match a scrapable yt page: " + document.URL,
       );
     }
+
+    assertYoutubeLanguageIsSupported(document);
 
     if (isYoutubeShortUrl(pageInfo.url)) {
       // Shorts can also be viewed as a videos.
