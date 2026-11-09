@@ -48,7 +48,6 @@ describe("parseOgDescriptionContent", () => {
       name: "username",
       accountHref: "https://www.instagram.com/username",
     });
-    expect(result.commentsCount).toBe(130);
   });
 
   it("general parsing handle traling white spaces", () => {
@@ -63,7 +62,6 @@ describe("parseOgDescriptionContent", () => {
       name: "username",
       accountHref: "https://www.instagram.com/username",
     });
-    expect(result.commentsCount).toBe(130);
   });
 
   it("dateFragment with 'le' format (French)", () => {
@@ -99,7 +97,6 @@ describe("parseOgDescriptionContent", () => {
       name: "testuser",
       accountHref: "https://www.instagram.com/testuser",
     });
-    expect(result.commentsCount).toBe(5);
   });
 
   it("textContent: handle : in text content", () => {
@@ -127,7 +124,6 @@ describe("parseOgDescriptionContent", () => {
       name: "testuser",
       accountHref: "https://www.instagram.com/testuser",
     });
-    expect(result.commentsCount).toBe(130);
     expect(result.publishedAt.type).toBe("absolute");
     expect(result.publishedAt.date).toBe("2023-10-11T00:00:00.000Z");
   });
@@ -138,40 +134,37 @@ describe("parseOgDescriptionContent", () => {
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
     expect(result.textContent).toBe("textContent");
-    expect(result.commentsCount).toBe(130);
   });
 
-  it("commentCount: Should handle no separator", () => {
+  it("engagement prefix: Should handle no separator", () => {
     const ogDescription =
       '100 likes, 130 comments - testuser on October 11, 2023: "textContent".';
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
-    expect(result.commentsCount).toBe(130);
+    expect(result.textContent).toBe("textContent");
   });
 
-  it("commentCount: Should handle comma thousand separator", () => {
+  it("engagement prefix: Should handle comma thousand separator", () => {
     const ogDescription =
       '100 likes, 2,488 comments - testuser on October 11, 2023: "textContent".';
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
-    expect(result.commentsCount).toBe(2488);
+    expect(result.textContent).toBe("textContent");
   });
 
-  it("commentCount: Should parse zero comments count", () => {
+  it("engagement prefix: Should parse zero comments count", () => {
     const ogDescription =
       '0 likes, 0 comments - username on May 20, 2026: "No engagement".';
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
-    expect(result.commentsCount).toBe(0);
     expect(result.textContent).toBe("No engagement");
   });
 
-  it("commentCount: Should parse single-digit comments count", () => {
+  it("engagement prefix: Should parse single-digit comments count", () => {
     const ogDescription =
       '10 likes, 3 comments - username on May 20, 2026: "Few comments".';
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
-    expect(result.commentsCount).toBe(3);
     expect(result.textContent).toBe("Few comments");
   });
 
@@ -180,7 +173,6 @@ describe("parseOgDescriptionContent", () => {
       'isa_cest_moi_ on August 18, 2026: "#feminisme #sororité #pedagogie #egalitehommefemme #etreunefemme".';
     const result: InstagramOgDescriptionInfo =
       parseOgDescriptionContent(ogDescription);
-    expect(result.commentsCount).toBe(0);
     expect(result.textContent).toBe(
       "#feminisme #sororité #pedagogie #egalitehommefemme #etreunefemme",
     );
@@ -189,6 +181,43 @@ describe("parseOgDescriptionContent", () => {
       accountHref: "https://www.instagram.com/isa_cest_moi_",
     });
     expect(result.publishedAt.date).toBe("2026-08-18T00:00:00.000Z");
+  });
+
+  it("Should parse caption-first English metadata", () => {
+    const ogDescription = `« Ce n’est pas le moment de désespérer. »
+
+Dans ce 7ᵉ épisode de Sororité — Le Podcast, @sandrousseau met des mots sur les mille et une blessures que nous héritons du patriarcat.
+
+#sororité #féminisme - @feministsinthecity on May 5, 2026`;
+
+    const result = parseOgDescriptionContent(ogDescription);
+
+    expect(result).toEqual({
+      textContent: `« Ce n’est pas le moment de désespérer. »
+
+Dans ce 7ᵉ épisode de Sororité — Le Podcast, @sandrousseau met des mots sur les mille et une blessures que nous héritons du patriarcat.
+
+#sororité #féminisme`,
+      publishedAt: {
+        type: "absolute",
+        date: "2026-05-05T00:00:00.000Z",
+      },
+      author: {
+        name: "feministsinthecity",
+        accountHref: "https://www.instagram.com/feministsinthecity",
+      },
+    });
+  });
+
+  it("Should parse caption-first French metadata", () => {
+    const ogDescription =
+      "Une légende avec - un séparateur - @feministsinthecity le May 5, 2026";
+
+    const result = parseOgDescriptionContent(ogDescription);
+
+    expect(result.textContent).toBe("Une légende avec - un séparateur");
+    expect(result.author.name).toBe("feministsinthecity");
+    expect(result.publishedAt.date).toBe("2026-05-05T00:00:00.000Z");
   });
 
   it("Should throw error for invalid og:description format", () => {

@@ -12,8 +12,6 @@ export type InstagramOgDescriptionInfo = Pick<
 > & {
   // Restrict to absolute date
   publishedAt: AbsoluteDate;
-} & {
-  commentsCount: number;
 };
 
 export function extractOgDescriptionInfo(
@@ -41,12 +39,19 @@ export function parseOgDescriptionContent(
   // '<likesCount> likes, <commentsCount> comments - <accountName> on <dateFragment>: "<textContent>".'
   // Or
   // '<likesCount> likes, <commentsCount> comments - <accountName> on <dateFragment>'
+  // Or
+  // '<textContent> - @<accountName> on <dateFragment>'
   // Instagram omits the engagement prefix when a post has no likes or comments.
 
-  const regex =
-    /^(?:(?:[0-9, ]+K? likes, (?<commentsCount>[0-9, ]+) comments - ))?(?<accountName>\S+)\s+(?:(le)|(on))\s+(?<dateFragment>[^:]*)(?:: "(?<textContent>.*)"\.)?\s*/gms;
+  const metadataFirstRegex =
+    /^(?:(?:[0-9, ]+K? likes, [0-9, ]+ comments - ))?(?<accountName>\S+)\s+(?:(le)|(on))\s+(?<dateFragment>[^:]*)(?:: "(?<textContent>.*)"\.)?\s*/gms;
 
-  const res = regex.exec(ogDescriptionContent);
+  const captionFirstRegex =
+    /^(?<textContent>.*)\s+-\s+@(?<accountName>[A-Za-z0-9._]+)\s+(?:le|on)\s+(?<dateFragment>[A-Za-z]+ \d{1,2}, \d{4})\s*$/s;
+
+  const metadataFirstResult = metadataFirstRegex.exec(ogDescriptionContent);
+  const captionFirstResult = captionFirstRegex.exec(ogDescriptionContent);
+  const res = metadataFirstResult ?? captionFirstResult;
   if (!res || !res.groups) {
     throw new Error(
       "Failed to extract ogDescriptionContent:\n" + ogDescriptionContent,
@@ -55,11 +60,6 @@ export function parseOgDescriptionContent(
   const textContent = res.groups["textContent"] ?? "";
   const dateFragment = res.groups["dateFragment"]!;
   const accountName = res.groups["accountName"]!;
-  const commentsCount = res.groups["commentsCount"]
-    ? Number.parseInt(
-        res.groups["commentsCount"].replaceAll(",", "").replaceAll(" ", ""),
-      )
-    : 0;
   const accountHref = `${INSTAGRAM_URL.origin}/${accountName}`;
   const publishedAt: PublicationDate = {
     type: "absolute",
@@ -72,7 +72,6 @@ export function parseOgDescriptionContent(
       name: accountName,
       accountHref,
     },
-    commentsCount,
   };
 }
 /**

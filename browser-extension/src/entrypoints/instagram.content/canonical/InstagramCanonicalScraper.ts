@@ -18,6 +18,7 @@ import type {
   InstagramComment,
   InstagramTextComment,
 } from "./InstagramLoadedCommentScraper";
+import { extractInstagramCommentsCount } from "./extractInstagramCommentsCount";
 
 const logger = createLogger("ig-canonical", scrapingLogger);
 
@@ -49,14 +50,15 @@ export class InstagramCanonicalScraper {
 
     const coverImageUrl = await ogImageUrl(this.scrapingSupport);
 
-    const {
-      publishedAt,
-      author,
-      textContent,
-      commentsCount: expectedCommentsCount,
-    } = extractOgDescriptionInfo(this.scrapingSupport);
+    const { publishedAt, author, textContent } = extractOgDescriptionInfo(
+      this.scrapingSupport,
+    );
+    const expectedCommentsCount = extractInstagramCommentsCount(
+      this.scrapingSupport,
+      document,
+    );
 
-    logger.debug("og info extracted:", {
+    logger.debug("postInfo extracted:", {
       coverImageUrl,
       publishedAt,
       author,
