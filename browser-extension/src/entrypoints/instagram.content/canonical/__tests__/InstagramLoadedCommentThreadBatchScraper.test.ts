@@ -80,4 +80,67 @@ describe("InstagramLoadedCommentThreadBatchScraper", () => {
       },
     ]);
   });
+
+  it("scrapes the captured elements when Instagram replaces comments and adds replies during capture", async () => {
+    const thread = document.createElement("div");
+    thread.innerHTML = `
+      ${commentMarkup("comment-1")}
+      <div><ul>${commentMarkup("reply-1")}</ul></div>
+    `;
+    const commentScreenshot = new Image(1, 1);
+    const replyScreenshot = new Image(2, 1);
+    const screenshotProvider: ElementScreenshotProvider = {
+      buildElementScreenshots: async (elements) => {
+        expect(elements.map((element) => element.id)).toEqual([
+          "comment-1",
+          "reply-1",
+        ]);
+        await Promise.resolve();
+        thread.innerHTML = `
+          ${commentMarkup("comment-1")}
+          <div><ul>${commentMarkup("reply-1")}${commentMarkup("reply-2")}</ul></div>
+        `;
+        return [commentScreenshot, replyScreenshot];
+      },
+    };
+    const scraper = new InstagramLoadedCommentThreadBatchScraper(
+      new ScrapingSupport(new AbortController().signal),
+      screenshotProvider,
+    );
+
+    const result = await scraper.scrapBatch({ threadElements: [thread] });
+
+    expect(result).toMatchObject([
+      {
+        comment: {
+          data: {
+            commentId: "comment-1",
+            screenshotData: imageToPngBase64(commentScreenshot),
+          },
+        },
+        replies: [
+          {
+            data: {
+              commentId: "reply-1",
+              screenshotData: imageToPngBase64(replyScreenshot),
+            },
+          },
+        ],
+      },
+    ]);
+    expect(result[0]!.replies).toHaveLength(1);
+  });
+
+  it("reports a missing screenshot before encoding comments", async () => {
+    const thread = document.createElement("div");
+    thread.innerHTML = commentMarkup("comment-1");
+    const scraper = new InstagramLoadedCommentThreadBatchScraper(
+      new ScrapingSupport(new AbortController().signal),
+      { buildElementScreenshots: () => Promise.resolve([]) },
+    );
+
+    await expect(
+      scraper.scrapBatch({ threadElements: [thread] }),
+    ).rejects.toThrow("Missing Instagram comment screenshot at index 0.");
+  });
 });
