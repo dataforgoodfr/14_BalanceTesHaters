@@ -1,7 +1,6 @@
 import KpiCards from "./KpiCards";
 import HarassmentTrendChart from "./HarassmentTrendChard";
 import ActiveAuthors from "../Shared/ActiveAuthors";
-import CategoryDistribution from "../Shared/CategoryDistribution";
 import SocialNetworkSelector from "../Shared/SocialNetworkSelector";
 import DateRangePicker from "./DateRangePicker";
 import React from "react";
@@ -71,12 +70,8 @@ function HomePage() {
             commentList={allComments}
             isLoading={isLoading}
           />
-          <div className="flex gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <ActiveAuthors postComments={allComments} isLoading={isLoading} />
-            <CategoryDistribution
-              postComments={allComments}
-              isLoading={isLoading}
-            />
           </div>
         </>
       )}

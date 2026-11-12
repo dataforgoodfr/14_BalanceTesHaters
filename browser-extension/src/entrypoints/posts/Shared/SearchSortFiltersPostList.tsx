@@ -15,10 +15,6 @@ import {
 } from "@/components/ui/popover";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import {
-  AnnotatedCategory,
-  getCategoryLabel,
-} from "@/shared/model/AnnotatedCategory";
 import type { PostFilters } from "@/shared/utils/post-util";
 import {
   DateFilterOptions,
@@ -31,14 +27,7 @@ import {
   isCategoryFiltered,
 } from "@/shared/utils/filter-util";
 
-type PostsFilterCategory =
-  | "date"
-  | "score"
-  | "alert"
-  | "nbHatefulComments"
-  | "status"
-  | "containsCategory"
-  | "containsAuthor";
+type PostsFilterCategory = "date" | "nbHatefulComments";
 
 const filterOptions = {
   date: [
@@ -46,55 +35,19 @@ const filterOptions = {
     { label: "30 derniers jours", value: DateFilterOptions.THIRTY_DAYS },
     { label: "12 derniers mois", value: DateFilterOptions.TWELVE_MONTHS },
   ],
-  score: [
-    { label: "1/5", value: "1" },
-    { label: "2/5", value: "2" },
-    { label: "3/5", value: "3" },
-    { label: "4/5", value: "4" },
-    { label: "5/5", value: "5" },
-  ],
-  alert: [
-    { label: "Détectée", value: "detected" },
-    { label: "Non détectée", value: "not_detected" },
-  ],
-
   nbHatefulComments: [
     { label: "0-10", value: NbHatefulCommentsOptions.ZERO_TEN },
     { label: "10-50", value: NbHatefulCommentsOptions.TEN_FIFTY },
     { label: "50+", value: NbHatefulCommentsOptions.FIFTY_PLUS },
   ],
-
-  status: [
-    { label: "Terminée", value: "done" },
-    { label: "Non terminée", value: "in_progress" },
-  ],
-
-  containsCategory: Object.values(AnnotatedCategory).map((category) => ({
-    label: getCategoryLabel(category),
-    value: category,
-  })),
-
-  containsAuthor: [
-    { label: "Détectée", value: "detected" },
-    { label: "Non détectée", value: "not_detected" },
-  ],
 };
 
 const categories = [
   { id: "date", label: "Date publication", isDisabled: false },
-  { id: "score", label: "Score juridique", isDisabled: true },
-  { id: "alert", label: "Alerte sécurité", isDisabled: true },
   {
     id: "nbHatefulComments",
     label: "Nb commentaires malveillants",
     isDisabled: false,
-  },
-  { id: "status", label: "Statut", isDisabled: true },
-  { id: "containsCategory", label: "Contient : Catégorie", isDisabled: true },
-  {
-    id: "containsAuthor",
-    label: "Contient : Pseudo auteur",
-    isDisabled: true,
   },
 ] as const;
 
