@@ -12,13 +12,11 @@ import {
   isCommentHateful,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
-import CategoryDistribution from "../Shared/CategoryDistribution";
 import CommentsTable from "./CommentsTable";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import { openPostAndStartScraping } from "@/entrypoints/actions/openPostAndStartScraping";
-import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 import { useFilteredCommentList } from "../Shared/useFilteredCommentList";
 import React from "react";
 import ClosableAlert from "../Shared/ClosableAlert";
@@ -137,7 +135,7 @@ function PostDetailPage() {
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
-              <div className="flex gap-4 justify-between w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
                 <PercentageHatefulCommentsKpiCard
                   numberOfHatefulComments={nbHatefulComments}
                   numberOfComments={nbComments}
@@ -148,18 +146,13 @@ function PostDetailPage() {
                   numberOfComments={nbComments}
                   isLoading={isLoading}
                 />
-                <SecurityAlert isLoading={isLoading}></SecurityAlert>
                 <NumberHatefulAuhorsKpiCard
                   hatefulCommentList={hatefulComments}
                   isLoading={isLoading}
                 />
               </div>
-              <div className="flex gap-4 w-full">
+              <div className="grid grid-cols-1 gap-4 w-full">
                 <ActiveAuthors
-                  postComments={post.comments}
-                  isLoading={isLoading}
-                />
-                <CategoryDistribution
                   postComments={post.comments}
                   isLoading={isLoading}
                 />

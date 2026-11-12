@@ -18,48 +18,20 @@ import {
   isSelectedOption,
   toggleFilterValue,
 } from "@/shared/utils/filter-util";
-import {
-  AnnotatedCategory,
-  getCategoryLabel,
-} from "@/shared/model/AnnotatedCategory";
 
 const categories = [
   { id: "date", label: "Date", isDisabled: true },
-  { id: "score", label: "Score juridique", isDisabled: true },
-  { id: "alert", label: "Alerte sécurité", isDisabled: true },
-  { id: "category", label: "Catégorie", isDisabled: true },
   { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
-  { id: "status", label: "Statut du commentaire", isDisabled: true },
 ] as const;
 
-type CommentsFilterCategory =
-  "date" | "score" | "alert" | "category" | "pseudoAuthor" | "status";
+type CommentsFilterCategory = "date" | "pseudoAuthor";
 
 const filterOptions: Record<
   CommentsFilterCategory,
   { label: string; value: string }[]
 > = {
   date: [],
-  score: [
-    { label: "5/5", value: "5" },
-    { label: "4/5", value: "4" },
-    { label: "3/5", value: "3" },
-    { label: "2/5", value: "2" },
-    { label: "1/5", value: "1" },
-  ],
-  alert: [
-    { label: "Détectée", value: "detected" },
-    { label: "Non détectée", value: "not_detected" },
-  ],
-  category: Object.values(AnnotatedCategory).map((category) => ({
-    label: getCategoryLabel(category),
-    value: category,
-  })),
   pseudoAuthor: [],
-  status: [
-    { label: "Nouveau", value: "new" },
-    { label: "Supprimé", value: "deleted" },
-  ],
 };
 
 type CommentsFilterPopoverProperties = {
