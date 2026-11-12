@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type {
   PostFilters,
   CommentFilters,
@@ -11,6 +11,7 @@ import {
   sortCommentList,
   NbHatefulCommentsOptions,
   CommentSortingCategory,
+  CommentDateFilterOptions,
   emptyPostFilters,
   emptyCommentFilters,
 } from "../post-util";
@@ -316,6 +317,146 @@ describe("post utilities", () => {
     });
 
     describe("comment list filtering", () => {
+      describe("date filtering", () => {
+        beforeEach(() => {
+          vi.useFakeTimers();
+          vi.setSystemTime(new Date(2026, 10, 12, 14, 30));
+        });
+
+        afterEach(() => {
+          vi.useRealTimers();
+        });
+
+        const absoluteComment = (date: Date) =>
+          createDummyCommentWithId({
+            publishedAt: { type: "absolute", date: date.toISOString() },
+          });
+
+        it.each([
+          [CommentDateFilterOptions.TODAY, 12],
+          [CommentDateFilterOptions.TWO_DAYS, 11],
+          [CommentDateFilterOptions.SEVEN_DAYS, 6],
+          [CommentDateFilterOptions.THIRTY_DAYS, -17],
+        ])(
+          "includes calendar days and their boundaries for %s",
+          (date, day) => {
+            const start = new Date(2026, 10, day);
+            const before = absoluteComment(new Date(start.getTime() - 1));
+            const first = absoluteComment(start);
+            const last = absoluteComment(
+              new Date(2026, 10, 12, 23, 59, 59, 999),
+            );
+            const tomorrow = absoluteComment(new Date(2026, 10, 13));
+
+            expect(
+              filterCommentList([before, first, last, tomorrow], "", {
+                ...emptyCommentFilters,
+                date,
+              }),
+            ).toEqual([first, last]);
+          },
+        );
+
+        it("keeps estimated periods overlapping the selected period", () => {
+          const relativeComment = (start: Date, end: Date) =>
+            createDummyCommentWithId({
+              publishedAt: {
+                type: "relative",
+                dateText: "il y a quelques jours",
+                resolvedDateRange: {
+                  start: start.toISOString(),
+                  end: end.toISOString(),
+                },
+              },
+            });
+          const overlappingStart = relativeComment(
+            new Date(2026, 10, 10),
+            new Date(2026, 10, 12),
+          );
+          const overlappingEnd = relativeComment(
+            new Date(2026, 10, 12, 12),
+            new Date(2026, 10, 14),
+          );
+          const spanning = relativeComment(
+            new Date(2026, 10, 1),
+            new Date(2026, 10, 20),
+          );
+          const within = relativeComment(
+            new Date(2026, 10, 12, 1),
+            new Date(2026, 10, 12, 2),
+          );
+          const before = relativeComment(
+            new Date(2026, 10, 10),
+            new Date(2026, 10, 11, 23, 59, 59, 999),
+          );
+          const after = relativeComment(
+            new Date(2026, 10, 13),
+            new Date(2026, 10, 14),
+          );
+
+          expect(
+            filterCommentList(
+              [
+                overlappingStart,
+                overlappingEnd,
+                spanning,
+                within,
+                before,
+                after,
+              ],
+              "",
+              {
+                ...emptyCommentFilters,
+                date: CommentDateFilterOptions.TODAY,
+              },
+            ),
+          ).toEqual([overlappingStart, overlappingEnd, spanning, within]);
+        });
+
+        it("excludes unknown dates only while a date filter is active", () => {
+          const comment = createDummyCommentWithId({
+            publishedAt: { type: "unknown date", dateText: "inconnue" },
+          });
+          expect(
+            filterCommentList([comment], "", {
+              ...emptyCommentFilters,
+              date: CommentDateFilterOptions.TODAY,
+            }),
+          ).toEqual([]);
+          expect(filterCommentList([comment], "", emptyCommentFilters)).toEqual(
+            [comment],
+          );
+        });
+
+        it("combines the period with author and text filters", () => {
+          const matching = createDummyCommentWithId({
+            author: { name: "Alice", accountHref: "" },
+            textContent: "Message recherché",
+            publishedAt: { type: "absolute", date: new Date().toISOString() },
+          });
+          const otherAuthor = {
+            ...matching,
+            author: { name: "Bob", accountHref: "" },
+          };
+          const otherText = { ...matching, textContent: "Autre contenu" };
+          const older = {
+            ...matching,
+            publishedAt: absoluteComment(new Date(2026, 10, 1)).publishedAt,
+          };
+          expect(
+            filterCommentList(
+              [matching, otherAuthor, otherText, older],
+              "recherché",
+              {
+                ...emptyCommentFilters,
+                date: CommentDateFilterOptions.TODAY,
+                pseudoAuthor: ["Alice"],
+              },
+            ),
+          ).toEqual([matching]);
+        });
+      });
+
       it("should filter by pseudo author list", () => {
         const comments = [
           createDummyCommentWithId({
