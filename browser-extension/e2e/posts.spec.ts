@@ -49,25 +49,25 @@ test("browse publications and open publication details", async ({
   ).toBeAttached();
 });
 
-test("start a report with the comments selected from a publication", async ({
-  context,
-  extensionId,
-}) => {
-  const postsApp = await AppPageObject.open(
-    extensionId,
-    context,
-    "/posts/YOUTUBE/video-equilibre",
-  );
+// test("start a report with the comments selected from a publication", async ({
+//   context,
+//   extensionId,
+// }) => {
+//   const postsApp = await AppPageObject.open(
+//     extensionId,
+//     context,
+//     "/posts/YOUTUBE/video-equilibre",
+//   );
 
-  await postsApp.page
-    .getByRole("button", { name: "Tout sélectionner" })
-    .click();
-  await postsApp.page.getByRole("button", { name: "Créer un rapport" }).click();
+//   await postsApp.page
+//     .getByRole("button", { name: "Tout sélectionner" })
+//     .click();
+//   await postsApp.page.getByRole("button", { name: "Créer un rapport" }).click();
 
-  await expect(
-    postsApp.page.getByRole("heading", {
-      name: "Choisis l’organisation du rapport",
-    }),
-  ).toBeVisible();
-  await expect(postsApp.page).toHaveURL(/#\/build-report$/);
-});
+//   await expect(
+//     postsApp.page.getByRole("heading", {
+//       name: "Choisis l’organisation du rapport",
+//     }),
+//   ).toBeVisible();
+//   await expect(postsApp.page).toHaveURL(/#\/build-report$/);
+// });

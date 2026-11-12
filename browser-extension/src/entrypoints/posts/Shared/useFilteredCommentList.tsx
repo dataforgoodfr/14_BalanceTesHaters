@@ -13,6 +13,10 @@ import {
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
+import {
+  commentHateFlagKey,
+  getPostHateFlagsList,
+} from "@/shared/storage/hate-flags-storage";
 
 export type useFilteredCommentListData = {
   searchTerm: string;
@@ -35,15 +39,50 @@ export function useFilteredCommentList(
   const [searchTerm, setSearchTerm] = React.useState("");
   const [commentFilters, setCommentFilters] =
     React.useState(emptyCommentFilters);
-  const queryKey = React.useMemo(
+  const postQueryKey = React.useMemo(
     () => ["posts", postIdList.join(",")],
     [postIdList],
   );
+  const hateFlagsQueryKey = React.useMemo(
+    () => ["postHateFlags", postIdList.join(",")],
+    [postIdList],
+  );
 
-  const { data, isLoading } = useQuery({
-    queryKey,
+  const { data, isLoading: isLoadingPosts } = useQuery({
+    queryKey: postQueryKey,
     queryFn: () => getPostsByPostIdList(postIdList),
   });
+
+  const {
+    data: flaggedCommentIds = new Set<string>(),
+    isLoading: isLoadingFlags,
+  } = useQuery({
+    queryKey: hateFlagsQueryKey,
+    queryFn: async () => {
+      const hateFlags = await getPostHateFlagsList(postIdList);
+      const comments = (data ?? []).flatMap((post) =>
+        post.comments.map((comment) => ({ postId: post.postId, comment })),
+      );
+
+      const flagResults = await Promise.all(
+        comments.map(async ({ postId, comment }) => {
+          const flagsForPost = hateFlags.find(
+            (flags) => flags.postId === postId,
+          );
+          const key = await commentHateFlagKey(comment.textContent);
+          return flagsForPost?.hateFlags[key] ?? false;
+        }),
+      );
+
+      return new Set(
+        flagResults.flatMap((isFlagged, index) =>
+          isFlagged ? [String(index)] : [],
+        ),
+      );
+    },
+    enabled: data !== undefined,
+  });
+
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
   //  et une clé postKey pour différencier les commentaires issus de différents posts
   const {
@@ -65,7 +104,12 @@ export function useFilteredCommentList(
           );
         })
         .map((comment, i) => {
-          return { ...comment, id: i.toString() };
+          const id = i.toString();
+          return {
+            ...comment,
+            id,
+            IsFlagged: flaggedCommentIds.has(id),
+          };
         });
 
       const hatefulAuthorList: string[] = allComments
@@ -84,7 +128,13 @@ export function useFilteredCommentList(
         ),
         hatefulAuthorList,
       };
-    }, [data, searchTerm, commentFilters, commentSortingCategory]);
+    }, [
+      data,
+      flaggedCommentIds,
+      searchTerm,
+      commentFilters,
+      commentSortingCategory,
+    ]);
 
   return {
     searchTerm,
@@ -93,6 +143,6 @@ export function useFilteredCommentList(
     setCommentFilters,
     filteredCommentList: filteredCommentList,
     hatefulAuthorList,
-    isLoading,
+    isLoading: isLoadingPosts || isLoadingFlags,
   };
 }
