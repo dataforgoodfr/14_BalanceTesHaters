@@ -17,6 +17,13 @@ export enum DateFilterOptions {
   TWELVE_MONTHS = "12months",
 }
 
+export enum CommentDateFilterOptions {
+  TODAY = "today",
+  TWO_DAYS = "2days",
+  SEVEN_DAYS = "7days",
+  THIRTY_DAYS = "30days",
+}
+
 export enum PostSortingCategory {
   ANALYSIS_DATE_DESC = "analysisDateDesc",
   ANALYSIS_DATE_ASC = "analysisDateAsc",
@@ -55,7 +62,7 @@ export type PostFilters = {
 };
 
 export type CommentFilters = {
-  date: DateFilterOptions | undefined;
+  date: CommentDateFilterOptions | undefined;
   score: string[];
   alert: string[];
   category: string[];
@@ -301,6 +308,36 @@ export function filterCommentList(
   filters: CommentFilters,
 ): PostCommentWithId[] {
   let filteredCommentList = commentList;
+
+  if (filters.date !== undefined) {
+    const daysByPeriod: Record<CommentDateFilterOptions, number> = {
+      [CommentDateFilterOptions.TODAY]: 1,
+      [CommentDateFilterOptions.TWO_DAYS]: 2,
+      [CommentDateFilterOptions.SEVEN_DAYS]: 7,
+      [CommentDateFilterOptions.THIRTY_DAYS]: 30,
+    };
+    const startDate = new Date();
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
+    startDate.setDate(startDate.getDate() - daysByPeriod[filters.date] + 1);
+
+    filteredCommentList = filteredCommentList.filter(({ publishedAt }) => {
+      switch (publishedAt.type) {
+        case "absolute": {
+          const date = new Date(publishedAt.date);
+          return date >= startDate && date < endDate;
+        }
+        case "relative":
+          return (
+            new Date(publishedAt.resolvedDateRange.end) >= startDate &&
+            new Date(publishedAt.resolvedDateRange.start) < endDate
+          );
+        case "unknown date":
+          return false;
+      }
+    });
+  }
 
   if (filters.pseudoAuthor && filters.pseudoAuthor.length > 0) {
     filteredCommentList = filteredCommentList.filter((comment) => {

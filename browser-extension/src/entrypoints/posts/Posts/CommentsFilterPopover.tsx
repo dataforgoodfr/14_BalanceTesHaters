@@ -13,14 +13,17 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { CommentFilters } from "@/shared/utils/post-util";
-import { emptyCommentFilters } from "@/shared/utils/post-util";
+import {
+  CommentDateFilterOptions,
+  emptyCommentFilters,
+} from "@/shared/utils/post-util";
 import {
   isSelectedOption,
   toggleFilterValue,
 } from "@/shared/utils/filter-util";
 
 const categories = [
-  { id: "date", label: "Date", isDisabled: true },
+  { id: "date", label: "Date", isDisabled: false },
   { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
 ] as const;
 
@@ -30,7 +33,12 @@ const filterOptions: Record<
   CommentsFilterCategory,
   { label: string; value: string }[]
 > = {
-  date: [],
+  date: [
+    { label: "Aujourd'hui", value: CommentDateFilterOptions.TODAY },
+    { label: "2 derniers jours", value: CommentDateFilterOptions.TWO_DAYS },
+    { label: "7 derniers jours", value: CommentDateFilterOptions.SEVEN_DAYS },
+    { label: "30 derniers jours", value: CommentDateFilterOptions.THIRTY_DAYS },
+  ],
   pseudoAuthor: [],
 };
 
