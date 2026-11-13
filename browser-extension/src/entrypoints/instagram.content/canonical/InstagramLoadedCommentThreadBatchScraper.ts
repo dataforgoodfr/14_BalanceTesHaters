@@ -1,100 +1,84 @@
-import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
+import { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import type { InstagramComment } from "./InstagramLoadedCommentScraper";
 import { InstagramLoadedCommentScraper } from "./InstagramLoadedCommentScraper";
 import type { ElementScreenshotProvider } from "@/shared/screenshoting";
 import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
-import { MASQUES_LES_COMMENTAIRES_BUTTON_REGEX } from "./instagramElementsTexts";
 import type { Image } from "image-js";
+import type { InstagramCommentThreadBatch } from "./InstagramCommentThreadBatch";
 
 const logger = createLogger("ig-comment-threads", scrapingLogger);
 /**
- * Scrap comment threads. This assumes all comments as been loaded previously.
+ * Scrape the loaded comments and replies in a batch.
  */
-export class InstagramLoadedCommentThreadsScraper {
+export class InstagramLoadedCommentThreadBatchScraper {
   constructor(
-    private commentsContainer: HTMLElement,
-    private scrapingSupport: ScrapingSupport,
-    private progressManager: ProgressManager,
-    private screenshotProvider: ElementScreenshotProvider,
+    private readonly scrapingSupport: ScrapingSupport,
+    private readonly screenshotProvider: ElementScreenshotProvider,
   ) {}
 
-  async scrapLoadedCommentThreads(): Promise<InstagramCommentThread[]> {
-    const commentThreadElements = this.scrapingSupport.selectAll(
-      this.commentsContainer,
-      ":scope > div",
-      HTMLElement,
-      {
-        predicate: (e) =>
-          !MASQUES_LES_COMMENTAIRES_BUTTON_REGEX.test(e.innerText.trim()),
-      },
-    );
-
-    return await this.scrapCommentThreadElements(commentThreadElements);
-  }
-
-  private async scrapCommentThreadElements(
-    commentThreadElements: HTMLElement[],
+  async scrapBatch(
+    batch: InstagramCommentThreadBatch,
   ): Promise<InstagramCommentThread[]> {
+    const commentThreadElements = batch.threadElements;
     logger.debug("Scraping ", commentThreadElements.length, " comment threads");
-    const commentElements = commentThreadElements.flatMap((threadElement) => [
-      this.selectCommentElement(threadElement),
-      ...this.selectReplyElements(threadElement),
+    // Screenshot capture yields to Instagram, which can add or replace replies.
+    // Keep the same element selection for capture and scraping.
+    const selectedThreads = commentThreadElements.map((threadElement) => ({
+      commentElement: this.selectCommentElement(threadElement),
+      replyElements: this.selectReplyElements(threadElement),
+    }));
+    const commentElements = selectedThreads.flatMap((thread) => [
+      thread.commentElement,
+      ...thread.replyElements,
     ]);
-    const screenshotProgressMgr = this.progressManager.subTaskProgressManager({
-      from: 0,
-      to: 90,
-    });
-    const scrapCommentsProgressMgr =
-      this.progressManager.subTaskProgressManager({
-        from: 90,
-        to: 100,
-      });
     const screenshots = await this.screenshotProvider.buildElementScreenshots(
       commentElements,
-      screenshotProgressMgr,
+      new ProgressManager(() => undefined),
     );
     const screenshotsByElement = new Map(
-      commentElements.map(
-        (element, index) => [element, screenshots[index]!] as const,
-      ),
+      commentElements.map((element, index) => {
+        const screenshot = screenshots[index];
+        if (!screenshot) {
+          throw new Error(
+            `Missing Instagram comment screenshot at index ${index}.`,
+          );
+        }
+        return [element, screenshot] as const;
+      }),
     );
     const commentThreads = [];
-    for (const commentThreadEl of commentThreadElements) {
+    for (const thread of selectedThreads) {
       logger.debug(
         `Scraping comment threads  ${commentThreads.length + 1}/${commentThreadElements.length}`,
       );
       const commentThread = this.scrapCommentThread(
-        commentThreadEl,
+        thread.commentElement,
+        thread.replyElements,
         screenshotsByElement,
       );
       commentThreads.push(commentThread);
-      scrapCommentsProgressMgr.setProgress(
-        (commentThreads.length / commentThreadElements.length) * 100,
-      );
     }
 
     return commentThreads;
   }
 
   private scrapCommentThread(
-    commentThreadElement: HTMLElement,
+    commentDiv: HTMLElement,
+    replyElements: HTMLElement[],
     screenshotsByElement: Map<HTMLElement, Image>,
   ): InstagramCommentThread {
     // Comment thread is composed of 1 or 2 divs:
     // * Comment Thread div
     // * Optionnal replies div
-    const commentDiv = this.selectCommentElement(commentThreadElement);
     const comment: InstagramComment = new InstagramLoadedCommentScraper(
       commentDiv,
       screenshotsByElement.get(commentDiv)!,
       this.scrapingSupport,
     ).scrapLoadedComment();
 
-    const replyThreadElements = this.selectReplyElements(commentThreadElement);
-
     const replies: InstagramComment[] = this.scrapCommentThreadReplies(
-      replyThreadElements,
+      replyElements,
       screenshotsByElement,
     );
     return {
@@ -144,6 +128,6 @@ export class InstagramLoadedCommentThreadsScraper {
 
 export type InstagramCommentThread = {
   comment: InstagramComment;
-  // INstagram only has 2 levels
+  // Instagram only has 2 levels
   replies: InstagramComment[];
 };

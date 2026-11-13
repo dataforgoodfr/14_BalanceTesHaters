@@ -81,6 +81,7 @@ export class InstagramScraper implements SocialNetworkScraper {
       progressManager,
       output,
       settings?.skipScreenshoting ?? false,
+      settings?.scrapingMaxComments,
     ).scrapPost();
   }
 }

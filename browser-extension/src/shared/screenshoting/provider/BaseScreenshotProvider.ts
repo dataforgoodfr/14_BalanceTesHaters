@@ -54,18 +54,14 @@ export abstract class BaseScreenshotProvider implements ElementScreenshotProvide
           );
         const screenshotFragments = scrollableScreenshot.fragments;
 
-        const boxesAfterCapture = new Map(
-          elements.map((e) => [e, this.computeElementBoxInContainer(e)]),
-        );
-
         // Check boxes are same after capture
         // As a way to ensure screenshots took a "stable picture"
-        this.checkElementsBoxesStable(boxesBeforeCapture, boxesAfterCapture);
+        this.checkElementsBoxesStable(boxesBeforeCapture);
 
         // Build screenshots from fragments
         const elementScreenshots: Image[] = [];
         for (const element of elements) {
-          const box = boxesAfterCapture.get(element)!;
+          const box = boxesBeforeCapture.get(element)!;
           const elementScreenshot = buildImageFromFragments(
             screenshotFragments,
             box,
@@ -81,26 +77,18 @@ export abstract class BaseScreenshotProvider implements ElementScreenshotProvide
     });
   }
 
-  private checkElementsBoxesStable(
-    before: Map<HTMLElement, Box>,
-    after: Map<HTMLElement, Box>,
-  ) {
-    for (const [element, beforeLocation] of before.entries()) {
-      const afterLocation = after.get(element);
-      if (afterLocation === undefined) {
-        throw new Error("After location unexpectidly missing");
-      }
+  private checkElementsBoxesStable(before: Map<HTMLElement, Box>) {
+    for (const [element, boxBefore] of before.entries()) {
+      const boxAfterCapture = this.computeElementBoxInContainer(element);
+
       if (
-        beforeLocation.x !== afterLocation.x ||
-        beforeLocation.y !== afterLocation.y ||
-        beforeLocation.height !== afterLocation.height ||
-        beforeLocation.width !== afterLocation.width
+        boxBefore.x !== boxAfterCapture.x ||
+        boxBefore.y !== boxAfterCapture.y ||
+        boxBefore.height !== boxAfterCapture.height ||
+        boxBefore.width !== boxAfterCapture.width
       ) {
-        throw new UnstableElementBoxError(
-          element,
-          beforeLocation,
-          afterLocation,
-        );
+        logger.warn("Unstable Element box", element);
+        throw new UnstableElementBoxError(element, boxBefore, boxAfterCapture);
       }
     }
   }
