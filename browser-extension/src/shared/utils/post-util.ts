@@ -1,6 +1,6 @@
 import type {
   Post,
-  PostComment,
+  PostCommentWithFlag,
 } from "../model/post/Post";
 import type { PostSnapshot } from "../model/PostSnapshot";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
@@ -37,12 +37,11 @@ export enum CommentSortingCategory {
   PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
 
-export type PostCommentWithIdAndFlag = PostComment & {
+export type PostCommentWithIdAndFlag = PostCommentWithFlag & {
   id: string;
   postId: string;
   socialNetwork: string;
   postKey: string;
-  isFlagged: boolean;
 };
 
 export type PostFilters = {

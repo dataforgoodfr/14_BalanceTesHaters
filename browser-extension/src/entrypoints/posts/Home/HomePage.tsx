@@ -5,14 +5,13 @@ import CategoryDistribution from "../Shared/CategoryDistribution";
 import SocialNetworkSelector from "../Shared/SocialNetworkSelector";
 import DateRangePicker from "./DateRangePicker";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { type DateRange } from "@daypicker/react";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { getEarliestPostDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import { main } from "../Menu";
 import NoPost from "../Shared/NoPost";
+import { useHomePagePostList } from "../Shared/useFilteredPostList";
 
 function HomePage() {
   // selection state controlled by the page
@@ -21,24 +20,29 @@ function HomePage() {
   >([SocialNetwork.YouTube]);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const queryKey = [
-    "posts",
-    socialNetworkFilter,
-    dateRange?.from?.toISOString() ?? "",
-    dateRange?.to?.toISOString() ?? "",
-  ];
+  const {
+    isLoading,
+    filteredPosts,
+  } = useHomePagePostList(socialNetworkFilter, dateRange);
 
-  const { data: posts, isLoading } = useQuery({
-    queryKey,
-    queryFn: () =>
-      getPostsBySocialNetworkAndPeriod(
-        socialNetworkFilter,
-        dateRange?.from,
-        dateRange?.to,
-      ),
-  });
+  // const queryKey = [
+  //   "posts",
+  //   socialNetworkFilter,
+  //   dateRange?.from?.toISOString() ?? "",
+  //   dateRange?.to?.toISOString() ?? "",
+  // ];
 
-  const allComments = (posts || []).flatMap((p) => p.comments);
+  // const { data: posts, isLoading } = useQuery({
+  //   queryKey,
+  //   queryFn: () =>
+  //     getPostsBySocialNetworkAndPeriod(
+  //       socialNetworkFilter,
+  //       dateRange?.from,
+  //       dateRange?.to,
+  //     ),
+  // });
+
+  const allComments = (filteredPosts || []).flatMap((p) => p.comments);
 
   return (
     <main className="flex flex-col gap-4">
@@ -52,11 +56,11 @@ function HomePage() {
       <div className="flex justify-between">
         <div className="text-muted-foreground text-sm my-auto">
           Publications analysées pour la période sélectionnée :{" "}
-          <span className="font-bold">{posts?.length}</span>
+          <span className="font-bold">{filteredPosts?.length}</span>
         </div>
 
         <DateRangePicker
-          startDate={dateRange?.from || getEarliestPostDate(posts)}
+          startDate={dateRange?.from || getEarliestPostDate(filteredPosts)}
           onChange={setDateRange}
         />
       </div>
@@ -65,7 +69,7 @@ function HomePage() {
 
       {allComments.length > 0 && (
         <>
-          <KpiCards posts={posts} isLoading={isLoading} />
+          <KpiCards posts={filteredPosts} isLoading={isLoading} />
           <HarassmentTrendChart
             dateRange={dateRange}
             commentList={allComments}
