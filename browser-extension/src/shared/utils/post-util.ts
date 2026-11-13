@@ -1,7 +1,4 @@
-import type {
-  Post,
-  PostCommentWithFlag,
-} from "../model/post/Post";
+import type { Post, PostCommentWithFlag } from "../model/post/Post";
 import type { PostSnapshot } from "../model/PostSnapshot";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { SocialNetwork } from "../model/SocialNetworkName";
@@ -203,9 +200,10 @@ export function filterPosts<T extends Post>(
 ): T[] {
   let filteredPosts = posts;
   if (filters.nbHatefulComments) {
-    filteredPosts = filteredPosts.filter(() => {
-      const postHatefulCommentsCount =0;
-       // post.comments.filter((c) => c.isFlagged).length;
+    filteredPosts = filteredPosts.filter((post) => {
+      const postHatefulCommentsCount = post.comments.filter(
+        (comment) => "isFlagged" in comment && comment.isFlagged === true,
+      ).length;
       return (
         filters.nbHatefulComments.length == 0 ||
         (filters.nbHatefulComments.includes(
@@ -287,7 +285,7 @@ export function sortPostList<T extends Post>(
           getDateForSorting(a.publishedAt).getTime()
         );
       });
-      default:
+    default:
       return posts;
   }
 }
