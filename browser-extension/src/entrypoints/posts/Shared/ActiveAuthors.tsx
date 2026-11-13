@@ -11,12 +11,12 @@ import {
 import type { BarShapeProps } from "recharts";
 import { Bar, BarChart, Rectangle, XAxis, YAxis } from "recharts";
 import { getHatefulAuthorStatsList } from "@/shared/utils/report-stats";
-import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 
 const MAX_AUTHORS_TO_DISPLAY = 10; // Nombre maximum d'auteurs à afficher dans la liste des auteurs actifs
 
 type ActiveAuthorsProps = {
-  postComments: PostCommentWithIdAndFlag[];
+  postComments: PostCommentWithFlag[];
   isLoading: boolean;
 };
 
