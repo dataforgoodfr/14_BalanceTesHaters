@@ -25,6 +25,8 @@ vi.mock("../../debug/debugScreenshots", () => ({
 
 class FakeScrollable implements Scrollable {
   private top = 0;
+  private left = 0;
+  scrollSize: Size = { width: 4, height: 10 };
   clientBox: Box = { x: 0, y: 0, width: 4, height: 2 };
   scrollCalls = 0;
 
@@ -43,11 +45,11 @@ class FakeScrollable implements Scrollable {
   }
 
   getScrollSize(): Size {
-    return { width: 4, height: 10 };
+    return { ...this.scrollSize };
   }
 
   getScrollPosition(): ScrollPosition {
-    return { top: this.top, left: 0 };
+    return { top: this.top, left: this.left };
   }
 
   simulateUserScroll(delta: number): void {
@@ -57,6 +59,7 @@ class FakeScrollable implements Scrollable {
   scrollTo(options: ScrollableScrollToOptions): Promise<void> {
     this.scrollCalls++;
     this.top = this.settleTop(options.top ?? this.top);
+    this.left = options.left ?? this.left;
     return Promise.resolve();
   }
 }
@@ -127,6 +130,69 @@ describe("captureScrollableScreenshot", () => {
       { width: 2, height: 2 },
       { width: 2, height: 2 },
     ]);
+  });
+
+  test("captures a visible area even when content overflows horizontally", async () => {
+    const scrollable = new FakeScrollable();
+    scrollable.scrollSize.width = 6;
+    const screenshot = await captureScrollableScreenshot(
+      scrollable,
+      new ScrapingSupport(new AbortController().signal),
+      new ProgressManager(vi.fn()),
+      { x: 0, y: 3, width: 4, height: 2 },
+      { waitForScrollEnd: false, extraWait: 0 },
+    );
+    expect(
+      screenshot.fragments.map((fragment) => fragment.catpureArea),
+    ).toEqual([{ x: 0, y: 3, width: 4, height: 2 }]);
+    expect(captureTabScreenshotAsDataUrl).toHaveBeenCalledTimes(1);
+  });
+
+  test("captures overflow in horizontal tiles with the correct pixels and no overlap", async () => {
+    const scrollable = new FakeScrollable();
+    scrollable.scrollSize.width = 6;
+    vi.mocked(captureTabScreenshotAsDataUrl).mockImplementation(() => {
+      const { top, left } = scrollable.getScrollPosition();
+      const image = new Image(4, 2);
+      for (let row = 0; row < 2; row++) {
+        for (let column = 0; column < 4; column++) {
+          image.setPixel(column, row, [left + column, top + row, 100]);
+        }
+      }
+      return Promise.resolve(
+        `data:image/png;base64,${uint8ArrayToBase64(encodePng(image))}`,
+      );
+    });
+    const screenshot = await captureScrollableScreenshot(
+      scrollable,
+      new ScrapingSupport(new AbortController().signal),
+      new ProgressManager(vi.fn()),
+      { x: 0, y: 7, width: 6, height: 3 },
+      { waitForScrollEnd: false, extraWait: 0 },
+    );
+    expect(
+      screenshot.fragments.map((fragment) => fragment.catpureArea),
+    ).toEqual([
+      { x: 0, y: 7, width: 4, height: 2 },
+      { x: 4, y: 7, width: 2, height: 2 },
+      { x: 0, y: 9, width: 4, height: 1 },
+      { x: 4, y: 9, width: 2, height: 1 },
+    ]);
+    for (const fragment of screenshot.fragments) {
+      const image = decodePng(fragment.screenshotPng);
+      const area = fragment.catpureArea;
+      expect(image.width).toBe(area.width);
+      expect(image.height).toBe(area.height);
+      for (let row = 0; row < image.height; row++) {
+        for (let column = 0; column < image.width; column++) {
+          expect(image.getPixel(column, row)).toEqual([
+            area.x + column,
+            area.y + row,
+            100,
+          ]);
+        }
+      }
+    }
   });
 
   test("crops the tab screenshot to a scrollable that does not fill the viewport", async () => {

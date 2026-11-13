@@ -88,85 +88,77 @@ export async function captureScrollableScreenshot(
     resolvedWaitOptions,
   );
 
-  const expectedFragmentsCount = Math.ceil(
-    requestedScreenshotArea.height /
-      scrollableElement.getClientBoxInViewport().height,
-  );
+  const clientBox = scrollableElement.getClientBoxInViewport();
+  const expectedFragmentsCount =
+    Math.ceil(requestedScreenshotArea.height / clientBox.height) *
+    Math.ceil(requestedScreenshotArea.width / clientBox.width);
   const progressPerFragment = 100 / expectedFragmentsCount;
-
-  logger.debug(
-    "Expecting " +
-      expectedFragmentsCount +
-      " page screenshots to be necessary.",
-  );
-
   const fragments: ScreenshotFragment[] = [];
-
-  let nextTop = requestedScreenshotArea.y;
   const screenshotBottom =
     requestedScreenshotArea.y + requestedScreenshotArea.height;
+  const screenshotRight =
+    requestedScreenshotArea.x + requestedScreenshotArea.width;
+  let nextTop = requestedScreenshotArea.y;
 
   while (nextTop < screenshotBottom) {
-    scrapingSupport.throwIfAborted();
-    // Check request still valid even if page changed
-    checkScreenshotAreaValid(
-      requestedScreenshotArea,
-      scrollableElement.getScrollSize(),
-    );
-    checkNoHorizontalScrolling(
-      scrollableElement.getScrollSize(),
-      scrollableElement.getClientBoxInViewport(),
-    );
-    // Ensure requestedTop screenshot does not extend past scrollclientSize
-    const requestedTop = Math.min(
-      nextTop,
-      maxReachableScrollTop(scrollableElement),
-    );
-
-    logger.debug(
-      `Scroll to requestedTop:${requestedTop} [nextTop was: ${nextTop}]`,
-    );
-
-    const {
-      visibleArea,
-      scrollableScreenshot,
-    }: ScrollableVisibleAreaScreenshot =
-      await captureScrollableVisibleAreaScreenshotWithRetry(
-        scrollableElement,
-        scrapingSupport,
-        requestedTop,
-        resolvedWaitOptions,
+    let nextLeft = requestedScreenshotArea.x;
+    let rowBottom = screenshotBottom;
+    while (nextLeft < screenshotRight) {
+      scrapingSupport.throwIfAborted();
+      checkScreenshotAreaValid(
+        requestedScreenshotArea,
+        scrollableElement.getScrollSize(),
       );
-    const remainingArea: Box = {
-      ...requestedScreenshotArea,
-      y: nextTop,
-      height: screenshotBottom - nextTop,
-    };
-    const capturedArea = intersectRects(visibleArea, remainingArea);
-    if (!capturedArea) {
-      throw new Error(
-        `The visible area does not intersect the screenshot area.
+      const scrollSize = scrollableElement.getScrollSize();
+      const clientBox = scrollableElement.getClientBoxInViewport();
+      const requestedTop = Math.min(
+        nextTop,
+        maxReachableScrollTop(scrollableElement),
+      );
+      const requestedLeft = Math.min(
+        nextLeft,
+        Math.max(0, scrollSize.width - clientBox.width),
+      );
+      const { visibleArea, scrollableScreenshot } =
+        await captureScrollableVisibleAreaScreenshotWithRetry(
+          scrollableElement,
+          scrapingSupport,
+          requestedTop,
+          requestedLeft,
+          resolvedWaitOptions,
+        );
+      const remainingArea: Box = {
+        x: nextLeft,
+        y: nextTop,
+        width: screenshotRight - nextLeft,
+        height: rowBottom - nextTop,
+      };
+      const capturedArea = intersectRects(visibleArea, remainingArea);
+      if (!capturedArea) {
+        throw new Error(
+          `The visible area does not intersect the screenshot area.
   visibleArea:${JSON.stringify(visibleArea)}
   remainingArea${JSON.stringify(remainingArea)}`,
+        );
+      }
+      const fragmentImage = cropImageToArea(
+        scrollableScreenshot,
+        visibleArea,
+        capturedArea,
       );
+      await maybeStoreDebugScreenshot(fragmentImage, {
+        type: "scrollable-fragment-requested-area",
+        desc: `scrollTop:${requestedTop}, scrollLeft:${requestedLeft}`,
+      });
+      fragments.push({
+        catpureArea: capturedArea,
+        screenshotPng: encodePng(fragmentImage),
+      });
+      progressManager.setProgress(fragments.length * progressPerFragment);
+      nextLeft = capturedArea.x + capturedArea.width;
+      rowBottom = Math.min(rowBottom, capturedArea.y + capturedArea.height);
     }
-    const fragmentImage = cropImageToArea(
-      scrollableScreenshot,
-      visibleArea,
-      capturedArea,
-    );
-    await maybeStoreDebugScreenshot(fragmentImage, {
-      type: "scrollable-fragment-requested-area",
-      desc: "scrollTop:" + requestedTop,
-    });
-
-    const screenshot: ScreenshotFragment = {
-      catpureArea: capturedArea,
-      screenshotPng: encodePng(fragmentImage),
-    };
-    fragments.push(screenshot);
-    progressManager.setProgress(fragments.length * progressPerFragment);
-    nextTop = capturedArea.y + capturedArea.height;
+    nextTop = rowBottom;
   }
   return { fragments: fragments };
 }
@@ -185,6 +177,7 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
   scrollableElement: Scrollable,
   scrapingSupport: ScrapingSupport,
   requestedTop: number,
+  requestedLeft: number,
   waitOptions: Required<ScreenshotWaitOptions>,
 ): Promise<ScrollableVisibleAreaScreenshot> {
   return withRetry({
@@ -212,6 +205,7 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
     retry: async () => {
       await scrollableElement.scrollTo({
         top: requestedTop,
+        left: requestedLeft,
         waitForScrollEnd: waitOptions.waitForScrollEnd,
       });
 
@@ -222,7 +216,9 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
       if (waitOptions.extraWait > 0) {
         await sleep(waitOptions.extraWait);
       }
-      const settledScrollTop = scrollableElement.getScrollPosition().top;
+      const settledPosition = scrollableElement.getScrollPosition();
+      const settledScrollTop = settledPosition.top;
+      const settledScrollLeft = settledPosition.left;
 
       logger.debug(
         "Capture Fragment - requestedTop:",
@@ -249,10 +245,24 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
           settledScrollTop,
         );
       }
+      if (Math.abs(settledScrollLeft - requestedLeft) > 1) {
+        throw new ScrollableElementScrolledDuringScreenshotException(
+          requestedLeft,
+          settledScrollLeft,
+          "scrollLeft",
+        );
+      }
       const tabImageDataUrl = await captureTabScreenshotAsDataUrl();
 
-      const afterScreenshotScrollTop =
-        scrollableElement.getScrollPosition().top;
+      const afterScreenshotPosition = scrollableElement.getScrollPosition();
+      const afterScreenshotScrollTop = afterScreenshotPosition.top;
+      if (settledScrollLeft !== afterScreenshotPosition.left) {
+        throw new ScrollableElementScrolledDuringScreenshotException(
+          settledScrollLeft,
+          afterScreenshotPosition.left,
+          "scrollLeft",
+        );
+      }
       if (settledScrollTop !== afterScreenshotScrollTop) {
         throw new ScrollableElementScrolledDuringScreenshotException(
           settledScrollTop,
@@ -286,7 +296,7 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
       });
 
       const visibleArea: Box = {
-        x: 0,
+        x: requestedLeft,
         y: requestedTop,
         width: afterCaptureClientBox.width,
         height: afterCaptureClientBox.height,
@@ -415,9 +425,9 @@ class ScrollableElementClientBoxChangedDuringScreenshotException extends Error {
 }
 
 class ScrollableElementScrolledDuringScreenshotException extends Error {
-  constructor(oldTopValue: number, newTopValue: number) {
+  constructor(oldTopValue: number, newTopValue: number, axis = "scrollTop") {
     super(
-      "Screenshoting failed: scrollTop changed during screenshot. from: " +
+      `Screenshoting failed: ${axis} changed during screenshot. from: ` +
         oldTopValue +
         " to: " +
         newTopValue +
@@ -439,14 +449,6 @@ function maxReachableScrollTop(scrollableElement: Scrollable) {
     scrollableElement.getScrollSize().height -
       scrollableElement.getClientBoxInViewport().height,
   );
-}
-
-function checkNoHorizontalScrolling(scrollSize: Size, clientBox: Box) {
-  if (scrollSize.width > clientBox.width) {
-    throw new Error(
-      `Scroll width [${scrollSize.width}] > client width [${clientBox.width}]. Horizontal scrolling not currently handled by screenshoting.`,
-    );
-  }
 }
 
 function checkScreenshotAreaValid(area: Box, scrollSize: Size): Box {

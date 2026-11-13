@@ -1,6 +1,10 @@
 import type { Image, CropOptions } from "image-js";
 import { type Size } from "../../box/Size";
-import type { Scrollable, ScrollPosition } from "./Scrollable";
+import type {
+  Scrollable,
+  ScrollPosition,
+  ScrollableScrollToOptions,
+} from "./Scrollable";
 import { scrollToAndWait } from "./scrollToAndWait";
 import type { Box } from "../../box/Box";
 import { sleep } from "@/shared/utils/sleep";
@@ -63,7 +67,7 @@ export class HTMLElementScrollable implements Scrollable {
     };
   }
 
-  async scrollTo(scrollOptions: ScrollToOptions): Promise<void> {
+  async scrollTo(scrollOptions: ScrollableScrollToOptions): Promise<void> {
     await scrollToAndWait(
       this.scrollableElement,
       this.scrollableElement,
