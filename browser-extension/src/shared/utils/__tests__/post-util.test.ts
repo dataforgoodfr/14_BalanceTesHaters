@@ -16,7 +16,7 @@ import {
 } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
-import type { Post, PostComment } from "@/shared/model/post/Post";
+import type { Post, PostCommentWithFlag } from "@/shared/model/post/Post";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 /**
@@ -61,7 +61,8 @@ function createDummyPost(overrides: Partial<Post> = {}): Post {
  */
 function createHatefulComment(
   textContent: string = "hateful comment",
-): PostComment {
+  isFlagged = true,
+): PostCommentWithFlag {
   return {
     author: { name: "Author", accountHref: "https://example.com" },
     textContent,
@@ -72,7 +73,7 @@ function createHatefulComment(
     classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
     isNew: false,
     isDeleted: false,
-    IsFlagged: false,
+    isFlagged,
   };
 }
 
@@ -751,18 +752,7 @@ describe("post utilities", () => {
           createDummyPost({
             comments: [
               createHatefulComment("hateful comment"),
-              {
-                author: { name: "User", accountHref: "" },
-                textContent: "Nice video!",
-                publishedAt: {
-                  type: "absolute",
-                  date: new Date().toISOString(),
-                },
-                classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
-                isNew: false,
-                isDeleted: false,
-                IsFlagged: false,
-              },
+              createHatefulComment("Nice video!", false),
             ],
           }),
         ];
