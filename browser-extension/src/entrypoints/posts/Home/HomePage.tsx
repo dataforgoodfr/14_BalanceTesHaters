@@ -11,7 +11,7 @@ import { getEarliestPostDate } from "@/shared/utils/post-util";
 import PageHeader from "../Shared/PageHeader";
 import { main } from "../Menu";
 import NoPost from "../Shared/NoPost";
-import { useHomePagePostList } from "../Shared/useFilteredPostList";
+import { useHomePagePostList } from "../Shared/useHomePagePostList";
 
 function HomePage() {
   // selection state controlled by the page
@@ -20,27 +20,10 @@ function HomePage() {
   >([SocialNetwork.YouTube]);
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
 
-  const {
-    isLoading,
-    filteredPosts,
-  } = useHomePagePostList(socialNetworkFilter, dateRange);
-
-  // const queryKey = [
-  //   "posts",
-  //   socialNetworkFilter,
-  //   dateRange?.from?.toISOString() ?? "",
-  //   dateRange?.to?.toISOString() ?? "",
-  // ];
-
-  // const { data: posts, isLoading } = useQuery({
-  //   queryKey,
-  //   queryFn: () =>
-  //     getPostsBySocialNetworkAndPeriod(
-  //       socialNetworkFilter,
-  //       dateRange?.from,
-  //       dateRange?.to,
-  //     ),
-  // });
+  const { isLoading, filteredPosts } = useHomePagePostList(
+    socialNetworkFilter,
+    dateRange,
+  );
 
   const allComments = (filteredPosts || []).flatMap((p) => p.comments);
 

@@ -13,8 +13,7 @@ import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { deletePost as deletePostFromStorage } from "@/shared/storage/post-snapshot-storage";
-import { commentHateFlagKey, getPostHateFlagsList } from "@/shared/storage/hate-flags-storage";
-import type { DateRange } from "@daypicker/react";
+import { usePostsWithFlags } from "./usePostsWithFlags";
 
 export type UseFilteredPostListData = {
   searchTerm: string;
@@ -24,11 +23,6 @@ export type UseFilteredPostListData = {
   filteredPosts: PostWithFlags[];
   isLoading: boolean;
   deletePosts: (posts: Post[]) => Promise<void>;
-};
-
-export type UseHomePagePostListData = {
-  filteredPosts: PostWithFlags[];
-  isLoading: boolean;
 };
 
 /**
@@ -60,44 +54,7 @@ export function useFilteredPostList(
       ),
   });
 
-  const postIdList = React.useMemo(
-    () => data?.map((p) => p.postId) ?? [],
-    [data],
-  );
-  const hateFlagsQueryKey = React.useMemo(
-    () => ["postHateFlags", postIdList.join(",")],
-    [postIdList],
-  );
-
-  const {
-    data: flaggedCommentIds = new Set<string>(),
-    isLoading: isLoadingFlags,
-  } = useQuery({
-    queryKey: hateFlagsQueryKey,
-    queryFn: async () => {
-      const hateFlags = await getPostHateFlagsList(postIdList);
-      const comments = (data ?? []).flatMap((post) =>
-        post.comments.map((comment) => ({ postId: post.postId, comment })),
-      );
-
-      const flagResults = await Promise.all(
-        comments.map(async ({ postId, comment }) => {
-          const flagsForPost = hateFlags.find(
-            (flags) => flags.postId === postId,
-          );
-          const key = await commentHateFlagKey(comment.textContent);
-          return flagsForPost?.hateFlags[key] ?? false;
-        }),
-      );
-
-      return new Set(
-        flagResults.flatMap((isFlagged, index) =>
-          isFlagged ? [String(index)] : [],
-        ),
-      );
-    },
-    enabled: data !== undefined,
-  });
+  const { postsWithFlags, isLoading: isLoadingFlags } = usePostsWithFlags(data);
 
   // Handle optimistic deletion for instant user feedback
   const [postsPendingDeletion, setPostsPendingDeletion] = React.useState<
@@ -109,7 +66,6 @@ export function useFilteredPostList(
       return [];
     }
 
-    const postsWithFlags = addFlagsToPosts(data, flaggedCommentIds);
     const notBeingDeleted = postsWithFlags.filter(
       (p) => !postsPendingDeletion.has(uniqueId(p)),
     );
@@ -121,7 +77,7 @@ export function useFilteredPostList(
     return sortPostList(filteredPostList, postSortingCategory);
   }, [
     data,
-    flaggedCommentIds,
+    postsWithFlags,
     postsPendingDeletion,
     searchTerm,
     postFilters,
@@ -160,108 +116,6 @@ export function useFilteredPostList(
     isLoading: isLoading || isLoadingFlags,
     deletePosts,
   };
-}
-
-
-/**
- * React hook for querying and filtering a post list
- * @param socialNetworkFilter
- * @param postSortingCategory
- * @returns
- */
-export function useHomePagePostList(
-  socialNetworkFilter: string[],
-  dateRange: DateRange | undefined,
-): UseHomePagePostListData {
-  const queryKey = [
-    "HomePagePostList",
-    socialNetworkFilter,
-    dateRange?.from?.toISOString() ?? "",
-    dateRange?.to?.toISOString() ?? "",
-  ];
-
-  const { data, isLoading } = useQuery({
-    queryKey,
-    queryFn: () =>
-      getPostsBySocialNetworkAndPeriod(
-        socialNetworkFilter,
-        dateRange?.from,
-        dateRange?.to,
-      ),
-  });
-
-  const postIdList = React.useMemo(
-    () => data?.map((p) => p.postId) ?? [],
-    [data],
-  );
-  const hateFlagsQueryKey = React.useMemo(
-    () => ["postHateFlags", postIdList.join(",")],
-    [postIdList],
-  );
-
-  const {
-    data: flaggedCommentIds = new Set<string>(),
-    isLoading: isLoadingFlags,
-  } = useQuery({
-    queryKey: hateFlagsQueryKey,
-    queryFn: async () => {
-      const hateFlags = await getPostHateFlagsList(postIdList);
-      const comments = (data ?? []).flatMap((post) =>
-        post.comments.map((comment) => ({ postId: post.postId, comment })),
-      );
-
-      const flagResults = await Promise.all(
-        comments.map(async ({ postId, comment }) => {
-          const flagsForPost = hateFlags.find(
-            (flags) => flags.postId === postId,
-          );
-          const key = await commentHateFlagKey(comment.textContent);
-          return flagsForPost?.hateFlags[key] ?? false;
-        }),
-      );
-
-      return new Set(
-        flagResults.flatMap((isFlagged, index) =>
-          isFlagged ? [String(index)] : [],
-        ),
-      );
-    },
-    enabled: data !== undefined,
-  });
-
-  const filteredPosts = React.useMemo((): PostWithFlags[] => {
-    if (!data || data.length === 0) {
-      return [];
-    }
-
-    const postsWithFlags = addFlagsToPosts(data, flaggedCommentIds);
-
-
-    return postsWithFlags;
-  }, [
-    data,
-    flaggedCommentIds,
-  ]);
-
-  return {
-    filteredPosts,
-    isLoading: isLoading || isLoadingFlags,
-  };
-}
-
-function addFlagsToPosts(
-  posts: Post[],
-  flaggedCommentIds: Set<string>,
-): PostWithFlags[] {
-  let commentIndex = 0;
-  return posts.map((post) => ({
-    ...post,
-    comments: post.comments.map((comment) => {
-      const id = commentIndex.toString();
-      commentIndex += 1;
-      return { ...comment, isFlagged: flaggedCommentIds.has(id) };
-    }),
-  }));
 }
 
 function getStartPeriodFromFilters(filters: PostFilters): Date | undefined {
