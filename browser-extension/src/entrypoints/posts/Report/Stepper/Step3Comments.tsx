@@ -1,7 +1,7 @@
 import type { ReportQueryData } from "./BuildReport";
 import { useStepperContext } from "./BuildReport";
 import CommentsTable from "../../Posts/CommentsTable";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import { CommentSortingCategory } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
@@ -14,7 +14,7 @@ function Step3Comments({
   setCommentList,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
-  setCommentList: (commentIdList: PostCommentWithId[]) => void;
+  setCommentList: (commentIdList: PostCommentWithIdAndFlag[]) => void;
 }>) {
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
@@ -32,7 +32,7 @@ function Step3Comments({
     commentSortingCategory,
   );
 
-  const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
+  const hatefulCommentList = commentList.filter((c) => c.isFlagged);
 
   const stepper = useStepperContext();
 

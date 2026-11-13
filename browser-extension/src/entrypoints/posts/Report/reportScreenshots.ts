@@ -1,10 +1,10 @@
 import { commentScreenshotRefKey } from "@/shared/model/CommentScreenshot";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 
 export type ReportScreenshotData = ReadonlyMap<string, string>;
 
 export function getReportCommentScreenshot(
-  comment: PostCommentWithId,
+  comment: PostCommentWithIdAndFlag,
   screenshots: ReportScreenshotData,
 ): string | undefined {
   return comment.screenshotRef

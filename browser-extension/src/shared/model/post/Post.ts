@@ -30,12 +30,14 @@ export type Post = PostSharedProperties & {
   latestAnalysisStatus?: ClassificationStatus;
 };
 
-export type PostComment = CommentSharedProperties & {
+export type PostWithFlags = Omit<Post, "comments"> & {
   /**
-   * True if comment with the same text content was flagged hateful in any of the snapshots
+   * Equivalent of PostComment with added flag information
    */
-  IsFlagged: boolean;
+  comments: PostCommentWithFlag[];
+};
 
+export type PostComment = CommentSharedProperties & {
   /**
    * Screenshot selected as evidence for this consolidated comment.
    */
@@ -49,4 +51,11 @@ export type PostComment = CommentSharedProperties & {
    * True if comment was deleted or replaced by a comment with different text
    */
   isDeleted: boolean;
+};
+
+export type PostCommentWithFlag = PostComment & {
+  /**
+   * True if comment with the same text content was flagged hateful in any of the snapshots
+   */
+  isFlagged: boolean;
 };

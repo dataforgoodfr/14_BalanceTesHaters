@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { PostComment } from "@/shared/model/post/Post";
 import {
   getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,
 } from "../report-stats";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
+import type { PostCommentWithIdAndFlag } from "../post-util";
 
 const buildComment = (
   authorName: string,
   classification?: AnnotatedCategory[],
-): PostComment => ({
+): PostCommentWithIdAndFlag => ({
   textContent: `${authorName} comment`,
   author: {
     name: authorName,
@@ -22,7 +22,11 @@ const buildComment = (
   classification,
   isNew: false,
   isDeleted: false,
-  IsFlagged: false,
+  id: "1",
+  isFlagged:false,
+  postId: "1",
+  socialNetwork: "twitter",
+  postKey: "1-twitter",
 });
 
 describe("report-stats", () => {

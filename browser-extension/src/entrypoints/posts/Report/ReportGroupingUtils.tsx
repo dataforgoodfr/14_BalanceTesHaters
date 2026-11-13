@@ -6,13 +6,13 @@ import {
   getTitlePublicationHeader,
   LABEL_URL,
 } from "./reportData";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import { buildPostKey } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 export interface GroupedData {
   groupKey: string;
-  comments: PostCommentWithId[];
+  comments: PostCommentWithIdAndFlag[];
   headerContent: React.ReactNode;
   postLatestAnalysisDate: Date;
   post?: Post;
@@ -61,7 +61,7 @@ const createAuthorHeader = (
 
 export const getPublicationGroups = (
   posts: Post[] | undefined,
-  comments: PostCommentWithId[],
+  comments: PostCommentWithIdAndFlag[],
 ): GroupedData[] => {
   return Array.from(posts ?? []).map((post) => ({
     groupKey: buildPostKey(post.postId, post.socialNetwork),
@@ -78,11 +78,11 @@ export const getPublicationGroups = (
 };
 
 export const getAuthorGroups = (
-  comments: PostCommentWithId[],
+  comments: PostCommentWithIdAndFlag[],
   latestAnalysisDate: Date,
   posts: Post[] | undefined,
 ): GroupedData[] => {
-  const grouped = new Map<string, PostCommentWithId[]>();
+  const grouped = new Map<string, PostCommentWithIdAndFlag[]>();
   const authorMap = new Map<string, Author>();
   const commentPostMap: Map<string, Post> = getCommentPostMap(comments, posts);
 
@@ -111,7 +111,7 @@ export const getAuthorGroups = (
 };
 
 function getCommentPostMap(
-  comments: PostCommentWithId[],
+  comments: PostCommentWithIdAndFlag[],
   posts: Post[] | undefined,
 ): Map<string, Post> {
   const commentPostMap = new Map<string, Post>();

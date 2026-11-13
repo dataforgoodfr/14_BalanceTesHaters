@@ -10,7 +10,7 @@ import {
   LABEL_SCORE_JURIDIQUE,
   LABEL_URL,
 } from "./reportData";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 import {
   getReportCommentScreenshot,
@@ -18,7 +18,7 @@ import {
 } from "./reportScreenshots";
 
 interface ReportCommentProps {
-  comment: PostCommentWithId;
+  comment: PostCommentWithIdAndFlag;
   onScreenshotClick: (screenshot: string) => void;
   index: number;
   totalItems: number;

@@ -1,20 +1,19 @@
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import type { Post } from "@/shared/model/post/Post";
+import type {  PostWithFlags } from "@/shared/model/post/Post";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
 import {
   getSocialNetworkName,
-  isCommentHateful,
 } from "@/shared/utils/post-util";
 
-function PostSummary({ post }: { post: Post }) {
+function PostSummary({ post }: { post: PostWithFlags }) {
   const hatefulCommentsCount =
     post.latestAnalysisStatus === "COMPLETED"
-      ? post.comments.filter(isCommentHateful).length
+      ? post.comments.filter(c => c.isFlagged).length
       : undefined;
   return (
     <div className="flex w-full">
-      <div className="flex-grow flex">
+      <div className="grow flex">
         {post.coverImageUrl && (
           <img
             src={post.coverImageUrl}

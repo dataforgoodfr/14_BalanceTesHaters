@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type {
   PostFilters,
   CommentFilters,
-  PostCommentWithId,
+  PostCommentWithIdAndFlag,
 } from "../post-util";
 import {
   getEarliestPostDate,
@@ -77,14 +77,14 @@ function createHatefulComment(
 }
 
 function createDummyCommentWithId(
-  overrides: Partial<PostCommentWithId> = {},
-): PostCommentWithId {
+  overrides: Partial<PostCommentWithIdAndFlag> = {},
+): PostCommentWithIdAndFlag {
   return {
     id: "comment-1",
     postId: "post-1",
     socialNetwork: "youtube",
     postKey: "post-1|youtube",
-    isCommentHateful: false,
+    isFlagged: false,
     author: { name: "Author", accountHref: "https://example.com" },
     textContent: "Test comment",
     publishedAt: {
@@ -93,7 +93,6 @@ function createDummyCommentWithId(
     },
     isNew: false,
     isDeleted: false,
-    IsFlagged: false,
     ...overrides,
   };
 }
