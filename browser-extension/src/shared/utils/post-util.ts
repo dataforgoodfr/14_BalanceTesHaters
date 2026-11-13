@@ -1,5 +1,7 @@
-import { isCategoryHateful } from "../model/AnnotatedCategory";
-import type { Post, PostComment } from "../model/post/Post";
+import type {
+  Post,
+  PostComment,
+} from "../model/post/Post";
 import type { PostSnapshot } from "../model/PostSnapshot";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { SocialNetwork } from "../model/SocialNetworkName";
@@ -35,12 +37,12 @@ export enum CommentSortingCategory {
   PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
 
-export type PostCommentWithId = PostComment & {
+export type PostCommentWithIdAndFlag = PostComment & {
   id: string;
   postId: string;
   socialNetwork: string;
   postKey: string;
-  isCommentHateful: boolean;
+  isFlagged: boolean;
 };
 
 export type PostFilters = {
@@ -81,12 +83,6 @@ export const emptyCommentFilters: CommentFilters = {
   pseudoAuthor: [],
   category: [],
 };
-
-export function isCommentHateful(comment: PostComment): boolean {
-  return (comment.classification || []).some((category) =>
-    isCategoryHateful(category),
-  );
-}
 
 export function isPostPublishedAfter(post: PostSnapshot, date: Date): boolean {
   switch (post.publishedAt.type) {
@@ -201,16 +197,16 @@ export function getPublicationTypeLabel(
   return "Publication";
 }
 
-export function filterPosts(
-  posts: Post[],
+export function filterPosts<T extends Post>(
+  posts: T[],
   searchTerm: string,
   filters: PostFilters,
-): Post[] {
+): T[] {
   let filteredPosts = posts;
   if (filters.nbHatefulComments) {
-    filteredPosts = filteredPosts.filter((post) => {
-      const postHatefulCommentsCount =
-        post.comments.filter(isCommentHateful).length;
+    filteredPosts = filteredPosts.filter(() => {
+      const postHatefulCommentsCount =0;
+       // post.comments.filter((c) => c.isFlagged).length;
       return (
         filters.nbHatefulComments.length == 0 ||
         (filters.nbHatefulComments.includes(
@@ -249,10 +245,10 @@ export function filterPosts(
   });
 }
 
-export function sortPostList(
-  posts: Post[],
+export function sortPostList<T extends Post>(
+  posts: T[],
   sortingCategory: PostSortingCategory,
-): Post[] {
+): T[] {
   switch (sortingCategory) {
     case PostSortingCategory.ANALYSIS_DATE_ASC:
       return [...posts].sort(
@@ -266,18 +262,18 @@ export function sortPostList(
           new Date(b.latestAnalysisDate).getTime() -
           new Date(a.latestAnalysisDate).getTime(),
       );
-    case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
-      return [...posts].sort(
-        (a, b) =>
-          a.comments.filter(isCommentHateful).length -
-          b.comments.filter(isCommentHateful).length,
-      );
-    case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
-      return [...posts].sort(
-        (a, b) =>
-          b.comments.filter(isCommentHateful).length -
-          a.comments.filter(isCommentHateful).length,
-      );
+    // case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
+    //   return [...posts].sort(
+    //     (a, b) =>
+    //       a.comments.filter((c) => c.isFlagged).length -
+    //       b.comments.filter((c) => c.isFlagged).length,
+    //   );
+    // case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
+    //   return [...posts].sort(
+    //     (a, b) =>
+    //       b.comments.filter((c) => c.isFlagged).length -
+    //       a.comments.filter((c) => c.isFlagged).length,
+    //   );
     case PostSortingCategory.PUBLICATION_DATE_ASC:
       return [...posts].sort((a, b) => {
         return (
@@ -292,14 +288,16 @@ export function sortPostList(
           getDateForSorting(a.publishedAt).getTime()
         );
       });
+      default:
+      return posts;
   }
 }
 
 export function filterCommentList(
-  commentList: PostCommentWithId[],
+  commentList: PostCommentWithIdAndFlag[],
   searchTerm: string,
   filters: CommentFilters,
-): PostCommentWithId[] {
+): PostCommentWithIdAndFlag[] {
   let filteredCommentList = commentList;
 
   if (filters.pseudoAuthor && filters.pseudoAuthor.length > 0) {
@@ -320,9 +318,9 @@ export function filterCommentList(
 }
 
 export function sortCommentList(
-  commentList: PostCommentWithId[],
+  commentList: PostCommentWithIdAndFlag[],
   sortingCategory: CommentSortingCategory,
-): PostCommentWithId[] {
+): PostCommentWithIdAndFlag[] {
   switch (sortingCategory) {
     case CommentSortingCategory.HATE_SCORE_ASC:
       return [...commentList].sort(

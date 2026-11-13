@@ -7,7 +7,7 @@ import {
   publicationDateTypeToText,
 } from "@/entrypoints/posts/Report/Exports/reportExportShared";
 import type { Post } from "../model/post/Post";
-import type { PostCommentWithId } from "./post-util";
+import type { PostCommentWithIdAndFlag } from "./post-util";
 import { getSocialNetworkName } from "./post-util";
 
 export const POST_DETAIL_CSV_COLUMNS = [
@@ -86,7 +86,7 @@ export type PostDetailCsvRow = Record<PostDetailCsvColumnKey, string>;
 
 export function buildPostCommentRow(
   post: Post | undefined,
-  comment: PostCommentWithId,
+  comment: PostCommentWithIdAndFlag,
 ): PostDetailCsvRow {
   const postRawDateRange = post
     ? getPublicationDateRawRange(post.publishedAt)

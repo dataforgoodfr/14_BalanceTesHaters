@@ -1,13 +1,12 @@
 import { Spinner } from "@/components/ui/spinner";
-import { isCommentHateful } from "@/shared/utils/post-util";
-import type { Post } from "@/shared/model/post/Post";
+import type { PostWithFlags } from "@/shared/model/post/Post";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
 import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 type KpiCardsProps = {
-  posts: Post[] | undefined;
+  posts: PostWithFlags[] | undefined;
   isLoading: boolean;
 };
 
@@ -15,7 +14,7 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
   let numberOfHatefulComments = 0;
 
   const allComments = (posts || []).flatMap((p) => p.comments);
-  const hatefulComments = allComments.filter((c) => isCommentHateful(c));
+  const hatefulComments = allComments.filter((c) => c.isFlagged);
   if (allComments.length !== 0) {
     numberOfHatefulComments = hatefulComments.length;
   }

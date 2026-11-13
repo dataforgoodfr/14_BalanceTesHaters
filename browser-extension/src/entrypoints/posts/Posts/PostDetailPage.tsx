@@ -9,7 +9,6 @@ import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
   CommentSortingCategory,
-  isCommentHateful,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CategoryDistribution from "../Shared/CategoryDistribution";
@@ -39,11 +38,6 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  const nbComments = post?.comments.length ?? 0;
-  const hatefulComments =
-    post?.comments.filter((c) => isCommentHateful(c)) ?? [];
-  const nbHatefulComments = hatefulComments.length;
-
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
       CommentSortingCategory.HATE_SCORE_DESC,
@@ -52,12 +46,17 @@ function PostDetailPage() {
   const {
     commentFilters,
     setCommentFilters,
+    allComments,
     filteredCommentList,
     hatefulAuthorList,
   } = useFilteredCommentList(
     postId === undefined ? [] : [postId],
     commentSortingCategory,
   );
+
+  const nbComments = allComments.length;
+  const hatefulComments = allComments.filter((c) => c.isFlagged);
+  const nbHatefulComments = hatefulComments.length;
 
   const postExportCsv = () => {
     if (!post) {
@@ -129,7 +128,7 @@ function PostDetailPage() {
             <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary post={post} />
+                <PostSummary post={{ ...post, comments: allComments }} />
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
@@ -152,11 +151,11 @@ function PostDetailPage() {
               </div>
               <div className="flex gap-4 w-full">
                 <ActiveAuthors
-                  postComments={post.comments}
+                  postComments={allComments}
                   isLoading={isLoading}
                 />
                 <CategoryDistribution
-                  postComments={post.comments}
+                  postComments={hatefulComments}
                   isLoading={isLoading}
                 />
               </div>

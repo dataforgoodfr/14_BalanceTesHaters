@@ -1,4 +1,4 @@
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import type { Post } from "@/shared/model/post/Post";
 import {
   buildPostCommentRow,
@@ -11,7 +11,7 @@ type PostDetailCsvRow = Record<PostDetailCsvColumnKey, string>;
 
 export function buildPostDetailCsv(
   post: Post,
-  filteredCommentList: PostCommentWithId[],
+  filteredCommentList: PostCommentWithIdAndFlag[],
 ): string {
   const rows = buildPostDetailCsvRows(post, filteredCommentList);
   const dataRows = rows.map((row) =>
@@ -28,7 +28,7 @@ export function buildPostDetailCsv(
 
 function buildPostDetailCsvRows(
   post: Post,
-  filteredCommentList: PostCommentWithId[],
+  filteredCommentList: PostCommentWithIdAndFlag[],
 ): PostDetailCsvRow[] {
   return filteredCommentList.map((comment) => {
     return buildPostCommentRow(post, comment);

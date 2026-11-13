@@ -1,13 +1,12 @@
 import type {
   CommentFilters,
   CommentSortingCategory,
-  PostCommentWithId,
+  PostCommentWithIdAndFlag,
 } from "@/shared/utils/post-util";
 import {
   buildPostKey,
   emptyCommentFilters,
   filterCommentList,
-  isCommentHateful,
   sortCommentList,
 } from "@/shared/utils/post-util";
 import React from "react";
@@ -23,7 +22,8 @@ export type useFilteredCommentListData = {
   setSearchTerm: (searchTerm: string) => void;
   commentFilters: CommentFilters;
   setCommentFilters: (commentFilters: CommentFilters) => void;
-  filteredCommentList: PostCommentWithId[];
+  allComments: PostCommentWithIdAndFlag[];
+  filteredCommentList: PostCommentWithIdAndFlag[];
   hatefulAuthorList: string[];
   isLoading: boolean;
 };
@@ -53,95 +53,79 @@ export function useFilteredCommentList(
     queryFn: () => getPostsByPostIdList(postIdList),
   });
 
-  const {
-    data: flaggedCommentIds = new Set<string>(),
-    isLoading: isLoadingFlags,
-  } = useQuery({
-    queryKey: hateFlagsQueryKey,
-    queryFn: async () => {
-      const hateFlags = await getPostHateFlagsList(postIdList);
-      const comments = (data ?? []).flatMap((post) =>
-        post.comments.map((comment) => ({ postId: post.postId, comment })),
-      );
+  const { data: allCommentsWithFlagData, isLoading: isLoadingFlags } = useQuery(
+    {
+      queryKey: hateFlagsQueryKey,
+      queryFn: async () => {
+        const allCommentsWithFlagData: PostCommentWithIdAndFlag[] = [];
+        const hateFlags = await getPostHateFlagsList(postIdList);
 
-      const flagResults = await Promise.all(
-        comments.map(async ({ postId, comment }) => {
-          const flagsForPost = hateFlags.find(
-            (flags) => flags.postId === postId,
-          );
-          const key = await commentHateFlagKey(comment.textContent);
-          return flagsForPost?.hateFlags[key] ?? false;
-        }),
-      );
+        for (const post of data ?? []) {
+          for (const comment of post.comments) {
+            const flagsForPost = hateFlags.find(
+              (flags) => flags.postId === post.postId,
+            );
+            const key = await commentHateFlagKey(comment.textContent);
+            const isFlagged = flagsForPost?.hateFlags[key] ?? false;
 
-      return new Set(
-        flagResults.flatMap((isFlagged, index) =>
-          isFlagged ? [String(index)] : [],
-        ),
-      );
+            allCommentsWithFlagData.push({
+              ...comment,
+              id: `${post.postId}-${comment.textContent}`, // Unique ID for the comment
+              postId: post.postId,
+              socialNetwork: post.socialNetwork,
+              postKey: buildPostKey(post.postId, post.socialNetwork),
+              isFlagged,
+            });
+          }
+        }
+
+        return allCommentsWithFlagData;
+      },
+      enabled: data !== undefined,
     },
-    enabled: data !== undefined,
-  });
+  );
 
   // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
   //  et une clé postKey pour différencier les commentaires issus de différents posts
   const {
     filteredCommentList,
     hatefulAuthorList,
-  }: { filteredCommentList: PostCommentWithId[]; hatefulAuthorList: string[] } =
-    React.useMemo(() => {
-      const allComments: PostCommentWithId[] = (data || [])
-        .flatMap((p) => {
-          return p.comments.map(
-            (comment) =>
-              ({
-                ...comment,
-                postId: p.postId,
-                socialNetwork: p.socialNetwork,
-                postKey: buildPostKey(p.postId, p.socialNetwork),
-                isCommentHateful: isCommentHateful(comment),
-              }) as PostCommentWithId,
-          );
-        })
-        .map((comment, i) => {
-          const id = i.toString();
-          return {
-            ...comment,
-            id,
-            IsFlagged: flaggedCommentIds.has(id),
-          };
-        });
+  }: {
+    allComments: PostCommentWithIdAndFlag[];
+    filteredCommentList: PostCommentWithIdAndFlag[];
+    hatefulAuthorList: string[];
+  } = React.useMemo(() => {
+    const hatefulAuthorList: string[] = (allCommentsWithFlagData || [])
+      .filter((comment) => comment.isFlagged)
+      .map((comment) => comment.author.name);
 
-      const hatefulAuthorList: string[] = allComments
-        .filter((comment) => comment.isCommentHateful)
-        .map((comment) => comment.author.name);
-
-      const filteredCommentList: PostCommentWithId[] = filterCommentList(
-        allComments,
-        searchTerm,
-        commentFilters,
-      );
-      return {
-        filteredCommentList: sortCommentList(
-          filteredCommentList,
-          commentSortingCategory,
-        ),
-        hatefulAuthorList,
-      };
-    }, [
-      data,
-      flaggedCommentIds,
+    const filteredCommentList: PostCommentWithIdAndFlag[] = filterCommentList(
+      allCommentsWithFlagData || [],
       searchTerm,
       commentFilters,
-      commentSortingCategory,
-    ]);
+    );
+    return {
+      allComments: allCommentsWithFlagData || [],
+      filteredCommentList: sortCommentList(
+        filteredCommentList,
+        commentSortingCategory,
+      ),
+      hatefulAuthorList,
+    };
+  }, [
+    allCommentsWithFlagData,
+    searchTerm,
+    commentFilters,
+    commentSortingCategory,
+  ]);
 
   return {
     searchTerm,
     setSearchTerm,
     commentFilters,
     setCommentFilters,
-    filteredCommentList: filteredCommentList,
+    allComments: allCommentsWithFlagData || [],
+    filteredCommentList,
     hatefulAuthorList,
     isLoading: isLoadingPosts || isLoadingFlags,
   };

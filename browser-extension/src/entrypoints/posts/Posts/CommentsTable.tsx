@@ -53,7 +53,7 @@ import { useNavigate } from "react-router";
 import type {
   CommentFilters,
   CommentSortingCategory,
-  PostCommentWithId,
+  PostCommentWithIdAndFlag,
 } from "@/shared/utils/post-util";
 import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
@@ -83,7 +83,7 @@ export default function CommentsTable({
   showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
-  commentList: PostCommentWithId[];
+  commentList: PostCommentWithIdAndFlag[];
   commentFilters: CommentFilters;
   setCommentFilters: (value: CommentFilters) => void;
   commentSortingCategory: CommentSortingCategory;
@@ -107,7 +107,7 @@ export default function CommentsTable({
     () =>
       new Set(
         commentList
-          .filter((comment) => comment.IsFlagged)
+          .filter((comment) => comment.isFlagged)
           .map((comment) => comment.id),
       ),
     [commentList],
@@ -257,7 +257,7 @@ export default function CommentsTable({
   };
 
   const columns = useMemo<
-    ColumnDef<typeof commentsTableFeatures, PostCommentWithId>[]
+    ColumnDef<typeof commentsTableFeatures, PostCommentWithIdAndFlag>[]
   >(
     () => [
       {

@@ -1,13 +1,13 @@
 import type { Post } from "@/shared/model/post/Post";
 import { ReportComment } from "./ReportComment";
 import type React from "react";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
+import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import type { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 import type { ReportScreenshotData } from "./reportScreenshots";
 
 interface CommentGroupProps {
   groupKey: string;
-  comments: PostCommentWithId[];
+  comments: PostCommentWithIdAndFlag[];
   headerContent: React.ReactNode;
   onScreenshotClick: (screenshot: string) => void;
   reportOrganizationType: ReportOrganizationType;
