@@ -10,7 +10,9 @@ export type HateStats = {
 
 export function hateStats(post: Post): HateStats {
   const allComments = post.comments;
-  const hatefullComments = allComments.filter(c => c.hateScore && c.hateScore > LIMIT_HATE_SCORE);
+  const hatefullComments = allComments.filter(
+    (c) => c.hateScore && c.hateScore > LIMIT_HATE_SCORE,
+  );
   const hatefulCommentsCount = hatefullComments.length;
   const hatersCount = new Set(hatefullComments.map((c) => c.author.name)).size;
   return {

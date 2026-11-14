@@ -21,7 +21,10 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
           <HateCardTitle>
             {hateStats.hatefulCommentsCount} commentaires
           </HateCardTitle>
-          <HateCardDescription>malveillants détectés avec un seuil de confiance supérieur à {LIMIT_HATE_SCORE * 100}%</HateCardDescription>
+          <HateCardDescription>
+            malveillants détectés avec un seuil de confiance supérieur à{" "}
+            {LIMIT_HATE_SCORE * 100}%
+          </HateCardDescription>
         </HateCard>
         <HateCard className="basis-1/2">
           <HateCardIcon>
@@ -29,7 +32,8 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
           </HateCardIcon>
           <HateCardTitle>{hateStats.hatersCount} auteurs</HateCardTitle>
           <HateCardDescription>
-            de commentaires malveillants détectés avec un seuil de confiance supérieur à {LIMIT_HATE_SCORE * 100}%
+            de commentaires malveillants détectés avec un seuil de confiance
+            supérieur à {LIMIT_HATE_SCORE * 100}%
           </HateCardDescription>
         </HateCard>
       </div>
@@ -37,7 +41,10 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
   } else {
     return (
       <InfoCard>
-        <InfoCardTitle>Aucun commentaire malveillant détecté détectés avec un seuil de confiance supérieur à {LIMIT_HATE_SCORE * 100}%</InfoCardTitle>
+        <InfoCardTitle>
+          Aucun commentaire malveillant détecté détectés avec un seuil de
+          confiance supérieur à {LIMIT_HATE_SCORE * 100}%
+        </InfoCardTitle>
         <InfoCardDescription>
           Pour analyser une autre publication : ouvre-la sur YouTube/Instagram,
           puis clique sur “Lancer une nouvelle analyse”.

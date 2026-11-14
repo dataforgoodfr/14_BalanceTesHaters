@@ -112,9 +112,7 @@ function PostDetailPage() {
           {/* Content */}
           <div className="flex flex-col gap-4">
             <div className="mb-8">
-              <h1 className="mt-2 mb-1 ">
-                Analyse des commentaires
-              </h1>
+              <h1 className="mt-2 mb-1 ">Analyse des commentaires</h1>
               <div className="text-base mt-0">
                 Données collectées le{" "}
                 {formatAnalysisDate(post.firstAnalysisDate)}
@@ -164,8 +162,7 @@ function PostDetailPage() {
               <h3>Commentaires</h3>
               <span className="text-muted-foreground text-sm italic">
                 Pour créer un rapport de preuves : déclarer un ou plusieurs
-                commentaires malveillants, puis cliquer sur “Créer
-                un rapport”.
+                commentaires malveillants, puis cliquer sur “Créer un rapport”.
               </span>
 
               <ClosableAlert

@@ -1,4 +1,8 @@
-import type { Post, PostCommentWithFlag } from "../model/post/Post";
+import type {
+  Post,
+  PostCommentWithFlag,
+  PostWithFlags,
+} from "../model/post/Post";
 import type { PostSnapshot } from "../model/PostSnapshot";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { SocialNetwork } from "../model/SocialNetworkName";
@@ -242,10 +246,10 @@ export function filterPosts<T extends Post>(
   });
 }
 
-export function sortPostList<T extends Post>(
-  posts: T[],
+export function sortPostList(
+  posts: PostWithFlags[],
   sortingCategory: PostSortingCategory,
-): T[] {
+): PostWithFlags[] {
   switch (sortingCategory) {
     case PostSortingCategory.ANALYSIS_DATE_ASC:
       return [...posts].sort(
@@ -259,18 +263,18 @@ export function sortPostList<T extends Post>(
           new Date(b.latestAnalysisDate).getTime() -
           new Date(a.latestAnalysisDate).getTime(),
       );
-    // case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
-    //   return [...posts].sort(
-    //     (a, b) =>
-    //       a.comments.filter((c) => c.isFlagged).length -
-    //       b.comments.filter((c) => c.isFlagged).length,
-    //   );
-    // case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
-    //   return [...posts].sort(
-    //     (a, b) =>
-    //       b.comments.filter((c) => c.isFlagged).length -
-    //       a.comments.filter((c) => c.isFlagged).length,
-    //   );
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
+      return [...posts].sort(
+        (a, b) =>
+          a.comments.filter((c) => c.isFlagged).length -
+          b.comments.filter((c) => c.isFlagged).length,
+      );
+    case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
+      return [...posts].sort(
+        (a, b) =>
+          b.comments.filter((c) => c.isFlagged).length -
+          a.comments.filter((c) => c.isFlagged).length,
+      );
     case PostSortingCategory.PUBLICATION_DATE_ASC:
       return [...posts].sort((a, b) => {
         return (

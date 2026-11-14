@@ -7,7 +7,10 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { PostComment, PostCommentWithFlag } from "@/shared/model/post/Post";
+import type {
+  PostComment,
+  PostCommentWithFlag,
+} from "@/shared/model/post/Post";
 import { getFirstDayOfWeek } from "@/shared/utils/date-util";
 import type { DateRange } from "@daypicker/react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -129,9 +132,7 @@ function HarassmentTrendChart({
     },
   } satisfies ChartConfig;
 
-  const hatefulCommentList = commentList.filter((comment) =>
-    comment.isFlagged,
-  );
+  const hatefulCommentList = commentList.filter((comment) => comment.isFlagged);
 
   const commentByDateAggregation: { date: Date; nombre: number }[] =
     getAllDates(dateRange, hatefulCommentList).map((date) => ({

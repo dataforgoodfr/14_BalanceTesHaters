@@ -1,15 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
-import type {  PostWithFlags } from "@/shared/model/post/Post";
+import type { PostWithFlags } from "@/shared/model/post/Post";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
-import {
-  getSocialNetworkName,
-} from "@/shared/utils/post-util";
+import { getSocialNetworkName } from "@/shared/utils/post-util";
 
 function PostSummary({ post }: { post: PostWithFlags }) {
   const hatefulCommentsCount =
     post.latestAnalysisStatus === "COMPLETED"
-      ? post.comments.filter(c => c.isFlagged).length
+      ? post.comments.filter((c) => c.isFlagged).length
       : undefined;
   return (
     <div className="flex w-full">

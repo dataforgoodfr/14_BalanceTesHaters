@@ -1,7 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import PostSummary from "./PostSummary";
-import type { Post, PostComment } from "@/shared/model/post/Post";
+import type {
+  PostCommentWithFlag,
+  PostWithFlags,
+} from "@/shared/model/post/Post";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 const meta = {
@@ -12,19 +15,19 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const exampleComment: PostComment = {
+const exampleComment: PostCommentWithFlag = {
   author: { name: "Joe", accountHref: "accountHref" },
   textContent: "",
   isDeleted: false,
   isNew: false,
-  IsFlagged: false,
+  isFlagged: false,
   publishedAt: {
     type: "absolute",
     date: "2026-03-22T00:00:00.000Z",
   },
 };
 
-const inProgressPost: Post = {
+const inProgressPost: PostWithFlags = {
   author: { name: "Author Name", accountHref: "authAccountHref" },
   postId: "xxx",
   socialNetwork: SocialNetwork.YouTube,
@@ -35,18 +38,18 @@ const inProgressPost: Post = {
     type: "absolute",
     date: "2026-03-22T00:00:00.000Z",
   },
-  comments: Array<PostComment>(100).fill(exampleComment),
+  comments: Array<PostCommentWithFlag>(100).fill(exampleComment),
   latestAnalysisDate: "2026-03-22T00:00:00.000Z",
   latestAnalysisStatus: "IN_PROGRESS",
   firstAnalysisDate: "2026-03-22T00:00:00.000Z",
   analysisCount: 1,
 };
 
-const completedPost: Post = {
+const completedPost: PostWithFlags = {
   ...inProgressPost,
   comments: [
-    ...Array<PostComment>(75).fill(exampleComment),
-    ...Array<PostComment>(25).fill({
+    ...Array<PostCommentWithFlag>(75).fill(exampleComment),
+    ...Array<PostCommentWithFlag>(25).fill({
       ...exampleComment,
       classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
     }),
