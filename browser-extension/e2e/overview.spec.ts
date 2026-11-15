@@ -8,11 +8,7 @@ import { AppPageObject } from "./po/AppPageObject";
 
 test.beforeEach(async ({ context, extensionId }) => {
   expect(extensionId).not.toBe("");
-  await e2eSeedPostSnapshots(
-    context,
-    seededPostSnapshots,
-    seededPostHateFlags,
-  );
+  await e2eSeedPostSnapshots(context, seededPostSnapshots, seededPostHateFlags);
 });
 
 test("browse the overview page with seeded publication statistics", async ({

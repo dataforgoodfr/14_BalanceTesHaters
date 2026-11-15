@@ -89,12 +89,8 @@ export async function e2eSeedPostSnapshots(
     await browser.storage.local.set(hateFlagRecords);
   };
 
-  await evaluateInBackgroundWorker(
-    context,
-    seedPostStorage,
-    {
-      snapshots: validPostSnapshots,
-      hateFlagRecords,
-    },
-  );
+  await evaluateInBackgroundWorker(context, seedPostStorage, {
+    snapshots: validPostSnapshots,
+    hateFlagRecords,
+  });
 }

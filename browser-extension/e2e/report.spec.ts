@@ -10,11 +10,7 @@ import { AppPageObject } from "./po/AppPageObject";
 
 test.beforeEach(async ({ context, extensionId }) => {
   expect(extensionId).not.toBe("");
-  await e2eSeedPostSnapshots(
-    context,
-    seededPostSnapshots,
-    seededPostHateFlags,
-  );
+  await e2eSeedPostSnapshots(context, seededPostSnapshots, seededPostHateFlags);
 });
 
 test("create and download a PDF report from the side navigation", async ({
