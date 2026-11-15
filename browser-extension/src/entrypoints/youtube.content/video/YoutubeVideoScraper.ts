@@ -128,7 +128,7 @@ export class YoutubeVideoScraper {
   private async scrapPostPublishedAt(): Promise<PublicationDate> {
     const infoElement = await this.scrapingSupport.waitForSelectorOrThrow(
       document,
-      "#description #info",
+      "#description #info, #description #info-container",
       HTMLElement,
       {
         predicate: (e) => this.scrapingSupport.isVisible(e),

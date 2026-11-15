@@ -33,5 +33,6 @@ test("browse the overview page with seeded publication statistics", async ({
   ).toBeVisible();
   await expect(
     postsApp.page.getByText("Répartition par catégories"),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(postsApp.page.getByText("Alerte sécurité")).toHaveCount(0);
 });

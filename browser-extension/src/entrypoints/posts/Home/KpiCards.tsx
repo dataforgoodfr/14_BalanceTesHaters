@@ -3,7 +3,6 @@ import type { PostWithFlags } from "@/shared/model/post/Post";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
-import SecurityAlert from "../Shared/KpiCards/SecurityAlert";
 
 type KpiCardsProps = {
   posts: PostWithFlags[] | undefined;
@@ -27,7 +26,7 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
           Aucun post collecté pour la période sélectionnée.
         </p>
       )}
-      <div className="flex gap-4 justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <PercentageHatefulCommentsKpiCard
           numberOfHatefulComments={numberOfHatefulComments}
           numberOfComments={allComments.length}
@@ -38,7 +37,6 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
           numberOfComments={allComments.length}
           isLoading={isLoading}
         />
-        <SecurityAlert isLoading={isLoading}></SecurityAlert>
         <NumberHatefulAuhorsKpiCard
           hatefulCommentList={hatefulComments}
           isLoading={isLoading}
