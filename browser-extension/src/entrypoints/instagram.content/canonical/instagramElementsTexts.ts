@@ -2,7 +2,7 @@ export const LIKES_BUTTON_REGEX =
   /(?<nbLikes>[0-9]*)(?:\u00a0J\u2019aime| like[s]?)/m;
 
 export const VIEW_REPLIES_BUTTON_TEXT_REGEX =
-  /Voir les .* réponses|View all .* replies/;
+  /Voir les .* réponses|View all .* replies|Afficher plus de réponses|View more replies/;
 export const HIDE_REPLIES_BUTTON_TEXT_REGEX =
   /Masquer (?:toutes )?les réponses|Hide (?:all )?replies/;
 // TODO handle instagram elements localisations in english

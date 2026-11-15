@@ -44,6 +44,48 @@ describe("InstagramCommentThreadContentLoader", () => {
     expect(replies.children).toHaveLength(2);
   });
 
+  it.each([
+    [
+      "Voir les 37 réponses",
+      "Afficher plus de réponses",
+      "Masquer toutes les réponses",
+    ],
+    ["View all 37 replies", "View more replies", "Hide all replies"],
+  ])(
+    "loads every reply page after %s",
+    async (initialText, moreText, hideText) => {
+      const thread = document.createElement("div");
+      thread.innerHTML = "<div></div><div><ul></ul></div>";
+      const replies = thread.querySelector("ul")!;
+      const button = document.createElement("div");
+      button.setAttribute("role", "button");
+      button.innerText = initialText;
+      thread.append(button);
+      const pages = [15, 15, 7];
+      const click = vi.fn(() => {
+        button.remove();
+        const count = pages.shift()!;
+        setTimeout(() => {
+          for (let index = 0; index < count; index++)
+            replies.append(document.createElement("div"));
+          button.innerText = pages.length > 0 ? moreText : hideText;
+          thread.append(button);
+        }, 2_000);
+      });
+      button.addEventListener("click", click);
+      const loader = new InstagramCommentThreadContentLoader(
+        new ScrapingSupport(new AbortController().signal),
+      );
+
+      const pending = loader.loadReplies({ threadElements: [thread] });
+      await vi.runAllTimersAsync();
+      await pending;
+
+      expect(replies.children).toHaveLength(37);
+      expect(click).toHaveBeenCalledTimes(3);
+    },
+  );
+
   it.each([false, true])(
     "waits for replies without a spinner, with persistent button: %s",
     async (persistentButton) => {
