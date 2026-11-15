@@ -1,11 +1,18 @@
 import { expect, test } from "./fixtures";
-import { seededPostSnapshots } from "./data/seededPostSnapshots";
+import {
+  seededPostHateFlags,
+  seededPostSnapshots,
+} from "./data/seededPostSnapshots";
 import { e2eSeedPostSnapshots } from "./extension-integration/storage/e2eSeedPostSnapshots";
 import { AppPageObject } from "./po/AppPageObject";
 
 test.beforeEach(async ({ context, extensionId }) => {
   expect(extensionId).not.toBe("");
-  await e2eSeedPostSnapshots(context, seededPostSnapshots);
+  await e2eSeedPostSnapshots(
+    context,
+    seededPostSnapshots,
+    seededPostHateFlags,
+  );
 });
 
 test("browse the overview page with seeded publication statistics", async ({

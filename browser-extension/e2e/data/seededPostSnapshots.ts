@@ -4,6 +4,7 @@ import type {
   PostSnapshot,
 } from "@/shared/model/PostSnapshot";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import type { E2EHateFlagSeed } from "../extension-integration/storage/e2eSeedPostSnapshots";
 
 function comment(
   overrides: Partial<CommentSnapshot> &
@@ -116,3 +117,10 @@ export const seededPostSnapshots: PostSnapshot[] = [
     ],
   },
 ];
+
+export const seededPostHateFlags: E2EHateFlagSeed = {
+  "threat-comment": true,
+  "insult-comment": true,
+  "support-comment": false,
+  "hate-comment": true,
+};
