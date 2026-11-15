@@ -9,6 +9,7 @@ import {
   LIKES_BUTTON_REGEX,
 } from "./instagramElementsTexts";
 import { imageToPngBase64 } from "@/shared/screenshoting/";
+import { parseInstagramCompactCount } from "./extractInstagramCommentsCount";
 
 export class InstagramLoadedCommentScraper {
   constructor(
@@ -18,10 +19,11 @@ export class InstagramLoadedCommentScraper {
   ) {}
 
   scrapLoadedComment(): InstagramComment {
-    if (this.isFacebookCommentsPlaceholder()) {
+    const facebookCommentsCount = this.scrapFacebookCommentsCount();
+    if (facebookCommentsCount !== undefined) {
       return {
         type: "fb-comments",
-        data: undefined,
+        data: { commentCount: facebookCommentsCount },
       };
     }
     const id = crypto.randomUUID();
@@ -89,17 +91,18 @@ export class InstagramLoadedCommentScraper {
     }
   }
 
-  private isFacebookCommentsPlaceholder(): boolean {
-    const fbCommentsSpan = this.scrapingSupport.select(
+  private scrapFacebookCommentsCount(): number | undefined {
+    const spans = this.scrapingSupport.selectAll(
       this.commentElement,
       "span",
       HTMLSpanElement,
-      {
-        predicate: (span) =>
-          FB_COMMENTS_TEXT_REGEX.exec(span.innerText.trim()) !== null,
-      },
     );
-    return fbCommentsSpan !== undefined;
+    for (const span of spans) {
+      const count = FB_COMMENTS_TEXT_REGEX.exec(span.innerText.trim())?.groups
+        ?.count;
+      if (count !== undefined) return parseInstagramCompactCount(count);
+    }
+    return undefined;
   }
 
   private scrapTextContent(commentCentralDiv: HTMLElement) {
@@ -221,7 +224,7 @@ export type InstagramImageComment = {
 
 export type FacebookCommentsPlaceholder = {
   type: "fb-comments";
-  data: undefined;
+  data: { commentCount: number };
 };
 
 /**

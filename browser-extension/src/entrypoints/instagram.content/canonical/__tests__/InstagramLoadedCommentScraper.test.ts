@@ -86,7 +86,7 @@ describe("InstagramLoadedCommentScraper", () => {
       loadCommentElement("comment-facebook-placeholder.html"),
     );
 
-    expect(result).toEqual({ type: "fb-comments", data: undefined });
+    expect(result).toEqual({ type: "fb-comments", data: { commentCount: 6 } });
   });
 
   it("identifies the nested Facebook reel placeholder captured in the soak test", async () => {
@@ -94,6 +94,35 @@ describe("InstagramLoadedCommentScraper", () => {
       await scrapComment(
         loadCommentElement("comment-facebook-reel-placeholder.html"),
       ),
-    ).toEqual({ type: "fb-comments", data: undefined });
+    ).toEqual({
+      type: "fb-comments",
+      data: { commentCount: 2999 },
+    });
   });
+
+  it.each([
+    ["Ce reel compte 2\u202f999 commentaires sur Facebook.", 2999],
+    ["Ce reel compte 1 commentaire sur Facebook.", 1],
+    ["0 commentaires sur Facebook", 0],
+    ["1 commentaire sur Facebook", 1],
+    ["5\u00a0commentaires sur Facebook", 5],
+    ["1\u202f234 commentaires sur Facebook", 1234],
+    ["1 comment from Facebook", 1],
+    ["1,234 comments from Facebook", 1234],
+    ["5 comments on Facebook", 5],
+    ["1.2K comments from Facebook", 1200],
+  ])(
+    "extracts the Facebook comment count from %s",
+    async (label, commentCount) => {
+      const element = document.createElement("div");
+      const span = document.createElement("span");
+      span.innerText = label;
+      element.append(span);
+
+      expect(await scrapComment(element)).toEqual({
+        type: "fb-comments",
+        data: { commentCount },
+      });
+    },
+  );
 });

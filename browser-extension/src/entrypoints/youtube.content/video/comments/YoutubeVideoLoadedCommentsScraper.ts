@@ -14,6 +14,11 @@ import { ytBaseLogger } from "../../ytBaseLogger";
 
 const logger = createLogger("loaded-comment-scraper", ytBaseLogger);
 
+export type YoutubeLoadedCommentsResult = {
+  comments: CommentSnapshotWithScreenshot[];
+  filteredCommentsCount: number;
+};
+
 export class YoutubeVideoLoadedCommentsScraper {
   constructor(
     private scrapingSupport: ScrapingSupport,
@@ -25,15 +30,8 @@ export class YoutubeVideoLoadedCommentsScraper {
 
   public async scrapRootCommentThreads(
     threadContainers: HTMLElement[],
-  ): Promise<CommentSnapshotWithScreenshot[]> {
+  ): Promise<YoutubeLoadedCommentsResult> {
     logger.debug(`Scraping ${threadContainers.length} loaded comment threads`);
-
-    return await this.scrapCommentThreads(threadContainers);
-  }
-
-  private async scrapCommentThreads(
-    threadContainers: HTMLElement[],
-  ): Promise<CommentSnapshotWithScreenshot[]> {
     const commentContainers = threadContainers.map((threadContainer) =>
       this.selectCommentContainer(threadContainer),
     );
@@ -51,6 +49,7 @@ export class YoutubeVideoLoadedCommentsScraper {
       ),
     );
     const comments: CommentSnapshotWithScreenshot[] = [];
+    let filteredCommentsCount = 0;
     for (const threadContainer of threadContainers) {
       const thread = await this.scrapCommentThread(
         threadContainer,
@@ -59,8 +58,9 @@ export class YoutubeVideoLoadedCommentsScraper {
       if (thread.scrapingStatus === "success") {
         comments.push(thread.comment);
       }
+      filteredCommentsCount += thread.filteredCommentsCount;
     }
-    return comments;
+    return { comments, filteredCommentsCount };
   }
 
   private async scrapCommentThread(
@@ -79,6 +79,7 @@ export class YoutubeVideoLoadedCommentsScraper {
       return {
         scrapingStatus: "failure",
         message: "The comment is not visible",
+        filteredCommentsCount: this.countFilteredThread(commentThreadContainer),
       };
     }
 
@@ -101,6 +102,7 @@ export class YoutubeVideoLoadedCommentsScraper {
       return {
         scrapingStatus: "failure",
         message: "Duplicate comment " + comment.commentId,
+        filteredCommentsCount: this.countFilteredThread(commentThreadContainer),
       };
     }
     this.collectedCommentIds.add(comment.commentId);
@@ -114,19 +116,27 @@ export class YoutubeVideoLoadedCommentsScraper {
       HTMLElement,
     );
 
-    if (repliesContainer) {
-      comment.replies = await this.scrapCommentReplies(repliesContainer);
-    }
+    const replies = repliesContainer
+      ? await this.scrapCommentReplies(repliesContainer)
+      : { comments: [], filteredCommentsCount: 0 };
+    comment.replies = replies.comments;
 
     return {
       comment,
       scrapingStatus: "success",
+      filteredCommentsCount: replies.filteredCommentsCount,
     };
+  }
+
+  private countFilteredThread(threadContainer: HTMLElement): number {
+    // A skipped parent also discards its loaded descendants. Duplicate DOM
+    // occurrences are counted as exclusions, not as missing platform comments.
+    return threadContainer.querySelectorAll("#comment-container").length;
   }
 
   private async scrapCommentReplies(
     repliesContainer: HTMLElement,
-  ): Promise<CommentSnapshotWithScreenshot[]> {
+  ): Promise<YoutubeLoadedCommentsResult> {
     const expandedThreadsContainer = this.scrapingSupport.select(
       repliesContainer,
       "#expanded-threads",
@@ -136,7 +146,7 @@ export class YoutubeVideoLoadedCommentsScraper {
     // Because of "fix Load replies is unstable",
     // it is possible that the replies have not been rendered yet
     if (!expandedThreadsContainer) {
-      return [];
+      return { comments: [], filteredCommentsCount: 0 };
     }
 
     const repliesThreads = this.scrapingSupport.selectAll(
@@ -250,6 +260,7 @@ export class YoutubeVideoLoadedCommentsScraper {
     }
   }
 }
-type ScrapCommentThreadResult =
+type ScrapCommentThreadResult = (
   | { scrapingStatus: "success"; comment: CommentSnapshotWithScreenshot }
-  | { scrapingStatus: "failure"; message: string };
+  | { scrapingStatus: "failure"; message: string }
+) & { filteredCommentsCount: number };

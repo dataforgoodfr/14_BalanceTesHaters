@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ScrapingMetadataSchema } from "./ScrapingMetadata";
 import { ClassificationStatusSchema } from "./ClassificationStatus";
 import { PostSharedPropertiesSchema } from "./PostSharedProperties";
 import { CommentSharedPropertiesSchema } from "./CommentSharedPropertiesSchema";
@@ -52,6 +53,9 @@ export const PostSnapshotSchema = PostSharedPropertiesSchema.extend({
    * Comment snapshots
    */
   comments: CommentSnapshotSchema.array(),
+
+  // Older snapshots do not contain scraping diagnostics.
+  scrapingMetadata: ScrapingMetadataSchema.optional(),
 
   /**
    * Classification job id returned by backend after storage.

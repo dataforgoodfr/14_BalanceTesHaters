@@ -1,3 +1,4 @@
+import type { CommentsScrapingResult } from "@/shared/model/scraping/CommentsScrapingResult";
 import {
   countAllComments,
   type CommentSnapshot,
@@ -29,11 +30,18 @@ export class YoutubeVideoCommentsScraper {
     private maxScrapingComments: number = YoutubeVideoCommentsScraper.DEFAULT_MAX_SCRAPING_COMMENTS,
   ) {}
 
-  public async scrapComments(): Promise<CommentSnapshot[]> {
+  public async scrapComments(): Promise<CommentsScrapingResult> {
+    const metadata: CommentsScrapingResult["metadata"] = {
+      expectedCommentsCount: this.expectedCommentsCount,
+      commentsLimit: this.maxScrapingComments,
+      limitReached: false,
+      filteredCommentsCount: 0,
+      screenshotsEnabled: !this.skipScreenshoting,
+    };
     logger.info(
       `Scraping comments (expectedCommentsCount: ${this.expectedCommentsCount}, maxScrapingComments: ${this.maxScrapingComments})...`,
     );
-    if (this.expectedCommentsCount === 0) return [];
+    if (this.expectedCommentsCount === 0) return { comments: [], metadata };
     // Sort by newest so the continuation contains every comment, not a ranked sample.
     await this.sortCommentsByNewest();
 
@@ -73,9 +81,10 @@ export class YoutubeVideoCommentsScraper {
       }
 
       logger.info(`Scraping batch content...`);
-      const batchCommentsWithScreenshots = await batchScraper.scrapBatch(batch);
+      const batchResult = await batchScraper.scrapBatch(batch);
+      metadata.filteredCommentsCount += batchResult.filteredCommentsCount;
       const { comments: batchComments, screenshots } = detachCommentScreenshots(
-        batchCommentsWithScreenshots,
+        batchResult.comments,
       );
       const allBatchCommentsCount = countAllComments(batchComments);
       logger.info(
@@ -87,6 +96,7 @@ export class YoutubeVideoCommentsScraper {
 
       await this.scrapingSupport.resumeHostPage();
       if (countAllComments(comments) >= this.maxScrapingComments) {
+        metadata.limitReached = true;
         logger.warn(
           `Maximum number of comments reached ${this.maxScrapingComments}. Stopping...`,
         );
@@ -95,7 +105,7 @@ export class YoutubeVideoCommentsScraper {
     }
 
     this.progressManager.setProgress(100);
-    return comments;
+    return { comments, metadata };
   }
 
   private async sortCommentsByNewest(): Promise<void> {
