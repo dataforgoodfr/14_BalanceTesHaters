@@ -57,6 +57,23 @@ describe("post snapshot storage v2", () => {
     ).resolves.toBe(SCREENSHOT_DATA);
   });
 
+  it("preserves scraping metadata when storing and reading snapshots", async () => {
+    const result = scrapingResult();
+    result.postSnapshot.scrapingMetadata = {
+      expectedCommentsCount: 123,
+      commentsLimit: 100,
+      limitReached: true,
+      filteredCommentsCount: 7,
+      durationMs: 4567,
+      screenshotsEnabled: false,
+    };
+    await store(result);
+    const [postSnapshot] = await storage.getPostSnapshots();
+    expect(postSnapshot?.scrapingMetadata).toEqual(
+      result.postSnapshot.scrapingMetadata,
+    );
+  });
+
   it("ignores screenshot references without a chunk index", async () => {
     await store();
 

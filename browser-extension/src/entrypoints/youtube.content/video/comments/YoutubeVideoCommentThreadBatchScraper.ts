@@ -1,4 +1,3 @@
-import type { CommentSnapshotWithScreenshot } from "@/shared/model/scraping/CommentSnapshotWithScreenshot";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import type { ScrapingSupport } from "@/shared/scraping/ScrapingSupport";
 import {
@@ -8,7 +7,10 @@ import {
 } from "@/shared/screenshoting";
 import { createLogger } from "@/shared/utils/createLogger";
 import type { YoutubeVideoCommentThreadBatch } from "./YoutubeVideoCommentThreadBatch";
-import { YoutubeVideoLoadedCommentsScraper } from "./YoutubeVideoLoadedCommentsScraper";
+import {
+  YoutubeVideoLoadedCommentsScraper,
+  type YoutubeLoadedCommentsResult,
+} from "./YoutubeVideoLoadedCommentsScraper";
 import { ytBaseLogger } from "../../ytBaseLogger";
 
 const logger = createLogger("batch-scraper", ytBaseLogger);
@@ -25,7 +27,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
 
   async scrapBatch(
     batch: YoutubeVideoCommentThreadBatch,
-  ): Promise<CommentSnapshotWithScreenshot[]> {
+  ): Promise<YoutubeLoadedCommentsResult> {
     const threadElements = batch.threadRoots.map(
       (threadRoot) => threadRoot.element,
     );
@@ -41,7 +43,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
     try {
       const attemptCommentIds = new Set(this.collectedCommentIds);
       const screenshotProvider = this.createScreenshotProvider();
-      const comments = await new YoutubeVideoLoadedCommentsScraper(
+      const result = await new YoutubeVideoLoadedCommentsScraper(
         this.scrapingSupport,
         screenshotProvider,
         this.targetCommentsCount,
@@ -53,7 +55,7 @@ export class YoutubeVideoCommentThreadBatchScraper {
         this.collectedCommentIds.add(commentId);
       }
 
-      return comments;
+      return result;
     } finally {
       masthead.style.visibility = "visible";
       await this.scrapingSupport.resumeHostPage();

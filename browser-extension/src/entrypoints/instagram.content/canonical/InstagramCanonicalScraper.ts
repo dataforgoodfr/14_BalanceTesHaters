@@ -32,6 +32,7 @@ export class InstagramCanonicalScraper {
   ) {}
 
   async scrapPost(): Promise<PostSnapshot> {
+    const startedAt = performance.now();
     logger.debug("Start Scraping... ", document.URL);
 
     const url = document.URL;
@@ -64,14 +65,15 @@ export class InstagramCanonicalScraper {
     }
 
     logger.debug("Extracting comment threads... ");
-    const comments = await new InstagramCommentThreadsScraper(
+    const commentsScraper = new InstagramCommentThreadsScraper(
       this.scrapingSupport,
       this.progressManager,
       expectedCommentsCount,
       this.output.appendScreenshots,
       this.skipScreenshoting,
       this.scrapingMaxComments,
-    ).scrapCommentThreads();
+    );
+    const { comments, metadata } = await commentsScraper.scrapCommentThreads();
 
     return {
       id,
@@ -84,6 +86,10 @@ export class InstagramCanonicalScraper {
       url,
       coverImageUrl,
       comments,
+      scrapingMetadata: {
+        ...metadata,
+        durationMs: Math.round(performance.now() - startedAt),
+      },
     };
   }
 }

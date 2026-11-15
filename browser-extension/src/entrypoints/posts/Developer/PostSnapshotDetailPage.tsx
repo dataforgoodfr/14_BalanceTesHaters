@@ -130,6 +130,66 @@ function PostSnapshotDetailPage() {
             </div>
           </div>
 
+          {post.scrapingMetadata && (
+            <>
+              <h2 className="text-left pt-2 my-4">Collecte</h2>
+              <dl className="rounded-md border text-left p-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <dt className="text-muted-foreground">
+                    Commentaires attendus
+                  </dt>
+                  <dd>
+                    {post.scrapingMetadata.expectedCommentsCount.toLocaleString(
+                      "fr-FR",
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    Limite de commentaires
+                  </dt>
+                  <dd>
+                    {post.scrapingMetadata.commentsLimit.toLocaleString(
+                      "fr-FR",
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Limite atteinte</dt>
+                  <dd>{post.scrapingMetadata.limitReached ? "Oui" : "Non"}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    Commentaires filtrés
+                  </dt>
+                  <dd>
+                    {post.scrapingMetadata.filteredCommentsCount.toLocaleString(
+                      "fr-FR",
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">Durée</dt>
+                  <dd>
+                    {(post.scrapingMetadata.durationMs / 1000).toLocaleString(
+                      "fr-FR",
+                      { maximumFractionDigits: 3 },
+                    )}{" "}
+                    s
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">
+                    Captures d'écran activées
+                  </dt>
+                  <dd>
+                    {post.scrapingMetadata.screenshotsEnabled ? "Oui" : "Non"}
+                  </dd>
+                </div>
+              </dl>
+            </>
+          )}
+
           <h2 className="text-left pt-2 mb-4">État classification</h2>
           <div className="text-left flex flex-row items-center gap-2  ">
             {post.classificationStatus === "COMPLETED" && (

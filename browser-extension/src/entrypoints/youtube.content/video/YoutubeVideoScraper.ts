@@ -28,6 +28,7 @@ export class YoutubeVideoScraper {
   ) {}
 
   async scrapPost(): Promise<PostSnapshot> {
+    const startedAt = performance.now();
     logger.info("Start Scraping... ", document.URL);
 
     // Pause video to ensure it doesn't autoplay next video during scraping..."
@@ -68,7 +69,7 @@ export class YoutubeVideoScraper {
     );
     const expectedCommentCount = await this.scrapExpectedCommentCount();
 
-    const comments = await new YoutubeVideoCommentsScraper(
+    const commentsScraper = new YoutubeVideoCommentsScraper(
       this.scrapingSupport,
       this.progressManager,
       commentsContainer,
@@ -76,7 +77,8 @@ export class YoutubeVideoScraper {
       this.output.appendScreenshots,
       this.skipScreenshoting,
       this.scrapingMaxComments,
-    ).scrapComments();
+    );
+    const { comments, metadata } = await commentsScraper.scrapComments();
     return {
       id,
       postId,
@@ -88,6 +90,10 @@ export class YoutubeVideoScraper {
       publishedAt: publishedAt,
       textContent,
       comments,
+      scrapingMetadata: {
+        ...metadata,
+        durationMs: Math.round(performance.now() - startedAt),
+      },
       title,
     };
   }
