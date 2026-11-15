@@ -3,6 +3,8 @@ export const LIKES_BUTTON_REGEX =
 
 export const VIEW_REPLIES_BUTTON_TEXT_REGEX =
   /Voir les .* réponses|View all .* replies/;
+export const HIDE_REPLIES_BUTTON_TEXT_REGEX =
+  /Masquer (?:toutes )?les réponses|Hide (?:all )?replies/;
 // TODO handle instagram elements localisations in english
 export const SHOW_HIDDEN_COMMENTS_REGEX =
   /Voir les commentaires masqués|View hidden comments/;
