@@ -10,6 +10,7 @@ import { currentIsoDate } from "@/shared/utils/current-iso-date";
 import { extractOgDescriptionInfo } from "../og/extractOgDescriptionInfo";
 import type { ScrapableSocialNetworkPage } from "@/shared/scraping-content-script/SocialNetworkPageInfo";
 import { extractInstagramCommentsCount } from "./extractInstagramCommentsCount";
+import { InstagramCommentSorter } from "./InstagramCommentSorter";
 
 const logger = createLogger("ig-canonical", scrapingLogger);
 
@@ -57,6 +58,10 @@ export class InstagramCanonicalScraper {
       textContent,
       expectedCommentsCount,
     });
+
+    if (expectedCommentsCount > 0) {
+      await new InstagramCommentSorter(this.scrapingSupport).sortByMostRecent();
+    }
 
     logger.debug("Extracting comment threads... ");
     const comments = await new InstagramCommentThreadsScraper(
