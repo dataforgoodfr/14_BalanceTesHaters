@@ -6,14 +6,14 @@ import { base64ToUint8Array } from "@/shared/utils/base-64";
 import { extractBase64DataFromDataUrl } from "@/shared/utils/data-url";
 import type { ProgressManager } from "@/shared/scraping-content-script/ProgressManager";
 import { maybeStoreDebugScreenshot } from "../debug/debugScreenshots";
-import { createLogger } from "../../../utils/createLogger";
+import { createLogger, scrapingLogger } from "../../../utils/createLogger";
 import type { Scrollable } from "./Scrollable";
 import { sleep } from "../../../utils/sleep";
 import type { Size } from "../../box/Size";
 import type { Box } from "../../box/Box";
 import { withRetry } from "@/shared/utils/withRetry";
 
-const logger = createLogger("capture-screenshot");
+const logger = createLogger("capture-screenshot", scrapingLogger);
 
 export type ScrollableScreenshot = {
   /** PNG fragments, positioned in the scrollable element's CSS coordinates. */
@@ -109,22 +109,12 @@ export async function captureScrollableScreenshot(
         requestedScreenshotArea,
         scrollableElement.getScrollSize(),
       );
-      const scrollSize = scrollableElement.getScrollSize();
-      const clientBox = scrollableElement.getClientBoxInViewport();
-      const requestedTop = Math.min(
-        nextTop,
-        maxReachableScrollTop(scrollableElement),
-      );
-      const requestedLeft = Math.min(
-        nextLeft,
-        Math.max(0, scrollSize.width - clientBox.width),
-      );
       const { visibleArea, scrollableScreenshot } =
         await captureScrollableVisibleAreaScreenshotWithRetry(
           scrollableElement,
           scrapingSupport,
-          requestedTop,
-          requestedLeft,
+          nextTop,
+          nextLeft,
           resolvedWaitOptions,
         );
       const remainingArea: Box = {
@@ -148,7 +138,7 @@ export async function captureScrollableScreenshot(
       );
       await maybeStoreDebugScreenshot(fragmentImage, {
         type: "scrollable-fragment-requested-area",
-        desc: `scrollTop:${requestedTop}, scrollLeft:${requestedLeft}`,
+        desc: `scrollTop:${visibleArea.y}, scrollLeft:${visibleArea.x}`,
       });
       fragments.push({
         catpureArea: capturedArea,
@@ -176,8 +166,8 @@ type ScrollableVisibleAreaScreenshot = {
 async function captureScrollableVisibleAreaScreenshotWithRetry(
   scrollableElement: Scrollable,
   scrapingSupport: ScrapingSupport,
-  requestedTop: number,
-  requestedLeft: number,
+  targetTop: number,
+  targetLeft: number,
   waitOptions: Required<ScreenshotWaitOptions>,
 ): Promise<ScrollableVisibleAreaScreenshot> {
   return withRetry({
@@ -203,6 +193,16 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
       await scrapingSupport.sleep(2000);
     },
     retry: async () => {
+      const scrollSize = scrollableElement.getScrollSize();
+      const clientBox = scrollableElement.getClientBoxInViewport();
+      const requestedTop = Math.min(
+        targetTop,
+        Math.max(0, scrollSize.height - clientBox.height),
+      );
+      const requestedLeft = Math.min(
+        targetLeft,
+        Math.max(0, scrollSize.width - clientBox.width),
+      );
       await scrollableElement.scrollTo({
         top: requestedTop,
         left: requestedLeft,
@@ -247,6 +247,15 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
         );
       }
       if (Math.abs(settledScrollLeft - requestedLeft) > 1) {
+        logger.warn(
+          "Screenshot horizontal scroll did not reach the requested position",
+          {
+            requestedLeft,
+            settledScrollLeft,
+            scrollSize: scrollableElement.getScrollSize(),
+            clientBox: scrollableElement.getClientBoxInViewport(),
+          },
+        );
         throw new ScrollableElementScrolledDuringScreenshotException(
           requestedLeft,
           settledScrollLeft,
@@ -296,6 +305,8 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
         desc: "scrollTop:" + requestedTop,
       });
 
+      // Use this attempt's clamped CSS origin. Settling differences within one
+      // CSS pixel retain the existing physical-pixel snapping tolerance.
       const visibleArea: Box = {
         x: requestedLeft,
         y: requestedTop,
@@ -442,14 +453,6 @@ function tabInnerSize(): Size {
     height: window.innerHeight,
     width: window.innerWidth,
   };
-}
-
-function maxReachableScrollTop(scrollableElement: Scrollable) {
-  return Math.max(
-    0,
-    scrollableElement.getScrollSize().height -
-      scrollableElement.getClientBoxInViewport().height,
-  );
 }
 
 function checkScreenshotAreaValid(area: Box, scrollSize: Size): Box {
