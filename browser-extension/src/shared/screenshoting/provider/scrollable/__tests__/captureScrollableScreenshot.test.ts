@@ -393,4 +393,178 @@ describe("captureScrollableScreenshot", () => {
     expect(sleepSpy).toHaveBeenCalledTimes(9);
     expect(captureTabScreenshotAsDataUrl).not.toHaveBeenCalled();
   });
+  test.each(["width", "height"] as const)(
+    "allows scroll %s to grow during capture",
+    async (dimension) => {
+      const scrollable = new FakeScrollable();
+      const originalScrollTo = scrollable.scrollTo.bind(scrollable);
+      vi.spyOn(scrollable, "scrollTo").mockImplementation(async (options) => {
+        await originalScrollTo(options);
+        scrollable.scrollSize[dimension] += 1;
+      });
+      const screenshot = await captureScrollableScreenshot(
+        scrollable,
+        new ScrapingSupport(new AbortController().signal),
+        new ProgressManager(vi.fn()),
+        { x: 0, y: 3, width: 4, height: 2 },
+        { waitForScrollEnd: false, extraWait: 0 },
+      );
+      expect(
+        screenshot.fragments.map((fragment) => fragment.catpureArea),
+      ).toEqual([{ x: 0, y: 3, width: 4, height: 2 }]);
+      expect(scrollable.scrollCalls).toBe(1);
+    },
+  );
+
+  test.each(["width", "height"] as const)(
+    "keeps client %s changes on the existing fragment retry path",
+    async (dimension) => {
+      const scrollable = new FakeScrollable();
+      const support = new ScrapingSupport(new AbortController().signal);
+      vi.spyOn(support, "sleep").mockResolvedValue();
+      vi.mocked(captureTabScreenshotAsDataUrl).mockImplementationOnce(() => {
+        scrollable.clientBox[dimension] -= 1;
+        return Promise.resolve(screenshotDataUrl);
+      });
+      const screenshot = await captureScrollableScreenshot(
+        scrollable,
+        support,
+        new ProgressManager(vi.fn()),
+        { x: 0, y: 3, width: 4, height: 2 },
+        { waitForScrollEnd: false, extraWait: 0 },
+      );
+      expect(
+        screenshot.fragments.reduce(
+          (area, fragment) =>
+            area + fragment.catpureArea.width * fragment.catpureArea.height,
+          0,
+        ),
+      ).toBe(8);
+      expect(captureTabScreenshotAsDataUrl).toHaveBeenCalledTimes(3);
+    },
+  );
+  test.each(["width", "height"] as const)(
+    "allows scroll %s to shrink while it still contains the requested area",
+    async (dimension) => {
+      const scrollable = new FakeScrollable();
+      scrollable.scrollSize.width = 6;
+      const originalScrollTo = scrollable.scrollTo.bind(scrollable);
+      vi.spyOn(scrollable, "scrollTo").mockImplementation(async (options) => {
+        await originalScrollTo(options);
+        scrollable.scrollSize[dimension] -= 1;
+      });
+      const screenshot = await captureScrollableScreenshot(
+        scrollable,
+        new ScrapingSupport(new AbortController().signal),
+        new ProgressManager(vi.fn()),
+        { x: 1, y: 3, width: 2, height: 2 },
+        { waitForScrollEnd: false, extraWait: 0 },
+      );
+      expect(
+        screenshot.fragments.map((fragment) => fragment.catpureArea),
+      ).toEqual([{ x: 1, y: 3, width: 2, height: 2 }]);
+      expect(scrollable.scrollCalls).toBe(1);
+    },
+  );
+  test.each([
+    ["width", "scroll size shrinks"],
+    ["height", "scroll size shrinks"],
+    ["width", "client size grows"],
+    ["height", "client size grows"],
+  ] as const)(
+    "reclamps the %s target on retry when %s and preserves the requested pixels",
+    async (dimension, resize) => {
+      const horizontal = dimension === "width";
+      const scrollable = new FakeScrollable();
+      const viewport = horizontal
+        ? { width: 320, height: 2 }
+        : { width: 2, height: 320 };
+      scrollable.clientBox = { x: 0, y: 0, ...viewport };
+      scrollable.scrollSize = horizontal
+        ? { width: 336, height: 10 }
+        : { width: 4, height: 336 };
+      if (resize === "client size grows") {
+        scrollable.scrollSize[dimension] = 329;
+        scrollable.clientBox[dimension] = 313;
+      }
+      Object.defineProperty(window, "innerWidth", {
+        configurable: true,
+        value: viewport.width,
+      });
+      Object.defineProperty(window, "innerHeight", {
+        configurable: true,
+        value: viewport.height,
+      });
+      const originalScrollTo = scrollable.scrollTo.bind(scrollable);
+      const scrollTo = vi
+        .spyOn(scrollable, "scrollTo")
+        .mockImplementation(async (options) => {
+          if (resize === "scroll size shrinks")
+            scrollable.scrollSize[dimension] = 329;
+          else scrollable.clientBox[dimension] = 320;
+          await originalScrollTo({
+            ...options,
+            left: Math.min(
+              options.left ?? 0,
+              scrollable.scrollSize.width - scrollable.clientBox.width,
+            ),
+            top: Math.min(
+              options.top ?? 0,
+              scrollable.scrollSize.height - scrollable.clientBox.height,
+            ),
+          });
+        });
+      vi.mocked(captureTabScreenshotAsDataUrl).mockImplementation(() => {
+        const position = scrollable.getScrollPosition();
+        const image = new Image(viewport.width, viewport.height);
+        for (let row = 0; row < image.height; row++) {
+          for (let column = 0; column < image.width; column++) {
+            image.setPixel(column, row, [
+              (position.left + column) % 256,
+              (position.top + row) % 256,
+              100,
+            ]);
+          }
+        }
+        return Promise.resolve(
+          `data:image/png;base64,${uint8ArrayToBase64(encodePng(image))}`,
+        );
+      });
+      const support = new ScrapingSupport(new AbortController().signal);
+      vi.spyOn(support, "sleep").mockResolvedValue();
+      const requestedArea = horizontal
+        ? { x: 16, y: 3, width: 288, height: 2 }
+        : { x: 0, y: 16, width: 2, height: 288 };
+      const screenshot = await captureScrollableScreenshot(
+        scrollable,
+        support,
+        new ProgressManager(vi.fn()),
+        requestedArea,
+        { waitForScrollEnd: false, extraWait: 0 },
+      );
+      expect(
+        scrollTo.mock.calls.map(([options]) =>
+          horizontal ? options.left : options.top,
+        ),
+      ).toEqual([16, 9]);
+      expect(captureTabScreenshotAsDataUrl).toHaveBeenCalledOnce();
+      expect(
+        screenshot.fragments.map((fragment) => fragment.catpureArea),
+      ).toEqual([requestedArea]);
+      const image = decodePng(screenshot.fragments[0]!.screenshotPng);
+      expect({ width: image.width, height: image.height }).toEqual({
+        width: requestedArea.width,
+        height: requestedArea.height,
+      });
+      for (let row = 0; row < image.height; row++) {
+        for (let column = 0; column < image.width; column++) {
+          expect(image.getPixel(column, row)).toEqual([
+            (requestedArea.x + column) % 256,
+            (requestedArea.y + row) % 256,
+            100,
+          ]);
+        }
+      }
+    },
+  );
 });
