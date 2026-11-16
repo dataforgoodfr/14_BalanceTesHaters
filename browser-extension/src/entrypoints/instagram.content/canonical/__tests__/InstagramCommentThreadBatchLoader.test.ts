@@ -18,6 +18,7 @@ describe("InstagramCommentThreadBatchLoader", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.useRealTimers();
   });
 
@@ -123,8 +124,98 @@ describe("InstagramCommentThreadBatchLoader", () => {
     expect(await outcome).toBeInstanceOf(Error);
     expect(await outcome).toHaveProperty(
       "message",
-      "Timed out waiting for Instagram comment threads after 10000ms.",
+      "Timed out waiting for Instagram comment threads after 30000ms.",
     );
+  });
+
+  test("waits for a slow continuation without discarding loaded threads", async () => {
+    vi.useFakeTimers();
+    const firstThread = document.createElement("div");
+    const secondThread = document.createElement("div");
+    const spinner = document.createElement("div");
+    spinner.setAttribute("role", "progressbar");
+    commentsContainer.append(firstThread, spinner);
+    scrollableContainer.scrollTo = vi.fn();
+    setTimeout(() => spinner.replaceWith(secondThread), 15_000);
+    const loader = new InstagramCommentThreadBatchLoader(
+      support,
+      scrollableContainer,
+      commentsContainer,
+      2,
+    );
+
+    const pendingBatch = loader.loadAndIdentifyNextBatch();
+    await vi.runAllTimersAsync();
+
+    expect((await pendingBatch).threadElements).toEqual([
+      firstThread,
+      secondThread,
+    ]);
+  });
+
+  test("rearms the continuation by scrolling away from the bottom and back", async () => {
+    vi.useFakeTimers();
+    const firstThread = document.createElement("div");
+    const secondThread = document.createElement("div");
+    const spinner = document.createElement("div");
+    spinner.setAttribute("role", "progressbar");
+    commentsContainer.append(firstThread, spinner);
+    Object.defineProperty(scrollableContainer, "scrollHeight", { value: 1000 });
+    scrollableContainer.scrollTop = 1000;
+    let movedAway = false;
+    let movedAwayAt: number | undefined;
+    scrollableContainer.scrollTo = vi.fn(
+      (options?: ScrollToOptions | number) => {
+        if (typeof options !== "object") return;
+        if (options.top === 800) {
+          movedAway = true;
+          movedAwayAt = Date.now();
+        }
+        if (options.top === 1000 && movedAway) {
+          expect(Date.now() - movedAwayAt!).toBeGreaterThanOrEqual(200);
+          spinner.replaceWith(secondThread);
+        }
+      },
+    );
+    const loader = new InstagramCommentThreadBatchLoader(
+      support,
+      scrollableContainer,
+      commentsContainer,
+      2,
+    );
+
+    const pendingBatch = loader.loadAndIdentifyNextBatch();
+    await vi.runAllTimersAsync();
+
+    expect(movedAway).toBe(true);
+    expect((await pendingBatch).threadElements).toEqual([
+      firstThread,
+      secondThread,
+    ]);
+  });
+
+  test("allows cancellation during pagination recovery", async () => {
+    vi.useFakeTimers();
+    const abortController = new AbortController();
+    support = new ScrapingSupport(abortController.signal);
+    const spinner = document.createElement("div");
+    spinner.setAttribute("role", "progressbar");
+    commentsContainer.append(spinner);
+    scrollableContainer.scrollTo = vi.fn();
+    const loader = new InstagramCommentThreadBatchLoader(
+      support,
+      scrollableContainer,
+      commentsContainer,
+    );
+    const reason = new Error("Cancelled by user");
+    setTimeout(() => abortController.abort(reason), 10_100);
+
+    const outcome = loader
+      .loadAndIdentifyNextBatch()
+      .catch((error: unknown) => error);
+    await vi.runAllTimersAsync();
+
+    expect(await outcome).toBe(reason);
   });
 
   test("waits for a delayed hidden-comments button to fill the current batch", async () => {

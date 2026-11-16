@@ -7,6 +7,8 @@ import {
 } from "./instagramElementsTexts";
 
 const logger = createLogger("ig-batch-loader", scrapingLogger);
+const THREAD_LOADING_TIMEOUT_MS = 30_000;
+const SCROLL_RETRY_INTERVAL_MS = 10_000;
 
 export class InstagramCommentThreadBatchLoader {
   private readonly identifiedThreadElements = new Set<HTMLElement>();
@@ -76,9 +78,7 @@ export class InstagramCommentThreadBatchLoader {
     const spinner = this.selectSpinner();
     if (spinner) {
       logger.debug("Loading the next page of comments");
-      this.scrollableContainer.scrollTo({
-        top: this.scrollableContainer.scrollHeight,
-      });
+      this.scrollToCommentsEnd();
       if (await this.waitForNewThread(previousThreads)) return true;
     }
 
@@ -98,10 +98,10 @@ export class InstagramCommentThreadBatchLoader {
   private async waitForNewThread(
     previousThreads: Set<HTMLElement>,
   ): Promise<boolean> {
-    const timeout = 10_000;
     const startedAt = Date.now();
+    let lastScrollAt = startedAt;
     let loadingStoppedAt: number | undefined;
-    while (Date.now() - startedAt < timeout) {
+    while (Date.now() - startedAt < THREAD_LOADING_TIMEOUT_MS) {
       await this.scrapingSupport.resumeHostPage();
       if (
         this.findAllThreads().some((thread) => !previousThreads.has(thread))
@@ -114,11 +114,41 @@ export class InstagramCommentThreadBatchLoader {
         loadingStoppedAt ??= Date.now();
         if (Date.now() - loadingStoppedAt >= 1_000) return false;
       }
+      if (
+        this.selectSpinner() &&
+        Date.now() - lastScrollAt >= SCROLL_RETRY_INTERVAL_MS
+      ) {
+        logger.warn("Retrying stalled Instagram comment pagination", {
+          elapsedMs: Date.now() - startedAt,
+          loadedThreads: this.findAllThreads().length,
+          scrollTop: this.scrollableContainer.scrollTop,
+          scrollHeight: this.scrollableContainer.scrollHeight,
+          clientHeight: this.scrollableContainer.clientHeight,
+        });
+        await this.retriggerCommentsLoading();
+        lastScrollAt = Date.now();
+      }
       await this.scrapingSupport.sleep(200);
     }
     throw new Error(
-      `Timed out waiting for Instagram comment threads after ${timeout}ms.`,
+      `Timed out waiting for Instagram comment threads after ${THREAD_LOADING_TIMEOUT_MS}ms.`,
     );
+  }
+
+  private scrollToCommentsEnd(): void {
+    this.scrollableContainer.scrollTo({
+      top: this.scrollableContainer.scrollHeight,
+    });
+  }
+
+  private async retriggerCommentsLoading(): Promise<void> {
+    // Repeating the same bottom position does not produce another scroll or
+    // intersection change. Let Instagram observe a move away before returning.
+    this.scrollableContainer.scrollTo({
+      top: Math.max(0, this.scrollableContainer.scrollTop - 200),
+    });
+    await this.scrapingSupport.sleep(200);
+    this.scrollToCommentsEnd();
   }
 
   private selectSpinner(): HTMLElement | undefined {
