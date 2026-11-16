@@ -207,6 +207,7 @@ async function captureScrollableVisibleAreaScreenshotWithRetry(
         top: requestedTop,
         left: requestedLeft,
         waitForScrollEnd: waitOptions.waitForScrollEnd,
+        signal: scrapingSupport.signal,
       });
 
       if (waitOptions.waitForIdle) {

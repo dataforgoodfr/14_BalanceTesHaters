@@ -1,37 +1,63 @@
-import { createLogger } from "@/shared/utils/createLogger";
+import { createLogger, scrapingLogger } from "@/shared/utils/createLogger";
 import type { ScrollPosition, ScrollableScrollToOptions } from "./Scrollable";
 
-const logger = createLogger("screenshoting-scrollToAndWait");
+const logger = createLogger("screenshoting-scrollToAndWait", scrapingLogger);
+
 export async function scrollToAndWait(
   scrollable: Window | HTMLElement,
   scrollEndEventSource: Document | HTMLElement,
   currentScrollPosition: ScrollPosition,
   scrollableScrollToOptions: ScrollableScrollToOptions,
 ): Promise<void> {
-  logger.debug("scrolling to: ", scrollableScrollToOptions);
+  const {
+    signal,
+    waitForScrollEnd = true,
+    ...scrollToOptions
+  } = scrollableScrollToOptions;
+  signal?.throwIfAborted();
   if (
-    (scrollableScrollToOptions.top !== undefined &&
-      scrollableScrollToOptions.top !== currentScrollPosition.top) ||
-    (scrollableScrollToOptions.left !== undefined &&
-      scrollableScrollToOptions.left !== currentScrollPosition.left)
+    (scrollToOptions.top === undefined ||
+      Math.abs(scrollToOptions.top - currentScrollPosition.top) < 1) &&
+    (scrollToOptions.left === undefined ||
+      Math.abs(scrollToOptions.left - currentScrollPosition.left) < 1)
   ) {
-    const { waitForScrollEnd = true, ...scrollToOptions } =
-      scrollableScrollToOptions;
-
-    if (waitForScrollEnd) {
-      await new Promise((resolve) => {
-        const listener: EventListener = (event) => {
-          resolve(event);
-          scrollEndEventSource.removeEventListener("scrollend", listener);
-          logger.debug("scrollend received: ", event);
-        };
-        scrollEndEventSource.addEventListener("scrollend", listener);
-        scrollable.scrollTo(scrollToOptions);
-      });
-    } else {
-      scrollable.scrollTo(scrollToOptions);
-    }
-  } else {
-    logger.debug("Already on target. Scrolling skipped .");
+    return;
   }
+  logger.debug("Scrolling for screenshot", scrollToOptions);
+  if (!waitForScrollEnd) {
+    scrollable.scrollTo(scrollToOptions);
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    const cleanup = () => {
+      scrollEndEventSource.removeEventListener("scrollend", onScrollEnd);
+      signal?.removeEventListener("abort", onAbort);
+    };
+    const onScrollEnd = () => {
+      cleanup();
+      resolve();
+    };
+    const onAbort = () => {
+      cleanup();
+      const reason: unknown = signal?.reason;
+      reject(
+        reason instanceof Error
+          ? reason
+          : new Error("Scrolling aborted", { cause: reason }),
+      );
+    };
+    scrollEndEventSource.addEventListener("scrollend", onScrollEnd);
+    signal?.addEventListener("abort", onAbort, { once: true });
+    try {
+      scrollable.scrollTo(scrollToOptions);
+    } catch (error) {
+      cleanup();
+      reject(
+        error instanceof Error
+          ? error
+          : new Error("Scrolling failed", { cause: error }),
+      );
+    }
+  });
 }
