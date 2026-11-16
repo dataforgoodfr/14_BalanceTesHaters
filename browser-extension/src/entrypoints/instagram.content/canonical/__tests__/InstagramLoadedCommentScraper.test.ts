@@ -88,4 +88,12 @@ describe("InstagramLoadedCommentScraper", () => {
 
     expect(result).toEqual({ type: "fb-comments", data: undefined });
   });
+
+  it("identifies the nested Facebook reel placeholder captured in the soak test", async () => {
+    expect(
+      await scrapComment(
+        loadCommentElement("comment-facebook-reel-placeholder.html"),
+      ),
+    ).toEqual({ type: "fb-comments", data: undefined });
+  });
 });
