@@ -36,6 +36,7 @@ export interface Scrollable {
 export type ScrollableScrollToOptions = ScrollToOptions & {
   // Defaults to true
   waitForScrollEnd?: boolean;
+  signal?: AbortSignal;
 };
 
 export type ScrollPosition = {

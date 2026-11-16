@@ -18,6 +18,10 @@ type WaitForSelectorResult<T> =
 export class ScrapingSupport {
   constructor(private abortSignal: AbortSignal) {}
 
+  get signal(): AbortSignal {
+    return this.abortSignal;
+  }
+
   /**
    * Check if aborted and throw if so.
    * Call this before starting an async operation.
