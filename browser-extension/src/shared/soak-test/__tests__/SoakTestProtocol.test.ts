@@ -66,7 +66,11 @@ describe("SoakTestProtocol", () => {
           recordedAt: new Date().toISOString(),
           elapsedMs: 1000,
           contentScriptReachable: true,
-          status: { type: "running", progress: 101 },
+          status: {
+            type: "running",
+            progress: 101,
+            scrapingStartDate: new Date().toISOString(),
+          },
         },
       }),
     ).toThrow();

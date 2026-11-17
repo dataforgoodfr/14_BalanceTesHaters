@@ -8,6 +8,10 @@ export type ScrapingNotStarted = z.infer<typeof ScrapingNotStartedSchema>;
 export const ScrapingRunningSchema = z.object({
   type: z.literal("running"),
   progress: z.number().min(0).max(100),
+  scrapingStartDate: z.iso.datetime(),
+  expectedCommentCount: z.int().nonnegative().optional(),
+  /** Estimated completion time, unavailable until progress is above zero. */
+  estimatedETA: z.iso.datetime().optional(),
 });
 export type ScrapingRunning = z.infer<typeof ScrapingRunningSchema>;
 
@@ -100,4 +104,25 @@ export function isScrapingCompleted(
     scrapingStatus.type === "failed" ||
     scrapingStatus.type === "canceled"
   );
+}
+
+/** Estimate completion from elapsed time and the overall progress percentage. */
+export function updateScrapingProgress(
+  status: ScrapingRunning,
+  progress: number,
+  now = Date.now(),
+): ScrapingRunning {
+  const start = Date.parse(status.scrapingStartDate);
+  const estimatedCompletion =
+    start + (Math.max(0, now - start) * 100) / progress;
+  return {
+    ...status,
+    progress,
+    estimatedETA:
+      progress > 0 &&
+      Number.isFinite(estimatedCompletion) &&
+      estimatedCompletion <= 8.64e15
+        ? new Date(Math.round(estimatedCompletion)).toISOString()
+        : undefined,
+  };
 }

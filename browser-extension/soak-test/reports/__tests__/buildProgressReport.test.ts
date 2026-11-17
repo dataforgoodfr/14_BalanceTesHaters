@@ -79,7 +79,11 @@ describe("buildProgressReport", () => {
         observation: {
           recordedAt: new Date().toISOString(),
           elapsedMs: 12_000,
-          status: { type: "running", progress: 42.4 },
+          status: {
+            type: "running",
+            progress: 42.4,
+            scrapingStartDate: new Date().toISOString(),
+          },
           contentScriptReachable: true,
           loadedDomComments: 80,
           pageVisibilityState: "visible",

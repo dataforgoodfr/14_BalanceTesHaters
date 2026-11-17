@@ -13,7 +13,11 @@ import {
 import type { SocialNetworkPageInfo } from "./SocialNetworkPageInfo";
 import { countAllComments } from "@/shared/model/PostSnapshot";
 import type { ScrapingStatus } from "./ScrapingStatus";
-import { isScrapingStartable, scrapingFailed } from "./ScrapingStatus";
+import {
+  isScrapingStartable,
+  scrapingFailed,
+  updateScrapingProgress,
+} from "./ScrapingStatus";
 import { ProgressManager } from "./ProgressManager";
 import { sendSubmitClassificationRequestMessage } from "@/entrypoints/background/classification/submitClassificationForPostMessage";
 import { sendGetSenderInfoMessage } from "@/entrypoints/background/getSenderInfo";
@@ -103,11 +107,12 @@ export class ScrapingContentScript {
     logger.info("Start scraping");
     this.scrapAbortController = new AbortController();
     try {
+      const start = Date.now();
       this.scrapingStatus = {
         type: "running",
         progress: 0,
+        scrapingStartDate: new Date(start).toISOString(),
       };
-      const start = Date.now();
       const settings = await getSettings();
       writeSession = await createPostSnapshotWriteSession();
       const scrapResult = await this.scraper.scrapPagePost(
@@ -124,15 +129,20 @@ export class ScrapingContentScript {
           logger.debug(
             `Scraping running - progress: ${progress.toFixed(2)}% - duration ${durationSec} seconds`,
           );
-          this.scrapingStatus = {
-            type: "running",
-            // Keep the precise value so long-running phases can signal
-            // movement even when their progress changes by less than 1%.
+          this.scrapingStatus = updateScrapingProgress(
+            this.scrapingStatus,
             progress,
-          };
+          );
         }),
         {
           postSnapshotId: writeSession.postSnapshotId,
+          reportExpectedCommentCount: (expectedCommentCount) => {
+            if (this.scrapingStatus.type !== "running") return;
+            this.scrapingStatus = {
+              ...this.scrapingStatus,
+              expectedCommentCount,
+            };
+          },
           appendScreenshots: writeSession.appendScreenshots.bind(writeSession),
         },
         {

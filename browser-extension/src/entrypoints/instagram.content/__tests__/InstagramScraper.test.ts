@@ -20,6 +20,7 @@ describe("InstagramScraper", () => {
       {
         postSnapshotId: crypto.randomUUID(),
         appendScreenshots: () => Promise.resolve(),
+        reportExpectedCommentCount: () => {},
       },
     );
 

@@ -97,6 +97,7 @@ export const ScrapingInProgress: Story = {
       scrapingStatus: {
         type: "running",
         progress: 42,
+        scrapingStartDate: new Date().toISOString(),
       },
     },
   },
