@@ -69,6 +69,8 @@ export class YoutubeVideoScraper {
     );
     const expectedCommentCount = await this.scrapExpectedCommentCount();
 
+    this.output.reportExpectedCommentCount(expectedCommentCount);
+
     const commentsScraper = new YoutubeVideoCommentsScraper(
       this.scrapingSupport,
       this.progressManager,

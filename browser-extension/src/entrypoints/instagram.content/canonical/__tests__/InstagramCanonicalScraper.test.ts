@@ -17,6 +17,7 @@ it("attaches scraping settings and elapsed time to a validated snapshot", async 
       <span></span><span></span><span>0</span>
     </div>`;
   vi.spyOn(performance, "now").mockReturnValueOnce(1000).mockReturnValue(1250);
+  const reportExpectedCommentCount = vi.fn();
   const snapshot = await new InstagramCanonicalScraper(
     new ScrapingSupport(new AbortController().signal),
     {
@@ -26,10 +27,15 @@ it("attaches scraping settings and elapsed time to a validated snapshot", async 
       postId: "post",
     },
     new ProgressManager(vi.fn()),
-    { postSnapshotId: crypto.randomUUID(), appendScreenshots: vi.fn() },
+    {
+      postSnapshotId: crypto.randomUUID(),
+      appendScreenshots: vi.fn(),
+      reportExpectedCommentCount,
+    },
     true,
     10,
   ).scrapPost();
+  expect(reportExpectedCommentCount).toHaveBeenCalledWith(0);
   expect(PostSnapshotSchema.parse(snapshot).scrapingMetadata).toEqual({
     expectedCommentsCount: 0,
     commentsLimit: 10,

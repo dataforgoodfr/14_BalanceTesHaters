@@ -52,6 +52,8 @@ export class InstagramCanonicalScraper {
       document,
     );
 
+    this.output.reportExpectedCommentCount(expectedCommentsCount);
+
     logger.debug("postInfo extracted:", {
       coverImageUrl,
       publishedAt,

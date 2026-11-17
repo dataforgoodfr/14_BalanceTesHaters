@@ -17,6 +17,7 @@ describe("YoutubeScraper", () => {
       {
         postSnapshotId: crypto.randomUUID(),
         appendScreenshots: () => Promise.resolve(),
+        reportExpectedCommentCount: () => {},
       },
     );
 
@@ -39,6 +40,7 @@ describe("YoutubeScraper", () => {
         {
           postSnapshotId: crypto.randomUUID(),
           appendScreenshots: () => Promise.resolve(),
+          reportExpectedCommentCount: () => {},
         },
       ),
     ).rejects.toThrow(

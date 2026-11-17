@@ -10,6 +10,7 @@ export type SocialNetworkScraperSettings = {
 
 export type ScrapingOutput = {
   postSnapshotId: string;
+  reportExpectedCommentCount: (count: number) => void;
   appendScreenshots: (screenshots: ScrapingScreenshots) => Promise<void>;
 };
 
