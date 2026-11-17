@@ -27,7 +27,6 @@ import {
   forgetProcessUsage,
   inspectPage,
   readActivity,
-  readExpectedCommentCount,
   startProcessMonitoring,
   type PageState,
 } from "./SoakTestPageProbe";
@@ -62,12 +61,6 @@ async function run(): Promise<void> {
     soakControllerStore.startAttempt(attempt);
     await post("attempt-started", { attempt });
     const result = await runAttempt(attempt, config, {
-      onExpectedComments: async (expected) => {
-        await post("expected-comments", {
-          attemptId: attempt.attemptId,
-          expectedComments: expected,
-        });
-      },
       onObservation: (observation) =>
         soakControllerStore.updateObservation(observation),
     });
@@ -98,15 +91,6 @@ async function runAttempt(
   const startedAt = new Date(startedAtMs).toISOString();
   let tabId: number | undefined;
   let expectedComments: number | undefined;
-  const captureExpectedComments = async (): Promise<void> => {
-    if (tabId === undefined || expectedComments !== undefined) return;
-    const value = await readExpectedCommentCount(tabId, attempt.platform).catch(
-      () => undefined,
-    );
-    if (value === undefined) return;
-    expectedComments = value;
-    await updates.onExpectedComments(value);
-  };
   try {
     if (config.postSnapshotCleanup === "before-each-attempt") {
       await deleteAllPostSnapshots();
@@ -125,7 +109,6 @@ async function runAttempt(
         `The browser profile is not authenticated on ${attempt.platform}. Last page state: ${JSON.stringify(authentication.lastState)}`,
       );
     }
-    await captureExpectedComments();
     const startResult = await client.startScraping();
     if (startResult.type === "failed") {
       throw new Error(startResult.errorMessage);
@@ -137,8 +120,13 @@ async function runAttempt(
       attempt.platform,
       attempt.hardTimeoutMs,
       config,
-      updates.onObservation,
-      captureExpectedComments,
+      (observation) => {
+        if (observation.status?.type === "running") {
+          expectedComments =
+            observation.status.expectedCommentCount ?? expectedComments;
+        }
+        updates.onObservation(observation);
+      },
     );
     if (
       observed.status === "stalled" ||
@@ -146,6 +134,9 @@ async function runAttempt(
       observed.status === "content_script_lost"
     ) {
       await client.cancelScraping().catch(() => undefined);
+    }
+    if (observed.status === "success") {
+      expectedComments = observed.expectedComments;
     }
     const status =
       observed.status === "success"
@@ -257,7 +248,6 @@ async function observe(
   hardTimeoutMs: number,
   config: SoakControllerConfig,
   onObservation: (observation: SoakControllerObservation) => void,
-  captureExpectedComments: () => Promise<void>,
 ): Promise<
   Pick<
     SoakControllerResult,
@@ -267,6 +257,7 @@ async function observe(
     | "scrapedComments"
     | "topLevelComments"
     | "replyComments"
+    | "expectedComments"
   >
 > {
   const startedAt = Date.now();
@@ -275,7 +266,6 @@ async function observe(
   let lastObservation: SoakControllerObservation | undefined;
   let unreachableSince: number | undefined;
   for (;;) {
-    await captureExpectedComments();
     const now = Date.now();
     const scrapingStatus = await readStatus(client);
     const activity = await readActivity(tabId, platform);
@@ -298,6 +288,7 @@ async function observe(
       const scrapedComments = countAllComments(postSnapshot.comments);
       return {
         status: "success",
+        expectedComments: postSnapshot.scrapingMetadata?.expectedCommentsCount,
         lastObservation,
         scrapedComments,
         topLevelComments: postSnapshot.comments.length,
@@ -396,6 +387,5 @@ function sleep(durationMs: number): Promise<void> {
 class AuthenticationError extends Error {}
 
 type AttemptUpdates = {
-  onExpectedComments: (expected: number) => Promise<void>;
   onObservation: (observation: SoakControllerObservation) => void;
 };
