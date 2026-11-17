@@ -12,7 +12,6 @@ import {
   SoakControllerAttemptStartedSchema,
   SoakControllerConfigSchema,
   SoakControllerEmptyPayloadSchema,
-  SoakControllerExpectedCommentsEventSchema,
   SoakControllerFatalSchema,
   SoakControllerObservationEventSchema,
   SoakControllerResultSchema,
@@ -124,9 +123,6 @@ export class ExtensionControllerServer {
       case "attempt-started":
         await this.startAttempt(body);
         return true;
-      case "expected-comments":
-        await this.recordExpectedComments(body);
-        return true;
       case "event":
         await this.recordObservation(body);
         return true;
@@ -175,28 +171,17 @@ export class ExtensionControllerServer {
     console.info(`[soak-test] Starting ${started.attempt.attemptId}`);
   }
 
-  private async recordExpectedComments(body: unknown): Promise<void> {
-    const event = SoakControllerExpectedCommentsEventSchema.parse(body);
-    const currentProgress = this.getRunningAttempt(event.attemptId);
-    if (
-      currentProgress.expectedComments !== undefined &&
-      currentProgress.expectedComments !== event.expectedComments
-    ) {
-      throw new Error(`Expected comments already set for ${event.attemptId}.`);
-    }
-    this.attemptProgress.set(event.attemptId, {
-      ...currentProgress,
-      expectedComments: event.expectedComments,
-    });
-    await this.reportProgress();
-  }
-
   private async recordObservation(body: unknown): Promise<void> {
     const event = SoakControllerObservationEventSchema.parse(body);
     const currentProgress = this.getRunningAttempt(event.attemptId);
     this.attemptProgress.set(event.attemptId, {
       ...currentProgress,
       observation: event.observation,
+      expectedComments:
+        event.observation.status?.type === "running"
+          ? (event.observation.status.expectedCommentCount ??
+            currentProgress.expectedComments)
+          : currentProgress.expectedComments,
     });
     const attemptDirectory = this.getAttemptDirectory(event.attemptId);
     await mkdir(attemptDirectory, { recursive: true });
@@ -237,8 +222,7 @@ export class ExtensionControllerServer {
       attempt: currentProgress.attempt,
       phase: "completed",
       observation: result.lastObservation,
-      expectedComments:
-        currentProgress.expectedComments ?? result.expectedComments,
+      expectedComments: result.expectedComments,
       result,
     });
     await this.args.onResult(result);

@@ -100,34 +100,6 @@ export async function inspectPage(
   return results[0]?.result ?? { contentReady: false };
 }
 
-export async function readExpectedCommentCount(
-  tabId: number,
-  platform: Platform,
-): Promise<number | undefined> {
-  const results = await browser.scripting.executeScript({
-    target: { tabId },
-    args: [platform],
-    func: (targetPlatform) => {
-      const text =
-        targetPlatform === "youtube"
-          ? document.querySelector("#comments #count span:nth-of-type(1)")
-              ?.textContent
-          : document
-              .querySelector("meta[property='og:description']")
-              ?.getAttribute("content")
-              ?.match(/([0-9][0-9, .]*)\s+comments\b/i)?.[1];
-      if (!text) return undefined;
-      const digits = text.replace(/[^0-9]/g, "");
-      const value = Number(digits);
-      return digits && Number.isSafeInteger(value) ? value : undefined;
-    },
-  });
-  const count = results[0]?.result;
-  return typeof count === "number" && count >= 0 && Number.isSafeInteger(count)
-    ? count
-    : undefined;
-}
-
 export async function readActivity(
   tabId: number,
   platform: Platform,

@@ -117,13 +117,6 @@ export const SoakControllerObservationEventSchema = z
   })
   .strict();
 
-export const SoakControllerExpectedCommentsEventSchema = z
-  .object({
-    attemptId: SoakTestIdSchema,
-    expectedComments: z.int().nonnegative(),
-  })
-  .strict();
-
 export const SoakControllerScraperLogSchema = z
   .object({
     attemptId: SoakTestIdSchema,

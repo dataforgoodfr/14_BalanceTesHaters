@@ -1,7 +1,7 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   SOAK_TEST_CONTROLLER_URL,
   type SoakControllerConfig,
@@ -29,6 +29,58 @@ const config: SoakControllerConfig = {
 };
 
 describe("ExtensionControllerServer", () => {
+  it("uses running status counts and replaces them with the completed result count", async () => {
+    const outputDirectory = await mkdtemp(
+      path.join(tmpdir(), "bth-soak-counts-"),
+    );
+    const onProgress = vi.fn((_progress: unknown) => Promise.resolve());
+    const controller = await ExtensionControllerServer.start({
+      config,
+      outputDirectory,
+      onResult: () => Promise.resolve(),
+      onProgress,
+    });
+    try {
+      await post("attempt-started", undefined, { attempt: config.attempts[0] });
+      for (const expectedCommentCount of [0, undefined, 101]) {
+        const response = await post("event", undefined, {
+          attemptId: config.attempts[0]!.attemptId,
+          observation: {
+            recordedAt: new Date().toISOString(),
+            elapsedMs: 1000,
+            contentScriptReachable: true,
+            status: {
+              type: "running",
+              progress: 50,
+              scrapingStartDate: new Date().toISOString(),
+              expectedCommentCount,
+            },
+          },
+        });
+        expect(response.status).toBe(200);
+        expect(onProgress.mock.calls.at(-1)?.[0]).toEqual([
+          expect.objectContaining({
+            expectedComments: expectedCommentCount ?? 0,
+          }),
+        ]);
+      }
+      const response = await post("result", undefined, {
+        attempt: config.attempts[0],
+        status: "success",
+        startedAt: new Date().toISOString(),
+        durationMs: 2000,
+        expectedComments: 2,
+      });
+      expect(response.status).toBe(200);
+      expect(onProgress.mock.calls.at(-1)?.[0]).toEqual([
+        expect.objectContaining({ phase: "completed", expectedComments: 2 }),
+      ]);
+    } finally {
+      await controller.close();
+      await rm(outputDirectory, { recursive: true, force: true });
+    }
+  });
+
   it("rejects completion while an attempt is unfinished", async () => {
     const outputDirectory = await mkdtemp(
       path.join(tmpdir(), "bth-soak-server-"),
@@ -74,13 +126,17 @@ describe("ExtensionControllerServer", () => {
   });
 });
 
-function post(action: string, origin?: string): Promise<Response> {
+function post(
+  action: string,
+  origin?: string,
+  body: unknown = {},
+): Promise<Response> {
   return fetch(`${SOAK_TEST_CONTROLLER_URL}/${action}`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       ...(origin ? { origin } : {}),
     },
-    body: "{}",
+    body: JSON.stringify(body),
   });
 }

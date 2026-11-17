@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   SoakControllerConfigSchema,
-  SoakControllerExpectedCommentsEventSchema,
   SoakControllerObservationEventSchema,
   SoakControllerResultSchema,
   SoakControllerScraperLogSchema,
@@ -172,17 +171,5 @@ describe("SoakTestProtocol", () => {
         expectedComments: null,
       }),
     ).toThrow();
-  });
-
-  it("parses an expected comment count event", () => {
-    expect(
-      SoakControllerExpectedCommentsEventSchema.parse({
-        attemptId: attempt.attemptId,
-        expectedComments: 1200,
-      }),
-    ).toEqual({
-      attemptId: attempt.attemptId,
-      expectedComments: 1200,
-    });
   });
 });
