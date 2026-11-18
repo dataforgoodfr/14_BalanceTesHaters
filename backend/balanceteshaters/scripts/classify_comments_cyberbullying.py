@@ -1,8 +1,7 @@
-"""Classify Instagram comments from CSV files as cyberbullying or not using Jev."""
-
 import argparse
 import logging
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -17,28 +16,25 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-PROMPT = """Tu vas recevoir un commentaire provenants des réseaux sociaux (commentaire de vidéos Youtube, par exemple). Le but est de classifier ce commentaire pour savoir s'il constitue ou non du cyberharcèlement.
-
-A prendre en compte : si le commentaire semble ironique, sarcastique, cela peut être compté comme du cyberharcèlement si cela dénigre une personne. Les emojis péjoratifs sont aussi potentiellement du cyberharcèlement s'ils participent à dénigrer quelqu'un.
-
-Par exemple (tu trouveras justement des exemples d'ironie ou d'emojis qui sont déjà du cyberharcèlement car ils semblent dénigrer la personne à qui ils s'adressent):
-- 💩 : 1
-- 🐒 : 1
-- ❤️ : 0
-- Tu es grosse : 1
-- Belle vidéo ! : 0
-- Qu'est-ce qu'il est intelligent… : 1
-- J'adore cette vidéo… Merci : 0
-- Va te f**** : 1
-- Répugnant : 1
-- Bravo : 0
-- Que Dieu te guide… : 1
-- Tu es incroyable ! 0
-- On t'aime ! 0"""
+PROMPT = """You are part of a cyberbullying classification system. You will receive a comment from social media (typically Youtube or Instagram) and score various properties which relate to cyberbullying."""
 
 
-def classify_comment(client: TypeSafeClient, comment: str | None) -> float | None:
-    """Classify a single comment. Returns 0 (no cyberbullying), 1 (cyberbullying), or None on error."""
+@dataclass
+class CyberbullyingScores:
+    is_sarcastic: float | None
+    is_insulting: float | None
+    is_mocking: float | None
+    is_discriminatory: float | None
+
+    @property
+    def average(self) -> float | None:
+        scores = [self.is_sarcastic, self.is_insulting, self.is_mocking, self.is_discriminatory]
+        valid = [s for s in scores if s is not None]
+        return sum(valid) / len(valid) if valid else None
+
+
+def classify_comment(client: TypeSafeClient, comment: str | None) -> CyberbullyingScores | None:
+    """Classify a single comment across multiple dimensions."""
 
     if not comment:
         logger.warning("No comment to classify")
@@ -48,23 +44,39 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> float | Non
         response = client.system_one(
             state={"instructions": PROMPT, "comment": comment},
             questions={
-                "is_cyberbullying": Noul(
-                    instructions="Ce commentaire est-il du cyberharcèlement ?"
-                )
+                "is_sarcastic": Noul(
+                    instructions="Is this comment sarcastic? Note: some emojis can be used to mean sarcasm"
+                ),
+                "is_insulting": Noul(
+                    instructions="Does this comment contain insults? Is it insulting a person or a community?"
+                ),
+                "is_mocking": Noul(
+                    instructions="Does this comment mocks a person or a community?"
+                ),
+                "is_discriminatory": Noul(
+                    instructions="Is this comment expressing discriminatory claims (e.g. towards minorities)?"
+                ),
             },
         )
     except Exception as e:
         logger.error(f"API error for comment '{comment[:50]}...': {e}")
         return None
 
-    answer = response.answers.get("is_cyberbullying")
-    if answer is None:
-        logger.warning(f"No answer for comment '{comment[:50]}...'")
-        return None
+    scores = {}
+    for key in ["is_sarcastic", "is_insulting", "is_mocking", "is_discriminatory"]:
+        answer = response.answers.get(key)
+        if answer is None:
+            logger.warning(f"No answer for '{key}' on comment '{comment[:50]}...'")
+            scores[key] = None
+        else:
+            scores[key] = answer.noul
 
-    # Extract the predicted score
-    predicted = answer.noul
-    return predicted
+    return CyberbullyingScores(
+        is_sarcastic=scores["is_sarcastic"],
+        is_insulting=scores["is_insulting"],
+        is_mocking=scores["is_mocking"],
+        is_discriminatory=scores["is_discriminatory"],
+    )
 
 
 def read_comments_from_csv(filepath: Path) -> pd.DataFrame:
@@ -93,11 +105,26 @@ def classify_batch(df: pd.DataFrame, client: TypeSafeClient) -> pd.Series:
         else:
             prediction = classify_comment(client, comment)
         predictions.append(prediction)
+        avg = prediction.average if prediction else None
         logger.info(
-            f"[{i + 1}/{len(df)}] '{comment[:60] if comment and not pd.isna(comment) else None}...' -> {prediction}"
+            f"[{i + 1}/{len(df)}] '{comment[:60] if comment and not pd.isna(comment) else None}...' -> {avg}"
         )
 
     return pd.Series(predictions, index=df.index)
+
+
+def build_result_df(df: pd.DataFrame, predictions: pd.Series) -> pd.DataFrame:
+    """Build output DataFrame with original columns + all scores."""
+    result = df.copy()
+
+    # Extract individual scores and average
+    scores_list = predictions.tolist()
+    result["avg_cyberbullying"] = [p.average if p else None for p in scores_list]
+
+    for key in ["is_sarcastic", "is_insulting", "is_mocking", "is_discriminatory"]:
+        result[key] = [getattr(p, key) if p else None for p in scores_list]
+
+    return result
 
 
 def save_predictions(df: pd.DataFrame, output_path: Path):
@@ -139,8 +166,6 @@ if __name__ == "__main__":
 
     predictions = classify_batch(df, client)
 
-    result = pd.DataFrame(
-        {"comment": df["Texte"].values, "prediction": predictions.values}
-    )
+    result = build_result_df(df, predictions)
 
     save_predictions(result, args.output)
