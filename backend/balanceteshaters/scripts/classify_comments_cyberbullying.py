@@ -42,16 +42,13 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
 
     try:
         response = client.system_one(
-            state={"instructions": PROMPT, "comment": comment},
+            state={"instructions": PROMPT, "comment": comment.strip()},
             questions={
                 "is_sarcastic": Noul(
                     instructions="Is this comment sarcastic? Note: some emojis can be used to mean sarcasm"
                 ),
                 "is_insulting": Noul(
-                    instructions="Does this comment contain insults? Is it insulting a person or a community?"
-                ),
-                "is_mocking": Noul(
-                    instructions="Does this comment mocks a person or a community?"
+                    instructions="Does this comment contain insults? Is it insulting or mocking a person or a community?"
                 ),
                 "is_discriminatory": Noul(
                     instructions="Is this comment expressing discriminatory claims (e.g. towards minorities)?"
