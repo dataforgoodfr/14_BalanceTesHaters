@@ -137,6 +137,7 @@ function buildPostCommentForGroupOfSameText(
     groupLatestComment.postSnapshotIndex === postSnapshotsCount - 1;
 
   return {
+    commentId: groupOldestComment.commentSnapshot.commentId,
     textContent: groupOldestComment.commentSnapshot.textContent,
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
     author: groupOldestComment.commentSnapshot.author,
