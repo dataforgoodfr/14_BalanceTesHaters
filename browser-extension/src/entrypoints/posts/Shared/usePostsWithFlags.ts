@@ -1,8 +1,5 @@
 import type { Post, PostWithFlags } from "@/shared/model/post/Post";
-import {
-  commentHateFlagKey,
-  getPostHateFlagsList,
-} from "@/shared/storage/hate-flags-storage";
+import { getPostHateFlagsList } from "@/shared/storage/hate-flags-storage";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -27,20 +24,15 @@ export function usePostsWithFlags(posts: Post[] | undefined): {
         post.comments.map((comment) => ({ postId: post.postId, comment })),
       );
 
-      const flagResults = await Promise.all(
-        comments.map(async ({ postId, comment }) => {
+      return new Set(
+        comments.flatMap(({ postId, comment }) => {
           const flagsForPost = hateFlags.find(
             (flags) => flags.postId === postId,
           );
-          const key = await commentHateFlagKey(comment.textContent);
-          return flagsForPost?.hateFlags[key] ?? false;
+          return flagsForPost?.hateFlags[comment.commentRevisionId]
+            ? [comment.commentRevisionId]
+            : [];
         }),
-      );
-
-      return new Set(
-        flagResults.flatMap((isFlagged, index) =>
-          isFlagged ? [String(index)] : [],
-        ),
       );
     },
     enabled: posts !== undefined,
@@ -51,14 +43,12 @@ export function usePostsWithFlags(posts: Post[] | undefined): {
       return [];
     }
 
-    let commentIndex = 0;
     return posts.map((post) => ({
       ...post,
-      comments: post.comments.map((comment) => {
-        const id = commentIndex.toString();
-        commentIndex += 1;
-        return { ...comment, isFlagged: flaggedCommentIds.has(id) };
-      }),
+      comments: post.comments.map((comment) => ({
+        ...comment,
+        isFlagged: flaggedCommentIds.has(comment.commentRevisionId),
+      })),
     }));
   }, [posts, flaggedCommentIds]);
 

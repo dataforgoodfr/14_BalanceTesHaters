@@ -19,6 +19,11 @@ const exampleComment: PostCommentWithFlag = {
   author: { name: "Joe", accountHref: "accountHref" },
   textContent: "",
   isDeleted: false,
+  postId: "post-1",
+  socialNetwork: SocialNetwork.YouTube,
+  commentRevisionId: "post-1:comment-1:0",
+  commentId: "comment-1",
+  revision: 0,
   isNew: false,
   isFlagged: false,
   publishedAt: {

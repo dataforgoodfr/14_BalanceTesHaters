@@ -1,3 +1,4 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type { Post } from "@/shared/model/post/Post";
 import { buildDataUrl, PNG_MIME_TYPE } from "@/shared/utils/data-url";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,6 @@ import {
   LABEL_SCORE_JURIDIQUE,
   LABEL_URL,
 } from "./reportData";
-import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 import {
   getReportCommentScreenshot,
@@ -18,7 +18,7 @@ import {
 } from "./reportScreenshots";
 
 interface ReportCommentProps {
-  comment: PostCommentWithIdAndFlag;
+  comment: PostCommentWithFlag;
   onScreenshotClick: (screenshot: string) => void;
   index: number;
   totalItems: number;

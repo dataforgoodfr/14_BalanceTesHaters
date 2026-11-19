@@ -1,14 +1,15 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { describe, expect, it } from "vitest";
 import {
   getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,
 } from "../report-stats";
-import type { PostCommentWithIdAndFlag } from "../post-util";
 
 const buildComment = (
   authorName: string,
   isFlagged: boolean,
-): PostCommentWithIdAndFlag => ({
+): PostCommentWithFlag => ({
   textContent: `${authorName} comment`,
   author: {
     name: authorName,
@@ -19,13 +20,14 @@ const buildComment = (
     date: "2026-01-01T00:00:00.000Z",
   },
   classification: [],
+  commentId: "comment-1",
+  revision: 0,
   isNew: false,
   isDeleted: false,
-  id: "1",
+  commentRevisionId: "1",
   isFlagged,
   postId: "1",
-  socialNetwork: "twitter",
-  postKey: "1-twitter",
+  socialNetwork: SocialNetwork.YouTube,
 });
 
 describe("report-stats", () => {

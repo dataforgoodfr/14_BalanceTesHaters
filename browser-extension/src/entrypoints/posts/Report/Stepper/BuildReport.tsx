@@ -1,3 +1,4 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import { defineStepper } from "@stepperize/react";
 import React from "react";
 
@@ -10,7 +11,6 @@ import Report from "../Report";
 import { FilePen, XIcon } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
-import type { PostCommentWithIdAndFlag } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;
@@ -18,7 +18,7 @@ const DEFAULT_REPORT_ORGANIZATION_TYPE = ReportOrganizationType.BY_PUBLICATION;
 export type ReportQueryData = {
   socialNetworkList: string[];
   postIdList: string[];
-  postCommentList: PostCommentWithIdAndFlag[];
+  postCommentList: PostCommentWithFlag[];
   reportOrganizationType: ReportOrganizationType;
 };
 
@@ -90,7 +90,7 @@ const BthStepper = ({
     }));
   };
 
-  const setCommentList = (postCommentList: PostCommentWithIdAndFlag[]) => {
+  const setCommentList = (postCommentList: PostCommentWithFlag[]) => {
     setReportQueryData((prev) => ({
       socialNetworkList: prev?.socialNetworkList ?? [],
       postIdList: prev?.postIdList ?? [],
@@ -159,7 +159,7 @@ const StepContent = ({
 }: {
   setSocialNetworkList: (socialNetworkList: string[]) => void;
   setPostIdList: (postList: string[]) => void;
-  setCommentList: (commentList: PostCommentWithIdAndFlag[]) => void;
+  setCommentList: (commentList: PostCommentWithFlag[]) => void;
   setReportOrganizationType: (
     reportOrgainzationType: ReportOrganizationType,
   ) => void;
@@ -171,7 +171,7 @@ const StepContent = ({
   const stateFromPostList = location.state as {
     socialNetworkFilter?: string[];
     selectedPostIds?: string[];
-    selectedCommentList?: PostCommentWithIdAndFlag[];
+    selectedCommentList?: PostCommentWithFlag[];
     skipToStep?: "step-3" | "step-4";
   };
 

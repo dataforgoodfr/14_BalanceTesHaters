@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import type {
-  PostFilters,
-  CommentFilters,
-  PostCommentWithIdAndFlag,
-} from "../post-util";
+import type { PostFilters, CommentFilters } from "../post-util";
 import {
   getEarliestPostDate,
   filterPosts,
@@ -72,6 +68,11 @@ function createHatefulComment(
       date: new Date().toISOString(),
     },
     classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
+    postId: "post-1",
+    socialNetwork: SocialNetwork.YouTube,
+    commentRevisionId: "post-1:comment-1:0",
+    commentId: "comment-1",
+    revision: 0,
     isNew: false,
     isDeleted: false,
     isFlagged,
@@ -79,13 +80,9 @@ function createHatefulComment(
 }
 
 function createDummyCommentWithId(
-  overrides: Partial<PostCommentWithIdAndFlag> = {},
-): PostCommentWithIdAndFlag {
+  overrides: Partial<PostCommentWithFlag> = {},
+): PostCommentWithFlag {
   return {
-    id: "comment-1",
-    postId: "post-1",
-    socialNetwork: "youtube",
-    postKey: "post-1|youtube",
     isFlagged: false,
     author: { name: "Author", accountHref: "https://example.com" },
     textContent: "Test comment",
@@ -93,6 +90,11 @@ function createDummyCommentWithId(
       type: "absolute",
       date: new Date("2026-01-01T12:00:00Z").toISOString(),
     },
+    postId: "post-1",
+    socialNetwork: SocialNetwork.YouTube,
+    commentRevisionId: "post-1:comment-1:0",
+    commentId: "comment-1",
+    revision: 0,
     isNew: false,
     isDeleted: false,
     ...overrides,
@@ -242,6 +244,11 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
+                postId: "post-1",
+                socialNetwork: SocialNetwork.YouTube,
+                commentRevisionId: "post-1:comment-1:0",
+                commentId: "comment-1",
+                revision: 0,
                 isNew: false,
                 isDeleted: false,
               },
@@ -256,6 +263,11 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
+                postId: "post-1",
+                socialNetwork: SocialNetwork.YouTube,
+                commentRevisionId: "post-1:comment-1:0",
+                commentId: "comment-1",
+                revision: 0,
                 isNew: false,
                 isDeleted: false,
               },
@@ -547,16 +559,16 @@ describe("post utilities", () => {
       it("should sort by hate score and place missing scores last", () => {
         const comments = [
           createDummyCommentWithId({
-            id: "1",
+            commentRevisionId: "1",
             hateScore: 0.42,
           }),
           createDummyCommentWithId({
-            id: "2",
+            commentRevisionId: "2",
             hateScore: 0.91,
           }),
-          createDummyCommentWithId({ id: "3" }),
+          createDummyCommentWithId({ commentRevisionId: "3" }),
           createDummyCommentWithId({
-            id: "4",
+            commentRevisionId: "4",
             hateScore: 0.08,
           }),
         ];
@@ -570,13 +582,13 @@ describe("post utilities", () => {
           CommentSortingCategory.HATE_SCORE_DESC,
         );
 
-        expect(resultAsc.map((comment) => comment.id)).toEqual([
+        expect(resultAsc.map((comment) => comment.commentRevisionId)).toEqual([
           "4",
           "1",
           "2",
           "3",
         ]);
-        expect(resultDesc.map((comment) => comment.id)).toEqual([
+        expect(resultDesc.map((comment) => comment.commentRevisionId)).toEqual([
           "2",
           "1",
           "4",
@@ -587,21 +599,21 @@ describe("post utilities", () => {
       it("should sort by comment date for COMMENT_DATE_ASC and COMMENT_DATE_DESC", () => {
         const comments = [
           createDummyCommentWithId({
-            id: "1",
+            commentRevisionId: "1",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T09:00:00Z").toISOString(),
             },
           }),
           createDummyCommentWithId({
-            id: "2",
+            commentRevisionId: "2",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T12:00:00Z").toISOString(),
             },
           }),
           createDummyCommentWithId({
-            id: "3",
+            commentRevisionId: "3",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T15:00:00Z").toISOString(),
@@ -613,13 +625,17 @@ describe("post utilities", () => {
           comments,
           CommentSortingCategory.COMMENT_DATE_ASC,
         );
-        expect(ascResult.map((comment) => comment.id)).toEqual(["3", "2", "1"]);
+        expect(ascResult.map((comment) => comment.commentRevisionId)).toEqual([
+          "3",
+          "2",
+          "1",
+        ]);
 
         const descResult = sortCommentList(
           comments,
           CommentSortingCategory.COMMENT_DATE_DESC,
         );
-        expect(descResult.map((comment) => comment.id)).toEqual([
+        expect(descResult.map((comment) => comment.commentRevisionId)).toEqual([
           "1",
           "2",
           "3",

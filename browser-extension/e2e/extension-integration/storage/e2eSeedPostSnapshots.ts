@@ -1,58 +1,30 @@
 import type { PostSnapshot } from "@/shared/model/PostSnapshot";
 import {
-  commentHateFlagKey,
   postHateFlagsRecordKey,
+  PostHateFlagsSchema,
+  type PostHateFlags,
 } from "@/shared/storage/hate-flags-storage";
 import { PostSnapshotSchema } from "@/shared/model/PostSnapshot";
 import type { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "../evaluate/evaluateInBackgroundWorker";
 
-export type E2EHateFlagSeed = Record<string, boolean>;
-
-function flattenSnapshotComments(
-  comments: PostSnapshot["comments"],
-): PostSnapshot["comments"] {
-  return comments.flatMap((comment) => [
-    comment,
-    ...flattenSnapshotComments(comment.replies),
-  ]);
-}
-
 export async function e2eSeedPostSnapshots(
   context: BrowserContext,
   postSnapshots: PostSnapshot[],
-  hateFlagSeeds: E2EHateFlagSeed = {},
+  postHateFlags: PostHateFlags[] = [],
 ): Promise<void> {
   const validPostSnapshots = PostSnapshotSchema.array().parse(postSnapshots);
-  const hateFlagRecords: Record<string, unknown> = {};
-  const unmatchedFlagSeeds = new Map(Object.entries(hateFlagSeeds));
-  for (const snapshot of validPostSnapshots) {
-    const hateFlags: Record<string, boolean> = {};
-    for (const comment of flattenSnapshotComments(snapshot.comments)) {
-      const isFlagged = unmatchedFlagSeeds.get(comment.commentId);
-      if (isFlagged !== undefined) {
-        hateFlags[await commentHateFlagKey(comment.textContent)] = isFlagged;
-        unmatchedFlagSeeds.delete(comment.commentId);
-      }
-    }
-    if (Object.keys(hateFlags).length > 0) {
-      hateFlagRecords[postHateFlagsRecordKey(snapshot.postId)] = {
-        postId: snapshot.postId,
-        hateFlags,
-      };
-    }
-  }
-  if (unmatchedFlagSeeds.size > 0) {
-    throw new Error(
-      `Could not match hate flag comment IDs: ${[...unmatchedFlagSeeds.keys()].join(", ")}`,
-    );
-  }
+  const hateFlagRecords = Object.fromEntries(
+    PostHateFlagsSchema.array()
+      .parse(postHateFlags)
+      .map((flags) => [postHateFlagsRecordKey(flags.postId), flags]),
+  );
   const seedPostStorage = async ({
     snapshots,
     hateFlagRecords,
   }: {
     snapshots: PostSnapshot[];
-    hateFlagRecords: Record<string, unknown>;
+    hateFlagRecords: Record<string, PostHateFlags>;
   }) => {
     const screenshotData =
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";

@@ -45,13 +45,6 @@ export enum CommentSortingCategory {
   PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
 
-export type PostCommentWithIdAndFlag = PostCommentWithFlag & {
-  id: string;
-  postId: string;
-  socialNetwork: string;
-  postKey: string;
-};
-
 export type PostFilters = {
   date: DateFilterOptions | undefined;
   nbHatefulComments: NbHatefulCommentsOptions[];
@@ -152,11 +145,17 @@ export function formatAnalysisDate(isoDateTime: string): string {
   return `${date} à ${time}`;
 }
 
+/**
+ * Builds a post global unique identifier from ocialNetwork and postId
+ * @param postId A
+ * @param socialNetwork
+ * @returns
+ */
 export function buildPostKey(
   postId: string,
   socialNetwork: SocialNetworkName,
 ): string {
-  return `${postId}|${socialNetwork}`;
+  return `${socialNetwork}:${postId}`;
 }
 
 export function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
@@ -302,10 +301,10 @@ export function sortPostList(
 }
 
 export function filterCommentList(
-  commentList: PostCommentWithIdAndFlag[],
+  commentList: PostCommentWithFlag[],
   searchTerm: string,
   filters: CommentFilters,
-): PostCommentWithIdAndFlag[] {
+): PostCommentWithFlag[] {
   let filteredCommentList = commentList;
 
   if (filters.date !== undefined) {
@@ -356,9 +355,9 @@ export function filterCommentList(
 }
 
 export function sortCommentList(
-  commentList: PostCommentWithIdAndFlag[],
+  commentList: PostCommentWithFlag[],
   sortingCategory: CommentSortingCategory,
-): PostCommentWithIdAndFlag[] {
+): PostCommentWithFlag[] {
   switch (sortingCategory) {
     case CommentSortingCategory.HATE_SCORE_ASC:
       return [...commentList].sort(

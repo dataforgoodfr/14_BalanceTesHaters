@@ -1,3 +1,4 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import { useMemo } from "react";
 import {
   createPaginatedRowModel,
@@ -53,7 +54,6 @@ import { useNavigate } from "react-router";
 import type {
   CommentFilters,
   CommentSortingCategory,
-  PostCommentWithIdAndFlag,
 } from "@/shared/utils/post-util";
 import CommentsFilterPopover from "./CommentsFilterPopover";
 import CommentsSortingPopover from "./CommentsSortingPopover";
@@ -83,7 +83,7 @@ export default function CommentsTable({
   showCreateReportButton,
   showScreenshotColumn = false,
 }: Readonly<{
-  commentList: PostCommentWithIdAndFlag[];
+  commentList: PostCommentWithFlag[];
   commentFilters: CommentFilters;
   setCommentFilters: (value: CommentFilters) => void;
   commentSortingCategory: CommentSortingCategory;
@@ -108,7 +108,7 @@ export default function CommentsTable({
       new Set(
         commentList
           .filter((comment) => comment.isFlagged)
-          .map((comment) => comment.id),
+          .map((comment) => comment.commentRevisionId),
       ),
     [commentList],
   );
@@ -154,7 +154,7 @@ export default function CommentsTable({
   //  dans le tableau, en stockant leurs IDs dans un Set
   const toggleHatefulComment = React.useCallback(
     async (id: string): Promise<void> => {
-      const comment = commentList.find((c) => c.id === id);
+      const comment = commentList.find((c) => c.commentRevisionId === id);
       if (!comment) {
         console.error(`Comment with id ${id} not found`);
         return;
@@ -162,7 +162,7 @@ export default function CommentsTable({
 
       await updateCommentHateFlags(comment.postId, [
         {
-          textContent: comment.textContent,
+          commentRevisionId: comment.commentRevisionId,
           isFlagged: !hatefulComments.has(id),
         },
       ]);
@@ -202,7 +202,7 @@ export default function CommentsTable({
       setVisibleComments(new Set());
     } else {
       const allVisibleRowIds = new Set(
-        filteredComments.map((comment) => comment.id),
+        filteredComments.map((comment) => comment.commentRevisionId),
       );
       setVisibleComments(allVisibleRowIds);
     }
@@ -217,7 +217,7 @@ export default function CommentsTable({
         updateSelectedCommentList(new Set());
       } else {
         const allVisibleRowIds = new Set(
-          filteredComments.map((comment) => comment.id),
+          filteredComments.map((comment) => comment.commentRevisionId),
         );
         updateSelectedCommentList(allVisibleRowIds);
       }
@@ -227,7 +227,7 @@ export default function CommentsTable({
 
   const flagSelectedComment = async (isFlagged: boolean) => {
     const selectedComments = commentList.filter((comment) =>
-      selectedCommentIdList.has(comment.id),
+      selectedCommentIdList.has(comment.commentRevisionId),
     );
     if (selectedComments.length === 0) {
       return;
@@ -235,12 +235,12 @@ export default function CommentsTable({
 
     const commentsByPostId = new Map<
       string,
-      { textContent: string; isFlagged: boolean }[]
+      { commentRevisionId: string; isFlagged: boolean }[]
     >();
     for (const comment of selectedComments) {
       const postFlags = commentsByPostId.get(comment.postId) ?? [];
       postFlags.push({
-        textContent: comment.textContent,
+        commentRevisionId: comment.commentRevisionId,
         isFlagged,
       });
       commentsByPostId.set(comment.postId, postFlags);
@@ -257,7 +257,7 @@ export default function CommentsTable({
   };
 
   const columns = useMemo<
-    ColumnDef<typeof commentsTableFeatures, PostCommentWithIdAndFlag>[]
+    ColumnDef<typeof commentsTableFeatures, PostCommentWithFlag>[]
   >(
     () => [
       {
@@ -437,7 +437,7 @@ export default function CommentsTable({
     columns: columns.filter(
       (column) => showScreenshotColumn || column.id !== "screenshot",
     ),
-    getRowId: (row) => row.id,
+    getRowId: (row) => row.commentRevisionId,
     initialState: {
       pagination: {
         pageIndex: 0,
@@ -518,7 +518,7 @@ export default function CommentsTable({
                     socialNetworkFilter: [filteredComments[0]!.socialNetwork],
                     selectedPostIds: [filteredComments[0]!.postId],
                     selectedCommentList: filteredComments.filter((comment) =>
-                      hatefulComments.has(comment.id),
+                      hatefulComments.has(comment.commentRevisionId),
                     ),
                     skipToStep: "step-4",
                   },

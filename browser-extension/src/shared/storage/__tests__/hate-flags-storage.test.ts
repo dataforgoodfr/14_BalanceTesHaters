@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 import {
-  commentHateFlagKey,
   deleteAllPostHateFlags,
   deletePostHateFlags,
   deletePostHateFlagsList,
@@ -132,74 +131,62 @@ describe("hate flags storage", () => {
 
   it("add first comment flag to true", async () => {
     await updateCommentHateFlags("postId", [
-      { textContent: "textContent1", isFlagged: true },
+      { commentRevisionId: "postId:comment1:0", isFlagged: true },
     ]);
 
     const postHateFlags = await getPostHateFlags("postId");
     expect(postHateFlags.postId).toEqual("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
-    ).toEqual(true);
+    expect(postHateFlags.hateFlags["postId:comment1:0"]).toEqual(true);
   });
 
   it("add first comment flag to false", async () => {
     await updateCommentHateFlags("postId", [
-      { textContent: "textContent1", isFlagged: false },
+      { commentRevisionId: "postId:comment1:0", isFlagged: false },
     ]);
 
     const postHateFlags = await getPostHateFlags("postId");
     expect(postHateFlags.postId).toEqual("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
-    ).toEqual(false);
+    expect(postHateFlags.hateFlags["postId:comment1:0"]).toEqual(false);
   });
 
   it("update comment flag for existing comment", async () => {
     await setPostHateFlags("postId", {
       postId: "postId",
       hateFlags: {
-        [await commentHateFlagKey("textContent1")]: false,
+        "postId:comment1:0": false,
       },
     });
 
     await updateCommentHateFlags("postId", [
-      { textContent: "textContent1", isFlagged: true },
+      { commentRevisionId: "postId:comment1:0", isFlagged: true },
     ]);
 
     const postHateFlags = await getPostHateFlags("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(1);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
-    ).toEqual(true);
+    expect(postHateFlags.hateFlags["postId:comment1:0"]).toEqual(true);
   });
 
   it("update comment flags for the given comments only", async () => {
     await setPostHateFlags("postId", {
       postId: "postId",
       hateFlags: {
-        [await commentHateFlagKey("textContent1")]: false,
-        [await commentHateFlagKey("textContent2")]: false,
-        [await commentHateFlagKey("textContent3")]: false,
+        "postId:comment1:0": false,
+        "postId:comment2:0": false,
+        "postId:comment3:0": false,
       },
     });
 
     await updateCommentHateFlags("postId", [
-      { textContent: "textContent1", isFlagged: true },
-      { textContent: "textContent2", isFlagged: true },
+      { commentRevisionId: "postId:comment1:0", isFlagged: true },
+      { commentRevisionId: "postId:comment2:0", isFlagged: true },
     ]);
 
     const postHateFlags = await getPostHateFlags("postId");
     expect(Object.keys(postHateFlags.hateFlags)).toHaveLength(3);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent1")],
-    ).toEqual(true);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent2")],
-    ).toEqual(true);
-    expect(
-      postHateFlags.hateFlags[await commentHateFlagKey("textContent3")],
-    ).toEqual(false);
+    expect(postHateFlags.hateFlags["postId:comment1:0"]).toEqual(true);
+    expect(postHateFlags.hateFlags["postId:comment2:0"]).toEqual(true);
+    expect(postHateFlags.hateFlags["postId:comment3:0"]).toEqual(false);
   });
 });

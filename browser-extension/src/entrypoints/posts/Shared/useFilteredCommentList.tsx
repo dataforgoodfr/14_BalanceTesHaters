@@ -1,10 +1,9 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type {
   CommentFilters,
   CommentSortingCategory,
-  PostCommentWithIdAndFlag,
 } from "@/shared/utils/post-util";
 import {
-  buildPostKey,
   emptyCommentFilters,
   filterCommentList,
   sortCommentList,
@@ -12,18 +11,15 @@ import {
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
-import {
-  commentHateFlagKey,
-  getPostHateFlagsList,
-} from "@/shared/storage/hate-flags-storage";
+import { getPostHateFlagsList } from "@/shared/storage/hate-flags-storage";
 
 export type useFilteredCommentListData = {
   searchTerm: string;
   setSearchTerm: (searchTerm: string) => void;
   commentFilters: CommentFilters;
   setCommentFilters: (commentFilters: CommentFilters) => void;
-  allComments: PostCommentWithIdAndFlag[];
-  filteredCommentList: PostCommentWithIdAndFlag[];
+  allComments: PostCommentWithFlag[];
+  filteredCommentList: PostCommentWithFlag[];
   hatefulAuthorList: string[];
   isLoading: boolean;
 };
@@ -57,7 +53,7 @@ export function useFilteredCommentList(
     {
       queryKey: hateFlagsQueryKey,
       queryFn: async () => {
-        const allCommentsWithFlagData: PostCommentWithIdAndFlag[] = [];
+        const allCommentsWithFlagData: PostCommentWithFlag[] = [];
         const hateFlags = await getPostHateFlagsList(postIdList);
 
         for (const post of data ?? []) {
@@ -65,15 +61,12 @@ export function useFilteredCommentList(
             const flagsForPost = hateFlags.find(
               (flags) => flags.postId === post.postId,
             );
-            const key = await commentHateFlagKey(comment.textContent);
-            const isFlagged = flagsForPost?.hateFlags[key] ?? false;
+            const isFlagged =
+              flagsForPost?.hateFlags[comment.commentRevisionId] ?? false;
 
             allCommentsWithFlagData.push({
               ...comment,
-              id: `${post.postId}-${comment.textContent}`, // Unique ID for the comment
-              postId: post.postId,
-              socialNetwork: post.socialNetwork,
-              postKey: buildPostKey(post.postId, post.socialNetwork),
+
               isFlagged,
             });
           }
@@ -85,21 +78,19 @@ export function useFilteredCommentList(
     },
   );
 
-  // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
-  //  et une clé postKey pour différencier les commentaires issus de différents posts
   const {
     filteredCommentList,
     hatefulAuthorList,
   }: {
-    allComments: PostCommentWithIdAndFlag[];
-    filteredCommentList: PostCommentWithIdAndFlag[];
+    allComments: PostCommentWithFlag[];
+    filteredCommentList: PostCommentWithFlag[];
     hatefulAuthorList: string[];
   } = React.useMemo(() => {
     const hatefulAuthorList: string[] = (allCommentsWithFlagData || [])
       .filter((comment) => comment.isFlagged)
       .map((comment) => comment.author.name);
 
-    const filteredCommentList: PostCommentWithIdAndFlag[] = filterCommentList(
+    const filteredCommentList: PostCommentWithFlag[] = filterCommentList(
       allCommentsWithFlagData || [],
       searchTerm,
       commentFilters,
