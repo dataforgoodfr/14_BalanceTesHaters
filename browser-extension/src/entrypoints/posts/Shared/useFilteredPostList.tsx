@@ -1,4 +1,4 @@
-import type { Post } from "@/shared/model/post/Post";
+import type { Post, PostWithFlags } from "@/shared/model/post/Post";
 import type {
   PostFilters,
   PostSortingCategory,
@@ -13,19 +13,22 @@ import React from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPostsBySocialNetworkAndPeriod } from "@/shared/storage/post-storage";
 import { deletePost as deletePostFromStorage } from "@/shared/storage/post-snapshot-storage";
+import { usePostsWithFlags } from "./usePostsWithFlags";
 
 export type UseFilteredPostListData = {
   searchTerm: string;
   setSearchTerm: (searchTerm: string) => void;
   postFilters: PostFilters;
   setPostFilters: (postFilters: PostFilters) => void;
-  filteredPosts: Post[];
+  filteredPosts: PostWithFlags[];
   isLoading: boolean;
   deletePosts: (posts: Post[]) => Promise<void>;
 };
+
 /**
  * React hook for querying and filtering a post list
  * @param socialNetworkFilter
+ * @param postSortingCategory
  * @returns
  */
 export function useFilteredPostList(
@@ -40,6 +43,7 @@ export function useFilteredPostList(
     socialNetworkFilter,
     postFilters.date,
   ];
+
   const { data, isLoading } = useQuery({
     queryKey,
     queryFn: () =>
@@ -50,20 +54,22 @@ export function useFilteredPostList(
       ),
   });
 
+  const { postsWithFlags, isLoading: isLoadingFlags } = usePostsWithFlags(data);
+
   // Handle optimistic deletion for instant user feedback
   const [postsPendingDeletion, setPostsPendingDeletion] = React.useState<
     Set<string>
   >(() => new Set());
 
-  const filteredPosts = React.useMemo(() => {
+  const filteredPosts = React.useMemo((): PostWithFlags[] => {
     if (!data || data.length === 0) {
-      return data || [];
+      return [];
     }
 
-    const notBeingDeleted = data.filter(
+    const notBeingDeleted = postsWithFlags.filter(
       (p) => !postsPendingDeletion.has(uniqueId(p)),
     );
-    const filteredPostList: Post[] = filterPosts(
+    const filteredPostList = filterPosts(
       notBeingDeleted,
       searchTerm,
       postFilters,
@@ -71,6 +77,7 @@ export function useFilteredPostList(
     return sortPostList(filteredPostList, postSortingCategory);
   }, [
     data,
+    postsWithFlags,
     postsPendingDeletion,
     searchTerm,
     postFilters,
@@ -106,7 +113,7 @@ export function useFilteredPostList(
     postFilters,
     setPostFilters,
     filteredPosts,
-    isLoading,
+    isLoading: isLoading || isLoadingFlags,
     deletePosts,
   };
 }

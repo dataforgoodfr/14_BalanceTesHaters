@@ -372,7 +372,7 @@ export const PdfReport = ({
               <View style={styles.commentsList}>
                 {group.comments.map((comment) => (
                   <View
-                    key={comment.id}
+                    key={comment.commentRevisionId}
                     style={styles.commentCard}
                     wrap={false}
                   >

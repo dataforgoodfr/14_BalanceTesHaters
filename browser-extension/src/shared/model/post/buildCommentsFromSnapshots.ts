@@ -34,15 +34,15 @@ export function buildCommentsFromSnapshots(
   const commentSnapshotsGroupedByCommentId: CommentSnapshotWithPostInfo[][] =
     groupByCommentId(flattenedCommentSnapshots);
 
-  // Split those by comment group on textContent changes
-  const commentSnapshotsGroupedByCommentIdAndTextContent: CommentSnapshotWithPostInfo[][] =
-    commentSnapshotsGroupedByCommentId.flatMap((group) =>
-      splitOnTextContentChanges(group),
-    );
-
-  // For each group build the resulting comments
-  return commentSnapshotsGroupedByCommentIdAndTextContent.map((group) =>
-    buildPostCommentForGroupOfSameText(group, postSnapshots.length),
+  // Number text revisions within each comment so unrelated comments cannot shift IDs.
+  return commentSnapshotsGroupedByCommentId.flatMap((group) =>
+    splitOnTextContentChanges(group).map((revisionGroup, revisionIndex) =>
+      buildPostCommentForGroupOfSameText(
+        revisionGroup,
+        postSnapshots.length,
+        revisionIndex,
+      ),
+    ),
   );
 }
 
@@ -55,6 +55,8 @@ type CommentSnapshotWithPostInfo = {
    */
   postSnapshotIndex: number;
   postSnapshotId: PostSnapshot["id"];
+  postId: PostSnapshot["postId"];
+  socialNetwork: PostSnapshot["socialNetwork"];
   hasScreenshot: boolean;
   commentSnapshot: CommentSnapshot;
 };
@@ -66,15 +68,19 @@ function buildFlattenCommentSnapshotsWithPostInfo(
   return postSnapshots.flatMap((postSnapshot, postSnapshotIndex) =>
     flattenCommentsSnapshotReplies(
       postSnapshot.comments,
-    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => ({
-      commentSnapshot,
-      postSnapshotIndex,
-      postSnapshotId: postSnapshot.id,
-      hasScreenshot:
-        screenshotCommentIdsByPostSnapshotId
-          .get(postSnapshot.id)
-          ?.has(commentSnapshot.id) ?? false,
-    })),
+    ).map<CommentSnapshotWithPostInfo>((commentSnapshot) => {
+      return {
+        commentSnapshot,
+        postSnapshotIndex,
+        postSnapshotId: postSnapshot.id,
+        postId: postSnapshot.postId,
+        socialNetwork: postSnapshot.socialNetwork,
+        hasScreenshot:
+          screenshotCommentIdsByPostSnapshotId
+            .get(postSnapshot.id)
+            ?.has(commentSnapshot.id) ?? false,
+      };
+    }),
   );
 }
 
@@ -82,7 +88,7 @@ function groupByCommentId(
   flattenedCommentSnapshots: CommentSnapshotWithPostInfo[],
 ): CommentSnapshotWithPostInfo[][] {
   const groups = Object.groupBy(flattenedCommentSnapshots, (cs) =>
-    commentId(cs.commentSnapshot),
+    JSON.stringify([cs.postId, commentId(cs.commentSnapshot)]),
   );
 
   return Object.values(groups).filter((g) => g !== undefined);
@@ -118,12 +124,13 @@ function splitOnTextContentChanges(
 function buildPostCommentForGroupOfSameText(
   commentSnapshotsGroup: CommentSnapshotWithPostInfo[],
   postSnapshotsCount: number,
+  revisionIndex: number,
 ): PostComment {
   const sortedByScrapedAt = commentSnapshotsGroup.toSorted((a, b) =>
     a.commentSnapshot.scrapedAt.localeCompare(b.commentSnapshot.scrapedAt),
   );
   const groupOldestComment = sortedByScrapedAt[0]!;
-  const groupLatestComment = sortedByScrapedAt[sortedByScrapedAt.length - 1]!;
+  const groupLatestComment = sortedByScrapedAt.at(-1)!;
   const groupLatestClassifiedComment = sortedByScrapedAt.findLast(
     ({ commentSnapshot }) => commentSnapshot.classifiedAt !== undefined,
   );
@@ -135,6 +142,11 @@ function buildPostCommentForGroupOfSameText(
     groupLatestComment.postSnapshotIndex === postSnapshotsCount - 1;
 
   return {
+    postId: groupOldestComment.postId,
+    socialNetwork: groupOldestComment.socialNetwork,
+    revision: revisionIndex,
+    commentRevisionId: `${groupOldestComment.postId}:${commentId(groupOldestComment.commentSnapshot)}:${revisionIndex}`,
+    commentId: commentId(groupOldestComment.commentSnapshot),
     textContent: groupOldestComment.commentSnapshot.textContent,
     publishedAt: groupOldestComment.commentSnapshot.publishedAt,
     author: groupOldestComment.commentSnapshot.author,

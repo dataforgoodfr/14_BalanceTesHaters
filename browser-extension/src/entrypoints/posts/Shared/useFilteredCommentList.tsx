@@ -1,25 +1,25 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type {
   CommentFilters,
   CommentSortingCategory,
-  PostCommentWithId,
 } from "@/shared/utils/post-util";
 import {
-  buildPostKey,
   emptyCommentFilters,
   filterCommentList,
-  isCommentHateful,
   sortCommentList,
 } from "@/shared/utils/post-util";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
+import { usePostHateFlagsList } from "./usePostHateFlagsList";
 
 export type useFilteredCommentListData = {
   searchTerm: string;
   setSearchTerm: (searchTerm: string) => void;
   commentFilters: CommentFilters;
   setCommentFilters: (commentFilters: CommentFilters) => void;
-  filteredCommentList: PostCommentWithId[];
+  allComments: PostCommentWithFlag[];
+  filteredCommentList: PostCommentWithFlag[];
   hatefulAuthorList: string[];
   isLoading: boolean;
 };
@@ -35,64 +35,74 @@ export function useFilteredCommentList(
   const [searchTerm, setSearchTerm] = React.useState("");
   const [commentFilters, setCommentFilters] =
     React.useState(emptyCommentFilters);
-  const queryKey = React.useMemo(
+  const postQueryKey = React.useMemo(
     () => ["posts", postIdList.join(",")],
     [postIdList],
   );
 
-  const { data, isLoading } = useQuery({
-    queryKey,
+  const { data, isLoading: isLoadingPosts } = useQuery({
+    queryKey: postQueryKey,
     queryFn: () => getPostsByPostIdList(postIdList),
   });
-  // On définit arbitrairement un id pour être en mesure de sélectionner les commentaires
-  //  et une clé postKey pour différencier les commentaires issus de différents posts
+
+  const { data: hateFlags = [], isLoading: isLoadingFlags } =
+    usePostHateFlagsList(postIdList, data !== undefined);
+
+  const allCommentsWithFlagData = React.useMemo(
+    (): PostCommentWithFlag[] =>
+      (data ?? []).flatMap((post) => {
+        const flagsForPost = hateFlags.find(
+          (flags) => flags.postId === post.postId,
+        );
+        return post.comments.map((comment) => ({
+          ...comment,
+          isFlagged:
+            flagsForPost?.hateFlags[comment.commentRevisionId] ?? false,
+        }));
+      }),
+    [data, hateFlags],
+  );
+
   const {
     filteredCommentList,
     hatefulAuthorList,
-  }: { filteredCommentList: PostCommentWithId[]; hatefulAuthorList: string[] } =
-    React.useMemo(() => {
-      const allComments: PostCommentWithId[] = (data || [])
-        .flatMap((p) => {
-          return p.comments.map(
-            (comment) =>
-              ({
-                ...comment,
-                postId: p.postId,
-                socialNetwork: p.socialNetwork,
-                postKey: buildPostKey(p.postId, p.socialNetwork),
-                isCommentHateful: isCommentHateful(comment),
-              }) as PostCommentWithId,
-          );
-        })
-        .map((comment, i) => {
-          return { ...comment, id: i.toString() };
-        });
+  }: {
+    allComments: PostCommentWithFlag[];
+    filteredCommentList: PostCommentWithFlag[];
+    hatefulAuthorList: string[];
+  } = React.useMemo(() => {
+    const hatefulAuthorList: string[] = (allCommentsWithFlagData || [])
+      .filter((comment) => comment.isFlagged)
+      .map((comment) => comment.author.name);
 
-      const hatefulAuthorList: string[] = allComments
-        .filter((comment) => comment.isCommentHateful)
-        .map((comment) => comment.author.name);
-
-      const filteredCommentList: PostCommentWithId[] = filterCommentList(
-        allComments,
-        searchTerm,
-        commentFilters,
-      );
-      return {
-        filteredCommentList: sortCommentList(
-          filteredCommentList,
-          commentSortingCategory,
-        ),
-        hatefulAuthorList,
-      };
-    }, [data, searchTerm, commentFilters, commentSortingCategory]);
+    const filteredCommentList: PostCommentWithFlag[] = filterCommentList(
+      allCommentsWithFlagData || [],
+      searchTerm,
+      commentFilters,
+    );
+    return {
+      allComments: allCommentsWithFlagData || [],
+      filteredCommentList: sortCommentList(
+        filteredCommentList,
+        commentSortingCategory,
+      ),
+      hatefulAuthorList,
+    };
+  }, [
+    allCommentsWithFlagData,
+    searchTerm,
+    commentFilters,
+    commentSortingCategory,
+  ]);
 
   return {
     searchTerm,
     setSearchTerm,
     commentFilters,
     setCommentFilters,
-    filteredCommentList: filteredCommentList,
+    allComments: allCommentsWithFlagData || [],
+    filteredCommentList,
     hatefulAuthorList,
-    isLoading,
+    isLoading: isLoadingPosts || isLoadingFlags,
   };
 }

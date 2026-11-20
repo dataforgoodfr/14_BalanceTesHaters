@@ -1,15 +1,15 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
+import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import { describe, expect, it } from "vitest";
-import type { PostComment } from "@/shared/model/post/Post";
 import {
   getHatefulAuthorStatsList,
   getNumberOfHatefulAuthors,
 } from "../report-stats";
-import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 const buildComment = (
   authorName: string,
-  classification?: AnnotatedCategory[],
-): PostComment => ({
+  isFlagged: boolean,
+): PostCommentWithFlag => ({
   textContent: `${authorName} comment`,
   author: {
     name: authorName,
@@ -19,24 +19,24 @@ const buildComment = (
     type: "absolute",
     date: "2026-01-01T00:00:00.000Z",
   },
-  classification,
+  classification: [],
+  commentId: "comment-1",
+  revision: 0,
   isNew: false,
   isDeleted: false,
+  commentRevisionId: "1",
+  isFlagged,
+  postId: "1",
+  socialNetwork: SocialNetwork.YouTube,
 });
 
 describe("report-stats", () => {
   it("should count unique hateful authors", () => {
     expect(
       getNumberOfHatefulAuthors([
-        buildComment("Alice", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Alice", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Bob", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
+        buildComment("Alice", true),
+        buildComment("Alice", true),
+        buildComment("Bob", true),
       ]),
     ).toBe(2);
   });
@@ -44,20 +44,12 @@ describe("report-stats", () => {
   it("should build sorted author stats limited to hateful authors", () => {
     expect(
       getHatefulAuthorStatsList([
-        buildComment("Alice", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Alice", [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT]),
-        buildComment("Bob", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Donald", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Donald", [
-          AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE,
-        ]),
-        buildComment("Claire", [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT]),
+        buildComment("Alice", true),
+        buildComment("Alice", false),
+        buildComment("Bob", true),
+        buildComment("Donald", true),
+        buildComment("Donald", true),
+        buildComment("Claire", false),
       ]),
     ).toEqual([
       {

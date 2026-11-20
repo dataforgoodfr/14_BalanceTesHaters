@@ -9,7 +9,6 @@ import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
   CommentSortingCategory,
-  isCommentHateful,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CommentsTable from "./CommentsTable";
@@ -37,11 +36,6 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  const nbComments = post?.comments.length ?? 0;
-  const hatefulComments =
-    post?.comments.filter((c) => isCommentHateful(c)) ?? [];
-  const nbHatefulComments = hatefulComments.length;
-
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
       CommentSortingCategory.HATE_SCORE_DESC,
@@ -50,6 +44,7 @@ function PostDetailPage() {
   const {
     commentFilters,
     setCommentFilters,
+    allComments,
     filteredCommentList,
     hatefulAuthorList,
   } = useFilteredCommentList(
@@ -57,9 +52,9 @@ function PostDetailPage() {
     commentSortingCategory,
   );
 
-  const filteredHatefulComments = filteredCommentList.filter(
-    (c) => c.isCommentHateful,
-  );
+  const nbComments = allComments.length;
+  const hatefulComments = allComments.filter((c) => c.isFlagged);
+  const nbHatefulComments = hatefulComments.length;
 
   const postExportCsv = () => {
     if (!post) {
@@ -115,9 +110,7 @@ function PostDetailPage() {
           {/* Content */}
           <div className="flex flex-col gap-4">
             <div className="mb-8">
-              <h1 className="mt-2 mb-1 ">
-                Analyse des commentaires malveillants
-              </h1>
+              <h1 className="mt-2 mb-1 ">Analyse des commentaires</h1>
               <div className="text-base mt-0">
                 Données collectées le{" "}
                 {formatAnalysisDate(post.firstAnalysisDate)}
@@ -131,7 +124,7 @@ function PostDetailPage() {
             <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary post={post} />
+                <PostSummary post={{ ...post, comments: allComments }} />
               </CardContent>
             </Card>
             <div className="flex flex-col gap-3">
@@ -153,17 +146,16 @@ function PostDetailPage() {
               </div>
               <div className="grid grid-cols-1 gap-4 w-full">
                 <ActiveAuthors
-                  postComments={post.comments}
+                  postComments={allComments}
                   isLoading={isLoading}
                 />
               </div>
             </div>
             <div className="text-left">
-              <h3>Commentaires malveillants</h3>
+              <h3>Commentaires</h3>
               <span className="text-muted-foreground text-sm italic">
-                Pour créer un rapport de preuves : sélectionner un ou plusieurs
-                commentaires (ou “Tout sélectionner”), puis cliquer sur “Créer
-                un rapport”.
+                Pour créer un rapport de preuves : déclarer un ou plusieurs
+                commentaires malveillants, puis cliquer sur “Créer un rapport”.
               </span>
 
               <ClosableAlert
@@ -181,7 +173,7 @@ function PostDetailPage() {
               </ClosableAlert>
 
               <CommentsTable
-                commentList={filteredHatefulComments}
+                commentList={filteredCommentList}
                 commentFilters={commentFilters}
                 setCommentFilters={setCommentFilters}
                 commentSortingCategory={commentSortingCategory}

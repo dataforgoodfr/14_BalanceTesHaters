@@ -1,6 +1,8 @@
 import { getPercentage } from "@/shared/utils/maths";
-import type { PostComment } from "@/shared/model/post/Post";
-import { isCommentHateful } from "@/shared/utils/post-util";
+import type {
+  PostComment,
+  PostCommentWithFlag,
+} from "@/shared/model/post/Post";
 import {
   AnnotatedCategory,
   getCategoryLabel,
@@ -54,16 +56,18 @@ export const getNumberOfHatefulAuthors = (
 ) => new Set(hatefulCommentList.map((comment) => comment.author.name)).size;
 
 export const getHatefulAuthorStatsList = (
-  postComments: readonly PostComment[],
+  postComments: readonly PostCommentWithFlag[],
   maxAuthors: number | undefined = undefined,
 ): HatefulAuthorStats[] => {
   const commentsByAuthor = Object.groupBy(postComments, (c) => c.author.name);
-  const allHatefulCommentsCount = postComments.filter(isCommentHateful).length;
+  const allHatefulCommentsCount = postComments.filter(
+    (c) => c.isFlagged,
+  ).length;
   const stats = Object.entries(commentsByAuthor)
     .map(([authorName, authorComments]) => {
       const authorCommentsCount = (authorComments || []).length;
       const authorHatefulCommentsCount = (authorComments || []).filter(
-        isCommentHateful,
+        (c) => c.isFlagged,
       ).length;
       return {
         authorName: authorName,

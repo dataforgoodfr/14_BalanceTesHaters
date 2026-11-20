@@ -4,6 +4,7 @@ import type {
   PostSnapshot,
 } from "@/shared/model/PostSnapshot";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
+import type { PostHateFlags } from "@/shared/storage/hate-flags-storage";
 
 function comment(
   overrides: Partial<CommentSnapshot> &
@@ -114,5 +115,22 @@ export const seededPostSnapshots: PostSnapshot[] = [
         url: "https://www.youtube.com/watch?v=video-prevention&lc=hate-comment",
       }),
     ],
+  },
+];
+
+export const seededPostHateFlags: PostHateFlags[] = [
+  {
+    postId: "video-equilibre",
+    hateFlags: {
+      "video-equilibre:threat-comment:0": true,
+      "video-equilibre:insult-comment:0": true,
+      "video-equilibre:support-comment:0": false,
+    },
+  },
+  {
+    postId: "video-prevention",
+    hateFlags: {
+      "video-prevention:hate-comment:0": true,
+    },
   },
 ];

@@ -30,7 +30,29 @@ export type Post = PostSharedProperties & {
   latestAnalysisStatus?: ClassificationStatus;
 };
 
+export type PostWithFlags = Omit<Post, "comments"> & {
+  /**
+   * Equivalent of PostComment with added flag information
+   */
+  comments: PostCommentWithFlag[];
+};
+
+/**
+ * A comment revision consolidating consecutive PostSnapshots with the same commentId and text.
+ * TODO: rename to CommentRevision in separate PR.
+ **/
 export type PostComment = CommentSharedProperties & {
+  /** Platform hosting the original comment. */
+  socialNetwork: PostSharedProperties["socialNetwork"];
+  /** ID of the parent post within that platform. */
+  postId: string;
+
+  /** Globally unique revision ID: postId:commentId:zero-based revision sequence. */
+  commentRevisionId: string;
+
+  /** Zero-based sequence of consecutive text revisions for this comment. */
+  revision: number;
+
   /**
    * Screenshot selected as evidence for this consolidated comment.
    */
@@ -44,4 +66,11 @@ export type PostComment = CommentSharedProperties & {
    * True if comment was deleted or replaced by a comment with different text
    */
   isDeleted: boolean;
+};
+
+export type PostCommentWithFlag = PostComment & {
+  /**
+   * True if this comment revision was flagged hateful
+   */
+  isFlagged: boolean;
 };

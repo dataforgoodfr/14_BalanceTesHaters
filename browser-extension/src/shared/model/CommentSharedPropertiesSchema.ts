@@ -4,6 +4,13 @@ import { PublicationDateSchema } from "./PublicationDate";
 import { AnnotatedCategorySchema } from "./AnnotatedCategory";
 
 export const CommentSharedPropertiesSchema = z.object({
+  /**
+   * Comment unique stable id provided by social network platform.
+   * This id is stable across snapshots and comment revisions.
+   * This allows to correlate the same comment across snapshots.
+   * */
+  commentId: z.string(),
+
   textContent: z.string(),
   author: AuthorSchema,
   /**

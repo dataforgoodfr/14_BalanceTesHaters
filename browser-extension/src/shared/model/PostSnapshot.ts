@@ -13,12 +13,6 @@ const NonRecursiveCommentSnapshotSchema = CommentSharedPropertiesSchema.extend({
   id: z.uuid(),
 
   /**
-   * An id allowing to correlate the same comment across snapshots of the social network post.
-   * Ideally this should be the id of the comment on the social network platform.
-   */
-  commentId: z.string(),
-
-  /**
    * Timestamp of scrap - ISO datetime
    */
   scrapedAt: z.iso.datetime(),

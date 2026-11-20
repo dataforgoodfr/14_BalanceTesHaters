@@ -1,3 +1,4 @@
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,8 @@ import { cn } from "@/lib/utils";
 import type { CommentFilters } from "@/shared/utils/post-util";
 import {
   CommentDateFilterOptions,
+  CommentScoreFilterOptions,
+  CommentFlagFilterOptions,
   emptyCommentFilters,
 } from "@/shared/utils/post-util";
 import {
@@ -24,10 +27,12 @@ import {
 
 const categories = [
   { id: "date", label: "Date", isDisabled: false },
+  { id: "score", label: "Malveillance (IA)", isDisabled: false },
+  { id: "flaggedStatus", label: "Marquage manuel", isDisabled: false },
   { id: "pseudoAuthor", label: "Pseudo auteur", isDisabled: false },
 ] as const;
 
-type CommentsFilterCategory = "date" | "pseudoAuthor";
+type CommentsFilterCategory = (typeof categories)[number]["id"];
 
 const filterOptions: Record<
   CommentsFilterCategory,
@@ -38,6 +43,24 @@ const filterOptions: Record<
     { label: "2 derniers jours", value: CommentDateFilterOptions.TWO_DAYS },
     { label: "7 derniers jours", value: CommentDateFilterOptions.SEVEN_DAYS },
     { label: "30 derniers jours", value: CommentDateFilterOptions.THIRTY_DAYS },
+  ],
+  score: [
+    {
+      label: `Supérieur à ${AI_SCORE_HATE_THRESHOLD * 100} %`,
+      value: CommentScoreFilterOptions.ABOVE_THRESHOLD,
+    },
+    {
+      label: `Inférieur ou égal à ${AI_SCORE_HATE_THRESHOLD * 100} %`,
+      value: CommentScoreFilterOptions.AT_OR_BELOW_THRESHOLD,
+    },
+    { label: "Sans score IA", value: CommentScoreFilterOptions.WITHOUT_SCORE },
+  ],
+  flaggedStatus: [
+    {
+      label: "Marqués malveillants",
+      value: CommentFlagFilterOptions.FLAGGED,
+    },
+    { label: "Non marqués", value: CommentFlagFilterOptions.UNFLAGGED },
   ],
   pseudoAuthor: [],
 };
@@ -113,22 +136,20 @@ export default function CommentsFilterPopover({
 
   return (
     <Popover open={filtersOpen} onOpenChange={handleFiltersOpenChange}>
-      <PopoverTrigger>
-        <Button variant="outline" onClick={() => setFiltersOpen(true)}>
-          <Funnel /> Filtrer
-          {Object.values(commentFilters).some((categoryValue) =>
-            Array.isArray(categoryValue)
-              ? categoryValue.length > 0
-              : categoryValue !== undefined,
-          ) &&
-            ` (${
-              Object.values(commentFilters).filter((categoryValue) =>
-                Array.isArray(categoryValue)
-                  ? categoryValue.length > 0
-                  : categoryValue !== undefined,
-              ).length
-            })`}
-        </Button>
+      <PopoverTrigger render={<Button variant="outline" />}>
+        <Funnel /> Filtrer
+        {Object.values(commentFilters).some((categoryValue) =>
+          Array.isArray(categoryValue)
+            ? categoryValue.length > 0
+            : categoryValue !== undefined,
+        ) &&
+          ` (${
+            Object.values(commentFilters).filter((categoryValue) =>
+              Array.isArray(categoryValue)
+                ? categoryValue.length > 0
+                : categoryValue !== undefined,
+            ).length
+          })`}
       </PopoverTrigger>
       <PopoverContent align="start" className="w-auto p-0">
         <div>
@@ -188,6 +209,7 @@ export default function CommentsFilterPopover({
                   return (
                     <Button
                       variant="ghost"
+                      aria-pressed={isSelected}
                       key={option.value}
                       onClick={() => toggleFilter(option.value)}
                       className={cn(

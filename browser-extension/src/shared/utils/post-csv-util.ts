@@ -1,3 +1,4 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import {
   booleanToFrenchText,
   formatDateTimeForCsv,
@@ -7,7 +8,6 @@ import {
   publicationDateTypeToText,
 } from "@/entrypoints/posts/Report/Exports/reportExportShared";
 import type { Post } from "../model/post/Post";
-import type { PostCommentWithId } from "./post-util";
 import { getSocialNetworkName } from "./post-util";
 
 export const POST_DETAIL_CSV_COLUMNS = [
@@ -86,7 +86,7 @@ export type PostDetailCsvRow = Record<PostDetailCsvColumnKey, string>;
 
 export function buildPostCommentRow(
   post: Post | undefined,
-  comment: PostCommentWithId,
+  comment: PostCommentWithFlag,
 ): PostDetailCsvRow {
   const postRawDateRange = post
     ? getPublicationDateRawRange(post.publishedAt)
@@ -113,7 +113,7 @@ export function buildPostCommentRow(
       : "",
     post_published_at_raw_start_utc: postRawDateRange?.start ?? "",
     post_published_at_raw_end_utc: postRawDateRange?.end ?? "",
-    comment_id: comment.id,
+    comment_id: comment.commentRevisionId,
     comment_author: comment.author.name,
     comment_published_at: publicationDateToCsvText(comment.publishedAt),
     comment_published_at_source_text: publicationDateSourceText(

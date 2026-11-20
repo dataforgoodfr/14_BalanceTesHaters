@@ -39,6 +39,7 @@ export async function getPostByPostId(
   if (records.length === 0) {
     return undefined;
   }
+
   return buildPostFromSnapshots(
     records.map((record) => record.postSnapshot),
     buildScreenshotCommentIdsByPostSnapshotId(records),
