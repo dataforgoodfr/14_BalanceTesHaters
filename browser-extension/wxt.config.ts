@@ -79,9 +79,6 @@ export default defineConfig({
       // storage and unlimitedStorage used to store post snapshots
       "storage",
       "unlimitedStorage",
-      // Scripting required for running content script in scraped pages
-      "scripting",
-
       // background, alarms and notifications required to poll server in background
       // for classificaiton results and notify user
       "background",
@@ -95,9 +92,9 @@ export default defineConfig({
       "activeTab",
       // Sidepanel needed to display scraping progresss
       "sidePanel",
-      // For Memory and cpu monitoring in soak testing
+      // Script injection and memory/CPU monitoring for soak testing only
       ...(process.env.VITE_SOAK_TEST_BUILD === "true"
-        ? (["processes"] as const)
+        ? (["processes", "scripting"] as const)
         : []),
     ],
     host_permissions: [
