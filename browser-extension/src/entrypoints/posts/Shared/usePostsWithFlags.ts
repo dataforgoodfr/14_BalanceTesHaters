@@ -1,7 +1,6 @@
 import type { Post, PostWithFlags } from "@/shared/model/post/Post";
-import { getPostHateFlagsList } from "@/shared/storage/hate-flags-storage";
+import { usePostHateFlagsList } from "./usePostHateFlagsList";
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 
 export function usePostsWithFlags(posts: Post[] | undefined): {
   postsWithFlags: PostWithFlags[];
@@ -11,32 +10,11 @@ export function usePostsWithFlags(posts: Post[] | undefined): {
     () => posts?.map((post) => post.postId) ?? [],
     [posts],
   );
-  const hateFlagsQueryKey = React.useMemo(
-    () => ["postHateFlags", postIdList.join(",")],
-    [postIdList],
+
+  const { data: hateFlags = [], isLoading } = usePostHateFlagsList(
+    postIdList,
+    posts !== undefined,
   );
-
-  const { data: flaggedCommentIds = new Set<string>(), isLoading } = useQuery({
-    queryKey: hateFlagsQueryKey,
-    queryFn: async () => {
-      const hateFlags = await getPostHateFlagsList(postIdList);
-      const comments = (posts ?? []).flatMap((post) =>
-        post.comments.map((comment) => ({ postId: post.postId, comment })),
-      );
-
-      return new Set(
-        comments.flatMap(({ postId, comment }) => {
-          const flagsForPost = hateFlags.find(
-            (flags) => flags.postId === postId,
-          );
-          return flagsForPost?.hateFlags[comment.commentRevisionId]
-            ? [comment.commentRevisionId]
-            : [];
-        }),
-      );
-    },
-    enabled: posts !== undefined,
-  });
 
   const postsWithFlags = React.useMemo((): PostWithFlags[] => {
     if (!posts || posts.length === 0) {
@@ -47,10 +25,13 @@ export function usePostsWithFlags(posts: Post[] | undefined): {
       ...post,
       comments: post.comments.map((comment) => ({
         ...comment,
-        isFlagged: flaggedCommentIds.has(comment.commentRevisionId),
+        isFlagged:
+          hateFlags.find((flags) => flags.postId === post.postId)?.hateFlags[
+            comment.commentRevisionId
+          ] ?? false,
       })),
     }));
-  }, [posts, flaggedCommentIds]);
+  }, [posts, hateFlags]);
 
   return { postsWithFlags, isLoading };
 }

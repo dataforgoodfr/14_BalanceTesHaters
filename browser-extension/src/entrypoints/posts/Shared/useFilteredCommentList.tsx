@@ -11,7 +11,7 @@ import {
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPostsByPostIdList } from "@/shared/storage/post-storage";
-import { getPostHateFlagsList } from "@/shared/storage/hate-flags-storage";
+import { usePostHateFlagsList } from "./usePostHateFlagsList";
 
 export type useFilteredCommentListData = {
   searchTerm: string;
@@ -39,43 +39,28 @@ export function useFilteredCommentList(
     () => ["posts", postIdList.join(",")],
     [postIdList],
   );
-  const hateFlagsQueryKey = React.useMemo(
-    () => ["postHateFlags", postIdList.join(",")],
-    [postIdList],
-  );
 
   const { data, isLoading: isLoadingPosts } = useQuery({
     queryKey: postQueryKey,
     queryFn: () => getPostsByPostIdList(postIdList),
   });
 
-  const { data: allCommentsWithFlagData, isLoading: isLoadingFlags } = useQuery(
-    {
-      queryKey: hateFlagsQueryKey,
-      queryFn: async () => {
-        const allCommentsWithFlagData: PostCommentWithFlag[] = [];
-        const hateFlags = await getPostHateFlagsList(postIdList);
+  const { data: hateFlags = [], isLoading: isLoadingFlags } =
+    usePostHateFlagsList(postIdList, data !== undefined);
 
-        for (const post of data ?? []) {
-          for (const comment of post.comments) {
-            const flagsForPost = hateFlags.find(
-              (flags) => flags.postId === post.postId,
-            );
-            const isFlagged =
-              flagsForPost?.hateFlags[comment.commentRevisionId] ?? false;
-
-            allCommentsWithFlagData.push({
-              ...comment,
-
-              isFlagged,
-            });
-          }
-        }
-
-        return allCommentsWithFlagData;
-      },
-      enabled: data !== undefined,
-    },
+  const allCommentsWithFlagData = React.useMemo(
+    (): PostCommentWithFlag[] =>
+      (data ?? []).flatMap((post) => {
+        const flagsForPost = hateFlags.find(
+          (flags) => flags.postId === post.postId,
+        );
+        return post.comments.map((comment) => ({
+          ...comment,
+          isFlagged:
+            flagsForPost?.hateFlags[comment.commentRevisionId] ?? false,
+        }));
+      }),
+    [data, hateFlags],
   );
 
   const {
