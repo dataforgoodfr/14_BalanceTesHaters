@@ -1,3 +1,4 @@
+import { AI_SCORE_HATE_THRESHOLD } from "../constants/ai-score-hate-threshold";
 import type {
   Post,
   PostCommentWithFlag,
@@ -25,6 +26,17 @@ export enum CommentDateFilterOptions {
   TWO_DAYS = "2days",
   SEVEN_DAYS = "7days",
   THIRTY_DAYS = "30days",
+}
+
+export enum CommentScoreFilterOptions {
+  ABOVE_THRESHOLD = "aboveThreshold",
+  AT_OR_BELOW_THRESHOLD = "atOrBelowThreshold",
+  WITHOUT_SCORE = "withoutScore",
+}
+
+export enum CommentFlagFilterOptions {
+  FLAGGED = "flagged",
+  UNFLAGGED = "unflagged",
 }
 
 export enum PostSortingCategory {
@@ -58,7 +70,8 @@ export type PostFilters = {
 
 export type CommentFilters = {
   date: CommentDateFilterOptions | undefined;
-  score: string[];
+  score: CommentScoreFilterOptions[];
+  flaggedStatus: CommentFlagFilterOptions[];
   alert: string[];
   category: string[];
   status: string[];
@@ -77,6 +90,7 @@ export const emptyPostFilters: PostFilters = {
 
 export const emptyCommentFilters: CommentFilters = {
   date: undefined,
+  flaggedStatus: [],
   score: [],
   alert: [],
   status: [],
@@ -341,6 +355,28 @@ export function filterCommentList(
     filteredCommentList = filteredCommentList.filter((comment) => {
       return filters.pseudoAuthor.includes(comment.author.name);
     });
+  }
+
+  if (filters.score.length > 0) {
+    filteredCommentList = filteredCommentList.filter((comment) => {
+      const scoreCategory =
+        comment.hateScore === undefined
+          ? CommentScoreFilterOptions.WITHOUT_SCORE
+          : comment.hateScore > AI_SCORE_HATE_THRESHOLD
+            ? CommentScoreFilterOptions.ABOVE_THRESHOLD
+            : CommentScoreFilterOptions.AT_OR_BELOW_THRESHOLD;
+      return filters.score.includes(scoreCategory);
+    });
+  }
+
+  if (filters.flaggedStatus.length > 0) {
+    filteredCommentList = filteredCommentList.filter((comment) =>
+      filters.flaggedStatus.includes(
+        comment.isFlagged
+          ? CommentFlagFilterOptions.FLAGGED
+          : CommentFlagFilterOptions.UNFLAGGED,
+      ),
+    );
   }
 
   // Lastly, apply search term filtering

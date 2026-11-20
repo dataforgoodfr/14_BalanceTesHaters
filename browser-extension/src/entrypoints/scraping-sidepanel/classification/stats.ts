@@ -1,7 +1,5 @@
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import type { Post } from "@/shared/model/post/Post";
-
-// A mettre à jour avec la possibilité de paramétrer le seuil de malveillance (hateScore) pour considérer un commentaire comme haineux
-export const LIMIT_HATE_SCORE = 0.8;
 
 export type HateStats = {
   hatefulCommentsCount: number;
@@ -11,7 +9,7 @@ export type HateStats = {
 export function hateStats(post: Post): HateStats {
   const allComments = post.comments;
   const hatefullComments = allComments.filter(
-    (c) => c.hateScore && c.hateScore > LIMIT_HATE_SCORE,
+    (c) => c.hateScore && c.hateScore > AI_SCORE_HATE_THRESHOLD,
   );
   const hatefulCommentsCount = hatefullComments.length;
   const hatersCount = new Set(hatefullComments.map((c) => c.author.name)).size;

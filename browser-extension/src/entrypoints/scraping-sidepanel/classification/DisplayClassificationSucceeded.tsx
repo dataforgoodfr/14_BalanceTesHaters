@@ -10,7 +10,7 @@ import {
 } from "../SidePanelLayout";
 import { Progress } from "@/components/ui/progress";
 import { CircleCheckBigIcon, HandHeartIcon } from "lucide-react";
-import { hateStats as computeHateStats } from "./hateStats";
+import { hateStats as computeHateStats } from "./stats";
 import { ClassificationSummary } from "./ClassificationSummary";
 import { getPostDetailsUrl } from "@/shared/extension-urls";
 

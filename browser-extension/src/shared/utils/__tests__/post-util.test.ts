@@ -1,3 +1,4 @@
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
 import type { PostFilters, CommentFilters } from "../post-util";
 import {
@@ -8,6 +9,8 @@ import {
   NbHatefulCommentsOptions,
   CommentSortingCategory,
   CommentDateFilterOptions,
+  CommentScoreFilterOptions,
+  CommentFlagFilterOptions,
   emptyPostFilters,
   emptyCommentFilters,
 } from "../post-util";
@@ -331,6 +334,73 @@ describe("post utilities", () => {
     });
 
     describe("comment list filtering", () => {
+      it("filters AI scores using the shared strict threshold and handles missing scores", () => {
+        const above = createDummyCommentWithId({
+          hateScore: AI_SCORE_HATE_THRESHOLD + 0.01,
+        });
+        const boundary = createDummyCommentWithId({
+          hateScore: AI_SCORE_HATE_THRESHOLD,
+        });
+        const zero = createDummyCommentWithId({ hateScore: 0 });
+        const missing = createDummyCommentWithId();
+        const comments = [above, boundary, zero, missing];
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.ABOVE_THRESHOLD],
+          }),
+        ).toEqual([above]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.AT_OR_BELOW_THRESHOLD],
+          }),
+        ).toEqual([boundary, zero]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.WITHOUT_SCORE],
+          }),
+        ).toEqual([missing]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [
+              CommentScoreFilterOptions.ABOVE_THRESHOLD,
+              CommentScoreFilterOptions.WITHOUT_SCORE,
+            ],
+          }),
+        ).toEqual([above, missing]);
+      });
+
+      it("filters comments by manual flag status", () => {
+        const flagged = createDummyCommentWithId({ isFlagged: true });
+        const unflagged = createDummyCommentWithId({ isFlagged: false });
+        const anotherFlagged = createDummyCommentWithId({ isFlagged: true });
+        const comments = [flagged, unflagged, anotherFlagged];
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [CommentFlagFilterOptions.FLAGGED],
+          }),
+        ).toEqual([flagged, anotherFlagged]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [CommentFlagFilterOptions.UNFLAGGED],
+          }),
+        ).toEqual([unflagged]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [
+              CommentFlagFilterOptions.FLAGGED,
+              CommentFlagFilterOptions.UNFLAGGED,
+            ],
+          }),
+        ).toEqual(comments);
+      });
+
       describe("date filtering", () => {
         beforeEach(() => {
           vi.useFakeTimers();

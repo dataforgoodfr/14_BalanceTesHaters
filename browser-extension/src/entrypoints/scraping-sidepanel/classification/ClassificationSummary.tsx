@@ -1,5 +1,6 @@
 import { CircleUserRoundIcon, MessageSquareWarningIcon } from "lucide-react";
-import { LIMIT_HATE_SCORE, type HateStats } from "./hateStats";
+import type { HateStats } from "./stats";
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import type React from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -23,7 +24,7 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
           </HateCardTitle>
           <HateCardDescription>
             malveillants détectés avec un seuil de confiance supérieur à{" "}
-            {LIMIT_HATE_SCORE * 100}%
+            {AI_SCORE_HATE_THRESHOLD * 100}%
           </HateCardDescription>
         </HateCard>
         <HateCard className="basis-1/2">
@@ -33,7 +34,7 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
           <HateCardTitle>{hateStats.hatersCount} auteurs</HateCardTitle>
           <HateCardDescription>
             de commentaires malveillants détectés avec un seuil de confiance
-            supérieur à {LIMIT_HATE_SCORE * 100}%
+            supérieur à {AI_SCORE_HATE_THRESHOLD * 100}%
           </HateCardDescription>
         </HateCard>
       </div>
@@ -43,7 +44,7 @@ export function ClassificationSummary({ hateStats }: { hateStats: HateStats }) {
       <InfoCard>
         <InfoCardTitle>
           Aucun commentaire malveillant détecté détectés avec un seuil de
-          confiance supérieur à {LIMIT_HATE_SCORE * 100}%
+          confiance supérieur à {AI_SCORE_HATE_THRESHOLD * 100}%
         </InfoCardTitle>
         <InfoCardDescription>
           Pour analyser une autre publication : ouvre-la sur YouTube/Instagram,
