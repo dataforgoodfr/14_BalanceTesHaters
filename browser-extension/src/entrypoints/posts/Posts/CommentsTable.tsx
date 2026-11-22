@@ -315,6 +315,35 @@ export default function CommentsTable({
         },
       },
       {
+        id: "hateful",
+        size: 6,
+        header: () => (
+          <span>
+            Marqué
+            <br />
+            Malveillant
+          </span>
+        ),
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            aria-label={
+              hatefulComments.has(row.id)
+                ? "Retirer le marquage malveillant"
+                : "Marquer comme malveillant"
+            }
+            aria-pressed={hatefulComments.has(row.id)}
+            onClick={() => void toggleHatefulComment(row.id)}
+          >
+            {hatefulComments.has(row.id) ? (
+              <OctagonAlert className="text-destructive" />
+            ) : (
+              <OctagonAlert className="text-muted-foreground" />
+            )}
+          </Button>
+        ),
+      },
+      {
         id: "screenshot",
         header: "Capture",
         size: 14,
@@ -398,23 +427,6 @@ export default function CommentsTable({
           <DisplayPublicationDate date={row.original.publishedAt} />
         ),
       },
-      {
-        id: "hateful",
-        size: 6,
-        header: "Malveillant",
-        cell: ({ row }) => (
-          <Button
-            variant="ghost"
-            onClick={() => void toggleHatefulComment(row.id)}
-          >
-            {hatefulComments.has(row.id) ? (
-              <OctagonAlert className="text-destructive" />
-            ) : (
-              <OctagonAlert className="text-muted-foreground" />
-            )}
-          </Button>
-        ),
-      },
     ],
     // Les colonnes seront rafraichies lorsque visibleComments change, pour
     // mettre à jour les icônes d'œil et les classes de floutage
@@ -480,18 +492,18 @@ export default function CommentsTable({
               type="button"
               variant="destructive"
               onClick={() => void flagSelectedComment(true)}
-              aria-label="Déclarer malveillant"
+              aria-label="Marquer malveillants"
             >
-              Déclarer malveillant
+              Marquer malveillants
             </Button>
             <Button
               type="button"
               variant="secondary"
               onClick={() => void flagSelectedComment(false)}
               className="text-muted-foreground hover:text-foreground transition-colors"
-              aria-label="Déclarer neutre"
+              aria-label="Supprimer le marquage"
             >
-              Déclarer neutre
+              Supprimer le marquage
             </Button>
           </div>
         )}
