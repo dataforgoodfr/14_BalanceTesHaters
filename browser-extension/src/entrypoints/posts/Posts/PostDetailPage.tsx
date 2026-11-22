@@ -46,7 +46,7 @@ function PostDetailPage() {
     setCommentFilters,
     allComments,
     filteredCommentList,
-    hatefulAuthorList,
+    authorList,
   } = useFilteredCommentList(
     postId === undefined ? [] : [postId],
     commentSortingCategory,
@@ -180,9 +180,8 @@ function PostDetailPage() {
                 setCommentSortingCategory={setCommentSortingCategory}
                 defaultSelectedCommentIdList={[]}
                 formId=""
-                // We can't use filteredHatefulComments because we want to access all the hateful authors
-                // and not only the ones that are currently displayed in the table (because of the filters)
-                authorList={hatefulAuthorList}
+                // Keep all authors available regardless of the active comment filters.
+                authorList={authorList}
                 onSubmit={() => logger.debug("Comments submitted")}
                 showCreateReportButton={true}
               />

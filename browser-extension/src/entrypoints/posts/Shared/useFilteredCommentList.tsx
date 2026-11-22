@@ -20,7 +20,7 @@ export type useFilteredCommentListData = {
   setCommentFilters: (commentFilters: CommentFilters) => void;
   allComments: PostCommentWithFlag[];
   filteredCommentList: PostCommentWithFlag[];
-  hatefulAuthorList: string[];
+  authorList: string[];
   isLoading: boolean;
 };
 /**
@@ -65,15 +65,15 @@ export function useFilteredCommentList(
 
   const {
     filteredCommentList,
-    hatefulAuthorList,
+    authorList,
   }: {
     allComments: PostCommentWithFlag[];
     filteredCommentList: PostCommentWithFlag[];
-    hatefulAuthorList: string[];
+    authorList: string[];
   } = React.useMemo(() => {
-    const hatefulAuthorList: string[] = (allCommentsWithFlagData || [])
-      .filter((comment) => comment.isFlagged)
-      .map((comment) => comment.author.name);
+    const authorList = [
+      ...new Set(allCommentsWithFlagData.map((comment) => comment.author.name)),
+    ];
 
     const filteredCommentList: PostCommentWithFlag[] = filterCommentList(
       allCommentsWithFlagData || [],
@@ -86,7 +86,7 @@ export function useFilteredCommentList(
         filteredCommentList,
         commentSortingCategory,
       ),
-      hatefulAuthorList,
+      authorList,
     };
   }, [
     allCommentsWithFlagData,
@@ -102,7 +102,7 @@ export function useFilteredCommentList(
     setCommentFilters,
     allComments: allCommentsWithFlagData || [],
     filteredCommentList,
-    hatefulAuthorList,
+    authorList,
     isLoading: isLoadingPosts || isLoadingFlags,
   };
 }

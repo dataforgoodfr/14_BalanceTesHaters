@@ -25,7 +25,7 @@ function Step3Comments({
     commentFilters,
     setCommentFilters,
     filteredCommentList: commentList,
-    hatefulAuthorList,
+    authorList,
     isLoading,
   } = useFilteredCommentList(
     reportQueryData?.postIdList ?? [],
@@ -71,7 +71,7 @@ function Step3Comments({
             }
             onSubmit={handleSubmit}
             formId={getFormId(stepper.current.id)}
-            authorList={hatefulAuthorList}
+            authorList={authorList}
             showScreenshotColumn={true}
             showCreateReportButton={false}
           />
