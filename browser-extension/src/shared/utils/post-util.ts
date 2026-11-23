@@ -1,5 +1,9 @@
-import { isCategoryHateful } from "../model/AnnotatedCategory";
-import type { Post, PostComment } from "../model/post/Post";
+import { AI_SCORE_HATE_THRESHOLD } from "../constants/ai-score-hate-threshold";
+import type {
+  Post,
+  PostCommentWithFlag,
+  PostWithFlags,
+} from "../model/post/Post";
 import type { PostSnapshot } from "../model/PostSnapshot";
 import type { SocialNetworkName } from "../model/SocialNetworkName";
 import { SocialNetwork } from "../model/SocialNetworkName";
@@ -24,6 +28,17 @@ export enum CommentDateFilterOptions {
   THIRTY_DAYS = "30days",
 }
 
+export enum CommentScoreFilterOptions {
+  ABOVE_THRESHOLD = "aboveThreshold",
+  AT_OR_BELOW_THRESHOLD = "atOrBelowThreshold",
+  WITHOUT_SCORE = "withoutScore",
+}
+
+export enum CommentFlagFilterOptions {
+  FLAGGED = "flagged",
+  UNFLAGGED = "unflagged",
+}
+
 export enum PostSortingCategory {
   ANALYSIS_DATE_DESC = "analysisDateDesc",
   ANALYSIS_DATE_ASC = "analysisDateAsc",
@@ -42,14 +57,6 @@ export enum CommentSortingCategory {
   PSEUDO_AUTHOR_DESC = "pseudoAuthorDesc",
 }
 
-export type PostCommentWithId = PostComment & {
-  id: string;
-  postId: string;
-  socialNetwork: string;
-  postKey: string;
-  isCommentHateful: boolean;
-};
-
 export type PostFilters = {
   date: DateFilterOptions | undefined;
   nbHatefulComments: NbHatefulCommentsOptions[];
@@ -63,7 +70,8 @@ export type PostFilters = {
 
 export type CommentFilters = {
   date: CommentDateFilterOptions | undefined;
-  score: string[];
+  score: CommentScoreFilterOptions[];
+  flaggedStatus: CommentFlagFilterOptions[];
   alert: string[];
   category: string[];
   status: string[];
@@ -82,18 +90,13 @@ export const emptyPostFilters: PostFilters = {
 
 export const emptyCommentFilters: CommentFilters = {
   date: undefined,
+  flaggedStatus: [],
   score: [],
   alert: [],
   status: [],
   pseudoAuthor: [],
   category: [],
 };
-
-export function isCommentHateful(comment: PostComment): boolean {
-  return (comment.classification || []).some((category) =>
-    isCategoryHateful(category),
-  );
-}
 
 export function isPostPublishedAfter(post: PostSnapshot, date: Date): boolean {
   switch (post.publishedAt.type) {
@@ -156,11 +159,17 @@ export function formatAnalysisDate(isoDateTime: string): string {
   return `${date} à ${time}`;
 }
 
+/**
+ * Builds a post global unique identifier from ocialNetwork and postId
+ * @param postId A
+ * @param socialNetwork
+ * @returns
+ */
 export function buildPostKey(
   postId: string,
   socialNetwork: SocialNetworkName,
 ): string {
-  return `${postId}|${socialNetwork}`;
+  return `${socialNetwork}:${postId}`;
 }
 
 export function getSocialNetworkName(socialNetwork: SocialNetworkName): string {
@@ -208,16 +217,17 @@ export function getPublicationTypeLabel(
   return "Publication";
 }
 
-export function filterPosts(
-  posts: Post[],
+export function filterPosts<T extends Post>(
+  posts: T[],
   searchTerm: string,
   filters: PostFilters,
-): Post[] {
+): T[] {
   let filteredPosts = posts;
   if (filters.nbHatefulComments) {
     filteredPosts = filteredPosts.filter((post) => {
-      const postHatefulCommentsCount =
-        post.comments.filter(isCommentHateful).length;
+      const postHatefulCommentsCount = post.comments.filter(
+        (comment) => "isFlagged" in comment && comment.isFlagged === true,
+      ).length;
       return (
         filters.nbHatefulComments.length == 0 ||
         (filters.nbHatefulComments.includes(
@@ -257,9 +267,9 @@ export function filterPosts(
 }
 
 export function sortPostList(
-  posts: Post[],
+  posts: PostWithFlags[],
   sortingCategory: PostSortingCategory,
-): Post[] {
+): PostWithFlags[] {
   switch (sortingCategory) {
     case PostSortingCategory.ANALYSIS_DATE_ASC:
       return [...posts].sort(
@@ -276,14 +286,14 @@ export function sortPostList(
     case PostSortingCategory.NB_HATEFUL_COMMENTS_ASC:
       return [...posts].sort(
         (a, b) =>
-          a.comments.filter(isCommentHateful).length -
-          b.comments.filter(isCommentHateful).length,
+          a.comments.filter((c) => c.isFlagged).length -
+          b.comments.filter((c) => c.isFlagged).length,
       );
     case PostSortingCategory.NB_HATEFUL_COMMENTS_DESC:
       return [...posts].sort(
         (a, b) =>
-          b.comments.filter(isCommentHateful).length -
-          a.comments.filter(isCommentHateful).length,
+          b.comments.filter((c) => c.isFlagged).length -
+          a.comments.filter((c) => c.isFlagged).length,
       );
     case PostSortingCategory.PUBLICATION_DATE_ASC:
       return [...posts].sort((a, b) => {
@@ -299,14 +309,16 @@ export function sortPostList(
           getDateForSorting(a.publishedAt).getTime()
         );
       });
+    default:
+      return posts;
   }
 }
 
 export function filterCommentList(
-  commentList: PostCommentWithId[],
+  commentList: PostCommentWithFlag[],
   searchTerm: string,
   filters: CommentFilters,
-): PostCommentWithId[] {
+): PostCommentWithFlag[] {
   let filteredCommentList = commentList;
 
   if (filters.date !== undefined) {
@@ -345,6 +357,28 @@ export function filterCommentList(
     });
   }
 
+  if (filters.score.length > 0) {
+    filteredCommentList = filteredCommentList.filter((comment) => {
+      const scoreCategory =
+        comment.hateScore === undefined
+          ? CommentScoreFilterOptions.WITHOUT_SCORE
+          : comment.hateScore > AI_SCORE_HATE_THRESHOLD
+            ? CommentScoreFilterOptions.ABOVE_THRESHOLD
+            : CommentScoreFilterOptions.AT_OR_BELOW_THRESHOLD;
+      return filters.score.includes(scoreCategory);
+    });
+  }
+
+  if (filters.flaggedStatus.length > 0) {
+    filteredCommentList = filteredCommentList.filter((comment) =>
+      filters.flaggedStatus.includes(
+        comment.isFlagged
+          ? CommentFlagFilterOptions.FLAGGED
+          : CommentFlagFilterOptions.UNFLAGGED,
+      ),
+    );
+  }
+
   // Lastly, apply search term filtering
   const searchValue = searchTerm.trim().toLowerCase();
   return filteredCommentList.filter((comment) => {
@@ -357,9 +391,9 @@ export function filterCommentList(
 }
 
 export function sortCommentList(
-  commentList: PostCommentWithId[],
+  commentList: PostCommentWithFlag[],
   sortingCategory: CommentSortingCategory,
-): PostCommentWithId[] {
+): PostCommentWithFlag[] {
   switch (sortingCategory) {
     case CommentSortingCategory.HATE_SCORE_ASC:
       return [...commentList].sort(

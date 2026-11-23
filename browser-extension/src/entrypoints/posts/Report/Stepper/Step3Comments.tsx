@@ -1,7 +1,7 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type { ReportQueryData } from "./BuildReport";
 import { useStepperContext } from "./BuildReport";
 import CommentsTable from "../../Posts/CommentsTable";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
 import { CommentSortingCategory } from "@/shared/utils/post-util";
 import { Spinner } from "@/components/ui/spinner";
 import React from "react";
@@ -14,7 +14,7 @@ function Step3Comments({
   setCommentList,
 }: Readonly<{
   reportQueryData: ReportQueryData | undefined;
-  setCommentList: (commentIdList: PostCommentWithId[]) => void;
+  setCommentList: (commentIdList: PostCommentWithFlag[]) => void;
 }>) {
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
@@ -25,21 +25,21 @@ function Step3Comments({
     commentFilters,
     setCommentFilters,
     filteredCommentList: commentList,
-    hatefulAuthorList,
+    authorList,
     isLoading,
   } = useFilteredCommentList(
     reportQueryData?.postIdList ?? [],
     commentSortingCategory,
   );
 
-  const hatefulCommentList = commentList.filter((c) => c.isCommentHateful);
+  const hatefulCommentList = commentList.filter((c) => c.isFlagged);
 
   const stepper = useStepperContext();
 
   const handleSubmit = (commentIdList: string[]) => {
     setCommentList(
       hatefulCommentList.filter((comment) =>
-        commentIdList.includes(comment.id),
+        commentIdList.includes(comment.commentRevisionId),
       ),
     );
     void stepper.next();
@@ -65,12 +65,13 @@ function Step3Comments({
             commentSortingCategory={commentSortingCategory}
             setCommentSortingCategory={setCommentSortingCategory}
             defaultSelectedCommentIdList={
-              reportQueryData?.postCommentList.map((comment) => comment.id) ??
-              []
+              reportQueryData?.postCommentList.map(
+                (comment) => comment.commentRevisionId,
+              ) ?? []
             }
             onSubmit={handleSubmit}
             formId={getFormId(stepper.current.id)}
-            authorList={hatefulAuthorList}
+            authorList={authorList}
             showScreenshotColumn={true}
             showCreateReportButton={false}
           />

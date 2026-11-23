@@ -13,7 +13,7 @@ import {
 } from "docx";
 import type { Post } from "@/shared/model/post/Post";
 import type { ReportQueryData } from "../Stepper/BuildReport";
-import { getSocialNetworkName } from "@/shared/utils/post-util";
+import { buildPostKey, getSocialNetworkName } from "@/shared/utils/post-util";
 import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
 import {
   booleanToFrenchText,
@@ -33,13 +33,12 @@ export function buildReportDocx(
   screenshotData: ReportScreenshotData,
 ): DocxDocument {
   const postsByKey = new Map<string, Post>(
-    posts.map((post) => [`${post.postId}-${post.socialNetwork}`, post]),
+    posts.map((post) => [buildPostKey(post.postId, post.socialNetwork), post]),
   );
   const generatedAt = new Date().toISOString();
   const groupedCommentsByPost = Object.entries(
-    Object.groupBy(
-      reportQueryData.postCommentList,
-      (comment) => comment.postKey,
+    Object.groupBy(reportQueryData.postCommentList, (comment) =>
+      buildPostKey(comment.postId, comment.socialNetwork),
     ),
   );
 
@@ -150,7 +149,7 @@ export function buildReportDocx(
           spacing: { before: 180, after: 120 },
         }),
         createKeyValueTable([
-          ["ID", comment.id],
+          ["ID", comment.commentRevisionId],
           ["Auteur", comment.author.name],
           ["Date", publicationDateToDocxText(comment.publishedAt)],
           [

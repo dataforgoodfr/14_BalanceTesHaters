@@ -22,6 +22,94 @@ describe("buildCommentsFromSnapshots", () => {
     });
   });
 
+  describe("comment revision identity", () => {
+    it("distinguishes identical text in different comments and posts", () => {
+      const first = createCommentSnapshot({
+        commentId: "first",
+        textContent: "same text",
+      });
+      const second = createCommentSnapshot({
+        commentId: "second",
+        textContent: "same text",
+      });
+      const post = createMinimalPostSnapshot([first, second]);
+      const otherPost = {
+        ...createMinimalPostSnapshot([first]),
+        postId: "other-post",
+      };
+
+      expect(
+        buildCommentsFromSnapshots([post], new Map()).map(
+          (c) => c.commentRevisionId,
+        ),
+      ).toEqual(["test-post-id:first:0", "test-post-id:second:0"]);
+      expect(
+        buildCommentsFromSnapshots([otherPost], new Map())[0]!
+          .commentRevisionId,
+      ).toBe("other-post:first:0");
+    });
+
+    it("numbers consecutive text revisions per comment, including reverted text", () => {
+      const snapshots = ["original", "original", "edited", "original"].map(
+        (textContent, index) =>
+          createMinimalPostSnapshot([
+            createCommentSnapshot({
+              commentId: "first",
+              textContent,
+              scrapedAt: `2024-01-0${index + 1}T00:00:00.000Z`,
+            }),
+          ]),
+      );
+      const revisions = buildCommentsFromSnapshots(snapshots, new Map());
+
+      expect(revisions.map((comment) => comment.revision)).toEqual([0, 1, 2]);
+
+      expect(
+        revisions.map((c) => [c.commentRevisionId, c.textContent]),
+      ).toEqual([
+        ["test-post-id:first:0", "original"],
+        ["test-post-id:first:1", "edited"],
+        ["test-post-id:first:2", "original"],
+      ]);
+    });
+
+    it("preserves existing IDs when snapshots add comments and revisions", () => {
+      const first = createCommentSnapshot({
+        commentId: "first",
+        textContent: "original",
+      });
+      const second = createCommentSnapshot({
+        commentId: "second",
+        textContent: "unchanged",
+      });
+      const initial = createMinimalPostSnapshot([first, second]);
+      const edited = createMinimalPostSnapshot([
+        createCommentSnapshot({ ...first, textContent: "edited" }),
+        second,
+      ]);
+      const appended = createMinimalPostSnapshot([
+        createCommentSnapshot({ commentId: "new", textContent: "new comment" }),
+        createCommentSnapshot({ ...first, textContent: "edited" }),
+        second,
+      ]);
+      const before = buildCommentsFromSnapshots([initial, edited], new Map());
+      const after = buildCommentsFromSnapshots(
+        [initial, edited, appended],
+        new Map(),
+      );
+
+      expect(before.map((c) => c.commentRevisionId)).toEqual([
+        "test-post-id:first:0",
+        "test-post-id:first:1",
+        "test-post-id:second:0",
+      ]);
+      expect(after.map((c) => c.commentRevisionId)).toEqual([
+        ...before.map((c) => c.commentRevisionId),
+        "test-post-id:new:0",
+      ]);
+    });
+  });
+
   describe("single snapshot", () => {
     it("should return single comment when given single snapshot with one comment", () => {
       const comment = createCommentSnapshot({ textContent: "Hello World" });
@@ -29,6 +117,8 @@ describe("buildCommentsFromSnapshots", () => {
       const result = buildCommentsFromSnapshots([snapshot], new Map());
 
       expect(result).toHaveLength(1);
+      expect(result[0]!.postId).toBe(snapshot.postId);
+      expect(result[0]!.socialNetwork).toBe(snapshot.socialNetwork);
       expect(result[0]!.author).toBe(comment.author);
       expect(result[0]!.textContent).toBe(comment.textContent);
       expect(result[0]!.isNew).toBe(false);
@@ -78,7 +168,7 @@ describe("buildCommentsFromSnapshots", () => {
 
       // Should have 3 comments: parent + 2 replies (flattened)
       expect(result).toHaveLength(3);
-      // PostComment doesn't have commentId field, so we check by textContent
+      // Replies retain their platform comment identity.
       expect(result[0]!.textContent).toBe(parentComment.textContent);
       expect(result[1]!.textContent).toBe(reply1.textContent);
       expect(result[2]!.textContent).toBe(reply2.textContent);
@@ -229,7 +319,6 @@ describe("buildCommentsFromSnapshots", () => {
 
       expect(result).toHaveLength(2);
 
-      // PostComment doesn't have commentId, check by textContent
       const oldComment = result.find((c) => c.textContent === "Old comment")!;
       const newComment = result.find((c) => c.textContent === "New comment")!;
 

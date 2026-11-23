@@ -1,13 +1,13 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type { Post } from "@/shared/model/post/Post";
 import { ReportComment } from "./ReportComment";
 import type React from "react";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
 import type { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 import type { ReportScreenshotData } from "./reportScreenshots";
 
 interface CommentGroupProps {
   groupKey: string;
-  comments: PostCommentWithId[];
+  comments: PostCommentWithFlag[];
   headerContent: React.ReactNode;
   onScreenshotClick: (screenshot: string) => void;
   reportOrganizationType: ReportOrganizationType;
@@ -31,13 +31,13 @@ export const ReportCommentGroup = ({
     <div className="py-4 rounded-lg border bg-neutral-50">
       {comments?.map((comment, index) => (
         <ReportComment
-          key={comment.id}
+          key={comment.commentRevisionId}
           comment={comment}
           onScreenshotClick={onScreenshotClick}
           index={index}
           totalItems={comments.length}
           reportOrganizationType={reportOrganizationType}
-          post={commentPostMap?.get(comment.id)}
+          post={commentPostMap?.get(comment.commentRevisionId)}
           screenshotData={screenshotData}
         />
       ))}

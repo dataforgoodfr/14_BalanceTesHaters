@@ -50,7 +50,9 @@ function buildReportCsvRows(
   const generatedAt = formatDateTimeForCsv(generatedAtRawUtc);
 
   return reportQueryData.postCommentList.map((comment) => {
-    const post = postsByKey.get(comment.postKey);
+    const post = postsByKey.get(
+      buildPostKey(comment.postId, comment.socialNetwork),
+    );
     return {
       generated_at: generatedAt,
       generated_at_raw_utc: generatedAtRawUtc,

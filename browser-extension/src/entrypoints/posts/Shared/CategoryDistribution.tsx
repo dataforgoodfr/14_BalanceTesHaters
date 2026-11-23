@@ -15,6 +15,7 @@ import {
 import { Pie, PieChart } from "recharts";
 import { Info } from "lucide-react";
 import { getCategoryStats } from "@/shared/utils/report-stats";
+import WorkInProgress from "../WorkInProgress";
 
 const CATEGORY_COLORS = [
   "oklch(from var(--primary) 0.76 c h)",
@@ -79,6 +80,7 @@ function CategoryDistribution({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <WorkInProgress />
         {isLoading && <Spinner className="size-8" />}
 
         {!isLoading && dataPoints.length === 0 && (

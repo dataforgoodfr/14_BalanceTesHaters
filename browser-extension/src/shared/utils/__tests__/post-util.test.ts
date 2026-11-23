@@ -1,9 +1,6 @@
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import type {
-  PostFilters,
-  CommentFilters,
-  PostCommentWithId,
-} from "../post-util";
+import type { PostFilters, CommentFilters } from "../post-util";
 import {
   getEarliestPostDate,
   filterPosts,
@@ -12,12 +9,14 @@ import {
   NbHatefulCommentsOptions,
   CommentSortingCategory,
   CommentDateFilterOptions,
+  CommentScoreFilterOptions,
+  CommentFlagFilterOptions,
   emptyPostFilters,
   emptyCommentFilters,
 } from "../post-util";
 import { SocialNetwork } from "@/shared/model/SocialNetworkName";
 import type { PublicationDate } from "@/shared/model/PublicationDate";
-import type { Post, PostComment } from "@/shared/model/post/Post";
+import type { Post, PostCommentWithFlag } from "@/shared/model/post/Post";
 import { AnnotatedCategory } from "@/shared/model/AnnotatedCategory";
 
 /**
@@ -62,7 +61,8 @@ function createDummyPost(overrides: Partial<Post> = {}): Post {
  */
 function createHatefulComment(
   textContent: string = "hateful comment",
-): PostComment {
+  isFlagged = true,
+): PostCommentWithFlag {
   return {
     author: { name: "Author", accountHref: "https://example.com" },
     textContent,
@@ -71,26 +71,33 @@ function createHatefulComment(
       date: new Date().toISOString(),
     },
     classification: [AnnotatedCategory.CYBERHARCELEMENT_DEFINITION_GENERALE],
+    postId: "post-1",
+    socialNetwork: SocialNetwork.YouTube,
+    commentRevisionId: "post-1:comment-1:0",
+    commentId: "comment-1",
+    revision: 0,
     isNew: false,
     isDeleted: false,
+    isFlagged,
   };
 }
 
 function createDummyCommentWithId(
-  overrides: Partial<PostCommentWithId> = {},
-): PostCommentWithId {
+  overrides: Partial<PostCommentWithFlag> = {},
+): PostCommentWithFlag {
   return {
-    id: "comment-1",
-    postId: "post-1",
-    socialNetwork: "youtube",
-    postKey: "post-1|youtube",
-    isCommentHateful: false,
+    isFlagged: false,
     author: { name: "Author", accountHref: "https://example.com" },
     textContent: "Test comment",
     publishedAt: {
       type: "absolute",
       date: new Date("2026-01-01T12:00:00Z").toISOString(),
     },
+    postId: "post-1",
+    socialNetwork: SocialNetwork.YouTube,
+    commentRevisionId: "post-1:comment-1:0",
+    commentId: "comment-1",
+    revision: 0,
     isNew: false,
     isDeleted: false,
     ...overrides,
@@ -240,6 +247,11 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
+                postId: "post-1",
+                socialNetwork: SocialNetwork.YouTube,
+                commentRevisionId: "post-1:comment-1:0",
+                commentId: "comment-1",
+                revision: 0,
                 isNew: false,
                 isDeleted: false,
               },
@@ -254,6 +266,11 @@ describe("post utilities", () => {
                   type: "absolute",
                   date: new Date().toISOString(),
                 },
+                postId: "post-1",
+                socialNetwork: SocialNetwork.YouTube,
+                commentRevisionId: "post-1:comment-1:0",
+                commentId: "comment-1",
+                revision: 0,
                 isNew: false,
                 isDeleted: false,
               },
@@ -317,6 +334,73 @@ describe("post utilities", () => {
     });
 
     describe("comment list filtering", () => {
+      it("filters AI scores using the shared strict threshold and handles missing scores", () => {
+        const above = createDummyCommentWithId({
+          hateScore: AI_SCORE_HATE_THRESHOLD + 0.01,
+        });
+        const boundary = createDummyCommentWithId({
+          hateScore: AI_SCORE_HATE_THRESHOLD,
+        });
+        const zero = createDummyCommentWithId({ hateScore: 0 });
+        const missing = createDummyCommentWithId();
+        const comments = [above, boundary, zero, missing];
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.ABOVE_THRESHOLD],
+          }),
+        ).toEqual([above]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.AT_OR_BELOW_THRESHOLD],
+          }),
+        ).toEqual([boundary, zero]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [CommentScoreFilterOptions.WITHOUT_SCORE],
+          }),
+        ).toEqual([missing]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            score: [
+              CommentScoreFilterOptions.ABOVE_THRESHOLD,
+              CommentScoreFilterOptions.WITHOUT_SCORE,
+            ],
+          }),
+        ).toEqual([above, missing]);
+      });
+
+      it("filters comments by manual flag status", () => {
+        const flagged = createDummyCommentWithId({ isFlagged: true });
+        const unflagged = createDummyCommentWithId({ isFlagged: false });
+        const anotherFlagged = createDummyCommentWithId({ isFlagged: true });
+        const comments = [flagged, unflagged, anotherFlagged];
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [CommentFlagFilterOptions.FLAGGED],
+          }),
+        ).toEqual([flagged, anotherFlagged]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [CommentFlagFilterOptions.UNFLAGGED],
+          }),
+        ).toEqual([unflagged]);
+        expect(
+          filterCommentList(comments, "", {
+            ...emptyCommentFilters,
+            flaggedStatus: [
+              CommentFlagFilterOptions.FLAGGED,
+              CommentFlagFilterOptions.UNFLAGGED,
+            ],
+          }),
+        ).toEqual(comments);
+      });
+
       describe("date filtering", () => {
         beforeEach(() => {
           vi.useFakeTimers();
@@ -545,16 +629,16 @@ describe("post utilities", () => {
       it("should sort by hate score and place missing scores last", () => {
         const comments = [
           createDummyCommentWithId({
-            id: "1",
+            commentRevisionId: "1",
             hateScore: 0.42,
           }),
           createDummyCommentWithId({
-            id: "2",
+            commentRevisionId: "2",
             hateScore: 0.91,
           }),
-          createDummyCommentWithId({ id: "3" }),
+          createDummyCommentWithId({ commentRevisionId: "3" }),
           createDummyCommentWithId({
-            id: "4",
+            commentRevisionId: "4",
             hateScore: 0.08,
           }),
         ];
@@ -568,13 +652,13 @@ describe("post utilities", () => {
           CommentSortingCategory.HATE_SCORE_DESC,
         );
 
-        expect(resultAsc.map((comment) => comment.id)).toEqual([
+        expect(resultAsc.map((comment) => comment.commentRevisionId)).toEqual([
           "4",
           "1",
           "2",
           "3",
         ]);
-        expect(resultDesc.map((comment) => comment.id)).toEqual([
+        expect(resultDesc.map((comment) => comment.commentRevisionId)).toEqual([
           "2",
           "1",
           "4",
@@ -585,21 +669,21 @@ describe("post utilities", () => {
       it("should sort by comment date for COMMENT_DATE_ASC and COMMENT_DATE_DESC", () => {
         const comments = [
           createDummyCommentWithId({
-            id: "1",
+            commentRevisionId: "1",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T09:00:00Z").toISOString(),
             },
           }),
           createDummyCommentWithId({
-            id: "2",
+            commentRevisionId: "2",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T12:00:00Z").toISOString(),
             },
           }),
           createDummyCommentWithId({
-            id: "3",
+            commentRevisionId: "3",
             publishedAt: {
               type: "absolute",
               date: new Date("2026-01-01T15:00:00Z").toISOString(),
@@ -611,13 +695,17 @@ describe("post utilities", () => {
           comments,
           CommentSortingCategory.COMMENT_DATE_ASC,
         );
-        expect(ascResult.map((comment) => comment.id)).toEqual(["3", "2", "1"]);
+        expect(ascResult.map((comment) => comment.commentRevisionId)).toEqual([
+          "3",
+          "2",
+          "1",
+        ]);
 
         const descResult = sortCommentList(
           comments,
           CommentSortingCategory.COMMENT_DATE_DESC,
         );
-        expect(descResult.map((comment) => comment.id)).toEqual([
+        expect(descResult.map((comment) => comment.commentRevisionId)).toEqual([
           "1",
           "2",
           "3",
@@ -889,17 +977,7 @@ describe("post utilities", () => {
           createDummyPost({
             comments: [
               createHatefulComment("hateful comment"),
-              {
-                author: { name: "User", accountHref: "" },
-                textContent: "Nice video!",
-                publishedAt: {
-                  type: "absolute",
-                  date: new Date().toISOString(),
-                },
-                classification: [AnnotatedCategory.ABSENCE_DE_CYBERHARCELEMENT],
-                isNew: false,
-                isDeleted: false,
-              },
+              createHatefulComment("Nice video!", false),
             ],
           }),
         ];

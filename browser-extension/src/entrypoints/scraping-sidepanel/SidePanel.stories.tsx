@@ -237,6 +237,11 @@ function mockPostComment(authorName: string, hatefull: boolean): PostComment {
       name: authorName,
       accountHref: "",
     },
+    postId: "post",
+    socialNetwork: SocialNetwork.YouTube,
+    commentId: authorName,
+    revision: 0,
+    commentRevisionId: `post:${authorName}:0`,
     textContent: "content",
     classification: hatefull ? ["Cyberharcèlement (autre)"] : [],
   } as PostComment;

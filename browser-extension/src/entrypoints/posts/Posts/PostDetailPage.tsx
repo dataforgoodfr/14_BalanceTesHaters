@@ -1,3 +1,6 @@
+import { Tabs } from "@base-ui/react/tabs";
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
+import { COMMENT_STATISTICS_TABS } from "../Shared/commentStatistics";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { SocialNetworkName } from "@/shared/model/SocialNetworkName";
@@ -9,7 +12,6 @@ import PostSummary from "../Shared/PostSummary";
 import {
   formatAnalysisDate,
   CommentSortingCategory,
-  isCommentHateful,
 } from "@/shared/utils/post-util";
 import ActiveAuthors from "../Shared/ActiveAuthors";
 import CommentsTable from "./CommentsTable";
@@ -24,6 +26,9 @@ import { main } from "../Menu";
 import { buildPostDetailCsv } from "./postDetailCsv";
 import { createLogger } from "@/shared/utils/createLogger";
 
+// Set to false to show the KPI cards in a row above the author statistics.
+const ENABLE_TWO_COLUMN_STATS_LAYOUT = true;
+
 const logger = createLogger("post-detail");
 
 function PostDetailPage() {
@@ -37,11 +42,6 @@ function PostDetailPage() {
     queryFn: () => getPostByPostId(socialNetworkName, postId),
   });
 
-  const nbComments = post?.comments.length ?? 0;
-  const hatefulComments =
-    post?.comments.filter((c) => isCommentHateful(c)) ?? [];
-  const nbHatefulComments = hatefulComments.length;
-
   const [commentSortingCategory, setCommentSortingCategory] =
     React.useState<CommentSortingCategory>(
       CommentSortingCategory.HATE_SCORE_DESC,
@@ -50,16 +50,19 @@ function PostDetailPage() {
   const {
     commentFilters,
     setCommentFilters,
+    allComments,
     filteredCommentList,
-    hatefulAuthorList,
+    authorList,
   } = useFilteredCommentList(
     postId === undefined ? [] : [postId],
     commentSortingCategory,
   );
 
-  const filteredHatefulComments = filteredCommentList.filter(
-    (c) => c.isCommentHateful,
-  );
+  const nbComments = allComments.length;
+  const statisticsTabs = COMMENT_STATISTICS_TABS.map((tab) => ({
+    ...tab,
+    comments: allComments.filter(tab.isHateful),
+  }));
 
   const postExportCsv = () => {
     if (!post) {
@@ -115,9 +118,7 @@ function PostDetailPage() {
           {/* Content */}
           <div className="flex flex-col gap-4">
             <div className="mb-8">
-              <h1 className="mt-2 mb-1 ">
-                Analyse des commentaires malveillants
-              </h1>
+              <h1 className="mt-2 mb-1 ">Analyse des commentaires</h1>
               <div className="text-base mt-0">
                 Données collectées le{" "}
                 {formatAnalysisDate(post.firstAnalysisDate)}
@@ -131,39 +132,91 @@ function PostDetailPage() {
             <h3 className="text-left">Publication analysée</h3>
             <Card>
               <CardContent className="flex gap-3 justify-between">
-                <PostSummary post={post} />
+                <PostSummary post={{ ...post, comments: allComments }} />
               </CardContent>
             </Card>
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-                <PercentageHatefulCommentsKpiCard
-                  numberOfHatefulComments={nbHatefulComments}
-                  numberOfComments={nbComments}
-                  isLoading={isLoading}
-                />
-                <NumberHatefulCommentsKpiCard
-                  numberOfHatefulComments={nbHatefulComments}
-                  numberOfComments={nbComments}
-                  isLoading={isLoading}
-                />
-                <NumberHatefulAuhorsKpiCard
-                  hatefulCommentList={hatefulComments}
-                  isLoading={isLoading}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4 w-full">
-                <ActiveAuthors
-                  postComments={post.comments}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
+            <Tabs.Root defaultValue="ai" className="flex flex-col gap-4">
+              <Tabs.List
+                aria-label="Source des statistiques"
+                className="flex flex-wrap gap-1 rounded-lg bg-muted p-1"
+              >
+                {statisticsTabs.map((tab) => (
+                  <Tabs.Tab
+                    key={tab.value}
+                    value={tab.value}
+                    className="flex-1 rounded-md px-4 py-2 text-sm font-medium text-muted-foreground outline-none data-active:bg-background data-active:text-foreground data-active:shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {tab.comments.length} {tab.label}
+                    {tab.value === "ai" &&
+                      ` (score > ${AI_SCORE_HATE_THRESHOLD * 100}%)`}
+                  </Tabs.Tab>
+                ))}
+              </Tabs.List>
+              {statisticsTabs.map((tab) => {
+                const hatefulComments = tab.comments;
+                const nbHatefulComments = hatefulComments.length;
+                return (
+                  <Tabs.Panel
+                    key={tab.value}
+                    value={tab.value}
+                    className="outline-none"
+                  >
+                    <div
+                      className={
+                        ENABLE_TWO_COLUMN_STATS_LAYOUT
+                          ? "grid grid-cols-1 gap-4 lg:grid-cols-3"
+                          : "flex flex-col gap-3"
+                      }
+                    >
+                      <div
+                        className={
+                          ENABLE_TWO_COLUMN_STATS_LAYOUT
+                            ? "grid gap-4"
+                            : "grid grid-cols-1 md:grid-cols-3 gap-4 w-full"
+                        }
+                      >
+                        <PercentageHatefulCommentsKpiCard
+                          commentLabel={tab.label}
+                          numberOfHatefulComments={nbHatefulComments}
+                          numberOfComments={nbComments}
+                          isLoading={isLoading}
+                        />
+                        <NumberHatefulCommentsKpiCard
+                          commentLabel={tab.label}
+                          numberOfHatefulComments={nbHatefulComments}
+                          numberOfComments={nbComments}
+                          isLoading={isLoading}
+                        />
+                        <NumberHatefulAuhorsKpiCard
+                          commentLabel={tab.label}
+                          hatefulCommentList={hatefulComments}
+                          isLoading={isLoading}
+                        />
+                      </div>
+                      <div
+                        className={
+                          ENABLE_TWO_COLUMN_STATS_LAYOUT
+                            ? "grid min-w-0 lg:col-span-2"
+                            : "grid grid-cols-1 gap-4 w-full"
+                        }
+                      >
+                        <ActiveAuthors
+                          commentLabel={tab.label}
+                          postComments={allComments}
+                          isHateful={tab.isHateful}
+                          isLoading={isLoading}
+                        />
+                      </div>
+                    </div>
+                  </Tabs.Panel>
+                );
+              })}
+            </Tabs.Root>
             <div className="text-left">
-              <h3>Commentaires malveillants</h3>
+              <h3>Commentaires</h3>
               <span className="text-muted-foreground text-sm italic">
-                Pour créer un rapport de preuves : sélectionner un ou plusieurs
-                commentaires (ou “Tout sélectionner”), puis cliquer sur “Créer
-                un rapport”.
+                Pour créer un rapport de preuves : déclarer un ou plusieurs
+                commentaires malveillants, puis cliquer sur “Créer un rapport”.
               </span>
 
               <ClosableAlert
@@ -181,16 +234,15 @@ function PostDetailPage() {
               </ClosableAlert>
 
               <CommentsTable
-                commentList={filteredHatefulComments}
+                commentList={filteredCommentList}
                 commentFilters={commentFilters}
                 setCommentFilters={setCommentFilters}
                 commentSortingCategory={commentSortingCategory}
                 setCommentSortingCategory={setCommentSortingCategory}
                 defaultSelectedCommentIdList={[]}
                 formId=""
-                // We can't use filteredHatefulComments because we want to access all the hateful authors
-                // and not only the ones that are currently displayed in the table (because of the filters)
-                authorList={hatefulAuthorList}
+                // Keep all authors available regardless of the active comment filters.
+                authorList={authorList}
                 onSubmit={() => logger.debug("Comments submitted")}
                 showCreateReportButton={true}
               />

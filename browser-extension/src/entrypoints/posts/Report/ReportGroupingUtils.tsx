@@ -1,3 +1,4 @@
+import type { PostCommentWithFlag } from "@/shared/model/post/Post";
 import type { Author } from "@/shared/model/Author";
 import type { Post } from "@/shared/model/post/Post";
 import type React from "react";
@@ -6,13 +7,12 @@ import {
   getTitlePublicationHeader,
   LABEL_URL,
 } from "./reportData";
-import type { PostCommentWithId } from "@/shared/utils/post-util";
 import { buildPostKey } from "@/shared/utils/post-util";
 import { ReportOrganizationType } from "@/shared/model/ReportOrganizationType";
 
 export interface GroupedData {
   groupKey: string;
-  comments: PostCommentWithId[];
+  comments: PostCommentWithFlag[];
   headerContent: React.ReactNode;
   postLatestAnalysisDate: Date;
   post?: Post;
@@ -61,13 +61,14 @@ const createAuthorHeader = (
 
 export const getPublicationGroups = (
   posts: Post[] | undefined,
-  comments: PostCommentWithId[],
+  comments: PostCommentWithFlag[],
 ): GroupedData[] => {
   return Array.from(posts ?? []).map((post) => ({
     groupKey: buildPostKey(post.postId, post.socialNetwork),
     comments: comments.filter(
       (comment) =>
-        comment.postKey === buildPostKey(post.postId, post.socialNetwork),
+        buildPostKey(comment.postId, comment.socialNetwork) ===
+        buildPostKey(post.postId, post.socialNetwork),
     ),
     headerContent: createPublicationHeader(post),
     postLatestAnalysisDate: new Date(post.latestAnalysisDate),
@@ -78,11 +79,11 @@ export const getPublicationGroups = (
 };
 
 export const getAuthorGroups = (
-  comments: PostCommentWithId[],
+  comments: PostCommentWithFlag[],
   latestAnalysisDate: Date,
   posts: Post[] | undefined,
 ): GroupedData[] => {
-  const grouped = new Map<string, PostCommentWithId[]>();
+  const grouped = new Map<string, PostCommentWithFlag[]>();
   const authorMap = new Map<string, Author>();
   const commentPostMap: Map<string, Post> = getCommentPostMap(comments, posts);
 
@@ -104,14 +105,14 @@ export const getAuthorGroups = (
     ),
     postLatestAnalysisDate: latestAnalysisDate,
     reportOrganizationType: ReportOrganizationType.BY_AUTHOR,
-    post: commentPostMap.get(commentList[0]!.id),
+    post: commentPostMap.get(commentList[0]!.commentRevisionId),
     commentPostMap: commentPostMap,
     author: authorMap.get(authorName),
   }));
 };
 
 function getCommentPostMap(
-  comments: PostCommentWithId[],
+  comments: PostCommentWithFlag[],
   posts: Post[] | undefined,
 ): Map<string, Post> {
   const commentPostMap = new Map<string, Post>();
@@ -121,10 +122,12 @@ function getCommentPostMap(
     // Map comment to its post for later retrieval
     if (posts) {
       post = posts.find(
-        (p) => buildPostKey(p.postId, p.socialNetwork) === comment.postKey,
+        (p) =>
+          buildPostKey(p.postId, p.socialNetwork) ===
+          buildPostKey(comment.postId, comment.socialNetwork),
       );
       if (post) {
-        commentPostMap.set(comment.id, post);
+        commentPostMap.set(comment.commentRevisionId, post);
       }
     }
   });

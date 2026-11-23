@@ -1,4 +1,9 @@
 import type { PostSnapshot } from "@/shared/model/PostSnapshot";
+import {
+  postHateFlagsRecordKey,
+  PostHateFlagsSchema,
+  type PostHateFlags,
+} from "@/shared/storage/hate-flags-storage";
 import { PostSnapshotSchema } from "@/shared/model/PostSnapshot";
 import type { BrowserContext } from "@playwright/test";
 import { evaluateInBackgroundWorker } from "../evaluate/evaluateInBackgroundWorker";
@@ -6,9 +11,21 @@ import { evaluateInBackgroundWorker } from "../evaluate/evaluateInBackgroundWork
 export async function e2eSeedPostSnapshots(
   context: BrowserContext,
   postSnapshots: PostSnapshot[],
+  postHateFlags: PostHateFlags[] = [],
 ): Promise<void> {
   const validPostSnapshots = PostSnapshotSchema.array().parse(postSnapshots);
-  const seedPostStorage = async (snapshots: PostSnapshot[]) => {
+  const hateFlagRecords = Object.fromEntries(
+    PostHateFlagsSchema.array()
+      .parse(postHateFlags)
+      .map((flags) => [postHateFlagsRecordKey(flags.postId), flags]),
+  );
+  const seedPostStorage = async ({
+    snapshots,
+    hateFlagRecords,
+  }: {
+    snapshots: PostSnapshot[];
+    hateFlagRecords: Record<string, PostHateFlags>;
+  }) => {
     const screenshotData =
       "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
     const flattenComments = (
@@ -41,11 +58,11 @@ export async function e2eSeedPostSnapshots(
     await browser.storage.local.set({
       "post-snapshots:storage-version": 2,
     });
+    await browser.storage.local.set(hateFlagRecords);
   };
 
-  await evaluateInBackgroundWorker(
-    context,
-    seedPostStorage,
-    validPostSnapshots,
-  );
+  await evaluateInBackgroundWorker(context, seedPostStorage, {
+    snapshots: validPostSnapshots,
+    hateFlagRecords,
+  });
 }

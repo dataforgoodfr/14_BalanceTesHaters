@@ -7,9 +7,11 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { PostComment } from "@/shared/model/post/Post";
+import type {
+  PostComment,
+  PostCommentWithFlag,
+} from "@/shared/model/post/Post";
 import { getFirstDayOfWeek } from "@/shared/utils/date-util";
-import { isCommentHateful } from "@/shared/utils/post-util";
 import type { DateRange } from "@daypicker/react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
@@ -18,8 +20,10 @@ const NB_DAY_IN_WEEK = 7; // Number of days in a week
 
 type HarassmentTrendChartProps = {
   dateRange: DateRange | undefined;
-  commentList: PostComment[];
+  commentList: PostCommentWithFlag[];
   isLoading: boolean;
+  isHateful: (comment: PostCommentWithFlag) => boolean;
+  commentLabel: string;
 };
 
 function getCommentChartDate(comment: PostComment): Date {
@@ -123,16 +127,16 @@ function aggregateByWeek(
 function HarassmentTrendChart({
   dateRange,
   commentList,
+  isHateful,
+  commentLabel,
 }: Readonly<HarassmentTrendChartProps>) {
   const chartConfig = {
     nombre: {
-      label: "Commentaires malveillants",
+      label: commentLabel.charAt(0).toUpperCase() + commentLabel.slice(1),
     },
   } satisfies ChartConfig;
 
-  const hatefulCommentList = commentList.filter((comment) =>
-    isCommentHateful(comment),
-  );
+  const hatefulCommentList = commentList.filter(isHateful);
 
   const commentByDateAggregation: { date: Date; nombre: number }[] =
     getAllDates(dateRange, hatefulCommentList).map((date) => ({
@@ -176,7 +180,7 @@ function HarassmentTrendChart({
     <Card className="w-full min-h-100">
       <CardHeader>
         <CardTitle className="text-left text-muted-forground font-display font-medium">
-          Évolution des commentaires malveillants
+          Évolution des {commentLabel}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
