@@ -1,5 +1,8 @@
 import { Spinner } from "@/components/ui/spinner";
-import type { PostWithFlags } from "@/shared/model/post/Post";
+import type {
+  PostCommentWithFlag,
+  PostWithFlags,
+} from "@/shared/model/post/Post";
 import PercentageHatefulCommentsKpiCard from "../Shared/KpiCards/PercentageHatefulCommentsKpiCard";
 import NumberHatefulCommentsKpiCard from "../Shared/KpiCards/NumberHatefulCommentsKpiCard";
 import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKpiCard";
@@ -7,16 +10,19 @@ import NumberHatefulAuhorsKpiCard from "../Shared/KpiCards/NumberHatefulAuhorsKp
 type KpiCardsProps = {
   posts: PostWithFlags[] | undefined;
   isLoading: boolean;
+  isHateful: (comment: PostCommentWithFlag) => boolean;
+  commentLabel: string;
 };
 
-function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
-  let numberOfHatefulComments = 0;
-
+function KpiCards({
+  posts,
+  isLoading,
+  isHateful,
+  commentLabel,
+}: Readonly<KpiCardsProps>) {
   const allComments = (posts || []).flatMap((p) => p.comments);
-  const hatefulComments = allComments.filter((c) => c.isFlagged);
-  if (allComments.length !== 0) {
-    numberOfHatefulComments = hatefulComments.length;
-  }
+  const hatefulComments = allComments.filter(isHateful);
+  const numberOfHatefulComments = hatefulComments.length;
 
   return (
     <>
@@ -26,18 +32,21 @@ function KpiCards({ posts, isLoading }: Readonly<KpiCardsProps>) {
           Aucun post collecté pour la période sélectionnée.
         </p>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <PercentageHatefulCommentsKpiCard
+          commentLabel={commentLabel}
           numberOfHatefulComments={numberOfHatefulComments}
           numberOfComments={allComments.length}
           isLoading={isLoading}
         />
         <NumberHatefulCommentsKpiCard
+          commentLabel={commentLabel}
           numberOfHatefulComments={numberOfHatefulComments}
           numberOfComments={allComments.length}
           isLoading={isLoading}
         />
         <NumberHatefulAuhorsKpiCard
+          commentLabel={commentLabel}
           hatefulCommentList={hatefulComments}
           isLoading={isLoading}
         />

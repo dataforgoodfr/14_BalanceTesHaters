@@ -42,6 +42,12 @@ test("browse publications and open publication details", async ({
   await expect(
     postsApp.page.getByRole("heading", { name: "Publication analysée" }),
   ).toBeVisible();
+  await postsApp.page
+    .getByRole("tab", {
+      name: "2 commentaires marqués manuellement",
+      exact: true,
+    })
+    .click();
   await expect(postsApp.page.getByText("2/3", { exact: true })).toBeVisible();
   const commentsTable = postsApp.page.getByRole("table");
   await expect(commentsTable.getByText("Auteur menaçant")).toBeVisible();

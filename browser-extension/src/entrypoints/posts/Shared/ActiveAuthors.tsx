@@ -18,6 +18,8 @@ const MAX_AUTHORS_TO_DISPLAY = 10; // Nombre maximum d'auteurs à afficher dans 
 type ActiveAuthorsProps = {
   postComments: PostCommentWithFlag[];
   isLoading: boolean;
+  commentLabel?: string;
+  isHateful?: (comment: PostCommentWithFlag) => boolean;
 };
 
 type ChartDataPoint = {
@@ -28,10 +30,13 @@ type ChartDataPoint = {
 function ActiveAuthors({
   postComments,
   isLoading,
+  isHateful,
+  commentLabel = "commentaires malveillants",
 }: Readonly<ActiveAuthorsProps>) {
   const dataPoints: ChartDataPoint[] = getHatefulAuthorStatsList(
     postComments,
     MAX_AUTHORS_TO_DISPLAY,
+    isHateful,
   ).map((s) => ({
     authorName: s.authorName,
     hatefulCommentsCount: s.hatefulCommentsCount,
@@ -41,13 +46,13 @@ function ActiveAuthors({
 
   const chartConfig = {
     hatefulCommentsCount: {
-      label: "Commentaires malveillants",
+      label: commentLabel.charAt(0).toUpperCase() + commentLabel.slice(1),
     },
     authorName: {
       label: "Auteurs",
     },
     hatefulContributionPercentageLabel: {
-      label: "Ratio de commentaires malveillants",
+      label: `Ratio de ${commentLabel}`,
     },
   } satisfies ChartConfig;
 
@@ -55,7 +60,7 @@ function ActiveAuthors({
     <Card className="w-full relative">
       <CardHeader>
         <CardTitle className="text-left text-muted-forground font-display font-medium">
-          Principaux auteurs de commentaires malveillants
+          Principaux auteurs de {commentLabel}
         </CardTitle>
       </CardHeader>
       <CardContent className="">

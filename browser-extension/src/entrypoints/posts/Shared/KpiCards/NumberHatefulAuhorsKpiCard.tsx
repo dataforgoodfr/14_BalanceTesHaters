@@ -5,17 +5,19 @@ import { getNumberOfHatefulAuthors } from "@/shared/utils/report-stats";
 type NumberHatefulAuhorsKpiCardProperties = {
   hatefulCommentList: PostComment[];
   isLoading: boolean;
+  commentLabel?: string;
 };
 
 export default function NumberHatefulAuhorsKpiCard({
   hatefulCommentList,
   isLoading,
+  commentLabel = "commentaires malveillants",
 }: Readonly<NumberHatefulAuhorsKpiCardProperties>) {
   const numberOfHatefulAuthors = getNumberOfHatefulAuthors(hatefulCommentList);
 
   return (
     <KpiCard
-      title="Auteurs de commentaires malveillants"
+      title={`Auteurs de ${commentLabel}`}
       value={numberOfHatefulAuthors.toString()}
       isWorkInProgress={false}
       isLoading={isLoading}

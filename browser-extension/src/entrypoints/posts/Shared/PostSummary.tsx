@@ -1,3 +1,4 @@
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import type { PostWithFlags } from "@/shared/model/post/Post";
@@ -5,10 +6,14 @@ import type { PublicationDate } from "@/shared/model/PublicationDate";
 import { getSocialNetworkName } from "@/shared/utils/post-util";
 
 function PostSummary({ post }: { post: PostWithFlags }) {
-  const hatefulCommentsCount =
-    post.latestAnalysisStatus === "COMPLETED"
-      ? post.comments.filter((c) => c.isFlagged).length
-      : undefined;
+  const aiSuspectedCommentsCount = post.comments.filter(
+    (comment) =>
+      comment.hateScore !== undefined &&
+      comment.hateScore > AI_SCORE_HATE_THRESHOLD,
+  ).length;
+  const flaggedCommentsCount = post.comments.filter(
+    (comment) => comment.isFlagged,
+  ).length;
   return (
     <div className="flex w-full">
       <div className="grow flex">
@@ -30,15 +35,13 @@ function PostSummary({ post }: { post: PostWithFlags }) {
             </a>
           </span>
           <span className="text-xs text-muted-foreground">
-            {publishedAtText(post.publishedAt)} • {""}
-            {hatefulCommentsCount === undefined ? (
-              <>{post.comments.length} commentaires</>
-            ) : (
-              <>
-                {hatefulCommentsCount}/{post.comments.length} commentaires
-                malveillants
-              </>
-            )}
+            {publishedAtText(post.publishedAt)} • {post.comments.length}{" "}
+            commentaires
+            {" • "}
+            {aiSuspectedCommentsCount} suspecté
+            {aiSuspectedCommentsCount !== 1 ? "s" : ""} par l'IA
+            {" • "}
+            {flaggedCommentsCount} marqué{flaggedCommentsCount !== 1 ? "s" : ""}
           </span>
         </div>
       </div>

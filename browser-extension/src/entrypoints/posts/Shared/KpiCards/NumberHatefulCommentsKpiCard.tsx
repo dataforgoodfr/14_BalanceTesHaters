@@ -4,12 +4,14 @@ type NumberHatefulCommentsKpiCardProperties = {
   numberOfHatefulComments: number;
   numberOfComments?: number;
   isLoading: boolean;
+  commentLabel?: string;
 };
 
 export default function NumberHatefulCommentsKpiCard({
   numberOfHatefulComments,
   numberOfComments,
   isLoading,
+  commentLabel = "commentaires malveillants",
 }: Readonly<NumberHatefulCommentsKpiCardProperties>) {
   const value = numberOfComments
     ? `${numberOfHatefulComments.toString()}/${numberOfComments.toString()}`
@@ -17,7 +19,7 @@ export default function NumberHatefulCommentsKpiCard({
 
   return (
     <KpiCard
-      title="Nombre de commentaires malveillants"
+      title={`Nombre de ${commentLabel}`}
       value={value}
       isWorkInProgress={false}
       isLoading={isLoading}

@@ -58,16 +58,16 @@ export const getNumberOfHatefulAuthors = (
 export const getHatefulAuthorStatsList = (
   postComments: readonly PostCommentWithFlag[],
   maxAuthors: number | undefined = undefined,
+  isHateful: (comment: PostCommentWithFlag) => boolean = (comment) =>
+    comment.isFlagged,
 ): HatefulAuthorStats[] => {
   const commentsByAuthor = Object.groupBy(postComments, (c) => c.author.name);
-  const allHatefulCommentsCount = postComments.filter(
-    (c) => c.isFlagged,
-  ).length;
+  const allHatefulCommentsCount = postComments.filter(isHateful).length;
   const stats = Object.entries(commentsByAuthor)
     .map(([authorName, authorComments]) => {
       const authorCommentsCount = (authorComments || []).length;
       const authorHatefulCommentsCount = (authorComments || []).filter(
-        (c) => c.isFlagged,
+        isHateful,
       ).length;
       return {
         authorName: authorName,

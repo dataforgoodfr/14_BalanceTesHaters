@@ -27,12 +27,20 @@ test("browse the overview page with seeded publication statistics", async ({
       "Publications analysées pour la période sélectionnée : 2",
     ),
   ).toBeVisible();
+  await postsApp.page
+    .getByRole("tab", {
+      name: "3 commentaires marqués manuellement",
+      exact: true,
+    })
+    .click();
   await expect(
-    postsApp.page.getByText("Part des commentaires malveillants"),
+    postsApp.page.getByText("Part des commentaires marqués manuellement"),
   ).toBeVisible();
   await expect(postsApp.page.getByText("75.00%")).toBeVisible();
   await expect(
-    postsApp.page.getByText("Principaux auteurs de commentaires malveillants"),
+    postsApp.page.getByText(
+      "Principaux auteurs de commentaires marqués manuellement",
+    ),
   ).toBeVisible();
   await expect(
     postsApp.page.getByText("Répartition par catégories"),

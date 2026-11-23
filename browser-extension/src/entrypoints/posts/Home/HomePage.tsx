@@ -1,3 +1,6 @@
+import { Tabs } from "@base-ui/react/tabs";
+import { AI_SCORE_HATE_THRESHOLD } from "@/shared/constants/ai-score-hate-threshold";
+import { COMMENT_STATISTICS_TABS } from "../Shared/commentStatistics";
 import KpiCards from "./KpiCards";
 import HarassmentTrendChart from "./HarassmentTrendChard";
 import ActiveAuthors from "../Shared/ActiveAuthors";
@@ -50,17 +53,57 @@ function HomePage() {
       {allComments.length === 0 && !isLoading && <NoPost />}
 
       {allComments.length > 0 && (
-        <>
-          <KpiCards posts={filteredPosts} isLoading={isLoading} />
-          <HarassmentTrendChart
-            dateRange={dateRange}
-            commentList={allComments}
-            isLoading={isLoading}
-          />
-          <div className="grid grid-cols-1 gap-4">
-            <ActiveAuthors postComments={allComments} isLoading={isLoading} />
-          </div>
-        </>
+        <Tabs.Root defaultValue="ai" className="flex flex-col gap-4">
+          <Tabs.List
+            aria-label="Source des statistiques"
+            className="flex flex-wrap gap-1 rounded-lg bg-muted p-1"
+          >
+            {COMMENT_STATISTICS_TABS.map((tab) => (
+              <Tabs.Tab
+                key={tab.value}
+                value={tab.value}
+                className="flex-1 rounded-md px-4 py-2 text-sm font-medium text-muted-foreground outline-none data-active:bg-background data-active:text-foreground data-active:shadow-sm focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {allComments.filter(tab.isHateful).length} {tab.label}
+                {tab.value === "ai" &&
+                  ` (score > ${AI_SCORE_HATE_THRESHOLD * 100}%)`}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          {COMMENT_STATISTICS_TABS.map((tab) => (
+            <Tabs.Panel
+              key={tab.value}
+              value={tab.value}
+              className="flex flex-col gap-4 outline-none"
+            >
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                <div className="min-w-0">
+                  <KpiCards
+                    posts={filteredPosts}
+                    isLoading={isLoading}
+                    isHateful={tab.isHateful}
+                    commentLabel={tab.label}
+                  />
+                </div>
+                <div className="grid min-w-0 lg:col-span-2">
+                  <ActiveAuthors
+                    postComments={allComments}
+                    isLoading={isLoading}
+                    isHateful={tab.isHateful}
+                    commentLabel={tab.label}
+                  />
+                </div>
+              </div>
+              <HarassmentTrendChart
+                dateRange={dateRange}
+                commentList={allComments}
+                isLoading={isLoading}
+                isHateful={tab.isHateful}
+                commentLabel={tab.label}
+              />
+            </Tabs.Panel>
+          ))}
+        </Tabs.Root>
       )}
     </main>
   );
