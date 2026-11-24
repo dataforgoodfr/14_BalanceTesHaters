@@ -23,12 +23,23 @@ PROMPT = """You are part of a cyberbullying classification system. You will rece
 class CyberbullyingScores:
     is_sarcastic: float | None
     is_insulting: float | None
-    is_mocking: float | None
     is_discriminatory: float | None
+    is_threatening: float | None
+    is_dehumanizing: float | None
+    is_trolling: float | None
+    is_cyberbullying: float | None
 
     @property
     def average(self) -> float | None:
-        scores = [self.is_sarcastic, self.is_insulting, self.is_mocking, self.is_discriminatory]
+        scores = [
+            self.is_sarcastic,
+            self.is_insulting,
+            self.is_discriminatory,
+            self.is_threatening,
+            self.is_dehumanizing,
+            self.is_trolling,
+            self.is_cyberbullying,
+        ]
         valid = [s for s in scores if s is not None]
         return sum(valid) / len(valid) if valid else None
 
@@ -48,10 +59,22 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
                     instructions="Is this comment sarcastic? Note: some emojis can be used to mean sarcasm"
                 ),
                 "is_insulting": Noul(
-                    instructions="Does this comment contain insults? Is it insulting or mocking a person or a community?"
+                    instructions="Does this comment contain insults, name-calling, or profanity directed at a person or community?"
                 ),
                 "is_discriminatory": Noul(
                     instructions="Is this comment expressing discriminatory claims (e.g. towards minorities)?"
+                ),
+                "is_threatening": Noul(
+                    instructions="Does this comment contain explicit or implicit threats of violence, harm, or negative consequences?"
+                ),
+                "is_dehumanizing": Noul(
+                    instructions="Does this comment dehumanize, animalize, or reduce the target to an object, stereotype, or thing?"
+                ),
+                "is_trolling": Noul(
+                    instructions="Does this comment provoke, bait, or deliberately derail for amusement? Is its primary purpose to annoy rather than express a genuine opinion?"
+                ),
+                "is_cyberbullying": Noul(
+                    instructions="Overall, does this comment constitute cyberbullying? Consider: is it intended to harass, humiliate, intimidate, or harm? Not all criticism is bullying — distinguish between legitimate disagreement and malicious intent."
                 ),
             },
         )
@@ -60,7 +83,7 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
         return None
 
     scores = {}
-    for key in ["is_sarcastic", "is_insulting", "is_mocking", "is_discriminatory"]:
+    for key in ["is_sarcastic", "is_insulting", "is_discriminatory", "is_threatening", "is_dehumanizing", "is_trolling", "is_cyberbullying"]:
         answer = response.answers.get(key)
         if answer is None:
             logger.warning(f"No answer for '{key}' on comment '{comment[:50]}...'")
@@ -71,8 +94,11 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
     return CyberbullyingScores(
         is_sarcastic=scores["is_sarcastic"],
         is_insulting=scores["is_insulting"],
-        is_mocking=scores["is_mocking"],
         is_discriminatory=scores["is_discriminatory"],
+        is_threatening=scores["is_threatening"],
+        is_dehumanizing=scores["is_dehumanizing"],
+        is_trolling=scores["is_trolling"],
+        is_cyberbullying=scores["is_cyberbullying"],
     )
 
 
@@ -118,7 +144,7 @@ def build_result_df(df: pd.DataFrame, predictions: pd.Series) -> pd.DataFrame:
     scores_list = predictions.tolist()
     result["avg_cyberbullying"] = [p.average if p else None for p in scores_list]
 
-    for key in ["is_sarcastic", "is_insulting", "is_mocking", "is_discriminatory"]:
+    for key in ["is_sarcastic", "is_insulting", "is_discriminatory", "is_threatening", "is_dehumanizing", "is_trolling", "is_cyberbullying"]:
         result[key] = [getattr(p, key) if p else None for p in scores_list]
 
     return result
