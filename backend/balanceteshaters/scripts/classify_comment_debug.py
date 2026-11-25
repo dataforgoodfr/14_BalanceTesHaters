@@ -23,10 +23,10 @@ def format_scores(scores: CyberbullyingScores | None) -> str:
         return "  No scores returned"
 
     lines = [
-        f"  is_sarcastic:     {scores.is_sarcastic}",
         f"  is_insulting:     {scores.is_insulting}",
-        f"  is_mocking:       {scores.is_mocking}",
-        f"  is_discriminatory: {scores.is_discriminatory}",
+        f"  is_discriminatory:     {scores.is_discriminatory}",
+        f"  is_threatening:     {scores.is_threatening}",
+        f"  is_incitement_to_hatred_or_crime:       {scores.is_incitement_to_hatred_or_crime}",
     ]
 
     if scores.average is not None:

@@ -16,32 +16,39 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-PROMPT = """You are part of a cyberbullying classification system. You will receive a comment from social media (typically Youtube or Instagram) and score various properties which relate to cyberbullying."""
+PROMPT = """You are part of a cyberbullying classification system. You will receive a comment from social media (typically Youtube or Instagram) and score various properties which relate to cyberbullying.
+
+Most comments are in expressed in french. Pay attention to the use of emojis (e.g. 💩 is considered insulting) and sarcasm."""
 
 
 @dataclass
 class CyberbullyingScores:
-    is_sarcastic: float | None
     is_insulting: float | None
     is_discriminatory: float | None
     is_threatening: float | None
-    is_dehumanizing: float | None
-    is_trolling: float | None
-    is_cyberbullying: float | None
+    is_incitement_to_hatred_or_crime: float | None
 
     @property
     def average(self) -> float | None:
         scores = [
-            self.is_sarcastic,
             self.is_insulting,
             self.is_discriminatory,
             self.is_threatening,
-            self.is_dehumanizing,
-            self.is_trolling,
-            self.is_cyberbullying,
+            self.is_incitement_to_hatred_or_crime,
         ]
         valid = [s for s in scores if s is not None]
         return sum(valid) / len(valid) if valid else None
+
+    @property
+    def max(self) -> float | None:
+        scores = [
+            self.is_insulting,
+            self.is_discriminatory,
+            self.is_threatening,
+            self.is_incitement_to_hatred_or_crime,
+        ]
+        valid = [s for s in scores if s is not None]
+        return max(valid) if valid else None
 
 
 def classify_comment(client: TypeSafeClient, comment: str | None) -> CyberbullyingScores | None:
@@ -55,11 +62,8 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
         response = client.system_one(
             state={"instructions": PROMPT, "comment": comment.strip()},
             questions={
-                "is_sarcastic": Noul(
-                    instructions="Is this comment sarcastic? Note: some emojis can be used to mean sarcasm"
-                ),
                 "is_insulting": Noul(
-                    instructions="Does this comment contain insults, name-calling, or profanity directed at a person or community?"
+                    instructions="Is this comment insulting a person or a community?"
                 ),
                 "is_discriminatory": Noul(
                     instructions="Is this comment expressing discriminatory claims (e.g. towards minorities)?"
@@ -67,14 +71,8 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
                 "is_threatening": Noul(
                     instructions="Does this comment contain explicit or implicit threats of violence, harm, or negative consequences?"
                 ),
-                "is_dehumanizing": Noul(
-                    instructions="Does this comment dehumanize, animalize, or reduce the target to an object, stereotype, or thing?"
-                ),
-                "is_trolling": Noul(
-                    instructions="Does this comment provoke, bait, or deliberately derail for amusement? Is its primary purpose to annoy rather than express a genuine opinion?"
-                ),
-                "is_cyberbullying": Noul(
-                    instructions="Overall, does this comment constitute cyberbullying? Consider: is it intended to harass, humiliate, intimidate, or harm? Not all criticism is bullying — distinguish between legitimate disagreement and malicious intent."
+                "is_incitement_to_hatred_or_crime": Noul(
+                    instructions="Does this comment incite its readers to commit hate crimes against a person or community? Could it be considered as incitement to hatred?"
                 ),
             },
         )
@@ -83,7 +81,7 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
         return None
 
     scores = {}
-    for key in ["is_sarcastic", "is_insulting", "is_discriminatory", "is_threatening", "is_dehumanizing", "is_trolling", "is_cyberbullying"]:
+    for key in ["is_insulting", "is_discriminatory", "is_threatening", "is_incitement_to_hatred_or_crime"]:
         answer = response.answers.get(key)
         if answer is None:
             logger.warning(f"No answer for '{key}' on comment '{comment[:50]}...'")
@@ -92,13 +90,10 @@ def classify_comment(client: TypeSafeClient, comment: str | None) -> Cyberbullyi
             scores[key] = answer.noul
 
     return CyberbullyingScores(
-        is_sarcastic=scores["is_sarcastic"],
         is_insulting=scores["is_insulting"],
         is_discriminatory=scores["is_discriminatory"],
         is_threatening=scores["is_threatening"],
-        is_dehumanizing=scores["is_dehumanizing"],
-        is_trolling=scores["is_trolling"],
-        is_cyberbullying=scores["is_cyberbullying"],
+        is_incitement_to_hatred_or_crime=scores["is_incitement_to_hatred_or_crime"],
     )
 
 
@@ -143,8 +138,9 @@ def build_result_df(df: pd.DataFrame, predictions: pd.Series) -> pd.DataFrame:
     # Extract individual scores and average
     scores_list = predictions.tolist()
     result["avg_cyberbullying"] = [p.average if p else None for p in scores_list]
+    result["max_cyberbullying"] = [p.max if p else None for p in scores_list]
 
-    for key in ["is_sarcastic", "is_insulting", "is_discriminatory", "is_threatening", "is_dehumanizing", "is_trolling", "is_cyberbullying"]:
+    for key in ["is_insulting", "is_discriminatory", "is_threatening", "is_incitement_to_hatred_or_crime"]:
         result[key] = [getattr(p, key) if p else None for p in scores_list]
 
     return result
